@@ -175,10 +175,15 @@ export default function OnboardingScreen() {
     console.log('📦 Form data:', JSON.stringify(formData, null, 2));
     
     setLoading(true);
+    
+    // AbortController para cancelar requisição se componente desmontar
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
     try {
       // Prepara dados para API
       const profileData = {
-        name: formData.name,
+        name: formData.name.trim(),
         age: parseInt(formData.age),
         sex: formData.sex,
         height: parseFloat(formData.height),
@@ -197,7 +202,7 @@ export default function OnboardingScreen() {
       console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
       console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
 
-      // Cria perfil no backend
+      // Cria perfil no backend com timeout e signal
       const response = await axios.post(
         `${BACKEND_URL}/api/user/profile`,
         profileData,
@@ -205,18 +210,23 @@ export default function OnboardingScreen() {
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 10000, // 10 segundos timeout
+          timeout: 15000, // 15 segundos timeout
+          signal, // Permite cancelamento
         }
       );
 
       console.log('✅ Response received:', response.status, response.data);
 
-      // Verifica se a resposta é válida
+      // Valida resposta
       if (!response.data || !response.data.id) {
-        throw new Error('Resposta inválida do servidor');
+        throw new Error('Resposta inválida do servidor - ID não encontrado');
       }
 
-      // Salva ID do usuário localmente
+      if (!response.data.tdee || !response.data.target_calories || !response.data.macros) {
+        throw new Error('Dados incompletos retornados pelo servidor');
+      }
+
+      // Salva perfil localmente
       await AsyncStorage.setItem('userId', response.data.id);
       await AsyncStorage.setItem('userProfile', JSON.stringify(response.data));
       await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
@@ -224,32 +234,53 @@ export default function OnboardingScreen() {
       console.log('💾 Profile saved to AsyncStorage');
       console.log('🏠 Navigating to home immediately');
 
-      // CORREÇÃO CRÍTICA: Navega IMEDIATAMENTE sem Alert
-      // Alert pode não funcionar corretamente no preview web
+      // Navegação imediata sem Alert
       setLoading(false);
       router.replace('/home');
       
     } catch (error: any) {
       console.error('❌ Erro ao criar perfil:', error);
-      console.error('❌ Error details:', error.response?.data || error.message);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       
-      setLoading(false);
+      // Determina mensagem de erro específica
+      let errorMessage = 'Não foi possível criar seu perfil. ';
       
-      // Mostra erro detalhado
-      const errorMessage = error.response?.data?.detail 
-        || error.message 
-        || 'Erro desconhecido ao criar perfil';
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        errorMessage += 'A requisição demorou muito tempo. Verifique sua conexão e tente novamente.';
+      } else if (error.message === 'Network Error' || !error.response) {
+        errorMessage += 'Sem conexão com o servidor. Verifique sua internet.';
+      } else if (error.response?.status === 400) {
+        errorMessage += `Dados inválidos: ${error.response.data?.detail || 'Verifique os campos preenchidos.'}`;
+      } else if (error.response?.status === 500) {
+        errorMessage += 'Erro no servidor. Tente novamente em alguns instantes.';
+      } else if (error.response?.data?.detail) {
+        errorMessage += error.response.data.detail;
+      } else {
+        errorMessage += error.message || 'Erro desconhecido.';
+      }
       
       Alert.alert(
         'Erro ao Criar Perfil',
-        `Não foi possível criar seu perfil.\n\n${errorMessage}\n\nTente novamente.`,
+        `${errorMessage}\n\nDeseja tentar novamente?`,
         [
           {
-            text: 'OK',
+            text: 'Cancelar',
+            style: 'cancel',
+          },
+          {
+            text: 'Tentar Novamente',
+            onPress: () => handleSubmit(),
             style: 'default',
           }
         ]
       );
+    } finally {
+      setLoading(false);
+      console.log('🏁 handleSubmit completed');
     }
   };
 
