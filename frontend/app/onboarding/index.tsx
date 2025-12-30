@@ -19,6 +19,8 @@ export default function OnboardingScreen() {
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   
+  console.log('🎯 OnboardingScreen mounted. Backend URL:', BACKEND_URL);
+  
   const [formData, setFormData] = useState({
     // Básico
     name: '',
