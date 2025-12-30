@@ -327,6 +327,11 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
+  headerTarget: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
   regenerateButton: {
     width: 40,
     height: 40,
