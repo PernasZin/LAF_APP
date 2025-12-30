@@ -133,7 +133,10 @@ export default function DietScreen() {
           <View>
             <Text style={styles.headerTitle}>Seu Plano de Dieta</Text>
             <Text style={styles.headerSubtitle}>
-              {Math.round(dietPlan.target_calories)} kcal/dia
+              Total: {Math.round(totalMealCalories)} kcal/dia
+            </Text>
+            <Text style={styles.headerTarget}>
+              Meta: {Math.round(dietPlan.target_calories)} kcal
             </Text>
           </View>
           <TouchableOpacity
@@ -146,21 +149,24 @@ export default function DietScreen() {
 
         {/* Macros Summary */}
         <View style={styles.macrosCard}>
-          <Text style={styles.macrosTitle}>Macronutrientes Diários</Text>
+          <Text style={styles.macrosTitle}>Macronutrientes das Refeições</Text>
           <View style={styles.macrosRow}>
             <MacroItem
               label="Proteína"
-              value={`${dietPlan.target_macros.protein}g`}
+              value={`${Math.round(totalMealMacros.protein)}g`}
+              target={`${Math.round(dietPlan.target_macros.protein)}g`}
               color="#3B82F6"
             />
             <MacroItem
               label="Carboidratos"
-              value={`${dietPlan.target_macros.carbs}g`}
+              value={`${Math.round(totalMealMacros.carbs)}g`}
+              target={`${Math.round(dietPlan.target_macros.carbs)}g`}
               color="#F59E0B"
             />
             <MacroItem
               label="Gorduras"
-              value={`${dietPlan.target_macros.fat}g`}
+              value={`${Math.round(totalMealMacros.fat)}g`}
+              target={`${Math.round(dietPlan.target_macros.fat)}g`}
               color="#EF4444"
             />
           </View>
