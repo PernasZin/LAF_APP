@@ -190,12 +190,13 @@ export default function DietScreen() {
   );
 }
 
-function MacroItem({ label, value, color }: any) {
+function MacroItem({ label, value, target, color }: any) {
   return (
     <View style={styles.macroItem}>
       <View style={[styles.macroIndicator, { backgroundColor: color }]} />
       <Text style={styles.macroLabel}>{label}</Text>
       <Text style={styles.macroValue}>{value}</Text>
+      {target && <Text style={styles.macroTarget}>Meta: {target}</Text>}
     </View>
   );
 }
