@@ -17,7 +17,7 @@ class Meal(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str  # Ex: "Café da Manhã", "Almoço"
     time: str  # Ex: "07:00", "12:00"
-    foods: List[Dict[str, any]]  # [{"name": "Aveia", "quantity": "50g", "calories": 190}]
+    foods: List[Dict[str, Any]]  # [{"name": "Aveia", "quantity": "50g", "calories": 190}]
     total_calories: float
     macros: Dict[str, float]  # {"protein": X, "carbs": Y, "fat": Z}
 
