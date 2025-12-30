@@ -1,11 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      console.log('🏠 Welcome: Checking status', { hasCompleted, userId });
+      
+      if (hasCompleted === 'true' && userId) {
+        console.log('✅ Redirecting to home');
+        router.replace('/home');
+      }
+    } catch (error) {
+      console.error('Error checking status:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
