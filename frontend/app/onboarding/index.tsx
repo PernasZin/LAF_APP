@@ -20,6 +20,29 @@ export default function OnboardingScreen() {
   const [loading, setLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   
+  // TODOS os useState devem vir ANTES de qualquer useEffect ou lógica condicional
+  const [formData, setFormData] = useState({
+    // Básico
+    name: '',
+    age: '',
+    sex: '',
+    // Físico
+    height: '',
+    weight: '',
+    target_weight: '',
+    body_fat_percentage: '',
+    // Treino
+    training_level: '',
+    weekly_training_frequency: '',
+    available_time_per_session: '',
+    // Objetivo
+    goal: '',
+    // Restrições
+    dietary_restrictions: [] as string[],
+    food_preferences: [] as string[],
+    injury_history: [] as string[],
+  });
+  
   console.log('🎯 OnboardingScreen mounted. Backend URL:', BACKEND_URL);
 
   // Verifica se já completou onboarding
@@ -56,8 +79,6 @@ export default function OnboardingScreen() {
       </SafeAreaView>
     );
   }
-  
-  const [formData, setFormData] = useState({
     // Básico
     name: '',
     age: '',
