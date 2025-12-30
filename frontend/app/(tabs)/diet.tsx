@@ -105,6 +105,22 @@ export default function DietScreen() {
     );
   }
 
+  // Calcula o total real das calorias das refeições
+  const totalMealCalories = dietPlan.meals.reduce(
+    (sum: number, meal: any) => sum + meal.total_calories,
+    0
+  );
+
+  // Calcula o total de macros das refeições
+  const totalMealMacros = dietPlan.meals.reduce(
+    (acc: any, meal: any) => ({
+      protein: acc.protein + meal.macros.protein,
+      carbs: acc.carbs + meal.macros.carbs,
+      fat: acc.fat + meal.macros.fat,
+    }),
+    { protein: 0, carbs: 0, fat: 0 }
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
