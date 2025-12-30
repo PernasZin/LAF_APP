@@ -236,7 +236,7 @@ export default function OnboardingScreen() {
 
       // Navegação imediata sem Alert
       setLoading(false);
-      router.replace('/home');
+      router.replace('/(tabs)');
       
     } catch (error: any) {
       console.error('❌ Erro ao criar perfil:', error);
