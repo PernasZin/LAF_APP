@@ -119,27 +119,33 @@ backend:
   
   - task: "User Profile API - Get Profile"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented GET /api/user/profile/{user_id} endpoint. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ GET endpoint tested successfully. Profile retrieval working correctly with proper TDEE calculations (2786 kcal for test profile). Also tested 404 handling for non-existent profiles."
   
   - task: "User Profile API - Update Profile"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented PUT /api/user/profile/{user_id} endpoint with automatic recalculation of TDEE/macros. Needs testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ PUT endpoint tested successfully. Weight updates trigger TDEE recalculation (2018→2093 kcal). Goal changes trigger calorie adjustments (cutting 2701→bulking 3689 kcal). All automatic recalculations working correctly."
   
   - task: "TDEE Calculation Engine"
     implemented: true
