@@ -88,7 +88,7 @@ class DietAIService:
         if not self.api_key:
             raise ValueError("EMERGENT_LLM_KEY not found in environment")
         
-        self.llm = EmergentLLM(api_key=self.api_key)
+        self.llm = LlmChat(api_key=self.api_key)
     
     def generate_diet_plan(
         self, 
@@ -103,13 +103,13 @@ class DietAIService:
             # Monta prompt para a IA
             prompt = self._build_diet_prompt(user_profile, target_calories, target_macros)
             
-            # Chama a IA
-            response = self.llm.chat_completion(
-                messages=[
-                    {"role": "system", "content": "Você é um nutricionista especializado em dietas para treino. Sempre responda em JSON válido."},
-                    {"role": "user", "content": prompt}
-                ],
-                model="gpt-4o-mini",  # Modelo rápido e eficiente
+            # Chama a IA usando UserMessage
+            user_message = UserMessage(text=prompt)
+            
+            response = self.llm.chat(
+                user_messages=[user_message],
+                model="gpt-4o-mini",
+                system_message="Você é um nutricionista especializado em dietas para treino. Sempre responda em JSON válido.",
                 temperature=0.7,
                 max_tokens=2000
             )
