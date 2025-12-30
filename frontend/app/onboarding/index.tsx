@@ -163,40 +163,56 @@ export default function OnboardingScreen() {
       // Cria perfil no backend
       const response = await axios.post(
         `${BACKEND_URL}/api/user/profile`,
-        profileData
+        profileData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 10000, // 10 segundos timeout
+        }
       );
 
       console.log('✅ Response received:', response.status, response.data);
 
+      // Verifica se a resposta é válida
+      if (!response.data || !response.data.id) {
+        throw new Error('Resposta inválida do servidor');
+      }
+
       // Salva ID do usuário localmente
       await AsyncStorage.setItem('userId', response.data.id);
       await AsyncStorage.setItem('userProfile', JSON.stringify(response.data));
+      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
 
       console.log('💾 Profile saved to AsyncStorage');
+      console.log('🏠 Navigating to home immediately');
 
-      Alert.alert(
-        'Perfil Criado! ✅',
-        `Seu perfil foi configurado com sucesso!\n\nTDEE: ${response.data.tdee} kcal/dia\nMeta: ${response.data.target_calories} kcal/dia`,
-        [
-          {
-            text: 'Continuar',
-            onPress: () => {
-              console.log('🏠 Navigating to home');
-              router.replace('/home/');
-            },
-          },
-        ]
-      );
+      // CORREÇÃO CRÍTICA: Navega IMEDIATAMENTE sem Alert
+      // Alert pode não funcionar corretamente no preview web
+      setLoading(false);
+      router.replace('/home');
+      
     } catch (error: any) {
       console.error('❌ Erro ao criar perfil:', error);
       console.error('❌ Error details:', error.response?.data || error.message);
-      Alert.alert(
-        'Erro',
-        `Não foi possível criar seu perfil.\n\nDetalhes: ${error.response?.data?.detail || error.message || 'Erro desconhecido'}`
-      );
-    } finally {
+      
       setLoading(false);
-      console.log('🏁 handleSubmit completed');
+      
+      // Mostra erro detalhado
+      const errorMessage = error.response?.data?.detail 
+        || error.message 
+        || 'Erro desconhecido ao criar perfil';
+      
+      Alert.alert(
+        'Erro ao Criar Perfil',
+        `Não foi possível criar seu perfil.\n\n${errorMessage}\n\nTente novamente.`,
+        [
+          {
+            text: 'OK',
+            style: 'default',
+          }
+        ]
+      );
     }
   };
 
