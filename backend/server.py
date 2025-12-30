@@ -316,6 +316,60 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service": "LAF Backend"}
 
+# ==================== DIET ENDPOINTS ====================
+
+@api_router.post("/diet/generate")
+async def generate_diet(user_id: str):
+    """
+    Gera um plano de dieta personalizado com IA
+    """
+    try:
+        # Busca perfil do usuário
+        user_profile = await db.user_profiles.find_one({"_id": user_id})
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="Perfil não encontrado")
+        
+        # Importa serviço de dieta
+        from diet_service import DietAIService
+        
+        diet_service = DietAIService()
+        
+        # Gera plano de dieta
+        diet_plan = diet_service.generate_diet_plan(
+            user_profile=dict(user_profile),
+            target_calories=user_profile.get('target_calories', 2000),
+            target_macros=user_profile.get('macros', {"protein": 150, "carbs": 200, "fat": 60})
+        )
+        
+        # Salva no banco
+        diet_dict = diet_plan.dict()
+        diet_dict["_id"] = diet_dict["id"]
+        await db.diet_plans.insert_one(diet_dict)
+        
+        return diet_plan
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao gerar dieta: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar dieta: {str(e)}")
+
+@api_router.get("/diet/{user_id}")
+async def get_user_diet(user_id: str):
+    """
+    Busca o plano de dieta mais recente do usuário
+    """
+    diet_plan = await db.diet_plans.find_one(
+        {"user_id": user_id},
+        sort=[("created_at", -1)]
+    )
+    
+    if not diet_plan:
+        raise HTTPException(status_code=404, detail="Plano de dieta não encontrado")
+    
+    diet_plan["id"] = diet_plan["_id"]
+    return diet_plan
+
 # Include router
 app.include_router(api_router)
 
