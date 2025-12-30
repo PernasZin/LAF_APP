@@ -88,7 +88,12 @@ class DietAIService:
         if not self.api_key:
             raise ValueError("EMERGENT_LLM_KEY not found in environment")
         
-        self.llm = LlmChat(api_key=self.api_key)
+        # LlmChat precisa de session_id e system_message
+        self.llm = LlmChat(
+            api_key=self.api_key,
+            session_id="diet_generation",
+            system_message="Você é um nutricionista especializado em dietas para treino. Sempre responda em JSON válido."
+        )
     
     def generate_diet_plan(
         self, 
