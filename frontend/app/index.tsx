@@ -21,7 +21,7 @@ export default function WelcomeScreen() {
       
       if (hasCompleted === 'true' && userId) {
         console.log('✅ Redirecting to home');
-        router.replace('/home');
+        router.replace('/(tabs)');
       }
     } catch (error) {
       console.error('Error checking status:', error);
