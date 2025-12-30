@@ -289,8 +289,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "User Profile API - Get Profile"
-    - "User Profile API - Update Profile"
     - "Complete Onboarding Flow (all steps)"
     - "Profile creation and data persistence"
   stuck_tasks: []
