@@ -9,10 +9,7 @@ export default function RootLayout() {
           headerShown: false,
           contentStyle: { backgroundColor: '#fff' },
         }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding" />
-      </Stack>
+      />
     </SafeAreaProvider>
   );
 }
