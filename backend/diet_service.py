@@ -6,7 +6,7 @@ import os
 import json
 from typing import List, Dict, Optional
 from pydantic import BaseModel, Field
-from emergentintegrations import EmergentLLM
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 from datetime import datetime
 import uuid
 
