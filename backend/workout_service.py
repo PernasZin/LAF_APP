@@ -285,13 +285,13 @@ Responda APENAS com o JSON, sem texto adicional.
             raise
     
     def _generate_fallback_workout(self, user_id: str, user_profile: Dict) -> WorkoutPlan:
-        """Gera treino básico em caso de falha da IA"""
+        """Gera treino básico que respeita EXATAMENTE a frequência semanal escolhida"""
         
         weekly_frequency = user_profile.get('weekly_training_frequency', 4)
         training_level = user_profile.get('training_level', 'intermediario')
         
-        # Treino ABC - 3x por semana
-        workout_days = [
+        # Define TODOS os treinos possíveis (até 7 dias)
+        all_possible_workouts = [
             WorkoutDay(
                 name="Treino A - Peito/Tríceps",
                 day="Segunda",
@@ -306,7 +306,7 @@ Responda APENAS com o JSON, sem texto adicional.
             ),
             WorkoutDay(
                 name="Treino B - Costas/Bíceps",
-                day="Quarta",
+                day="Terça",
                 duration=60,
                 exercises=[
                     Exercise(name="Barra Fixa", muscle_group="Costas", sets=4, reps="máximo", rest="90s", notes="Assistida se necessário"),
@@ -318,7 +318,7 @@ Responda APENAS com o JSON, sem texto adicional.
             ),
             WorkoutDay(
                 name="Treino C - Pernas/Ombros",
-                day="Sexta",
+                day="Quarta",
                 duration=70,
                 exercises=[
                     Exercise(name="Agachamento Livre", muscle_group="Pernas", sets=4, reps="8-12", rest="2min", notes="Exercício base"),
@@ -329,30 +329,64 @@ Responda APENAS com o JSON, sem texto adicional.
                     Exercise(name="Elevação Lateral", muscle_group="Ombros", sets=3, reps="12-15", rest="45s"),
                 ]
             ),
+            WorkoutDay(
+                name="Treino D - Posterior/Abdômen",
+                day="Quinta",
+                duration=50,
+                exercises=[
+                    Exercise(name="Stiff", muscle_group="Posterior", sets=4, reps="10-12", rest="90s"),
+                    Exercise(name="Afundo com Halteres", muscle_group="Pernas", sets=3, reps="12 cada", rest="60s"),
+                    Exercise(name="Panturrilha em Pé", muscle_group="Panturrilhas", sets=4, reps="15-20", rest="45s"),
+                    Exercise(name="Abdominal Supra", muscle_group="Abdômen", sets=3, reps="15-20", rest="30s"),
+                    Exercise(name="Prancha Isométrica", muscle_group="Core", sets=3, reps="60s", rest="60s"),
+                ]
+            ),
+            WorkoutDay(
+                name="Treino E - Pernas Completo",
+                day="Sexta",
+                duration=65,
+                exercises=[
+                    Exercise(name="Agachamento Livre", muscle_group="Pernas", sets=4, reps="8-12", rest="2min"),
+                    Exercise(name="Stiff", muscle_group="Posterior", sets=3, reps="10-12", rest="90s"),
+                    Exercise(name="Leg Press 45°", muscle_group="Pernas", sets=3, reps="12-15", rest="90s"),
+                    Exercise(name="Mesa Flexora", muscle_group="Posterior", sets=3, reps="12-15", rest="60s"),
+                    Exercise(name="Panturrilha em Pé", muscle_group="Panturrilhas", sets=4, reps="15-20", rest="45s"),
+                ]
+            ),
+            WorkoutDay(
+                name="Treino F - Peito/Costas",
+                day="Sábado",
+                duration=65,
+                exercises=[
+                    Exercise(name="Supino Reto com Barra", muscle_group="Peito", sets=4, reps="8-12", rest="90s"),
+                    Exercise(name="Remada Curvada com Barra", muscle_group="Costas", sets=4, reps="8-12", rest="90s"),
+                    Exercise(name="Crucifixo Inclinado", muscle_group="Peito", sets=3, reps="12-15", rest="60s"),
+                    Exercise(name="Pulldown (Puxada Frontal)", muscle_group="Costas", sets=3, reps="10-12", rest="60s"),
+                    Exercise(name="Flexão de Braço", muscle_group="Peito", sets=3, reps="máximo", rest="45s"),
+                ]
+            ),
+            WorkoutDay(
+                name="Treino G - Ombros/Braços/Abdômen",
+                day="Domingo",
+                duration=55,
+                exercises=[
+                    Exercise(name="Desenvolvimento com Barra", muscle_group="Ombros", sets=4, reps="8-12", rest="90s"),
+                    Exercise(name="Elevação Lateral", muscle_group="Ombros", sets=3, reps="12-15", rest="60s"),
+                    Exercise(name="Rosca Direta com Barra", muscle_group="Bíceps", sets=3, reps="10-12", rest="60s"),
+                    Exercise(name="Tríceps Testa com Barra", muscle_group="Tríceps", sets=3, reps="10-12", rest="60s"),
+                    Exercise(name="Abdominal Supra", muscle_group="Abdômen", sets=3, reps="15-20", rest="30s"),
+                ]
+            ),
         ]
         
-        # Se treina 4x+, adiciona treino D
-        if weekly_frequency >= 4:
-            workout_days.append(
-                WorkoutDay(
-                    name="Treino D - Pernas (Posterior)/Abdômen",
-                    day="Sábado",
-                    duration=50,
-                    exercises=[
-                        Exercise(name="Stiff", muscle_group="Posterior", sets=4, reps="10-12", rest="90s"),
-                        Exercise(name="Afundo com Halteres", muscle_group="Pernas", sets=3, reps="12 cada", rest="60s"),
-                        Exercise(name="Panturrilha em Pé", muscle_group="Panturrilhas", sets=4, reps="15-20", rest="45s"),
-                        Exercise(name="Abdominal Supra", muscle_group="Abdômen", sets=3, reps="15-20", rest="30s"),
-                        Exercise(name="Prancha Isométrica", muscle_group="Core", sets=3, reps="60s", rest="60s"),
-                    ]
-                )
-            )
+        # Retorna EXATAMENTE o número de treinos solicitado
+        selected_workouts = all_possible_workouts[:weekly_frequency]
         
         return WorkoutPlan(
             user_id=user_id,
             training_level=training_level,
             goal=user_profile.get('goal', 'bulking'),
             weekly_frequency=weekly_frequency,
-            workout_days=workout_days[:weekly_frequency],
-            notes="Plano básico gerado automaticamente. Aumente cargas progressivamente."
+            workout_days=selected_workouts,
+            notes=f"Plano de {weekly_frequency}x por semana gerado automaticamente. Aumente cargas progressivamente a cada treino."
         )
