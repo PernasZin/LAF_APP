@@ -4,7 +4,7 @@ Utiliza Emergent LLM Key para gerar planos alimentares personalizados
 """
 import os
 import json
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from pydantic import BaseModel, Field
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 from datetime import datetime
