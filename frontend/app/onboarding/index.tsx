@@ -53,7 +53,69 @@ export default function OnboardingScreen() {
     setFormData({ ...formData, ...data });
   };
 
+  const validateCurrentStep = () => {
+    console.log('Validating step:', currentStep, 'Data:', formData);
+    
+    switch (currentStep) {
+      case 0: // Dados Básicos
+        if (!formData.name || !formData.age || !formData.sex) {
+          Alert.alert('Campos Obrigatórios', 'Preencha nome, idade e sexo.');
+          return false;
+        }
+        if (parseInt(formData.age) < 15 || parseInt(formData.age) > 100) {
+          Alert.alert('Idade Inválida', 'Idade deve estar entre 15 e 100 anos.');
+          return false;
+        }
+        break;
+      
+      case 1: // Dados Físicos
+        if (!formData.height || !formData.weight) {
+          Alert.alert('Campos Obrigatórios', 'Preencha altura e peso atual.');
+          return false;
+        }
+        if (parseFloat(formData.height) < 100 || parseFloat(formData.height) > 250) {
+          Alert.alert('Altura Inválida', 'Altura deve estar entre 100cm e 250cm.');
+          return false;
+        }
+        if (parseFloat(formData.weight) < 30 || parseFloat(formData.weight) > 300) {
+          Alert.alert('Peso Inválido', 'Peso deve estar entre 30kg e 300kg.');
+          return false;
+        }
+        break;
+      
+      case 2: // Nível de Treino
+        if (!formData.training_level || !formData.weekly_training_frequency || !formData.available_time_per_session) {
+          Alert.alert('Campos Obrigatórios', 'Preencha todos os campos de treino.');
+          return false;
+        }
+        if (parseInt(formData.weekly_training_frequency) < 0 || parseInt(formData.weekly_training_frequency) > 7) {
+          Alert.alert('Frequência Inválida', 'Frequência deve estar entre 0 e 7 dias por semana.');
+          return false;
+        }
+        break;
+      
+      case 3: // Objetivo
+        if (!formData.goal) {
+          Alert.alert('Objetivo Obrigatório', 'Selecione seu objetivo principal.');
+          return false;
+        }
+        break;
+      
+      case 4: // Preferências (opcional)
+        // Este step é opcional
+        break;
+    }
+    
+    return true;
+  };
+
   const handleNext = () => {
+    console.log('handleNext called, current step:', currentStep);
+    
+    if (!validateCurrentStep()) {
+      return;
+    }
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
