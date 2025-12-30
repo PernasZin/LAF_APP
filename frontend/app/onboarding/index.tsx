@@ -79,26 +79,6 @@ export default function OnboardingScreen() {
       </SafeAreaView>
     );
   }
-    // Básico
-    name: '',
-    age: '',
-    sex: '',
-    // Físico
-    height: '',
-    weight: '',
-    target_weight: '',
-    body_fat_percentage: '',
-    // Treino
-    training_level: '',
-    weekly_training_frequency: '',
-    available_time_per_session: '',
-    // Objetivo
-    goal: '',
-    // Restrições
-    dietary_restrictions: [] as string[],
-    food_preferences: [] as string[],
-    injury_history: [] as string[],
-  });
 
   const steps = [
     { title: 'Dados Básicos', component: BasicInfoStep },
