@@ -101,3 +101,196 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "LAF - Aplicativo mobile de dieta e treino personalizado com IA"
+
+backend:
+  - task: "User Profile API - Create Profile"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implemented POST /api/user/profile endpoint with TDEE and macros calculation. Tested successfully with curl - returns correct calculations."
+  
+  - task: "User Profile API - Get Profile"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented GET /api/user/profile/{user_id} endpoint. Needs testing."
+  
+  - task: "User Profile API - Update Profile"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented PUT /api/user/profile/{user_id} endpoint with automatic recalculation of TDEE/macros. Needs testing."
+  
+  - task: "TDEE Calculation Engine"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "BMR calculation using Mifflin-St Jeor formula working correctly. TDEE calculation with activity factors working."
+  
+  - task: "Macros Distribution Calculation"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Macros calculation based on goal (cutting/bulking/manutenção/atleta) working correctly with proper protein/carbs/fat ratios."
+
+  - task: "Emergent LLM Key Integration"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/.env"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Emergent LLM Key added to .env. emergentintegrations library installed. Will be used in Phase 2 for diet generation."
+
+frontend:
+  - task: "Welcome Screen"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Welcome screen with LAF branding and 'Começar Agora' button implemented. Needs UI testing."
+  
+  - task: "Onboarding Flow"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/onboarding/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Multi-step onboarding with progress bar and 5 steps implemented. Needs testing."
+  
+  - task: "Basic Info Step"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/onboarding/steps/BasicInfoStep.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Step 1: Name, age, sex input implemented. Needs UI testing."
+  
+  - task: "Physical Data Step"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/onboarding/steps/PhysicalDataStep.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Step 2: Height, weight, target weight, body fat % input implemented. Needs UI testing."
+  
+  - task: "Training Level Step"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/onboarding/steps/TrainingLevelStep.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Step 3: Training level, weekly frequency, session time input implemented. Needs UI testing."
+  
+  - task: "Goal Step"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/onboarding/steps/GoalStep.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Step 4: Goal selection (cutting/bulking/manutenção/atleta) implemented. Needs UI testing."
+  
+  - task: "Restrictions Step"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/onboarding/steps/RestrictionsStep.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Step 5: Dietary restrictions and food preferences selection implemented. Needs UI testing."
+  
+  - task: "Home Screen with Profile Summary"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/app/home/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Home screen displaying user profile, TDEE, target calories, and macros implemented. Needs testing."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+  phase: "FASE 1 - Onboarding e Perfil"
+
+test_plan:
+  current_focus:
+    - "User Profile API - Get Profile"
+    - "User Profile API - Update Profile"
+    - "Complete Onboarding Flow (all steps)"
+    - "Profile creation and data persistence"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "FASE 1 implemented - Backend has user profile CRUD with TDEE/macros calculation. Frontend has complete 5-step onboarding flow and home screen. Backend POST /api/user/profile tested successfully with curl. Need to test: GET/PUT endpoints, complete onboarding flow, profile display on home screen. All APIs use /api prefix."
