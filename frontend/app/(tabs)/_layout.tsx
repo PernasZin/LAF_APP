@@ -16,17 +16,20 @@ export default function TabLayout() {
           backgroundColor: '#fff',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          height: 60 + insets.bottom, // Dynamic height based on safe area
+          height: 64 + insets.bottom, // Increased base height + safe area
           paddingBottom: insets.bottom, // Respect iOS home indicator
-          paddingTop: 8,
+        },
+        tabBarItemStyle: {
+          paddingBottom: insets.bottom > 0 ? 6 : 0, // Extra padding for items on iOS
         },
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
-          marginBottom: Platform.OS === 'ios' ? 0 : 8, // Adjust for iOS
+          paddingBottom: insets.bottom > 0 ? 4 : 0, // Extra padding for labels on iOS
+          marginTop: Platform.OS === 'ios' ? 2 : 0,
         },
         tabBarIconStyle: {
-          marginTop: Platform.OS === 'ios' ? 8 : 0,
+          marginTop: 6, // Prevent icon+label block from drifting downward
         },
       }}
     >
