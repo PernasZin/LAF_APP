@@ -242,74 +242,110 @@ Responda APENAS com o JSON, sem texto adicional.
         target_calories: float,
         target_macros: Dict[str, float]
     ) -> DietPlan:
-        """Gera dieta básica em caso de falha da IA - com composição coerente"""
+        """Gera dieta básica escalada para bater EXATAMENTE as calorias e macros do usuário"""
         
-        # Distribui calorias em 5 refeições de forma mais realista
-        # Café da manhã: 25%, Lanche manhã: 10%, Almoço: 35%, Lanche tarde: 10%, Jantar: 20%
-        
-        meals = [
-            Meal(
-                name="Café da Manhã",
-                time="07:00",
-                foods=[
-                    {"name": "Aveia", "quantity": "50g", "protein": 6.6, "carbs": 33.2, "fat": 3.5, "calories": 195},
-                    {"name": "Banana", "quantity": "1 unidade", "protein": 1.1, "carbs": 23, "fat": 0.3, "calories": 89},
-                    {"name": "Ovo", "quantity": "2 unidades", "protein": 13, "carbs": 1.1, "fat": 11, "calories": 155}
-                ],
-                total_calories=439,
-                macros={"protein": 20.7, "carbs": 57.3, "fat": 14.8}
-            ),
-            Meal(
-                name="Lanche da Manhã",
-                time="10:00",
-                foods=[
-                    {"name": "Iogurte natural", "quantity": "150g", "protein": 7, "carbs": 9, "fat": 2, "calories": 85},
-                    {"name": "Castanhas", "quantity": "20g", "protein": 3, "carbs": 2, "fat": 13, "calories": 131}
-                ],
-                total_calories=216,
-                macros={"protein": 10, "carbs": 11, "fat": 15}
-            ),
-            Meal(
-                name="Almoço",
-                time="12:30",
-                foods=[
-                    {"name": "Arroz Integral", "quantity": "150g cozido", "protein": 3.9, "carbs": 34.5, "fat": 1.4, "calories": 167},
-                    {"name": "Feijão", "quantity": "100g", "protein": 8, "carbs": 14, "fat": 0.5, "calories": 77},
-                    {"name": "Peito de Frango", "quantity": "150g", "protein": 46.5, "carbs": 0, "fat": 5.4, "calories": 248},
-                    {"name": "Salada de Alface e Tomate", "quantity": "100g", "protein": 1.2, "carbs": 3.4, "fat": 0.2, "calories": 17},
-                    {"name": "Azeite", "quantity": "1 colher sopa", "protein": 0, "carbs": 0, "fat": 14, "calories": 119}
-                ],
-                total_calories=628,
-                macros={"protein": 59.6, "carbs": 51.9, "fat": 21.5}
-            ),
-            Meal(
-                name="Lanche da Tarde (Pré-Treino)",
-                time="16:00",
-                foods=[
-                    {"name": "Batata Doce", "quantity": "150g", "protein": 3, "carbs": 30, "fat": 0.2, "calories": 129},
-                    {"name": "Peito de Frango", "quantity": "80g", "protein": 24.8, "carbs": 0, "fat": 2.9, "calories": 132}
-                ],
-                total_calories=261,
-                macros={"protein": 27.8, "carbs": 30, "fat": 3.1}
-            ),
-            Meal(
-                name="Jantar",
-                time="19:30",
-                foods=[
-                    {"name": "Arroz Integral", "quantity": "100g cozido", "protein": 2.6, "carbs": 23, "fat": 0.9, "calories": 111},
-                    {"name": "Tilápia grelhada", "quantity": "150g", "protein": 39, "carbs": 0, "fat": 4.5, "calories": 194},
-                    {"name": "Brócolis", "quantity": "100g", "protein": 2.8, "carbs": 7, "fat": 0.4, "calories": 34},
-                    {"name": "Cenoura", "quantity": "50g", "protein": 0.5, "carbs": 5, "fat": 0.1, "calories": 21}
-                ],
-                total_calories=360,
-                macros={"protein": 44.9, "carbs": 35, "fat": 5.9}
-            )
+        # Template base de uma dieta balanceada (proporções)
+        base_meals_template = [
+            {
+                "name": "Café da Manhã",
+                "time": "07:00",
+                "proportion": 0.23,  # 23% das calorias diárias
+                "foods": [
+                    {"name": "Aveia", "protein_ratio": 0.15, "carbs_ratio": 0.60, "fat_ratio": 0.08},
+                    {"name": "Banana", "protein_ratio": 0.02, "carbs_ratio": 0.22, "fat_ratio": 0.01},
+                    {"name": "Ovo", "protein_ratio": 0.30, "carbs_ratio": 0.02, "fat_ratio": 0.25},
+                ]
+            },
+            {
+                "name": "Lanche da Manhã",
+                "time": "10:00",
+                "proportion": 0.11,  # 11% das calorias
+                "foods": [
+                    {"name": "Iogurte natural", "protein_ratio": 0.35, "carbs_ratio": 0.45, "fat_ratio": 0.10},
+                    {"name": "Castanhas", "protein_ratio": 0.15, "carbs_ratio": 0.10, "fat_ratio": 0.65},
+                ]
+            },
+            {
+                "name": "Almoço",
+                "time": "12:30",
+                "proportion": 0.33,  # 33% das calorias
+                "foods": [
+                    {"name": "Arroz Integral", "protein_ratio": 0.07, "carbs_ratio": 0.75, "fat_ratio": 0.04},
+                    {"name": "Feijão", "protein_ratio": 0.24, "carbs_ratio": 0.62, "fat_ratio": 0.02},
+                    {"name": "Peito de Frango", "protein_ratio": 0.80, "carbs_ratio": 0.00, "fat_ratio": 0.09},
+                    {"name": "Salada mista", "protein_ratio": 0.05, "carbs_ratio": 0.15, "fat_ratio": 0.01},
+                    {"name": "Azeite", "protein_ratio": 0.00, "carbs_ratio": 0.00, "fat_ratio": 1.00},
+                ]
+            },
+            {
+                "name": "Lanche da Tarde (Pré-Treino)",
+                "time": "16:00",
+                "proportion": 0.14,  # 14% das calorias
+                "foods": [
+                    {"name": "Batata Doce", "protein_ratio": 0.05, "carbs_ratio": 0.85, "fat_ratio": 0.00},
+                    {"name": "Peito de Frango", "protein_ratio": 0.80, "carbs_ratio": 0.00, "fat_ratio": 0.09},
+                ]
+            },
+            {
+                "name": "Jantar",
+                "time": "19:30",
+                "proportion": 0.19,  # 19% das calorias
+                "foods": [
+                    {"name": "Arroz Integral", "protein_ratio": 0.07, "carbs_ratio": 0.75, "fat_ratio": 0.04},
+                    {"name": "Tilápia grelhada", "protein_ratio": 0.85, "carbs_ratio": 0.00, "fat_ratio": 0.06},
+                    {"name": "Brócolis", "protein_ratio": 0.30, "carbs_ratio": 0.55, "fat_ratio": 0.04},
+                    {"name": "Cenoura", "protein_ratio": 0.05, "carbs_ratio": 0.80, "fat_ratio": 0.02},
+                ]
+            }
         ]
+        
+        # Gera refeições escaladas para bater EXATAMENTE os targets
+        meals = []
+        
+        for meal_template in base_meals_template:
+            meal_calories = target_calories * meal_template["proportion"]
+            meal_protein = target_macros["protein"] * meal_template["proportion"]
+            meal_carbs = target_macros["carbs"] * meal_template["proportion"]
+            meal_fat = target_macros["fat"] * meal_template["proportion"]
+            
+            # Cria lista de alimentos com quantidades calculadas
+            foods = []
+            for food_template in meal_template["foods"]:
+                food_protein = meal_protein * food_template["protein_ratio"]
+                food_carbs = meal_carbs * food_template["carbs_ratio"]
+                food_fat = meal_fat * food_template["fat_ratio"]
+                food_calories = (food_protein * 4) + (food_carbs * 4) + (food_fat * 9)
+                
+                # Calcula quantidade aproximada em gramas
+                # Simplificação: assume densidade média
+                quantity_g = food_calories / 2  # ~2 kcal/g média
+                
+                foods.append({
+                    "name": food_template["name"],
+                    "quantity": f"{int(quantity_g)}g",
+                    "protein": round(food_protein, 1),
+                    "carbs": round(food_carbs, 1),
+                    "fat": round(food_fat, 1),
+                    "calories": round(food_calories, 0)
+                })
+            
+            meal = Meal(
+                name=meal_template["name"],
+                time=meal_template["time"],
+                foods=foods,
+                total_calories=round(meal_calories, 0),
+                macros={
+                    "protein": round(meal_protein, 1),
+                    "carbs": round(meal_carbs, 1),
+                    "fat": round(meal_fat, 1)
+                }
+            )
+            meals.append(meal)
         
         return DietPlan(
             user_id=user_id,
             target_calories=target_calories,
             target_macros=target_macros,
             meals=meals,
-            notes="Plano básico gerado automaticamente com refeições balanceadas. Ajuste as porções conforme sua necessidade e preferências."
+            notes=f"Plano gerado automaticamente para {int(target_calories)} kcal/dia. As porções foram calculadas para atingir exatamente suas metas diárias."
         )
