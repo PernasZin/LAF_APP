@@ -242,10 +242,10 @@ Responda APENAS com o JSON, sem texto adicional.
         target_calories: float,
         target_macros: Dict[str, float]
     ) -> DietPlan:
-        """Gera dieta básica em caso de falha da IA"""
+        """Gera dieta básica em caso de falha da IA - com composição coerente"""
         
-        # Distribui calorias em 5 refeições
-        cal_per_meal = target_calories / 5
+        # Distribui calorias em 5 refeições de forma mais realista
+        # Café da manhã: 25%, Lanche manhã: 10%, Almoço: 35%, Lanche tarde: 10%, Jantar: 20%
         
         meals = [
             Meal(
@@ -263,43 +263,46 @@ Responda APENAS com o JSON, sem texto adicional.
                 name="Lanche da Manhã",
                 time="10:00",
                 foods=[
-                    {"name": "Pão Integral", "quantity": "2 fatias (50g)", "protein": 4.5, "carbs": 24.5, "fat": 1.8, "calories": 127},
-                    {"name": "Peito de Frango", "quantity": "50g", "protein": 15.5, "carbs": 0, "fat": 1.8, "calories": 83}
+                    {"name": "Iogurte natural", "quantity": "150g", "protein": 7, "carbs": 9, "fat": 2, "calories": 85},
+                    {"name": "Castanhas", "quantity": "20g", "protein": 3, "carbs": 2, "fat": 13, "calories": 131}
                 ],
-                total_calories=210,
-                macros={"protein": 20, "carbs": 24.5, "fat": 3.6}
+                total_calories=216,
+                macros={"protein": 10, "carbs": 11, "fat": 15}
             ),
             Meal(
                 name="Almoço",
                 time="12:30",
                 foods=[
-                    {"name": "Arroz Integral", "quantity": "150g", "protein": 3.9, "carbs": 34.5, "fat": 1.4, "calories": 167},
+                    {"name": "Arroz Integral", "quantity": "150g cozido", "protein": 3.9, "carbs": 34.5, "fat": 1.4, "calories": 167},
+                    {"name": "Feijão", "quantity": "100g", "protein": 8, "carbs": 14, "fat": 0.5, "calories": 77},
                     {"name": "Peito de Frango", "quantity": "150g", "protein": 46.5, "carbs": 0, "fat": 5.4, "calories": 248},
-                    {"name": "Brócolis", "quantity": "100g", "protein": 2.8, "carbs": 7, "fat": 0.4, "calories": 34}
+                    {"name": "Salada de Alface e Tomate", "quantity": "100g", "protein": 1.2, "carbs": 3.4, "fat": 0.2, "calories": 17},
+                    {"name": "Azeite", "quantity": "1 colher sopa", "protein": 0, "carbs": 0, "fat": 14, "calories": 119}
                 ],
-                total_calories=449,
-                macros={"protein": 53.2, "carbs": 41.5, "fat": 7.2}
+                total_calories=628,
+                macros={"protein": 59.6, "carbs": 51.9, "fat": 21.5}
             ),
             Meal(
-                name="Lanche da Tarde",
+                name="Lanche da Tarde (Pré-Treino)",
                 time="16:00",
                 foods=[
                     {"name": "Batata Doce", "quantity": "150g", "protein": 3, "carbs": 30, "fat": 0.2, "calories": 129},
-                    {"name": "Atum em Lata", "quantity": "100g", "protein": 25, "carbs": 0, "fat": 1, "calories": 116}
+                    {"name": "Peito de Frango", "quantity": "80g", "protein": 24.8, "carbs": 0, "fat": 2.9, "calories": 132}
                 ],
-                total_calories=245,
-                macros={"protein": 28, "carbs": 30, "fat": 1.2}
+                total_calories=261,
+                macros={"protein": 27.8, "carbs": 30, "fat": 3.1}
             ),
             Meal(
                 name="Jantar",
                 time="19:30",
                 foods=[
-                    {"name": "Arroz Integral", "quantity": "100g", "protein": 2.6, "carbs": 23, "fat": 0.9, "calories": 111},
-                    {"name": "Tilápia", "quantity": "150g", "protein": 39, "carbs": 0, "fat": 4.5, "calories": 194},
-                    {"name": "Salada de Alface e Tomate", "quantity": "100g", "protein": 1.2, "carbs": 3.4, "fat": 0.2, "calories": 17}
+                    {"name": "Arroz Integral", "quantity": "100g cozido", "protein": 2.6, "carbs": 23, "fat": 0.9, "calories": 111},
+                    {"name": "Tilápia grelhada", "quantity": "150g", "protein": 39, "carbs": 0, "fat": 4.5, "calories": 194},
+                    {"name": "Brócolis", "quantity": "100g", "protein": 2.8, "carbs": 7, "fat": 0.4, "calories": 34},
+                    {"name": "Cenoura", "quantity": "50g", "protein": 0.5, "carbs": 5, "fat": 0.1, "calories": 21}
                 ],
-                total_calories=322,
-                macros={"protein": 42.8, "carbs": 26.4, "fat": 5.6}
+                total_calories=360,
+                macros={"protein": 44.9, "carbs": 35, "fat": 5.9}
             )
         ]
         
@@ -308,5 +311,5 @@ Responda APENAS com o JSON, sem texto adicional.
             target_calories=target_calories,
             target_macros=target_macros,
             meals=meals,
-            notes="Plano básico gerado automaticamente. Recomendamos personalizar com um nutricionista."
+            notes="Plano básico gerado automaticamente com refeições balanceadas. Ajuste as porções conforme sua necessidade e preferências."
         )
