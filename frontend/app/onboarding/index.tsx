@@ -59,7 +59,7 @@ export default function OnboardingScreen() {
       
       if (hasCompleted === 'true' && userId) {
         console.log('✅ Onboarding already completed, redirecting to home');
-        router.replace('/home');
+        router.replace('/(tabs)');
         return;
       }
     } catch (error) {
