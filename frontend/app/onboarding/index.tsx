@@ -18,8 +18,44 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   
   console.log('🎯 OnboardingScreen mounted. Backend URL:', BACKEND_URL);
+
+  // Verifica se já completou onboarding
+  React.useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      console.log('📋 Checking onboarding status:', { hasCompleted, userId });
+      
+      if (hasCompleted === 'true' && userId) {
+        console.log('✅ Onboarding already completed, redirecting to home');
+        router.replace('/home');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  // Mostra loading enquanto verifica status
+  if (isChecking) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ fontSize: 16, color: '#6B7280' }}>Carregando...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
   
   const [formData, setFormData] = useState({
     // Básico
