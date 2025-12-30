@@ -370,6 +370,58 @@ async def get_user_diet(user_id: str):
     diet_plan["id"] = diet_plan["_id"]
     return diet_plan
 
+# ==================== WORKOUT ENDPOINTS ====================
+
+@api_router.post("/workout/generate")
+async def generate_workout(user_id: str):
+    """
+    Gera um plano de treino personalizado com IA
+    """
+    try:
+        # Busca perfil do usuário
+        user_profile = await db.user_profiles.find_one({"_id": user_id})
+        if not user_profile:
+            raise HTTPException(status_code=404, detail="Perfil não encontrado")
+        
+        # Importa serviço de treino
+        from workout_service import WorkoutAIService
+        
+        workout_service = WorkoutAIService()
+        
+        # Gera plano de treino
+        workout_plan = workout_service.generate_workout_plan(
+            user_profile=dict(user_profile)
+        )
+        
+        # Salva no banco
+        workout_dict = workout_plan.dict()
+        workout_dict["_id"] = workout_dict["id"]
+        await db.workout_plans.insert_one(workout_dict)
+        
+        return workout_plan
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao gerar treino: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar treino: {str(e)}")
+
+@api_router.get("/workout/{user_id}")
+async def get_user_workout(user_id: str):
+    """
+    Busca o plano de treino mais recente do usuário
+    """
+    workout_plan = await db.workout_plans.find_one(
+        {"user_id": user_id},
+        sort=[("created_at", -1)]
+    )
+    
+    if not workout_plan:
+        raise HTTPException(status_code=404, detail="Plano de treino não encontrado")
+    
+    workout_plan["id"] = workout_plan["_id"]
+    return workout_plan
+
 # Include router
 app.include_router(api_router)
 
