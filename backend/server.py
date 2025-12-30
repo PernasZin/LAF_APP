@@ -10,8 +10,6 @@ from typing import List, Optional, Dict
 import uuid
 from datetime import datetime
 from bson import ObjectId
-import json
-from emergentintegrations import EmergentLLM
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
