@@ -132,6 +132,9 @@ export default function OnboardingScreen() {
   };
 
   const handleSubmit = async () => {
+    console.log('🚀 handleSubmit called');
+    console.log('📦 Form data:', JSON.stringify(formData, null, 2));
+    
     setLoading(true);
     try {
       // Prepara dados para API
@@ -152,34 +155,46 @@ export default function OnboardingScreen() {
         injury_history: formData.injury_history,
       };
 
+      console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
+      console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
+
       // Cria perfil no backend
       const response = await axios.post(
         `${BACKEND_URL}/api/user/profile`,
         profileData
       );
 
+      console.log('✅ Response received:', response.status, response.data);
+
       // Salva ID do usuário localmente
       await AsyncStorage.setItem('userId', response.data.id);
       await AsyncStorage.setItem('userProfile', JSON.stringify(response.data));
 
+      console.log('💾 Profile saved to AsyncStorage');
+
       Alert.alert(
-        'Perfil Criado!',
+        'Perfil Criado! ✅',
         `Seu perfil foi configurado com sucesso!\n\nTDEE: ${response.data.tdee} kcal/dia\nMeta: ${response.data.target_calories} kcal/dia`,
         [
           {
             text: 'Continuar',
-            onPress: () => router.replace('/home' as any),
+            onPress: () => {
+              console.log('🏠 Navigating to home');
+              router.replace('/home/');
+            },
           },
         ]
       );
-    } catch (error) {
-      console.error('Erro ao criar perfil:', error);
+    } catch (error: any) {
+      console.error('❌ Erro ao criar perfil:', error);
+      console.error('❌ Error details:', error.response?.data || error.message);
       Alert.alert(
         'Erro',
-        'Não foi possível criar seu perfil. Tente novamente.'
+        `Não foi possível criar seu perfil.\n\nDetalhes: ${error.response?.data?.detail || error.message || 'Erro desconhecido'}`
       );
     } finally {
       setLoading(false);
+      console.log('🏁 handleSubmit completed');
     }
   };
 
