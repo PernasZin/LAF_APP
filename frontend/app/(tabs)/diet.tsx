@@ -84,7 +84,7 @@ export default function DietScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadDiet();
+    await loadUserData();
     setRefreshing(false);
   };
 
