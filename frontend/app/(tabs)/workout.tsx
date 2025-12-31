@@ -316,6 +316,16 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginTop: 4,
   },
+  headerMeta: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  frequencyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
   regenerateButton: {
     width: 40,
     height: 40,
