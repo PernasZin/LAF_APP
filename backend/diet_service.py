@@ -432,7 +432,7 @@ Responda APENAS com o JSON, sem texto adicional.
         
         # Aveia como base de carboidrato
         aveia = FOOD_DATABASE['carboidratos'][2]  # Aveia em Flocos
-        aveia_portion = round_to_step(min(60, max(30, carbs * 0.4 / 0.66)), 10)
+        aveia_portion = round_to_step(min(60, max(30, carbs * 0.4 / 0.66)), 25)
         foods.append(calculate_food_nutrition(aveia, aveia_portion))
         
         # Ovos para proteína
