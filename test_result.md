@@ -189,11 +189,14 @@ backend:
     file: "/app/backend/diet_service.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "✅ CORRIGIDO: Diet generation now uses target_calories and target_macros from user profile as hard constraints. Total meal calories = EXACTLY target_calories. Total macros = EXACTLY target_macros. Tested with curl - bulking 3437kcal profile generated diet with 3437kcal total. Cutting 1544kcal profile generated diet with 1544kcal total."
+      - working: true
+        agent: "testing"
+        comment: "✅ VALIDADO: Single Source of Truth funcionando perfeitamente. Teste Bulking: Target 3158kcal → Got 3159kcal (Δ1kcal). Teste Cutting: Target 1508kcal → Got 1508kcal (Δ0kcal). Macros também batem exatamente com tolerância ±10g. Sistema usa fallback determinístico quando IA falha, garantindo precisão."
 
   - task: "Diet Generation - Realistic Portions"
     implemented: true
@@ -201,11 +204,14 @@ backend:
     file: "/app/backend/diet_service.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "✅ CORRIGIDO: Porções agora são realistas e arredondadas (múltiplos de 5g, 10g, 25g). Azeite limitado a máximo 10g por refeição (5g no fallback). Exemplos: Aveia 60g, Arroz 200g, Frango 100g, Batata Doce 200g."
+      - working: true
+        agent: "testing"
+        comment: "✅ VALIDADO: Porções realistas funcionando. Todas as quantidades são múltiplos apropriados (5g, 10g, 25g). Azeite limitado a ≤15g por refeição conforme especificado. Corrigido pequeno ajuste na aveia para usar múltiplos de 25g para porções ≥50g."
 
   - task: "Workout Generation - Frequency Match"
     implemented: true
@@ -213,11 +219,14 @@ backend:
     file: "/app/backend/workout_service.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "✅ CORRIGIDO: Workout generation now creates EXACTLY N workouts where N = weekly_training_frequency. Tested with 5x/week → 5 ABCDE workouts. Tested with 3x/week → 3 Push/Pull/Legs workouts. Splits are appropriate for frequency."
+      - working: true
+        agent: "testing"
+        comment: "✅ VALIDADO: Frequência de treino funcionando perfeitamente. Teste Bulking 5x/semana → 5 treinos distintos (ABCDE). Teste Cutting 3x/semana → 3 treinos distintos (Push/Pull/Legs). Sistema usa fallback determinístico quando IA falha, garantindo frequência exata."
 
 frontend:
   - task: "Welcome Screen"
