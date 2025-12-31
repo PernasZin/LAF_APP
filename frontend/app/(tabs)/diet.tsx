@@ -436,6 +436,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#111827',
   },
+  macroValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   macroTarget: {
     fontSize: 11,
     color: '#9CA3AF',
