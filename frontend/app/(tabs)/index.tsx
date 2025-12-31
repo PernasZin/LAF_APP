@@ -1,25 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function HomeScreen() {
   const [profile, setProfile] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  // Carrega perfil quando a tela ganha foco
+  useFocusEffect(
+    useCallback(() => {
+      loadProfile();
+    }, [])
+  );
 
   const loadProfile = async () => {
     try {
+      // Primeiro tenta carregar do AsyncStorage para UI rápida
       const profileData = await AsyncStorage.getItem('userProfile');
       if (profileData) {
         setProfile(JSON.parse(profileData));
       }
+      
+      // Depois busca do backend para garantir dados atualizados (Single Source of Truth)
+      const userId = await AsyncStorage.getItem('userId');
+      if (userId && BACKEND_URL) {
+        try {
+          const response = await axios.get(`${BACKEND_URL}/api/user/profile/${userId}`);
+          if (response.data) {
+            // Atualiza AsyncStorage com dados mais recentes
+            await AsyncStorage.setItem('userProfile', JSON.stringify(response.data));
+            setProfile(response.data);
+          }
+        } catch (apiError) {
+          console.log('Usando dados locais (backend indisponível)');
+        }
+      }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
     }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadProfile();
+    setRefreshing(false);
   };
 
   if (!profile) {
