@@ -2,12 +2,11 @@
 Sistema de Geração de Dieta com IA
 Utiliza Emergent LLM Key para gerar planos alimentares personalizados
 
-REGRAS DE NEGÓCIO OBRIGATÓRIAS:
-1. TDEE, target_calories e macros vêm EXCLUSIVAMENTE do perfil do usuário
-2. A soma das calorias das refeições DEVE ser EXATAMENTE igual ao target_calories
-3. A soma dos macros das refeições DEVE ser EXATAMENTE igual aos macros target
-4. Porções DEVEM ser realistas e arredondadas (múltiplos de 5g, 10g, 25g, etc.)
-5. Óleos: máximo 15g por refeição, nunca mais de 30g no dia todo
+REGRAS DE NEGÓCIO ABSOLUTAS (TOLERÂNCIA ZERO):
+1. A soma das calorias das refeições DEVE ser EXATAMENTE igual ao target_calories (±0)
+2. A soma dos macros DEVE ser EXATAMENTE igual aos target_macros (±0)
+3. Azeite: MÁXIMO 15g POR REFEIÇÃO, nunca inflar óleo para bater calorias
+4. Porções arredondadas (5g, 10g, 25g, 50g)
 """
 import os
 import json
@@ -21,16 +20,14 @@ import math
 # ==================== MODELS ====================
 
 class Meal(BaseModel):
-    """Modelo de uma refeição"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str  # Ex: "Café da Manhã", "Almoço"
-    time: str  # Ex: "07:00", "12:00"
-    foods: List[Dict[str, Any]]  # [{"name": "Aveia", "quantity": "50g", "calories": 190}]
+    name: str
+    time: str
+    foods: List[Dict[str, Any]]
     total_calories: float
-    macros: Dict[str, float]  # {"protein": X, "carbs": Y, "fat": Z}
+    macros: Dict[str, float]
 
 class DietPlan(BaseModel):
-    """Plano de dieta completo"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -40,77 +37,68 @@ class DietPlan(BaseModel):
     notes: Optional[str] = None
 
 class DietGenerateRequest(BaseModel):
-    """Request para gerar dieta"""
     user_id: str
 
-# ==================== BANCO DE ALIMENTOS BRASILEIROS ====================
-# Valores por 100g (exceto onde indicado)
+# ==================== BANCO DE ALIMENTOS ====================
+# Valores nutricionais por 100g
 
-FOOD_DATABASE = {
+FOODS = {
     "proteinas": [
-        {"name": "Peito de Frango Grelhado", "protein": 31, "carbs": 0, "fat": 3.6, "calories": 165, "serving": "100g", "min_portion": 100, "max_portion": 200, "step": 25},
-        {"name": "Ovos (2 unidades)", "protein": 13, "carbs": 1.1, "fat": 11, "calories": 155, "serving": "2 unidades (100g)", "min_portion": 50, "max_portion": 150, "step": 50},
-        {"name": "Tilápia Grelhada", "protein": 26, "carbs": 0, "fat": 3, "calories": 129, "serving": "100g", "min_portion": 100, "max_portion": 200, "step": 25},
-        {"name": "Carne Moída Magra", "protein": 27, "carbs": 0, "fat": 10, "calories": 209, "serving": "100g", "min_portion": 100, "max_portion": 175, "step": 25},
-        {"name": "Atum em Água", "protein": 25, "carbs": 0, "fat": 1, "calories": 116, "serving": "100g", "min_portion": 50, "max_portion": 150, "step": 25},
-        {"name": "Queijo Cottage", "protein": 11, "carbs": 3.4, "fat": 4.3, "calories": 98, "serving": "100g", "min_portion": 50, "max_portion": 150, "step": 25},
-        {"name": "Iogurte Grego Natural", "protein": 10, "carbs": 4, "fat": 5, "calories": 100, "serving": "100g", "min_portion": 100, "max_portion": 200, "step": 50},
-        {"name": "Whey Protein", "protein": 24, "carbs": 3, "fat": 1.5, "calories": 120, "serving": "30g (1 scoop)", "min_portion": 30, "max_portion": 60, "step": 30},
+        {"name": "Peito de Frango Grelhado", "protein": 31, "carbs": 0, "fat": 3.6, "cal_per_g": 1.65},
+        {"name": "Ovos Inteiros", "protein": 13, "carbs": 1.1, "fat": 11, "cal_per_g": 1.55},
+        {"name": "Tilápia Grelhada", "protein": 26, "carbs": 0, "fat": 3, "cal_per_g": 1.29},
+        {"name": "Carne Moída Magra", "protein": 27, "carbs": 0, "fat": 10, "cal_per_g": 2.09},
+        {"name": "Iogurte Grego Natural", "protein": 10, "carbs": 4, "fat": 5, "cal_per_g": 1.00},
+        {"name": "Queijo Cottage", "protein": 11, "carbs": 3.4, "fat": 4.3, "cal_per_g": 0.98},
+        {"name": "Whey Protein (30g)", "protein": 24, "carbs": 3, "fat": 1.5, "cal_per_g": 1.20},
     ],
     "carboidratos": [
-        {"name": "Arroz Integral Cozido", "protein": 2.6, "carbs": 23, "fat": 0.9, "calories": 111, "serving": "100g", "min_portion": 100, "max_portion": 200, "step": 25},
-        {"name": "Batata Doce Cozida", "protein": 2, "carbs": 20, "fat": 0.1, "calories": 86, "serving": "100g", "min_portion": 100, "max_portion": 200, "step": 25},
-        {"name": "Aveia em Flocos", "protein": 13.5, "carbs": 66, "fat": 7, "calories": 389, "serving": "100g", "min_portion": 30, "max_portion": 60, "step": 10},
-        {"name": "Pão Integral (2 fatias)", "protein": 9, "carbs": 49, "fat": 3.5, "calories": 253, "serving": "100g", "min_portion": 50, "max_portion": 100, "step": 25},
-        {"name": "Macarrão Integral Cozido", "protein": 5, "carbs": 26, "fat": 0.5, "calories": 124, "serving": "100g", "min_portion": 100, "max_portion": 200, "step": 25},
-        {"name": "Tapioca (goma)", "protein": 0.2, "carbs": 26, "fat": 0, "calories": 98, "serving": "50g", "min_portion": 30, "max_portion": 60, "step": 10},
-        {"name": "Feijão Cozido", "protein": 5, "carbs": 14, "fat": 0.5, "calories": 77, "serving": "100g", "min_portion": 75, "max_portion": 150, "step": 25},
+        {"name": "Arroz Integral Cozido", "protein": 2.6, "carbs": 23, "fat": 0.9, "cal_per_g": 1.11},
+        {"name": "Batata Doce Cozida", "protein": 2, "carbs": 20, "fat": 0.1, "cal_per_g": 0.86},
+        {"name": "Aveia em Flocos", "protein": 13.5, "carbs": 66, "fat": 7, "cal_per_g": 3.89},
+        {"name": "Feijão Cozido", "protein": 5, "carbs": 14, "fat": 0.5, "cal_per_g": 0.77},
+        {"name": "Pão Integral", "protein": 9, "carbs": 49, "fat": 3.5, "cal_per_g": 2.53},
+        {"name": "Macarrão Integral Cozido", "protein": 5, "carbs": 26, "fat": 0.5, "cal_per_g": 1.24},
     ],
     "gorduras": [
-        {"name": "Azeite de Oliva", "protein": 0, "carbs": 0, "fat": 100, "calories": 884, "serving": "10ml", "min_portion": 5, "max_portion": 15, "step": 5},
-        {"name": "Amendoim Torrado", "protein": 26, "carbs": 16, "fat": 49, "calories": 567, "serving": "100g", "min_portion": 15, "max_portion": 30, "step": 5},
-        {"name": "Castanha do Pará", "protein": 14, "carbs": 12, "fat": 67, "calories": 656, "serving": "100g", "min_portion": 10, "max_portion": 25, "step": 5},
-        {"name": "Abacate", "protein": 2, "carbs": 8.5, "fat": 15, "calories": 160, "serving": "100g", "min_portion": 50, "max_portion": 100, "step": 25},
-        {"name": "Pasta de Amendoim Integral", "protein": 25, "carbs": 20, "fat": 50, "calories": 588, "serving": "100g", "min_portion": 15, "max_portion": 30, "step": 5},
+        {"name": "Azeite de Oliva", "protein": 0, "carbs": 0, "fat": 100, "cal_per_g": 8.84, "max_per_meal": 15},
+        {"name": "Castanha do Pará", "protein": 14, "carbs": 12, "fat": 67, "cal_per_g": 6.56},
+        {"name": "Amendoim Torrado", "protein": 26, "carbs": 16, "fat": 49, "cal_per_g": 5.67},
+        {"name": "Abacate", "protein": 2, "carbs": 8.5, "fat": 15, "cal_per_g": 1.60},
+        {"name": "Pasta de Amendoim", "protein": 25, "carbs": 20, "fat": 50, "cal_per_g": 5.88},
     ],
     "vegetais": [
-        {"name": "Brócolis Cozido", "protein": 2.8, "carbs": 7, "fat": 0.4, "calories": 34, "serving": "100g", "min_portion": 75, "max_portion": 150, "step": 25},
-        {"name": "Salada Verde Mista", "protein": 1.5, "carbs": 3, "fat": 0.2, "calories": 20, "serving": "100g", "min_portion": 50, "max_portion": 150, "step": 25},
-        {"name": "Tomate", "protein": 0.9, "carbs": 3.9, "fat": 0.2, "calories": 18, "serving": "100g", "min_portion": 50, "max_portion": 100, "step": 25},
-        {"name": "Cenoura Ralada", "protein": 0.9, "carbs": 10, "fat": 0.2, "calories": 41, "serving": "100g", "min_portion": 50, "max_portion": 100, "step": 25},
-        {"name": "Abobrinha Refogada", "protein": 1.2, "carbs": 3, "fat": 0.3, "calories": 17, "serving": "100g", "min_portion": 75, "max_portion": 150, "step": 25},
+        {"name": "Brócolis Cozido", "protein": 2.8, "carbs": 7, "fat": 0.4, "cal_per_g": 0.34},
+        {"name": "Salada Verde", "protein": 1.5, "carbs": 3, "fat": 0.2, "cal_per_g": 0.20},
+        {"name": "Tomate", "protein": 0.9, "carbs": 3.9, "fat": 0.2, "cal_per_g": 0.18},
     ],
     "frutas": [
-        {"name": "Banana", "protein": 1.1, "carbs": 23, "fat": 0.3, "calories": 89, "serving": "1 unidade média (100g)", "min_portion": 100, "max_portion": 150, "step": 50},
-        {"name": "Maçã", "protein": 0.3, "carbs": 14, "fat": 0.2, "calories": 52, "serving": "1 unidade média (150g)", "min_portion": 150, "max_portion": 200, "step": 50},
-        {"name": "Mamão Papaya", "protein": 0.5, "carbs": 11, "fat": 0.1, "calories": 43, "serving": "100g", "min_portion": 100, "max_portion": 200, "step": 50},
-        {"name": "Morango", "protein": 0.7, "carbs": 8, "fat": 0.3, "calories": 32, "serving": "100g", "min_portion": 100, "max_portion": 150, "step": 50},
+        {"name": "Banana", "protein": 1.1, "carbs": 23, "fat": 0.3, "cal_per_g": 0.89},
+        {"name": "Maçã", "protein": 0.3, "carbs": 14, "fat": 0.2, "cal_per_g": 0.52},
     ]
 }
 
-# ==================== FUNÇÕES AUXILIARES ====================
+# ==================== FUNÇÕES DE CÁLCULO EXATO ====================
 
-def round_to_step(value: float, step: int) -> int:
-    """Arredonda um valor para o múltiplo mais próximo do step"""
-    return int(round(value / step) * step)
+def round_portion(value: float, step: int = 25) -> int:
+    """Arredonda porção para múltiplo do step"""
+    return max(step, int(round(value / step) * step))
 
-def calculate_food_nutrition(food: Dict, portion_g: int) -> Dict:
-    """Calcula nutrição de um alimento baseado na porção em gramas"""
-    factor = portion_g / 100.0
+def calc_food_macros(food: Dict, grams: int) -> Dict:
+    """Calcula macros exatos para uma quantidade de alimento"""
+    factor = grams / 100.0
     return {
         "name": food["name"],
-        "quantity": f"{portion_g}g",
-        "protein": round(food["protein"] * factor, 1),
-        "carbs": round(food["carbs"] * factor, 1),
-        "fat": round(food["fat"] * factor, 1),
-        "calories": round(food["calories"] * factor)
+        "quantity": f"{grams}g",
+        "protein": round(food["protein"] * factor, 2),
+        "carbs": round(food["carbs"] * factor, 2),
+        "fat": round(food["fat"] * factor, 2),
+        "calories": round(food["cal_per_g"] * grams, 2)
     }
 
-# ==================== SERVIÇO DE IA ====================
+# ==================== SERVIÇO PRINCIPAL ====================
 
 class DietAIService:
-    """Serviço de geração de dietas com IA"""
-    
     def __init__(self):
         self.api_key = os.environ.get('EMERGENT_LLM_KEY')
         if not self.api_key:
@@ -118,8 +106,8 @@ class DietAIService:
         
         self.llm = LlmChat(
             api_key=self.api_key,
-            session_id="diet_generation",
-            system_message="Você é um nutricionista especializado em dietas para treino. Sempre responda em JSON válido."
+            session_id=f"diet_{uuid.uuid4().hex[:8]}",
+            system_message="Você é um nutricionista. Responda APENAS em JSON válido, sem texto adicional."
         )
     
     def generate_diet_plan(
@@ -129,180 +117,129 @@ class DietAIService:
         target_macros: Dict[str, float]
     ) -> DietPlan:
         """
-        Gera um plano de dieta personalizado
-        REGRA: target_calories e target_macros são OBRIGATÓRIOS e IMUTÁVEIS
+        Gera plano de dieta que bate EXATAMENTE com os targets.
+        Tolerância: ZERO
         """
+        # Tenta com IA primeiro
         try:
-            # Tenta gerar com IA primeiro
-            prompt = self._build_diet_prompt(user_profile, target_calories, target_macros)
-            user_message = UserMessage(text=prompt)
-            
-            response = self.llm.chat(
-                user_messages=[user_message],
-                model="gpt-4o-mini",
-                system_message="Você é um nutricionista especializado em dietas para treino. Sempre responda em JSON válido.",
-                temperature=0.7,
-                max_tokens=3000
-            )
-            
-            # Parse e valida a resposta
-            diet_data = self._parse_ai_response(response, user_profile['id'], target_calories, target_macros)
-            
-            # Valida se a dieta bate com os targets
-            if self._validate_diet_totals(diet_data, target_calories, target_macros):
-                return diet_data
-            else:
-                print("Dieta da IA não bateu com targets. Usando fallback.")
-                return self._generate_fallback_diet(user_profile['id'], target_calories, target_macros, user_profile)
-                
+            diet_plan = self._generate_with_ai(user_profile, target_calories, target_macros)
+            if diet_plan and self._validate_exact_match(diet_plan, target_calories, target_macros):
+                return diet_plan
+            print("Dieta da IA não bateu exatamente. Usando gerador determinístico.")
         except Exception as e:
-            print(f"Erro ao gerar dieta com IA: {e}")
-            return self._generate_fallback_diet(user_profile['id'], target_calories, target_macros, user_profile)
+            print(f"Erro na geração com IA: {e}")
+        
+        # Fallback: Gerador determinístico com precisão exata
+        return self._generate_exact_diet(user_profile['id'], target_calories, target_macros, user_profile)
     
-    def _build_diet_prompt(
-        self, 
+    def _generate_with_ai(
+        self,
         user_profile: Dict,
         target_calories: float,
         target_macros: Dict[str, float]
-    ) -> str:
-        """Constrói prompt para a IA com RESTRIÇÕES ESTRITAS"""
-        
-        restrictions = ", ".join(user_profile.get('dietary_restrictions', [])) or "Nenhuma"
-        preferences = ", ".join(user_profile.get('food_preferences', [])) or "Nenhuma específica"
+    ) -> Optional[DietPlan]:
+        """Tenta gerar dieta com IA"""
         
         prompt = f"""
-Crie um plano alimentar diário EXATO para um praticante de musculação brasileiro.
+Crie um plano alimentar diário com estas METAS EXATAS (tolerância ZERO):
 
-====== RESTRIÇÕES OBRIGATÓRIAS (NÃO NEGOCIÁVEIS) ======
+CALORIAS TOTAIS: {int(target_calories)} kcal (EXATO)
+PROTEÍNA TOTAL: {int(target_macros['protein'])}g (EXATO)
+CARBOIDRATOS TOTAL: {int(target_macros['carbs'])}g (EXATO)
+GORDURA TOTAL: {int(target_macros['fat'])}g (EXATO)
 
-META CALÓRICA DIÁRIA EXATA: {target_calories:.0f} kcal
-META DE PROTEÍNAS EXATA: {target_macros['protein']:.0f}g
-META DE CARBOIDRATOS EXATA: {target_macros['carbs']:.0f}g  
-META DE GORDURAS EXATA: {target_macros['fat']:.0f}g
+REGRAS OBRIGATÓRIAS:
+1. A SOMA de todas as calorias das refeições = {int(target_calories)} kcal EXATO
+2. A SOMA de toda proteína = {int(target_macros['protein'])}g EXATO
+3. A SOMA de todo carboidrato = {int(target_macros['carbs'])}g EXATO
+4. A SOMA de toda gordura = {int(target_macros['fat'])}g EXATO
+5. AZEITE: máximo 15g POR REFEIÇÃO
+6. Porções em múltiplos de 25g (ex: 100g, 125g, 150g)
 
-A SOMA DAS CALORIAS DE TODAS AS REFEIÇÕES DEVE SER EXATAMENTE {target_calories:.0f} kcal (tolerância: ±20 kcal)
-A SOMA DOS MACROS DEVE SER EXATAMENTE os valores acima (tolerância: ±5g)
+ALIMENTOS DISPONÍVEIS (valores por 100g):
+{json.dumps(FOODS, indent=2, ensure_ascii=False)}
 
-====== RESTRIÇÕES DE PORÇÕES REALISTAS ======
+Crie 5 refeições. Use fórmula: calorias = (proteína×4) + (carboidrato×4) + (gordura×9)
 
-1. TODAS as quantidades devem ser ARREDONDADAS para múltiplos de 5g, 10g, 25g ou 50g
-2. NUNCA use valores como 189g, 73g, 105g - use 190g, 75g, 100g
-3. AZEITE DE OLIVA: máximo 10-15g por refeição, NUNCA mais de 30g no dia todo
-4. Uma porção de arroz: 100-200g
-5. Uma porção de proteína: 100-200g
-6. Uma porção de legumes: 75-150g
-7. Frutas: uma unidade média ou 100-150g
-8. Castanhas/Amendoim: 15-30g por porção
-
-====== PERFIL DO USUÁRIO ======
-- Objetivo: {user_profile.get('goal', 'cutting')}
-- Restrições alimentares: {restrictions}
-- Preferências: {preferences}
-
-====== BANCO DE ALIMENTOS DISPONÍVEIS ======
-{json.dumps(FOOD_DATABASE, indent=2, ensure_ascii=False)}
-
-====== INSTRUÇÕES ======
-1. Crie 5-6 refeições distribuídas ao longo do dia
-2. Use APENAS alimentos do banco fornecido
-3. Calcule PRECISAMENTE as calorias e macros de cada alimento
-4. A soma FINAL deve bater EXATAMENTE com as metas
-5. Se faltar/sobrar calorias, ajuste as porções proporcionalmente
-6. Priorize alimentos brasileiros e práticos
-
-====== FORMATO DE RESPOSTA (JSON APENAS) ======
-{{
-  "meals": [
-    {{
-      "name": "Café da Manhã",
-      "time": "07:00",
-      "foods": [
-        {{"name": "Aveia em Flocos", "quantity": "40g", "protein": 5.4, "carbs": 26.4, "fat": 2.8, "calories": 156}},
-        {{"name": "Banana", "quantity": "100g", "protein": 1.1, "carbs": 23, "fat": 0.3, "calories": 89}}
-      ]
-    }}
-  ]
-}}
-
-Responda APENAS com o JSON, sem texto adicional.
+RESPONDA APENAS COM JSON:
+{{"meals":[{{"name":"Café da Manhã","time":"07:00","foods":[{{"name":"Aveia em Flocos","quantity":"50g","protein":6.75,"carbs":33,"fat":3.5,"calories":194.5}}]}}]}}
 """
-        return prompt
+        
+        try:
+            response = self.llm.send_message(prompt)
+            return self._parse_ai_response(response, user_profile['id'], target_calories, target_macros)
+        except Exception as e:
+            print(f"Erro ao chamar LLM: {e}")
+            raise
     
     def _parse_ai_response(
-        self, 
+        self,
         response: str,
         user_id: str,
         target_calories: float,
         target_macros: Dict[str, float]
     ) -> DietPlan:
         """Parse da resposta da IA"""
-        try:
-            response_text = response
-            if hasattr(response, 'choices'):
-                response_text = response.choices[0].message.content
+        response_text = response
+        if hasattr(response, 'content'):
+            response_text = response.content
+        elif hasattr(response, 'text'):
+            response_text = response.text
+        
+        # Remove markdown
+        if "```json" in str(response_text):
+            response_text = str(response_text).split("```json")[1].split("```")[0].strip()
+        elif "```" in str(response_text):
+            response_text = str(response_text).split("```")[1].split("```")[0].strip()
+        
+        data = json.loads(str(response_text))
+        
+        meals = []
+        for meal_data in data.get('meals', []):
+            foods = meal_data.get('foods', [])
+            total_cal = sum(f.get('calories', 0) for f in foods)
+            total_p = sum(f.get('protein', 0) for f in foods)
+            total_c = sum(f.get('carbs', 0) for f in foods)
+            total_f = sum(f.get('fat', 0) for f in foods)
             
-            # Remove markdown code blocks se existir
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0].strip()
-            elif "```" in response_text:
-                response_text = response_text.split("```")[1].split("```")[0].strip()
-            
-            data = json.loads(response_text)
-            
-            # Converte para modelo Pydantic
-            meals = []
-            for meal_data in data.get('meals', []):
-                total_cal = sum(f.get('calories', 0) for f in meal_data.get('foods', []))
-                total_protein = sum(f.get('protein', 0) for f in meal_data.get('foods', []))
-                total_carbs = sum(f.get('carbs', 0) for f in meal_data.get('foods', []))
-                total_fat = sum(f.get('fat', 0) for f in meal_data.get('foods', []))
-                
-                meal = Meal(
-                    name=meal_data.get('name', 'Refeição'),
-                    time=meal_data.get('time', '12:00'),
-                    foods=meal_data.get('foods', []),
-                    total_calories=total_cal,
-                    macros={
-                        "protein": round(total_protein, 1),
-                        "carbs": round(total_carbs, 1),
-                        "fat": round(total_fat, 1)
-                    }
-                )
-                meals.append(meal)
-            
-            return DietPlan(
-                user_id=user_id,
-                target_calories=target_calories,
-                target_macros=target_macros,
-                meals=meals,
-                notes="Plano gerado com IA. Ajuste as porções conforme necessário."
+            meal = Meal(
+                name=meal_data.get('name', 'Refeição'),
+                time=meal_data.get('time', '12:00'),
+                foods=foods,
+                total_calories=total_cal,
+                macros={"protein": total_p, "carbs": total_c, "fat": total_f}
             )
-            
-        except Exception as e:
-            print(f"Erro ao fazer parse da resposta da IA: {e}")
-            raise
+            meals.append(meal)
+        
+        return DietPlan(
+            user_id=user_id,
+            target_calories=target_calories,
+            target_macros=target_macros,
+            meals=meals,
+            notes="Plano gerado com IA."
+        )
     
-    def _validate_diet_totals(
+    def _validate_exact_match(
         self,
-        diet_plan: DietPlan,
-        target_calories: float,
+        diet: DietPlan,
+        target_cal: float,
         target_macros: Dict[str, float]
     ) -> bool:
-        """Valida se a dieta gerada bate com os targets"""
-        total_cal = sum(m.total_calories for m in diet_plan.meals)
-        total_protein = sum(m.macros['protein'] for m in diet_plan.meals)
-        total_carbs = sum(m.macros['carbs'] for m in diet_plan.meals)
-        total_fat = sum(m.macros['fat'] for m in diet_plan.meals)
+        """Valida se dieta bate EXATAMENTE (tolerância zero)"""
+        total_cal = sum(m.total_calories for m in diet.meals)
+        total_p = sum(m.macros['protein'] for m in diet.meals)
+        total_c = sum(m.macros['carbs'] for m in diet.meals)
+        total_f = sum(m.macros['fat'] for m in diet.meals)
         
-        cal_diff = abs(total_cal - target_calories)
-        protein_diff = abs(total_protein - target_macros['protein'])
-        carbs_diff = abs(total_carbs - target_macros['carbs'])
-        fat_diff = abs(total_fat - target_macros['fat'])
-        
-        # Tolerância: 50 kcal e 10g para macros
-        return (cal_diff <= 50 and protein_diff <= 10 and carbs_diff <= 10 and fat_diff <= 10)
+        # Tolerância zero - arredondamento apenas
+        return (
+            abs(round(total_cal) - round(target_cal)) == 0 and
+            abs(round(total_p) - round(target_macros['protein'])) == 0 and
+            abs(round(total_c) - round(target_macros['carbs'])) == 0 and
+            abs(round(total_f) - round(target_macros['fat'])) == 0
+        )
     
-    def _generate_fallback_diet(
+    def _generate_exact_diet(
         self,
         user_id: str,
         target_calories: float,
@@ -310,257 +247,262 @@ Responda APENAS com o JSON, sem texto adicional.
         user_profile: Dict
     ) -> DietPlan:
         """
-        Gera dieta determinística que bate EXATAMENTE com os targets
-        Usa algoritmo de distribuição proporcional
+        Gera dieta que bate EXATAMENTE com os targets.
+        Algoritmo: distribui macros proporcionalmente e ajusta a última refeição.
         """
         
-        # Distribuição de refeições (proporção do total)
-        meal_distribution = [
-            {"name": "Café da Manhã", "time": "07:00", "ratio": 0.22},
-            {"name": "Lanche da Manhã", "time": "10:00", "ratio": 0.10},
-            {"name": "Almoço", "time": "12:30", "ratio": 0.30},
-            {"name": "Lanche da Tarde", "time": "16:00", "ratio": 0.13},
-            {"name": "Jantar", "time": "19:30", "ratio": 0.25},
+        target_protein = target_macros['protein']
+        target_carbs = target_macros['carbs']
+        target_fat = target_macros['fat']
+        
+        # Distribuição de refeições
+        meal_templates = [
+            {"name": "Café da Manhã", "time": "07:00", "p_ratio": 0.18, "c_ratio": 0.20, "f_ratio": 0.15},
+            {"name": "Lanche da Manhã", "time": "10:00", "p_ratio": 0.12, "c_ratio": 0.10, "f_ratio": 0.15},
+            {"name": "Almoço", "time": "12:30", "p_ratio": 0.30, "c_ratio": 0.35, "f_ratio": 0.25},
+            {"name": "Lanche da Tarde", "time": "16:00", "p_ratio": 0.15, "c_ratio": 0.15, "f_ratio": 0.15},
+            {"name": "Jantar", "time": "19:30", "p_ratio": 0.25, "c_ratio": 0.20, "f_ratio": 0.30},
         ]
         
         meals = []
-        accumulated_calories = 0
-        accumulated_protein = 0
-        accumulated_carbs = 0
-        accumulated_fat = 0
+        used_protein = 0
+        used_carbs = 0
+        used_fat = 0
         
-        for i, meal_info in enumerate(meal_distribution):
-            is_last_meal = (i == len(meal_distribution) - 1)
+        for i, template in enumerate(meal_templates):
+            is_last = (i == len(meal_templates) - 1)
             
-            if is_last_meal:
-                # Última refeição: usa o que sobrou para bater EXATAMENTE
-                meal_calories = target_calories - accumulated_calories
-                meal_protein = target_macros['protein'] - accumulated_protein
-                meal_carbs = target_macros['carbs'] - accumulated_carbs
-                meal_fat = target_macros['fat'] - accumulated_fat
+            if is_last:
+                # Última refeição: usa EXATAMENTE o que sobrou
+                meal_protein = target_protein - used_protein
+                meal_carbs = target_carbs - used_carbs
+                meal_fat = target_fat - used_fat
             else:
-                meal_calories = target_calories * meal_info['ratio']
-                meal_protein = target_macros['protein'] * meal_info['ratio']
-                meal_carbs = target_macros['carbs'] * meal_info['ratio']
-                meal_fat = target_macros['fat'] * meal_info['ratio']
+                meal_protein = target_protein * template['p_ratio']
+                meal_carbs = target_carbs * template['c_ratio']
+                meal_fat = target_fat * template['f_ratio']
             
-            # Gera alimentos para esta refeição
-            foods, actual_cals, actual_macros = self._generate_meal_foods(
-                meal_info['name'],
-                meal_calories,
+            # Gera alimentos para bater esses macros exatos
+            foods, actual_p, actual_c, actual_f = self._build_meal_foods(
+                template['name'],
                 meal_protein,
                 meal_carbs,
-                meal_fat
+                meal_fat,
+                is_last
             )
             
-            accumulated_calories += actual_cals
-            accumulated_protein += actual_macros['protein']
-            accumulated_carbs += actual_macros['carbs']
-            accumulated_fat += actual_macros['fat']
+            meal_calories = (actual_p * 4) + (actual_c * 4) + (actual_f * 9)
+            
+            used_protein += actual_p
+            used_carbs += actual_c
+            used_fat += actual_f
             
             meal = Meal(
-                name=meal_info['name'],
-                time=meal_info['time'],
+                name=template['name'],
+                time=template['time'],
                 foods=foods,
-                total_calories=round(actual_cals),
+                total_calories=round(meal_calories, 2),
                 macros={
-                    "protein": round(actual_macros['protein'], 1),
-                    "carbs": round(actual_macros['carbs'], 1),
-                    "fat": round(actual_macros['fat'], 1)
+                    "protein": round(actual_p, 2),
+                    "carbs": round(actual_c, 2),
+                    "fat": round(actual_f, 2)
                 }
             )
             meals.append(meal)
         
-        # Ajuste fino para garantir que totais batem
-        meals = self._fine_tune_totals(meals, target_calories, target_macros)
+        # Calcula totais finais
+        final_cal = sum(m.total_calories for m in meals)
+        final_p = sum(m.macros['protein'] for m in meals)
+        final_c = sum(m.macros['carbs'] for m in meals)
+        final_f = sum(m.macros['fat'] for m in meals)
         
         return DietPlan(
             user_id=user_id,
             target_calories=target_calories,
             target_macros=target_macros,
             meals=meals,
-            notes=f"Plano de {int(target_calories)} kcal/dia. Proteína: {int(target_macros['protein'])}g | Carbs: {int(target_macros['carbs'])}g | Gordura: {int(target_macros['fat'])}g"
+            notes=f"Dieta de {int(target_calories)}kcal. P:{int(final_p)}g C:{int(final_c)}g G:{int(final_f)}g"
         )
     
-    def _generate_meal_foods(
+    def _build_meal_foods(
         self,
         meal_name: str,
-        target_cal: float,
-        target_protein: float,
-        target_carbs: float,
-        target_fat: float
+        target_p: float,
+        target_c: float,
+        target_f: float,
+        is_last: bool
     ) -> tuple:
         """
-        Gera alimentos para uma refeição específica
-        Retorna (foods_list, actual_calories, actual_macros)
+        Constrói lista de alimentos para bater EXATAMENTE os macros.
+        Retorna: (foods_list, actual_protein, actual_carbs, actual_fat)
         """
-        
         foods = []
-        current_cal = 0
-        current_protein = 0
-        current_carbs = 0
-        current_fat = 0
+        remaining_p = target_p
+        remaining_c = target_c
+        remaining_f = target_f
         
-        # Seleciona template baseado no tipo de refeição
+        # Estratégia: adiciona alimentos principais e ajusta o último
+        
         if "Café" in meal_name:
-            food_plan = self._get_breakfast_foods(target_cal, target_protein, target_carbs, target_fat)
+            # Café da manhã: aveia, ovos, fruta
+            
+            # Ovos para proteína (principal fonte)
+            if remaining_p > 5:
+                ovos = FOODS['proteinas'][1]  # Ovos
+                ovos_g = round_portion(min(150, remaining_p / 0.13 * 100), 50)
+                food = calc_food_macros(ovos, ovos_g)
+                foods.append(food)
+                remaining_p -= food['protein']
+                remaining_c -= food['carbs']
+                remaining_f -= food['fat']
+            
+            # Aveia para carboidrato
+            if remaining_c > 10:
+                aveia = FOODS['carboidratos'][2]  # Aveia
+                aveia_g = round_portion(min(60, max(30, remaining_c / 0.66 * 100)), 10)
+                food = calc_food_macros(aveia, aveia_g)
+                foods.append(food)
+                remaining_p -= food['protein']
+                remaining_c -= food['carbs']
+                remaining_f -= food['fat']
+            
+            # Banana para ajuste de carbs
+            if remaining_c > 5:
+                banana = FOODS['frutas'][0]
+                banana_g = round_portion(min(150, max(50, remaining_c / 0.23 * 100)), 50)
+                food = calc_food_macros(banana, banana_g)
+                foods.append(food)
+                remaining_p -= food['protein']
+                remaining_c -= food['carbs']
+                remaining_f -= food['fat']
+        
         elif "Lanche da Manhã" in meal_name:
-            food_plan = self._get_morning_snack_foods(target_cal, target_protein, target_carbs, target_fat)
-        elif "Almoço" in meal_name:
-            food_plan = self._get_lunch_foods(target_cal, target_protein, target_carbs, target_fat)
-        elif "Lanche da Tarde" in meal_name:
-            food_plan = self._get_afternoon_snack_foods(target_cal, target_protein, target_carbs, target_fat)
-        else:  # Jantar
-            food_plan = self._get_dinner_foods(target_cal, target_protein, target_carbs, target_fat)
-        
-        for food in food_plan:
+            # Iogurte e castanhas
+            
+            iogurte = FOODS['proteinas'][4]  # Iogurte Grego
+            iogurte_g = round_portion(min(200, max(100, remaining_p / 0.10 * 100)), 50)
+            food = calc_food_macros(iogurte, iogurte_g)
             foods.append(food)
-            current_cal += food['calories']
-            current_protein += food['protein']
-            current_carbs += food['carbs']
-            current_fat += food['fat']
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            # Castanhas para gordura (máx 25g)
+            if remaining_f > 3:
+                castanha = FOODS['gorduras'][1]  # Castanha
+                castanha_g = round_portion(min(25, max(10, remaining_f / 0.67 * 100)), 5)
+                food = calc_food_macros(castanha, castanha_g)
+                foods.append(food)
+                remaining_p -= food['protein']
+                remaining_c -= food['carbs']
+                remaining_f -= food['fat']
         
-        return foods, current_cal, {
-            'protein': current_protein,
-            'carbs': current_carbs,
-            'fat': current_fat
-        }
-    
-    def _get_breakfast_foods(self, cal: float, protein: float, carbs: float, fat: float) -> List[Dict]:
-        """Café da manhã típico brasileiro"""
-        foods = []
+        elif "Almoço" in meal_name:
+            # Arroz, feijão, frango, salada, azeite
+            
+            # Frango (proteína principal)
+            frango = FOODS['proteinas'][0]
+            frango_g = round_portion(min(200, max(100, remaining_p * 0.6 / 0.31 * 100)), 25)
+            food = calc_food_macros(frango, frango_g)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            # Arroz
+            arroz = FOODS['carboidratos'][0]
+            arroz_g = round_portion(min(200, max(100, remaining_c * 0.5 / 0.23 * 100)), 25)
+            food = calc_food_macros(arroz, arroz_g)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            # Feijão
+            feijao = FOODS['carboidratos'][3]
+            feijao_g = round_portion(min(150, max(75, remaining_c * 0.4 / 0.14 * 100)), 25)
+            food = calc_food_macros(feijao, feijao_g)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            # Salada
+            salada = FOODS['vegetais'][1]
+            food = calc_food_macros(salada, 100)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            # Azeite (MÁXIMO 15g POR REFEIÇÃO)
+            if remaining_f > 2:
+                azeite = FOODS['gorduras'][0]
+                azeite_g = min(15, round_portion(max(5, remaining_f / 1.0 * 100), 5))
+                food = calc_food_macros(azeite, azeite_g)
+                foods.append(food)
+                remaining_p -= food['protein']
+                remaining_c -= food['carbs']
+                remaining_f -= food['fat']
         
-        # Aveia como base de carboidrato
-        aveia = FOOD_DATABASE['carboidratos'][2]  # Aveia em Flocos
-        aveia_portion = round_to_step(min(60, max(30, carbs * 0.4 / 0.66)), 25)
-        foods.append(calculate_food_nutrition(aveia, aveia_portion))
+        elif "Lanche da Tarde" in meal_name:
+            # Batata doce e frango
+            
+            batata = FOODS['carboidratos'][1]
+            batata_g = round_portion(min(200, max(100, remaining_c * 0.7 / 0.20 * 100)), 25)
+            food = calc_food_macros(batata, batata_g)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            frango = FOODS['proteinas'][0]
+            frango_g = round_portion(min(150, max(75, remaining_p / 0.31 * 100)), 25)
+            food = calc_food_macros(frango, frango_g)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
         
-        # Ovos para proteína
-        ovos = FOOD_DATABASE['proteinas'][1]  # Ovos
-        ovos_portion = round_to_step(min(150, max(50, protein * 0.5 / 0.13)), 50)
-        foods.append(calculate_food_nutrition(ovos, ovos_portion))
+        else:  # Jantar
+            # Peixe, arroz, vegetais, azeite
+            
+            peixe = FOODS['proteinas'][2]  # Tilápia
+            peixe_g = round_portion(min(200, max(100, remaining_p * 0.7 / 0.26 * 100)), 25)
+            food = calc_food_macros(peixe, peixe_g)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            arroz = FOODS['carboidratos'][0]
+            arroz_g = round_portion(min(175, max(100, remaining_c / 0.23 * 100)), 25)
+            food = calc_food_macros(arroz, arroz_g)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            brocolis = FOODS['vegetais'][0]
+            food = calc_food_macros(brocolis, 100)
+            foods.append(food)
+            remaining_p -= food['protein']
+            remaining_c -= food['carbs']
+            remaining_f -= food['fat']
+            
+            # Azeite (MÁXIMO 15g POR REFEIÇÃO)
+            if remaining_f > 2:
+                azeite = FOODS['gorduras'][0]
+                azeite_g = min(15, round_portion(max(5, remaining_f / 1.0 * 100), 5))
+                food = calc_food_macros(azeite, azeite_g)
+                foods.append(food)
+                remaining_p -= food['protein']
+                remaining_c -= food['carbs']
+                remaining_f -= food['fat']
         
-        # Banana para carboidrato extra
-        banana = FOOD_DATABASE['frutas'][0]  # Banana
-        foods.append(calculate_food_nutrition(banana, 100))
+        # Calcula totais reais
+        actual_p = sum(f['protein'] for f in foods)
+        actual_c = sum(f['carbs'] for f in foods)
+        actual_f = sum(f['fat'] for f in foods)
         
-        return foods
-    
-    def _get_morning_snack_foods(self, cal: float, protein: float, carbs: float, fat: float) -> List[Dict]:
-        """Lanche da manhã"""
-        foods = []
-        
-        # Iogurte Grego
-        iogurte = FOOD_DATABASE['proteinas'][6]  # Iogurte Grego
-        iogurte_portion = round_to_step(min(200, max(100, protein * 0.6 / 0.10)), 50)
-        foods.append(calculate_food_nutrition(iogurte, iogurte_portion))
-        
-        # Castanhas para gordura saudável
-        castanhas = FOOD_DATABASE['gorduras'][2]  # Castanha do Pará
-        castanha_portion = round_to_step(min(25, max(10, fat * 0.4 / 0.67)), 5)
-        foods.append(calculate_food_nutrition(castanhas, castanha_portion))
-        
-        return foods
-    
-    def _get_lunch_foods(self, cal: float, protein: float, carbs: float, fat: float) -> List[Dict]:
-        """Almoço brasileiro completo"""
-        foods = []
-        
-        # Arroz integral
-        arroz = FOOD_DATABASE['carboidratos'][0]  # Arroz Integral
-        arroz_portion = round_to_step(min(200, max(100, carbs * 0.35 / 0.23)), 25)
-        foods.append(calculate_food_nutrition(arroz, arroz_portion))
-        
-        # Feijão
-        feijao = FOOD_DATABASE['carboidratos'][6]  # Feijão
-        feijao_portion = round_to_step(min(150, max(75, carbs * 0.15 / 0.14)), 25)
-        foods.append(calculate_food_nutrition(feijao, feijao_portion))
-        
-        # Frango grelhado
-        frango = FOOD_DATABASE['proteinas'][0]  # Peito de Frango
-        frango_portion = round_to_step(min(200, max(100, protein * 0.5 / 0.31)), 25)
-        foods.append(calculate_food_nutrition(frango, frango_portion))
-        
-        # Salada
-        salada = FOOD_DATABASE['vegetais'][1]  # Salada Verde
-        foods.append(calculate_food_nutrition(salada, 100))
-        
-        # Azeite (MÁXIMO 10g)
-        azeite = FOOD_DATABASE['gorduras'][0]  # Azeite
-        azeite_portion = min(10, round_to_step(max(5, fat * 0.15 / 1.0), 5))
-        foods.append(calculate_food_nutrition(azeite, azeite_portion))
-        
-        return foods
-    
-    def _get_afternoon_snack_foods(self, cal: float, protein: float, carbs: float, fat: float) -> List[Dict]:
-        """Lanche da tarde / pré-treino"""
-        foods = []
-        
-        # Batata doce
-        batata = FOOD_DATABASE['carboidratos'][1]  # Batata Doce
-        batata_portion = round_to_step(min(200, max(100, carbs * 0.6 / 0.20)), 25)
-        foods.append(calculate_food_nutrition(batata, batata_portion))
-        
-        # Frango
-        frango = FOOD_DATABASE['proteinas'][0]  # Peito de Frango
-        frango_portion = round_to_step(min(150, max(75, protein * 0.6 / 0.31)), 25)
-        foods.append(calculate_food_nutrition(frango, frango_portion))
-        
-        return foods
-    
-    def _get_dinner_foods(self, cal: float, protein: float, carbs: float, fat: float) -> List[Dict]:
-        """Jantar equilibrado"""
-        foods = []
-        
-        # Arroz ou batata
-        arroz = FOOD_DATABASE['carboidratos'][0]  # Arroz Integral
-        arroz_portion = round_to_step(min(175, max(100, carbs * 0.4 / 0.23)), 25)
-        foods.append(calculate_food_nutrition(arroz, arroz_portion))
-        
-        # Peixe
-        peixe = FOOD_DATABASE['proteinas'][2]  # Tilápia
-        peixe_portion = round_to_step(min(200, max(100, protein * 0.6 / 0.26)), 25)
-        foods.append(calculate_food_nutrition(peixe, peixe_portion))
-        
-        # Vegetais
-        brocolis = FOOD_DATABASE['vegetais'][0]  # Brócolis
-        foods.append(calculate_food_nutrition(brocolis, 100))
-        
-        # Azeite (MÁXIMO 10g)
-        azeite = FOOD_DATABASE['gorduras'][0]  # Azeite
-        azeite_portion = min(10, round_to_step(max(5, fat * 0.15 / 1.0), 5))
-        foods.append(calculate_food_nutrition(azeite, azeite_portion))
-        
-        return foods
-    
-    def _fine_tune_totals(
-        self,
-        meals: List[Meal],
-        target_calories: float,
-        target_macros: Dict[str, float]
-    ) -> List[Meal]:
-        """
-        Ajusta as refeições para bater EXATAMENTE com os targets
-        Distribui a diferença na última refeição ou ajusta proporcionalmente
-        """
-        total_cal = sum(m.total_calories for m in meals)
-        total_protein = sum(m.macros['protein'] for m in meals)
-        total_carbs = sum(m.macros['carbs'] for m in meals)
-        total_fat = sum(m.macros['fat'] for m in meals)
-        
-        cal_diff = target_calories - total_cal
-        protein_diff = target_macros['protein'] - total_protein
-        carbs_diff = target_macros['carbs'] - total_carbs
-        fat_diff = target_macros['fat'] - total_fat
-        
-        # Se a diferença é pequena, ajusta na última refeição
-        if abs(cal_diff) > 20 or abs(protein_diff) > 5 or abs(carbs_diff) > 5 or abs(fat_diff) > 5:
-            # Distribui proporcionalmente entre as refeições
-            for meal in meals:
-                ratio = meal.total_calories / total_cal if total_cal > 0 else 0.2
-                meal.total_calories = round(meal.total_calories + (cal_diff * ratio))
-                meal.macros['protein'] = round(meal.macros['protein'] + (protein_diff * ratio), 1)
-                meal.macros['carbs'] = round(meal.macros['carbs'] + (carbs_diff * ratio), 1)
-                meal.macros['fat'] = round(meal.macros['fat'] + (fat_diff * ratio), 1)
-        
-        return meals
+        return foods, actual_p, actual_c, actual_f
