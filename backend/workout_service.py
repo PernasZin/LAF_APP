@@ -2,11 +2,9 @@
 Sistema de Geração de Treino com IA
 Utiliza Emergent LLM Key para gerar planos de treino personalizados
 
-REGRAS DE NEGÓCIO OBRIGATÓRIAS:
-1. O número de sessões de treino DEVE ser EXATAMENTE igual ao training_frequency do usuário
-2. Cada sessão deve ser distinta, sem duplicatas
-3. O split deve ser adequado ao nível e objetivo do usuário
-4. Splits pré-definidos garantem consistência
+REGRA ABSOLUTA (TOLERÂNCIA ZERO):
+O número de sessões de treino DEVE ser EXATAMENTE igual ao weekly_training_frequency.
+Não há aproximação. Não há exceção.
 """
 import os
 import json
@@ -19,25 +17,22 @@ import uuid
 # ==================== MODELS ====================
 
 class Exercise(BaseModel):
-    """Modelo de um exercício"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     muscle_group: str
     sets: int
-    reps: str  # Ex: "8-12", "12-15", "até a falha"
-    rest: str  # Ex: "60s", "90s", "2min"
+    reps: str
+    rest: str
     notes: Optional[str] = None
 
 class WorkoutDay(BaseModel):
-    """Modelo de um dia de treino"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str  # Ex: "Treino A - Peito/Tríceps"
-    day: str  # Ex: "Segunda", "Terça"
+    name: str
+    day: str
     exercises: List[Exercise]
-    duration: int  # Tempo estimado em minutos
+    duration: int
 
 class WorkoutPlan(BaseModel):
-    """Plano de treino completo"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -48,243 +43,126 @@ class WorkoutPlan(BaseModel):
     notes: Optional[str] = None
 
 class WorkoutGenerateRequest(BaseModel):
-    """Request para gerar treino"""
     user_id: str
 
 # ==================== BANCO DE EXERCÍCIOS ====================
 
-EXERCISE_DATABASE = {
+EXERCISES = {
     "peito": [
-        {"name": "Supino Reto com Barra", "focus": "Peitoral médio", "equipment": "Barra"},
-        {"name": "Supino Inclinado com Halteres", "focus": "Peitoral superior", "equipment": "Halteres"},
-        {"name": "Crucifixo Inclinado", "focus": "Abertura peitoral superior", "equipment": "Halteres"},
-        {"name": "Flexão de Braço", "focus": "Peitoral geral", "equipment": "Peso corporal"},
-        {"name": "Cross Over (Polia Alta)", "focus": "Definição peitoral", "equipment": "Polia"},
-        {"name": "Supino Declinado", "focus": "Peitoral inferior", "equipment": "Barra"},
+        {"name": "Supino Reto com Barra", "focus": "Peitoral médio"},
+        {"name": "Supino Inclinado com Halteres", "focus": "Peitoral superior"},
+        {"name": "Crucifixo Inclinado", "focus": "Abertura peitoral"},
+        {"name": "Cross Over (Polia)", "focus": "Definição peitoral"},
+        {"name": "Flexão de Braço", "focus": "Peitoral geral"},
     ],
     "costas": [
-        {"name": "Barra Fixa", "focus": "Dorsais", "equipment": "Peso corporal"},
-        {"name": "Remada Curvada com Barra", "focus": "Dorsais/Trapézio", "equipment": "Barra"},
-        {"name": "Remada Cavalinho", "focus": "Dorsais médios", "equipment": "Máquina"},
-        {"name": "Pulldown (Puxada Frontal)", "focus": "Dorsais", "equipment": "Polia"},
-        {"name": "Levantamento Terra", "focus": "Costas completa/Posterior", "equipment": "Barra"},
-        {"name": "Remada Unilateral com Halter", "focus": "Dorsais", "equipment": "Halteres"},
+        {"name": "Barra Fixa", "focus": "Dorsais"},
+        {"name": "Remada Curvada com Barra", "focus": "Dorsais/Trapézio"},
+        {"name": "Pulldown (Puxada Frontal)", "focus": "Dorsais"},
+        {"name": "Remada Cavalinho", "focus": "Dorsais médios"},
+        {"name": "Remada Unilateral", "focus": "Dorsais"},
     ],
-    "pernas_quadriceps": [
-        {"name": "Agachamento Livre", "focus": "Quadríceps/Glúteos", "equipment": "Barra"},
-        {"name": "Leg Press 45°", "focus": "Quadríceps/Glúteos", "equipment": "Máquina"},
-        {"name": "Cadeira Extensora", "focus": "Quadríceps", "equipment": "Máquina"},
-        {"name": "Afundo com Halteres", "focus": "Quadríceps/Glúteos", "equipment": "Halteres"},
-        {"name": "Hack Squat", "focus": "Quadríceps", "equipment": "Máquina"},
+    "quadriceps": [
+        {"name": "Agachamento Livre", "focus": "Quadríceps/Glúteos"},
+        {"name": "Leg Press 45°", "focus": "Quadríceps"},
+        {"name": "Cadeira Extensora", "focus": "Quadríceps"},
+        {"name": "Afundo com Halteres", "focus": "Quadríceps/Glúteos"},
+        {"name": "Hack Squat", "focus": "Quadríceps"},
     ],
-    "pernas_posterior": [
-        {"name": "Mesa Flexora", "focus": "Posterior de coxa", "equipment": "Máquina"},
-        {"name": "Stiff", "focus": "Posterior de coxa/Glúteos", "equipment": "Barra/Halteres"},
-        {"name": "Cadeira Flexora", "focus": "Posterior de coxa", "equipment": "Máquina"},
-        {"name": "Elevação Pélvica", "focus": "Glúteos", "equipment": "Barra"},
+    "posterior": [
+        {"name": "Stiff", "focus": "Posterior/Glúteos"},
+        {"name": "Mesa Flexora", "focus": "Posterior de coxa"},
+        {"name": "Cadeira Flexora", "focus": "Posterior"},
+        {"name": "Elevação Pélvica", "focus": "Glúteos"},
     ],
-    "panturrilhas": [
-        {"name": "Panturrilha em Pé", "focus": "Panturrilhas", "equipment": "Máquina"},
-        {"name": "Panturrilha Sentado", "focus": "Sóleo", "equipment": "Máquina"},
+    "panturrilha": [
+        {"name": "Panturrilha em Pé", "focus": "Gastrocnêmio"},
+        {"name": "Panturrilha Sentado", "focus": "Sóleo"},
     ],
     "ombros": [
-        {"name": "Desenvolvimento com Barra", "focus": "Deltoides anterior/médio", "equipment": "Barra"},
-        {"name": "Desenvolvimento com Halteres", "focus": "Deltoides", "equipment": "Halteres"},
-        {"name": "Elevação Lateral", "focus": "Deltoide médio", "equipment": "Halteres"},
-        {"name": "Elevação Frontal", "focus": "Deltoide anterior", "equipment": "Halteres/Anilha"},
-        {"name": "Crucifixo Inverso", "focus": "Deltoide posterior", "equipment": "Halteres"},
-        {"name": "Face Pull", "focus": "Deltoide posterior/Trapézio", "equipment": "Polia"},
+        {"name": "Desenvolvimento com Halteres", "focus": "Deltoides"},
+        {"name": "Elevação Lateral", "focus": "Deltoide médio"},
+        {"name": "Elevação Frontal", "focus": "Deltoide anterior"},
+        {"name": "Crucifixo Inverso", "focus": "Deltoide posterior"},
+        {"name": "Face Pull", "focus": "Deltoide posterior"},
     ],
     "biceps": [
-        {"name": "Rosca Direta com Barra", "focus": "Bíceps geral", "equipment": "Barra"},
-        {"name": "Rosca Alternada com Halteres", "focus": "Bíceps", "equipment": "Halteres"},
-        {"name": "Rosca Martelo", "focus": "Bíceps/Antebraço", "equipment": "Halteres"},
-        {"name": "Rosca Scott", "focus": "Pico do bíceps", "equipment": "Barra W"},
-        {"name": "Rosca Concentrada", "focus": "Bíceps", "equipment": "Halteres"},
+        {"name": "Rosca Direta com Barra", "focus": "Bíceps"},
+        {"name": "Rosca Alternada", "focus": "Bíceps"},
+        {"name": "Rosca Martelo", "focus": "Bíceps/Antebraço"},
+        {"name": "Rosca Scott", "focus": "Pico do bíceps"},
     ],
     "triceps": [
-        {"name": "Tríceps Testa com Barra", "focus": "Tríceps", "equipment": "Barra"},
-        {"name": "Tríceps Corda (Polia)", "focus": "Tríceps lateral", "equipment": "Polia"},
-        {"name": "Mergulho em Paralelas", "focus": "Tríceps geral", "equipment": "Peso corporal"},
-        {"name": "Tríceps Coice com Halteres", "focus": "Tríceps", "equipment": "Halteres"},
-        {"name": "Tríceps Francês", "focus": "Cabeça longa", "equipment": "Halteres"},
+        {"name": "Tríceps Testa", "focus": "Tríceps"},
+        {"name": "Tríceps Corda (Polia)", "focus": "Tríceps"},
+        {"name": "Mergulho em Paralelas", "focus": "Tríceps"},
+        {"name": "Tríceps Francês", "focus": "Cabeça longa"},
     ],
     "abdomen": [
-        {"name": "Abdominal Supra", "focus": "Reto abdominal", "equipment": "Peso corporal"},
-        {"name": "Prancha Isométrica", "focus": "Core completo", "equipment": "Peso corporal"},
-        {"name": "Abdominal Bicicleta", "focus": "Oblíquos", "equipment": "Peso corporal"},
-        {"name": "Elevação de Pernas", "focus": "Reto abdominal inferior", "equipment": "Peso corporal"},
-        {"name": "Abdominal na Polia", "focus": "Reto abdominal", "equipment": "Polia"},
+        {"name": "Abdominal Supra", "focus": "Reto abdominal"},
+        {"name": "Prancha Isométrica", "focus": "Core"},
+        {"name": "Elevação de Pernas", "focus": "Abdominal inferior"},
+        {"name": "Abdominal Bicicleta", "focus": "Oblíquos"},
     ],
 }
 
+DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+
 # ==================== SPLITS PRÉ-DEFINIDOS ====================
 
-DAYS_OF_WEEK = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
-
-def get_split_templates():
-    """Retorna templates de splits para cada frequência semanal"""
-    return {
-        # 2x/semana - Full Body
+def get_split_for_frequency(freq: int) -> List[Dict]:
+    """Retorna split EXATO para a frequência especificada"""
+    
+    splits = {
+        1: [
+            {"name": "Full Body", "muscles": ["peito", "costas", "quadriceps", "ombros", "biceps", "triceps", "abdomen"]}
+        ],
         2: [
-            {
-                "name": "Full Body A",
-                "focus": ["peito", "costas", "pernas_quadriceps", "ombros", "abdomen"],
-                "exercises_per_group": 2
-            },
-            {
-                "name": "Full Body B", 
-                "focus": ["peito", "costas", "pernas_posterior", "biceps", "triceps"],
-                "exercises_per_group": 2
-            },
+            {"name": "Full Body A", "muscles": ["peito", "costas", "quadriceps", "ombros", "abdomen"]},
+            {"name": "Full Body B", "muscles": ["peito", "costas", "posterior", "biceps", "triceps"]},
         ],
-        # 3x/semana - Push/Pull/Legs
         3: [
-            {
-                "name": "Push (Empurrar)",
-                "focus": ["peito", "ombros", "triceps"],
-                "exercises_per_group": 3
-            },
-            {
-                "name": "Pull (Puxar)",
-                "focus": ["costas", "biceps", "abdomen"],
-                "exercises_per_group": 3
-            },
-            {
-                "name": "Legs (Pernas)",
-                "focus": ["pernas_quadriceps", "pernas_posterior", "panturrilhas"],
-                "exercises_per_group": 3
-            },
+            {"name": "Push (Empurrar)", "muscles": ["peito", "ombros", "triceps"]},
+            {"name": "Pull (Puxar)", "muscles": ["costas", "biceps", "abdomen"]},
+            {"name": "Legs (Pernas)", "muscles": ["quadriceps", "posterior", "panturrilha"]},
         ],
-        # 4x/semana - Upper/Lower
         4: [
-            {
-                "name": "Upper A (Superior)",
-                "focus": ["peito", "costas", "ombros"],
-                "exercises_per_group": 3
-            },
-            {
-                "name": "Lower A (Inferior)",
-                "focus": ["pernas_quadriceps", "pernas_posterior", "panturrilhas", "abdomen"],
-                "exercises_per_group": 2
-            },
-            {
-                "name": "Upper B (Superior)",
-                "focus": ["peito", "costas", "biceps", "triceps"],
-                "exercises_per_group": 2
-            },
-            {
-                "name": "Lower B (Inferior)",
-                "focus": ["pernas_quadriceps", "pernas_posterior", "panturrilhas", "abdomen"],
-                "exercises_per_group": 2
-            },
+            {"name": "Upper A (Superior)", "muscles": ["peito", "costas", "ombros"]},
+            {"name": "Lower A (Inferior)", "muscles": ["quadriceps", "posterior", "panturrilha", "abdomen"]},
+            {"name": "Upper B (Superior)", "muscles": ["peito", "costas", "biceps", "triceps"]},
+            {"name": "Lower B (Inferior)", "muscles": ["quadriceps", "posterior", "panturrilha", "abdomen"]},
         ],
-        # 5x/semana - ABCDE (Split por grupo muscular)
         5: [
-            {
-                "name": "Peito/Tríceps",
-                "focus": ["peito", "triceps"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Costas/Bíceps",
-                "focus": ["costas", "biceps"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Pernas Quadríceps",
-                "focus": ["pernas_quadriceps", "panturrilhas"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Ombros/Abdômen",
-                "focus": ["ombros", "abdomen"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Pernas Posterior/Glúteos",
-                "focus": ["pernas_posterior", "pernas_quadriceps"],
-                "exercises_per_group": 4
-            },
+            {"name": "Peito/Tríceps", "muscles": ["peito", "triceps"]},
+            {"name": "Costas/Bíceps", "muscles": ["costas", "biceps"]},
+            {"name": "Pernas Quadríceps", "muscles": ["quadriceps", "panturrilha"]},
+            {"name": "Ombros/Abdômen", "muscles": ["ombros", "abdomen"]},
+            {"name": "Pernas Posterior", "muscles": ["posterior", "quadriceps"]},
         ],
-        # 6x/semana - Push/Pull/Legs 2x
         6: [
-            {
-                "name": "Push A (Peito foco)",
-                "focus": ["peito", "ombros", "triceps"],
-                "exercises_per_group": 3
-            },
-            {
-                "name": "Pull A (Costas foco)",
-                "focus": ["costas", "biceps"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Legs A (Quadríceps foco)",
-                "focus": ["pernas_quadriceps", "panturrilhas", "abdomen"],
-                "exercises_per_group": 3
-            },
-            {
-                "name": "Push B (Ombros foco)",
-                "focus": ["ombros", "peito", "triceps"],
-                "exercises_per_group": 3
-            },
-            {
-                "name": "Pull B (Espessura costas)",
-                "focus": ["costas", "biceps", "abdomen"],
-                "exercises_per_group": 3
-            },
-            {
-                "name": "Legs B (Posterior foco)",
-                "focus": ["pernas_posterior", "pernas_quadriceps", "panturrilhas"],
-                "exercises_per_group": 3
-            },
+            {"name": "Push A", "muscles": ["peito", "ombros", "triceps"]},
+            {"name": "Pull A", "muscles": ["costas", "biceps"]},
+            {"name": "Legs A", "muscles": ["quadriceps", "panturrilha", "abdomen"]},
+            {"name": "Push B", "muscles": ["ombros", "peito", "triceps"]},
+            {"name": "Pull B", "muscles": ["costas", "biceps", "abdomen"]},
+            {"name": "Legs B", "muscles": ["posterior", "quadriceps", "panturrilha"]},
         ],
-        # 7x/semana - Bro Split + Cardio
         7: [
-            {
-                "name": "Peito",
-                "focus": ["peito"],
-                "exercises_per_group": 5
-            },
-            {
-                "name": "Costas",
-                "focus": ["costas"],
-                "exercises_per_group": 5
-            },
-            {
-                "name": "Ombros",
-                "focus": ["ombros", "abdomen"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Quadríceps/Panturrilhas",
-                "focus": ["pernas_quadriceps", "panturrilhas"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Posterior/Glúteos",
-                "focus": ["pernas_posterior"],
-                "exercises_per_group": 5
-            },
-            {
-                "name": "Braços",
-                "focus": ["biceps", "triceps"],
-                "exercises_per_group": 4
-            },
-            {
-                "name": "Cardio/Funcional/Abdômen",
-                "focus": ["abdomen"],
-                "exercises_per_group": 5
-            },
+            {"name": "Peito", "muscles": ["peito"]},
+            {"name": "Costas", "muscles": ["costas"]},
+            {"name": "Ombros", "muscles": ["ombros", "abdomen"]},
+            {"name": "Quadríceps", "muscles": ["quadriceps", "panturrilha"]},
+            {"name": "Posterior/Glúteos", "muscles": ["posterior"]},
+            {"name": "Braços", "muscles": ["biceps", "triceps"]},
+            {"name": "Cardio/Core", "muscles": ["abdomen"]},
         ],
     }
+    
+    return splits.get(freq, splits[4])
 
-# ==================== SERVIÇO DE IA ====================
+# ==================== SERVIÇO PRINCIPAL ====================
 
 class WorkoutAIService:
-    """Serviço de geração de treinos com IA"""
-    
     def __init__(self):
         self.api_key = os.environ.get('EMERGENT_LLM_KEY')
         if not self.api_key:
@@ -292,262 +170,178 @@ class WorkoutAIService:
         
         self.llm = LlmChat(
             api_key=self.api_key,
-            session_id="workout_generation",
-            system_message="Você é um personal trainer especializado em musculação. Sempre responda em JSON válido."
+            session_id=f"workout_{uuid.uuid4().hex[:8]}",
+            system_message="Você é um personal trainer. Responda APENAS em JSON válido."
         )
     
     def generate_workout_plan(self, user_profile: Dict) -> WorkoutPlan:
         """
-        Gera um plano de treino personalizado
-        REGRA: O número de sessões DEVE ser EXATAMENTE igual ao weekly_training_frequency
+        Gera plano de treino com EXATAMENTE N sessões.
+        N = weekly_training_frequency. Tolerância: ZERO.
         """
-        weekly_frequency = user_profile.get('weekly_training_frequency', 4)
-        training_level = user_profile.get('training_level', 'intermediario')
+        frequency = user_profile.get('weekly_training_frequency', 4)
+        frequency = max(1, min(7, frequency))  # Limita entre 1-7
+        
+        level = user_profile.get('training_level', 'intermediario')
         goal = user_profile.get('goal', 'bulking')
         
-        # Valida frequência (1-7)
-        weekly_frequency = max(1, min(7, weekly_frequency))
-        
-        # Frequência 1 é tratada como 2 (Full Body 2x por semana, fazendo um por semana)
-        if weekly_frequency == 1:
-            weekly_frequency = 2
-            # Mas retornamos apenas 1 treino
-            workout_plan = self._generate_deterministic_plan(user_profile['id'], 2, training_level, goal)
-            workout_plan.workout_days = workout_plan.workout_days[:1]
-            workout_plan.weekly_frequency = 1
-            workout_plan.notes = "Treino Full Body. Para melhores resultados, considere aumentar para 2-3x/semana."
-            return workout_plan
-        
+        # Tenta com IA primeiro
         try:
-            # Tenta gerar com IA primeiro
-            prompt = self._build_workout_prompt(user_profile, weekly_frequency)
-            user_message = UserMessage(text=prompt)
-            
-            response = self.llm.chat(
-                user_messages=[user_message],
-                model="gpt-4o-mini",
-                temperature=0.7,
-                max_tokens=3000
-            )
-            
-            workout_data = self._parse_ai_response(response, user_profile['id'], user_profile)
-            
-            # Valida se tem o número correto de treinos
-            if len(workout_data.workout_days) == weekly_frequency:
-                return workout_data
-            else:
-                print(f"IA gerou {len(workout_data.workout_days)} treinos em vez de {weekly_frequency}. Usando fallback.")
-                return self._generate_deterministic_plan(user_profile['id'], weekly_frequency, training_level, goal)
-                
+            plan = self._generate_with_ai(user_profile, frequency)
+            if plan and len(plan.workout_days) == frequency:
+                return plan
+            print(f"IA gerou {len(plan.workout_days) if plan else 0} treinos, esperado {frequency}. Usando fallback.")
         except Exception as e:
-            print(f"Erro ao gerar treino com IA: {e}")
-            return self._generate_deterministic_plan(user_profile['id'], weekly_frequency, training_level, goal)
+            print(f"Erro na geração com IA: {e}")
+        
+        # Fallback determinístico - SEMPRE gera exatamente N treinos
+        return self._generate_exact_workout(user_profile['id'], frequency, level, goal)
     
-    def _build_workout_prompt(self, user_profile: Dict, weekly_frequency: int) -> str:
-        """Constrói prompt para a IA com RESTRIÇÕES ESTRITAS"""
+    def _generate_with_ai(self, user_profile: Dict, frequency: int) -> Optional[WorkoutPlan]:
+        """Tenta gerar treino com IA"""
         
-        training_level = user_profile.get('training_level', 'intermediario')
+        level = user_profile.get('training_level', 'intermediario')
         goal = user_profile.get('goal', 'bulking')
-        available_time = user_profile.get('available_time_per_session', 60)
-        injuries = user_profile.get('injury_history', [])
-        injuries_text = ", ".join(injuries) if injuries else "Nenhuma"
-        
-        # Sugere split baseado na frequência
-        split_suggestion = {
-            2: "Full Body A/B",
-            3: "Push/Pull/Legs",
-            4: "Upper/Lower 2x",
-            5: "ABCDE (divisão por grupos)",
-            6: "Push/Pull/Legs 2x",
-            7: "Bro Split + Cardio"
-        }
         
         prompt = f"""
-Crie um plano de treino semanal para musculação.
+Crie um plano de treino semanal com EXATAMENTE {frequency} TREINOS.
 
-====== RESTRIÇÃO OBRIGATÓRIA (NÃO NEGOCIÁVEL) ======
+REGRA ABSOLUTA: Gere EXATAMENTE {frequency} treinos, nem mais nem menos.
 
-FREQUÊNCIA SEMANAL EXATA: {weekly_frequency}x por semana
-VOCÊ DEVE GERAR EXATAMENTE {weekly_frequency} TREINOS DIFERENTES
-NÃO GERE MAIS NEM MENOS QUE {weekly_frequency} TREINOS
-
-====== PERFIL DO ATLETA ======
-- Nível: {training_level}
+PERFIL:
+- Nível: {level}
 - Objetivo: {goal}
-- Tempo por Treino: {available_time} minutos
-- Histórico de Lesões: {injuries_text}
+- Frequência: {frequency}x/semana
 
-====== SPLIT SUGERIDO ======
-Para {weekly_frequency}x/semana, use: {split_suggestion.get(weekly_frequency, "Divisão personalizada")}
+EXERCÍCIOS DISPONÍVEIS:
+{json.dumps(EXERCISES, indent=2, ensure_ascii=False)}
 
-====== BANCO DE EXERCÍCIOS DISPONÍVEIS ======
-{json.dumps(EXERCISE_DATABASE, indent=2, ensure_ascii=False)}
+RESPONDA APENAS COM JSON:
+{{"workout_days":[{{"name":"Treino A","day":"Segunda","duration":60,"exercises":[{{"name":"Supino Reto com Barra","muscle_group":"Peito","sets":4,"reps":"8-12","rest":"90s"}}]}}]}}
 
-====== INSTRUÇÕES ======
-1. Crie EXATAMENTE {weekly_frequency} treinos diferentes
-2. Use APENAS exercícios do banco fornecido
-3. Cada treino deve ter nome descritivo (ex: "Treino A - Push" ou "Peito/Tríceps")
-4. Para cada exercício, defina:
-   - Séries (3-5 conforme nível)
-   - Repetições (ex: "8-12", "12-15")
-   - Descanso (ex: "60s", "90s", "2min")
-5. Ajuste volume ao nível:
-   - Iniciante: 3-4 exercícios por grupo, 3 séries
-   - Intermediário: 4-5 exercícios, 3-4 séries
-   - Avançado: 5-6 exercícios, 4-5 séries
-
-====== FORMATO DE RESPOSTA (JSON APENAS) ======
-{{
-  "workout_days": [
-    {{
-      "name": "Treino A - Push",
-      "day": "Segunda",
-      "duration": {available_time},
-      "exercises": [
-        {{
-          "name": "Supino Reto com Barra",
-          "muscle_group": "Peito",
-          "sets": 4,
-          "reps": "8-12",
-          "rest": "90s",
-          "notes": "Foco em progressão de carga"
-        }}
-      ]
-    }}
-  ]
-}}
-
-LEMBRE-SE: Gere EXATAMENTE {weekly_frequency} treinos!
-Responda APENAS com o JSON, sem texto adicional.
+LEMBRE-SE: EXATAMENTE {frequency} treinos!
 """
-        return prompt
+        
+        try:
+            response = self.llm.send_message(prompt)
+            return self._parse_ai_response(response, user_profile['id'], user_profile)
+        except Exception as e:
+            print(f"Erro ao chamar LLM: {e}")
+            raise
     
     def _parse_ai_response(self, response: str, user_id: str, user_profile: Dict) -> WorkoutPlan:
         """Parse da resposta da IA"""
-        try:
-            response_text = response
-            if hasattr(response, 'choices'):
-                response_text = response.choices[0].message.content
-            
-            # Remove markdown code blocks se existir
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0].strip()
-            elif "```" in response_text:
-                response_text = response_text.split("```")[1].split("```")[0].strip()
-            
-            data = json.loads(response_text)
-            
-            workout_days = []
-            for day_data in data.get('workout_days', []):
-                exercises = []
-                for ex_data in day_data.get('exercises', []):
-                    exercise = Exercise(
-                        name=ex_data.get('name', 'Exercício'),
-                        muscle_group=ex_data.get('muscle_group', 'Geral'),
-                        sets=ex_data.get('sets', 3),
-                        reps=ex_data.get('reps', '10-12'),
-                        rest=ex_data.get('rest', '60s'),
-                        notes=ex_data.get('notes')
-                    )
-                    exercises.append(exercise)
-                
-                workout_day = WorkoutDay(
-                    name=day_data.get('name', 'Treino'),
-                    day=day_data.get('day', ''),
-                    duration=day_data.get('duration', 60),
-                    exercises=exercises
-                )
-                workout_days.append(workout_day)
-            
-            weekly_frequency = user_profile.get('weekly_training_frequency', len(workout_days))
-            
-            return WorkoutPlan(
-                user_id=user_id,
-                training_level=user_profile.get('training_level', 'intermediario'),
-                goal=user_profile.get('goal', 'bulking'),
-                weekly_frequency=weekly_frequency,
-                workout_days=workout_days,
-                notes="Plano gerado com IA. Ajuste cargas e volumes conforme sua evolução."
-            )
-            
-        except Exception as e:
-            print(f"Erro ao fazer parse da resposta da IA: {e}")
-            raise
-    
-    def _generate_deterministic_plan(
-        self,
-        user_id: str,
-        weekly_frequency: int,
-        training_level: str,
-        goal: str
-    ) -> WorkoutPlan:
-        """
-        Gera treino determinístico que respeita EXATAMENTE a frequência selecionada
-        """
+        response_text = response
+        if hasattr(response, 'content'):
+            response_text = response.content
+        elif hasattr(response, 'text'):
+            response_text = response.text
         
-        # Obtém o template de split para esta frequência
-        split_templates = get_split_templates()
-        templates = split_templates.get(weekly_frequency, split_templates[4])  # Default para 4x
+        # Remove markdown
+        if "```json" in str(response_text):
+            response_text = str(response_text).split("```json")[1].split("```")[0].strip()
+        elif "```" in str(response_text):
+            response_text = str(response_text).split("```")[1].split("```")[0].strip()
         
-        # Configurações baseadas no nível
-        level_config = {
-            "iniciante": {"sets": 3, "reps": "12-15", "rest": "90s"},
-            "intermediario": {"sets": 4, "reps": "10-12", "rest": "75s"},
-            "avancado": {"sets": 4, "reps": "8-12", "rest": "60s"}
-        }
-        config = level_config.get(training_level, level_config["intermediario"])
+        data = json.loads(str(response_text))
         
         workout_days = []
-        
-        for i, template in enumerate(templates):
+        for day_data in data.get('workout_days', []):
             exercises = []
+            for ex in day_data.get('exercises', []):
+                exercises.append(Exercise(
+                    name=ex.get('name', 'Exercício'),
+                    muscle_group=ex.get('muscle_group', 'Geral'),
+                    sets=ex.get('sets', 3),
+                    reps=ex.get('reps', '10-12'),
+                    rest=ex.get('rest', '60s'),
+                    notes=ex.get('notes')
+                ))
             
-            for muscle_group in template["focus"]:
-                # Obtém exercícios para este grupo muscular
-                available_exercises = EXERCISE_DATABASE.get(muscle_group, [])
-                
-                # Seleciona quantidade de exercícios baseado no template
-                num_exercises = min(template["exercises_per_group"], len(available_exercises))
-                
-                for j in range(num_exercises):
-                    if j < len(available_exercises):
-                        ex_data = available_exercises[j]
-                        exercise = Exercise(
-                            name=ex_data["name"],
-                            muscle_group=muscle_group.replace("pernas_", "").replace("_", " ").title(),
-                            sets=config["sets"],
-                            reps=config["reps"],
-                            rest=config["rest"],
-                            notes=ex_data.get("focus")
-                        )
-                        exercises.append(exercise)
-            
-            # Calcula duração estimada
-            duration = len(exercises) * 5 + 10  # ~5 min por exercício + aquecimento
-            
-            workout_day = WorkoutDay(
-                name=f"Treino {chr(65 + i)} - {template['name']}",
-                day=DAYS_OF_WEEK[i] if i < 7 else f"Dia {i + 1}",
-                duration=duration,
+            workout_days.append(WorkoutDay(
+                name=day_data.get('name', 'Treino'),
+                day=day_data.get('day', ''),
+                duration=day_data.get('duration', 60),
                 exercises=exercises
-            )
-            workout_days.append(workout_day)
-        
-        # Descrição do split
-        split_names = {
-            2: "Full Body A/B",
-            3: "Push/Pull/Legs",
-            4: "Upper/Lower 2x",
-            5: "ABCDE",
-            6: "Push/Pull/Legs 2x",
-            7: "Bro Split"
-        }
+            ))
         
         return WorkoutPlan(
             user_id=user_id,
-            training_level=training_level,
-            goal=goal,
-            weekly_frequency=weekly_frequency,
+            training_level=user_profile.get('training_level', 'intermediario'),
+            goal=user_profile.get('goal', 'bulking'),
+            weekly_frequency=user_profile.get('weekly_training_frequency', len(workout_days)),
             workout_days=workout_days,
-            notes=f"Plano {split_names.get(weekly_frequency, 'personalizado')} com {weekly_frequency}x por semana. Aumente cargas progressivamente."
+            notes="Plano gerado com IA."
+        )
+    
+    def _generate_exact_workout(
+        self,
+        user_id: str,
+        frequency: int,
+        level: str,
+        goal: str
+    ) -> WorkoutPlan:
+        """
+        Gera treino determinístico com EXATAMENTE frequency sessões.
+        """
+        
+        # Obtém split para esta frequência
+        split = get_split_for_frequency(frequency)
+        
+        # Configuração por nível
+        config = {
+            "iniciante": {"sets": 3, "reps": "12-15", "rest": "90s", "ex_per_muscle": 2},
+            "intermediario": {"sets": 4, "reps": "10-12", "rest": "75s", "ex_per_muscle": 3},
+            "avancado": {"sets": 4, "reps": "8-12", "rest": "60s", "ex_per_muscle": 4}
+        }.get(level, {"sets": 4, "reps": "10-12", "rest": "75s", "ex_per_muscle": 3})
+        
+        workout_days = []
+        
+        # Gera EXATAMENTE frequency treinos
+        for i in range(frequency):
+            template = split[i]  # Já garantido que len(split) == frequency
+            exercises = []
+            
+            for muscle in template["muscles"]:
+                available = EXERCISES.get(muscle, [])
+                for j in range(min(config["ex_per_muscle"], len(available))):
+                    ex_data = available[j]
+                    exercises.append(Exercise(
+                        name=ex_data["name"],
+                        muscle_group=muscle.capitalize(),
+                        sets=config["sets"],
+                        reps=config["reps"],
+                        rest=config["rest"],
+                        notes=ex_data.get("focus")
+                    ))
+            
+            duration = len(exercises) * 5 + 10
+            
+            workout_days.append(WorkoutDay(
+                name=f"Treino {chr(65 + i)} - {template['name']}",
+                day=DAYS[i] if i < 7 else f"Dia {i + 1}",
+                duration=duration,
+                exercises=exercises
+            ))
+        
+        # VERIFICAÇÃO FINAL: garante que temos EXATAMENTE frequency treinos
+        assert len(workout_days) == frequency, f"Erro: gerou {len(workout_days)}, esperado {frequency}"
+        
+        split_name = {
+            1: "Full Body",
+            2: "Full Body A/B",
+            3: "Push/Pull/Legs",
+            4: "Upper/Lower",
+            5: "ABCDE",
+            6: "PPL 2x",
+            7: "Bro Split"
+        }.get(frequency, "Personalizado")
+        
+        return WorkoutPlan(
+            user_id=user_id,
+            training_level=level,
+            goal=goal,
+            weekly_frequency=frequency,
+            workout_days=workout_days,
+            notes=f"Split {split_name} - {frequency}x/semana. Aumente cargas progressivamente."
         )
