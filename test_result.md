@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "LAF - Aplicativo mobile de dieta e treino personalizado com IA"
+user_problem_statement: "LAF - Aplicativo mobile de dieta e treino personalizado com IA. Correção de bugs críticos de lógica de negócio: Single Source of Truth (calorias/macros), Frequência de Treino, Porções Realistas."
 
 backend:
   - task: "User Profile API - Create Profile"
