@@ -395,7 +395,7 @@ JSON: {{"meals":[{{"name":"...","time":"...","foods":[{{"name":"...","quantity":
         target_c: float,
         target_f: float
     ) -> List[Meal]:
-        """Ajusta proporcionalmente para bater EXATAMENTE"""
+        """Ajusta proporcionalmente para bater EXATAMENTE, respeitando limites de azeite"""
         
         total_p = sum(m.macros['protein'] for m in meals)
         total_c = sum(m.macros['carbs'] for m in meals)
@@ -428,26 +428,37 @@ JSON: {{"meals":[{{"name":"...","time":"...","foods":[{{"name":"...","quantity":
             new_foods = []
             for food in meal.foods:
                 new_food = food.copy()
-                # Mantém nome e atualiza valores
                 orig_g = int(food['quantity'].replace('g', ''))
                 new_g = round_to(orig_g * foods_scale, 5)
+                
+                # REGRA: Azeite NUNCA pode exceder 15g por refeição
+                if "Azeite" in food['name']:
+                    new_g = min(15, new_g)
+                
+                factor = new_g / orig_g if orig_g > 0 else 1
                 new_food['quantity'] = f"{new_g}g"
-                new_food['protein'] = round(food['protein'] * foods_scale, 2)
-                new_food['carbs'] = round(food['carbs'] * foods_scale, 2)
-                new_food['fat'] = round(food['fat'] * foods_scale, 2)
-                new_food['calories'] = round(food['calories'] * foods_scale, 2)
+                new_food['protein'] = round(food['protein'] * factor, 2)
+                new_food['carbs'] = round(food['carbs'] * factor, 2)
+                new_food['fat'] = round(food['fat'] * factor, 2)
+                new_food['calories'] = round(food['calories'] * factor, 2)
                 new_foods.append(new_food)
+            
+            # Recalcula totais reais após ajustes
+            actual_p = sum(f['protein'] for f in new_foods)
+            actual_c = sum(f['carbs'] for f in new_foods)
+            actual_f = sum(f['fat'] for f in new_foods)
+            actual_cal = sum(f['calories'] for f in new_foods)
             
             adjusted_meals.append(Meal(
                 name=meal.name,
                 time=meal.time,
                 foods=new_foods,
-                total_calories=new_cal,
-                macros={"protein": round(new_p, 2), "carbs": round(new_c, 2), "fat": round(new_f, 2)}
+                total_calories=round(actual_cal, 2),
+                macros={"protein": round(actual_p, 2), "carbs": round(actual_c, 2), "fat": round(actual_f, 2)}
             ))
             
-            accumulated_p += new_p
-            accumulated_c += new_c
-            accumulated_f += new_f
+            accumulated_p += actual_p
+            accumulated_c += actual_c
+            accumulated_f += actual_f
         
         return adjusted_meals
