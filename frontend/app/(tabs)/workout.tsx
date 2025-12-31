@@ -139,8 +139,18 @@ export default function WorkoutScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.headerTitle}>Seu Plano de Treino</Text>
-            <Text style={styles.headerSubtitle}>
-              {workoutPlan.weekly_frequency}x por semana
+            <View style={styles.frequencyRow}>
+              <Text style={styles.headerSubtitle}>
+                {actualWorkouts} treinos
+              </Text>
+              {frequencyMatch ? (
+                <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{marginLeft: 6}} />
+              ) : (
+                <Ionicons name="alert-circle" size={16} color="#F59E0B" style={{marginLeft: 6}} />
+              )}
+            </View>
+            <Text style={styles.headerMeta}>
+              Meta: {configuredFrequency}x por semana
             </Text>
           </View>
           <TouchableOpacity
