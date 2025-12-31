@@ -142,9 +142,13 @@ def calculate_tdee(bmr: float, training_frequency: int, training_level: str) -> 
     factor = activity_factors.get(training_level, activity_factors["intermediario"]).get(training_frequency, 1.5)
     return bmr * factor
 
-def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
+def calculate_target_calories(tdee: float, goal: str, weight: float, competition_phase: Optional[str] = None) -> float:
     """
-    Ajusta calorias baseado no objetivo
+    Ajusta calorias baseado no objetivo e fase de competição.
+    
+    REGRAS PARA ATLETA/COMPETIÇÃO:
+    - offseason: superávit de +5% a +10% (lean bulk)
+    - prep: déficit de -20% a -25% (corte agressivo preservando massa)
     """
     if goal == "cutting":
         # Déficit de 15-20% para perda de gordura
@@ -153,14 +157,26 @@ def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
         # Superávit de 10-15% para ganho de massa
         return tdee * 1.12  # 12% de superávit
     elif goal == "atleta":
-        # Superávit moderado para performance
-        return tdee * 1.08  # 8% de superávit
+        # OBRIGATÓRIO: fase de competição deve estar definida
+        if competition_phase == "offseason":
+            # Off-Season: superávit moderado (+7.5% - média entre 5-10%)
+            return tdee * 1.075
+        elif competition_phase == "prep":
+            # Prep/Cutting: déficit agressivo (-22.5% - média entre 20-25%)
+            return tdee * 0.775
+        else:
+            # Se atleta sem fase definida, assume prep por segurança
+            return tdee * 0.775
     else:  # manutenção
         return tdee
 
-def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[str, float]:
+def calculate_macros(target_calories: float, weight: float, goal: str, competition_phase: Optional[str] = None) -> Dict[str, float]:
     """
-    Calcula distribuição de macronutrientes
+    Calcula distribuição de macronutrientes.
+    
+    REGRAS PARA ATLETA/COMPETIÇÃO:
+    - offseason: P=1.8-2.2g/kg, G=0.8-1.0g/kg, C=restante (ALTO)
+    - prep: P=2.4-2.8g/kg, G=0.6-0.8g/kg, C=restante (BAIXO)
     """
     if goal == "cutting":
         # Alto proteína, moderado carbo, baixo gordura
@@ -169,7 +185,7 @@ def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[s
         protein_cal = protein_g * 4
         fat_cal = fat_g * 9
         carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = carbs_cal / 4
+        carbs_g = max(0, carbs_cal / 4)
     elif goal == "bulking":
         # Alto proteína, alto carbo, moderado gordura
         protein_g = weight * 2.0  # 2g por kg
@@ -177,12 +193,32 @@ def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[s
         protein_cal = protein_g * 4
         fat_cal = fat_g * 9
         carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = carbs_cal / 4
+        carbs_g = max(0, carbs_cal / 4)
     elif goal == "atleta":
-        # Balanceado para performance
-        protein_g = weight * 2.2
-        fat_g = weight * 1.0
-        protein_cal = protein_g * 4
+        if competition_phase == "offseason":
+            # OFF-SEASON (Lean Bulk): P=2.0g/kg, G=0.9g/kg, C=restante (ALTO)
+            protein_g = weight * 2.0
+            fat_g = weight * 0.9
+            protein_cal = protein_g * 4
+            fat_cal = fat_g * 9
+            carbs_cal = target_calories - protein_cal - fat_cal
+            carbs_g = max(0, carbs_cal / 4)
+        elif competition_phase == "prep":
+            # PREP (Cutting Agressivo): P=2.6g/kg, G=0.7g/kg, C=restante (BAIXO)
+            protein_g = weight * 2.6
+            fat_g = weight * 0.7
+            protein_cal = protein_g * 4
+            fat_cal = fat_g * 9
+            carbs_cal = target_calories - protein_cal - fat_cal
+            carbs_g = max(0, carbs_cal / 4)
+        else:
+            # Default para prep se fase não especificada
+            protein_g = weight * 2.6
+            fat_g = weight * 0.7
+            protein_cal = protein_g * 4
+            fat_cal = fat_g * 9
+            carbs_cal = target_calories - protein_cal - fat_cal
+            carbs_g = max(0, carbs_cal / 4)
         fat_cal = fat_g * 9
         carbs_cal = target_calories - protein_cal - fat_cal
         carbs_g = carbs_cal / 4
