@@ -183,6 +183,42 @@ backend:
         agent: "main"
         comment: "Emergent LLM Key added to .env. emergentintegrations library installed. Will be used in Phase 2 for diet generation."
 
+  - task: "Diet Generation - Single Source of Truth"
+    implemented: true
+    working: true
+    file: "/app/backend/diet_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ CORRIGIDO: Diet generation now uses target_calories and target_macros from user profile as hard constraints. Total meal calories = EXACTLY target_calories. Total macros = EXACTLY target_macros. Tested with curl - bulking 3437kcal profile generated diet with 3437kcal total. Cutting 1544kcal profile generated diet with 1544kcal total."
+
+  - task: "Diet Generation - Realistic Portions"
+    implemented: true
+    working: true
+    file: "/app/backend/diet_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ CORRIGIDO: Porções agora são realistas e arredondadas (múltiplos de 5g, 10g, 25g). Azeite limitado a máximo 10g por refeição (5g no fallback). Exemplos: Aveia 60g, Arroz 200g, Frango 100g, Batata Doce 200g."
+
+  - task: "Workout Generation - Frequency Match"
+    implemented: true
+    working: true
+    file: "/app/backend/workout_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ CORRIGIDO: Workout generation now creates EXACTLY N workouts where N = weekly_training_frequency. Tested with 5x/week → 5 ABCDE workouts. Tested with 3x/week → 3 Push/Pull/Legs workouts. Splits are appropriate for frequency."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
