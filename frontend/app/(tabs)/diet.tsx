@@ -162,11 +162,18 @@ export default function DietScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.headerTitle}>Seu Plano de Dieta</Text>
-            <Text style={styles.headerSubtitle}>
-              Total: {Math.round(totalMealCalories)} kcal/dia
-            </Text>
+            <View style={styles.calorieRow}>
+              <Text style={styles.headerSubtitle}>
+                Total: {Math.round(totalMealCalories)} kcal
+              </Text>
+              {caloriesMatch ? (
+                <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{marginLeft: 6}} />
+              ) : (
+                <Ionicons name="alert-circle" size={16} color="#F59E0B" style={{marginLeft: 6}} />
+              )}
+            </View>
             <Text style={styles.headerTarget}>
-              Meta: {Math.round(dietPlan.target_calories)} kcal
+              Meta: {Math.round(targetCalories)} kcal
             </Text>
           </View>
           <TouchableOpacity
@@ -179,25 +186,28 @@ export default function DietScreen() {
 
         {/* Macros Summary */}
         <View style={styles.macrosCard}>
-          <Text style={styles.macrosTitle}>Macronutrientes das Refeições</Text>
+          <Text style={styles.macrosTitle}>Macronutrientes (Total / Meta)</Text>
           <View style={styles.macrosRow}>
             <MacroItem
               label="Proteína"
               value={`${Math.round(totalMealMacros.protein)}g`}
-              target={`${Math.round(dietPlan.target_macros.protein)}g`}
+              target={`${Math.round(targetMacros.protein)}g`}
               color="#3B82F6"
+              match={proteinMatch}
             />
             <MacroItem
               label="Carboidratos"
               value={`${Math.round(totalMealMacros.carbs)}g`}
-              target={`${Math.round(dietPlan.target_macros.carbs)}g`}
+              target={`${Math.round(targetMacros.carbs)}g`}
               color="#F59E0B"
+              match={carbsMatch}
             />
             <MacroItem
               label="Gorduras"
               value={`${Math.round(totalMealMacros.fat)}g`}
-              target={`${Math.round(dietPlan.target_macros.fat)}g`}
+              target={`${Math.round(targetMacros.fat)}g`}
               color="#EF4444"
+              match={fatMatch}
             />
           </View>
         </View>
