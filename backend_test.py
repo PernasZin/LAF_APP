@@ -169,9 +169,12 @@ class LAFBackendTester:
                         if quantity >= 50:
                             if quantity % 25 != 0:
                                 unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 25g)")
-                        elif quantity >= 20:
-                            if quantity % 10 != 0:
-                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 10g)")
+                        elif quantity >= 25:
+                            if quantity % 25 != 0 and quantity % 10 != 0:
+                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 10g or 25g)")
+                        elif quantity >= 10:
+                            if quantity % 10 != 0 and quantity % 5 != 0:
+                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 5g or 10g)")
                         elif quantity >= 5:
                             if quantity % 5 != 0:
                                 unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 5g)")
