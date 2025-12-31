@@ -141,6 +141,16 @@ export default function DietScreen() {
     { protein: 0, carbs: 0, fat: 0 }
   );
 
+  // Usa os targets do perfil do usuário (Single Source of Truth)
+  const targetCalories = userProfile?.target_calories || dietPlan.target_calories;
+  const targetMacros = userProfile?.macros || dietPlan.target_macros;
+
+  // Verifica se os valores batem
+  const caloriesMatch = Math.abs(totalMealCalories - targetCalories) <= 50;
+  const proteinMatch = Math.abs(totalMealMacros.protein - targetMacros.protein) <= 10;
+  const carbsMatch = Math.abs(totalMealMacros.carbs - targetMacros.carbs) <= 10;
+  const fatMatch = Math.abs(totalMealMacros.fat - targetMacros.fat) <= 10;
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
