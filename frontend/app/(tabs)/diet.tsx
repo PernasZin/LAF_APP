@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -12,31 +13,50 @@ export default function DietScreen() {
   const [dietPlan, setDietPlan] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
-  useEffect(() => {
-    loadUserId();
-  }, []);
+  // Carrega perfil quando a tela ganha foco
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [])
+  );
 
-  useEffect(() => {
-    if (userId) {
-      loadDiet();
-    }
-  }, [userId]);
-
-  const loadUserId = async () => {
+  const loadUserData = async () => {
     try {
       const id = await AsyncStorage.getItem('userId');
       setUserId(id);
+      
+      if (id && BACKEND_URL) {
+        // Busca perfil atualizado do backend (Single Source of Truth)
+        try {
+          const profileResponse = await axios.get(`${BACKEND_URL}/api/user/profile/${id}`);
+          if (profileResponse.data) {
+            setUserProfile(profileResponse.data);
+            // Atualiza AsyncStorage
+            await AsyncStorage.setItem('userProfile', JSON.stringify(profileResponse.data));
+          }
+        } catch (err) {
+          // Fallback para AsyncStorage
+          const profileData = await AsyncStorage.getItem('userProfile');
+          if (profileData) {
+            setUserProfile(JSON.parse(profileData));
+          }
+        }
+        
+        // Carrega dieta existente
+        loadDiet(id);
+      }
     } catch (error) {
-      console.error('Erro ao carregar userId:', error);
+      console.error('Erro ao carregar dados:', error);
     }
   };
 
-  const loadDiet = async () => {
-    if (!userId) return;
+  const loadDiet = async (uid: string) => {
+    if (!uid) return;
     
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/diet/${userId}`);
+      const response = await axios.get(`${BACKEND_URL}/api/diet/${uid}`);
       setDietPlan(response.data);
     } catch (error: any) {
       if (error.response?.status !== 404) {
