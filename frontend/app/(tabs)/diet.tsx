@@ -230,12 +230,22 @@ export default function DietScreen() {
   );
 }
 
-function MacroItem({ label, value, target, color }: any) {
+function MacroItem({ label, value, target, color, match }: any) {
   return (
     <View style={styles.macroItem}>
       <View style={[styles.macroIndicator, { backgroundColor: color }]} />
       <Text style={styles.macroLabel}>{label}</Text>
-      <Text style={styles.macroValue}>{value}</Text>
+      <View style={styles.macroValueRow}>
+        <Text style={styles.macroValue}>{value}</Text>
+        {match !== undefined && (
+          <Ionicons 
+            name={match ? "checkmark-circle" : "alert-circle"} 
+            size={14} 
+            color={match ? "#10B981" : "#F59E0B"} 
+            style={{marginLeft: 4}}
+          />
+        )}
+      </View>
       {target && <Text style={styles.macroTarget}>Meta: {target}</Text>}
     </View>
   );
