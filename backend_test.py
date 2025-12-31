@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
-LAF Backend Testing - User Profile API Tests
-Tests the user profile system with TDEE and macros calculation
+LAF Backend Testing Suite
+Testa correções de bugs críticos de lógica de negócio:
+1. Single Source of Truth (Calorias/Macros)
+2. Frequência de Treino
+3. Porções Realistas
 """
 
 import requests
@@ -14,459 +17,359 @@ BACKEND_URL = "https://train-eat-laf.preview.emergentagent.com/api"
 
 class LAFBackendTester:
     def __init__(self):
-        self.base_url = BACKEND_URL
+        self.backend_url = BACKEND_URL
         self.test_results = []
-        self.created_profiles = []
-        
-    def log_test(self, test_name: str, success: bool, details: str = ""):
+        self.created_users = []
+    
+    def log_test(self, test_name: str, passed: bool, details: str = ""):
         """Log test result"""
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = "✅ PASS" if passed else "❌ FAIL"
         print(f"{status} {test_name}")
         if details:
-            print(f"   Details: {details}")
+            print(f"   {details}")
+        
         self.test_results.append({
             "test": test_name,
-            "success": success,
+            "passed": passed,
             "details": details
         })
-        
+    
     def test_health_check(self):
-        """Test basic API connectivity"""
+        """Test if backend is running"""
         try:
-            response = requests.get(f"{self.base_url}/health", timeout=10)
+            response = requests.get(f"{self.backend_url}/health", timeout=10)
             if response.status_code == 200:
-                self.log_test("Health Check", True, f"Status: {response.json()}")
+                self.log_test("Backend Health Check", True, f"Status: {response.json()}")
                 return True
             else:
-                self.log_test("Health Check", False, f"Status code: {response.status_code}")
+                self.log_test("Backend Health Check", False, f"Status code: {response.status_code}")
                 return False
         except Exception as e:
-            self.log_test("Health Check", False, f"Connection error: {str(e)}")
+            self.log_test("Backend Health Check", False, f"Error: {str(e)}")
             return False
     
     def create_test_profile(self, profile_data: Dict[str, Any]) -> str:
-        """Create a test profile and return the ID"""
+        """Create a test user profile and return user_id"""
         try:
             response = requests.post(
-                f"{self.base_url}/user/profile",
+                f"{self.backend_url}/user/profile",
                 json=profile_data,
-                timeout=10
+                timeout=15
             )
             
             if response.status_code == 200:
-                profile = response.json()
-                profile_id = profile["id"]
-                self.created_profiles.append(profile_id)
-                return profile_id
+                user_data = response.json()
+                user_id = user_data.get('id')
+                self.created_users.append(user_id)
+                
+                # Validate TDEE and macros calculation
+                expected_keys = ['tdee', 'target_calories', 'macros']
+                missing_keys = [key for key in expected_keys if key not in user_data or user_data[key] is None]
+                
+                if missing_keys:
+                    self.log_test(f"Profile Creation - {profile_data['name']}", False, 
+                                f"Missing calculated fields: {missing_keys}")
+                    return None
+                
+                self.log_test(f"Profile Creation - {profile_data['name']}", True, 
+                            f"TDEE: {user_data['tdee']} kcal, Target: {user_data['target_calories']} kcal")
+                return user_id
             else:
-                print(f"Failed to create test profile: {response.status_code} - {response.text}")
+                self.log_test(f"Profile Creation - {profile_data['name']}", False, 
+                            f"Status: {response.status_code}, Response: {response.text}")
                 return None
+                
         except Exception as e:
-            print(f"Error creating test profile: {str(e)}")
+            self.log_test(f"Profile Creation - {profile_data['name']}", False, f"Error: {str(e)}")
             return None
     
-    def test_get_profile(self):
-        """Test GET /api/user/profile/{user_id}"""
-        # First create a profile to test with
-        test_profile = {
-            "name": "João Silva",
+    def test_diet_single_source_of_truth(self, user_id: str, profile_name: str):
+        """Test if diet generation matches profile calories/macros exactly"""
+        try:
+            # Get user profile first
+            profile_response = requests.get(f"{self.backend_url}/user/profile/{user_id}", timeout=10)
+            if profile_response.status_code != 200:
+                self.log_test(f"Diet SST - {profile_name} (Get Profile)", False, 
+                            f"Failed to get profile: {profile_response.status_code}")
+                return False
+            
+            profile = profile_response.json()
+            target_calories = profile['target_calories']
+            target_macros = profile['macros']
+            
+            # Generate diet
+            diet_response = requests.post(f"{self.backend_url}/diet/generate?user_id={user_id}", timeout=30)
+            
+            if diet_response.status_code != 200:
+                self.log_test(f"Diet SST - {profile_name}", False, 
+                            f"Diet generation failed: {diet_response.status_code}, {diet_response.text}")
+                return False
+            
+            diet_plan = diet_response.json()
+            
+            # Calculate total calories and macros from meals
+            total_calories = 0
+            total_protein = 0
+            total_carbs = 0
+            total_fat = 0
+            
+            for meal in diet_plan.get('meals', []):
+                total_calories += meal.get('total_calories', 0)
+                macros = meal.get('macros', {})
+                total_protein += macros.get('protein', 0)
+                total_carbs += macros.get('carbs', 0)
+                total_fat += macros.get('fat', 0)
+            
+            # Check Single Source of Truth (±50 kcal, ±10g tolerance)
+            cal_diff = abs(total_calories - target_calories)
+            protein_diff = abs(total_protein - target_macros['protein'])
+            carbs_diff = abs(total_carbs - target_macros['carbs'])
+            fat_diff = abs(total_fat - target_macros['fat'])
+            
+            sst_passed = (cal_diff <= 50 and protein_diff <= 10 and carbs_diff <= 10 and fat_diff <= 10)
+            
+            details = f"Target: {target_calories}kcal, Got: {total_calories}kcal (Δ{cal_diff:.0f})"
+            details += f" | P: {target_macros['protein']:.0f}g→{total_protein:.1f}g (Δ{protein_diff:.1f})"
+            details += f" | C: {target_macros['carbs']:.0f}g→{total_carbs:.1f}g (Δ{carbs_diff:.1f})"
+            details += f" | F: {target_macros['fat']:.0f}g→{total_fat:.1f}g (Δ{fat_diff:.1f})"
+            
+            self.log_test(f"Diet SST - {profile_name}", sst_passed, details)
+            
+            # Also test realistic portions
+            self.test_realistic_portions(diet_plan, profile_name)
+            
+            return sst_passed
+            
+        except Exception as e:
+            self.log_test(f"Diet SST - {profile_name}", False, f"Error: {str(e)}")
+            return False
+    
+    def test_realistic_portions(self, diet_plan: Dict, profile_name: str):
+        """Test if food portions are realistic and rounded"""
+        try:
+            unrealistic_portions = []
+            excessive_olive_oil = []
+            
+            for meal in diet_plan.get('meals', []):
+                meal_name = meal.get('name', 'Unknown')
+                
+                for food in meal.get('foods', []):
+                    food_name = food.get('name', '')
+                    quantity_str = food.get('quantity', '0g')
+                    
+                    # Extract numeric value from quantity (e.g., "150g" -> 150)
+                    try:
+                        quantity = float(quantity_str.replace('g', '').replace('ml', '').strip())
+                    except:
+                        continue
+                    
+                    # Check if quantity is rounded to reasonable steps
+                    if quantity > 0:
+                        # Check for unrealistic precision (not multiples of 5g, 10g, 25g)
+                        if quantity >= 50:
+                            if quantity % 25 != 0:
+                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 25g)")
+                        elif quantity >= 20:
+                            if quantity % 10 != 0:
+                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 10g)")
+                        elif quantity >= 5:
+                            if quantity % 5 != 0:
+                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 5g)")
+                    
+                    # Check olive oil limits (≤15g per meal)
+                    if "azeite" in food_name.lower() or "olive" in food_name.lower():
+                        if quantity > 15:
+                            excessive_olive_oil.append(f"{meal_name}: {food_name} {quantity_str} (max 15g)")
+            
+            # Test results
+            portions_passed = len(unrealistic_portions) == 0
+            olive_oil_passed = len(excessive_olive_oil) == 0
+            
+            if portions_passed:
+                self.log_test(f"Realistic Portions - {profile_name}", True, "All portions properly rounded")
+            else:
+                self.log_test(f"Realistic Portions - {profile_name}", False, 
+                            f"Unrealistic portions: {'; '.join(unrealistic_portions[:3])}")
+            
+            if olive_oil_passed:
+                self.log_test(f"Olive Oil Limits - {profile_name}", True, "Olive oil within limits")
+            else:
+                self.log_test(f"Olive Oil Limits - {profile_name}", False, 
+                            f"Excessive olive oil: {'; '.join(excessive_olive_oil)}")
+            
+            return portions_passed and olive_oil_passed
+            
+        except Exception as e:
+            self.log_test(f"Realistic Portions - {profile_name}", False, f"Error: {str(e)}")
+            return False
+    
+    def test_workout_frequency_match(self, user_id: str, profile_name: str, expected_frequency: int):
+        """Test if workout generation creates exactly N workouts where N = weekly_training_frequency"""
+        try:
+            # Generate workout
+            workout_response = requests.post(f"{self.backend_url}/workout/generate?user_id={user_id}", timeout=30)
+            
+            if workout_response.status_code != 200:
+                self.log_test(f"Workout Frequency - {profile_name}", False, 
+                            f"Workout generation failed: {workout_response.status_code}, {workout_response.text}")
+                return False
+            
+            workout_plan = workout_response.json()
+            
+            # Check frequency match
+            actual_frequency = workout_plan.get('weekly_frequency', 0)
+            workout_days = workout_plan.get('workout_days', [])
+            actual_workouts = len(workout_days)
+            
+            frequency_match = (actual_frequency == expected_frequency and actual_workouts == expected_frequency)
+            
+            # Check for distinct workout names
+            workout_names = [day.get('name', '') for day in workout_days]
+            unique_names = len(set(workout_names))
+            distinct_workouts = (unique_names == actual_workouts)
+            
+            details = f"Expected: {expected_frequency}x/week, Got: {actual_frequency}x/week, Workouts: {actual_workouts}"
+            details += f" | Names: {', '.join(workout_names[:3])}" + ("..." if len(workout_names) > 3 else "")
+            
+            overall_passed = frequency_match and distinct_workouts
+            
+            if not frequency_match:
+                details += " | FREQUENCY MISMATCH"
+            if not distinct_workouts:
+                details += " | DUPLICATE NAMES"
+            
+            self.log_test(f"Workout Frequency - {profile_name}", overall_passed, details)
+            
+            return overall_passed
+            
+        except Exception as e:
+            self.log_test(f"Workout Frequency - {profile_name}", False, f"Error: {str(e)}")
+            return False
+    
+    def run_comprehensive_tests(self):
+        """Run all critical bug fix tests"""
+        print("=" * 60)
+        print("LAF BACKEND CRITICAL BUG FIXES VALIDATION")
+        print("=" * 60)
+        
+        # Test 1: Health check
+        if not self.test_health_check():
+            print("\n❌ Backend not accessible. Stopping tests.")
+            return False
+        
+        print("\n" + "=" * 40)
+        print("TESTE 1: PERFIL BULKING (5x/semana)")
+        print("=" * 40)
+        
+        # Test 1: Create BULKING profile (5x/week)
+        bulking_profile = {
+            "name": "Teste Bulking",
             "age": 28,
             "sex": "masculino",
-            "height": 178.0,
-            "weight": 82.0,
-            "target_weight": 78.0,
-            "body_fat_percentage": 15.0,
+            "height": 175,
+            "weight": 75,
             "training_level": "intermediario",
-            "weekly_training_frequency": 4,
+            "weekly_training_frequency": 5,
             "available_time_per_session": 60,
-            "goal": "cutting",
-            "dietary_restrictions": ["lactose"],
-            "food_preferences": ["frango", "arroz"],
-            "injury_history": []
-        }
-        
-        profile_id = self.create_test_profile(test_profile)
-        if not profile_id:
-            self.log_test("GET Profile - Setup", False, "Could not create test profile")
-            return False
-        
-        try:
-            # Test getting the profile
-            response = requests.get(f"{self.base_url}/user/profile/{profile_id}", timeout=10)
-            
-            if response.status_code == 200:
-                profile = response.json()
-                
-                # Verify basic data
-                if (profile["name"] == test_profile["name"] and 
-                    profile["age"] == test_profile["age"] and
-                    profile["weight"] == test_profile["weight"]):
-                    
-                    # Verify calculations exist
-                    if "tdee" in profile and "target_calories" in profile and "macros" in profile:
-                        # Verify TDEE calculation (should be around 2786 for this profile)
-                        expected_tdee = 2786  # From review request
-                        actual_tdee = profile["tdee"]
-                        tdee_diff = abs(actual_tdee - expected_tdee)
-                        
-                        if tdee_diff < 50:  # Allow 50 calorie tolerance
-                            self.log_test("GET Profile", True, 
-                                        f"Profile retrieved successfully. TDEE: {actual_tdee} (expected ~{expected_tdee})")
-                            return True
-                        else:
-                            self.log_test("GET Profile", False, 
-                                        f"TDEE calculation incorrect: {actual_tdee} (expected ~{expected_tdee})")
-                            return False
-                    else:
-                        self.log_test("GET Profile", False, "Missing calculated fields (tdee, target_calories, macros)")
-                        return False
-                else:
-                    self.log_test("GET Profile", False, "Basic profile data doesn't match")
-                    return False
-            elif response.status_code == 404:
-                self.log_test("GET Profile", False, "Profile not found (404)")
-                return False
-            else:
-                self.log_test("GET Profile", False, f"Unexpected status code: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log_test("GET Profile", False, f"Request error: {str(e)}")
-            return False
-    
-    def test_get_nonexistent_profile(self):
-        """Test GET with non-existent profile ID"""
-        try:
-            fake_id = "non-existent-id-12345"
-            response = requests.get(f"{self.base_url}/user/profile/{fake_id}", timeout=10)
-            
-            if response.status_code == 404:
-                self.log_test("GET Non-existent Profile", True, "Correctly returned 404")
-                return True
-            else:
-                self.log_test("GET Non-existent Profile", False, 
-                            f"Expected 404, got {response.status_code}")
-                return False
-        except Exception as e:
-            self.log_test("GET Non-existent Profile", False, f"Request error: {str(e)}")
-            return False
-    
-    def test_update_profile_weight(self):
-        """Test PUT /api/user/profile/{user_id} - Update weight"""
-        # Create test profile
-        test_profile = {
-            "name": "Maria Santos",
-            "age": 25,
-            "sex": "feminino",
-            "height": 165.0,
-            "weight": 60.0,
-            "training_level": "intermediario",
-            "weekly_training_frequency": 3,
-            "available_time_per_session": 45,
             "goal": "bulking"
         }
         
-        profile_id = self.create_test_profile(test_profile)
-        if not profile_id:
-            self.log_test("UPDATE Profile Weight - Setup", False, "Could not create test profile")
+        bulking_user_id = self.create_test_profile(bulking_profile)
+        if not bulking_user_id:
+            print("❌ Failed to create bulking profile. Stopping tests.")
             return False
         
-        try:
-            # Get original profile
-            original_response = requests.get(f"{self.base_url}/user/profile/{profile_id}", timeout=10)
-            original_profile = original_response.json()
-            original_tdee = original_profile["tdee"]
-            
-            # Update weight
-            update_data = {"weight": 65.0}  # +5kg
-            response = requests.put(
-                f"{self.base_url}/user/profile/{profile_id}",
-                json=update_data,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                updated_profile = response.json()
-                
-                # Verify weight was updated
-                if updated_profile["weight"] == 65.0:
-                    # Verify TDEE was recalculated (should be higher with more weight)
-                    new_tdee = updated_profile["tdee"]
-                    if new_tdee > original_tdee:
-                        self.log_test("UPDATE Profile Weight", True, 
-                                    f"Weight updated and TDEE recalculated: {original_tdee} → {new_tdee}")
-                        return True
-                    else:
-                        self.log_test("UPDATE Profile Weight", False, 
-                                    f"TDEE not recalculated properly: {original_tdee} → {new_tdee}")
-                        return False
-                else:
-                    self.log_test("UPDATE Profile Weight", False, "Weight not updated")
-                    return False
-            else:
-                self.log_test("UPDATE Profile Weight", False, f"Status code: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log_test("UPDATE Profile Weight", False, f"Request error: {str(e)}")
-            return False
-    
-    def test_update_profile_goal(self):
-        """Test PUT /api/user/profile/{user_id} - Update goal"""
-        # Create test profile with cutting goal
-        test_profile = {
-            "name": "Carlos Oliveira",
-            "age": 30,
-            "sex": "masculino",
-            "height": 180.0,
-            "weight": 85.0,
-            "training_level": "avancado",
-            "weekly_training_frequency": 5,
-            "available_time_per_session": 90,
+        # Test 2: Diet generation and SST validation
+        print("\n" + "-" * 40)
+        print("TESTE 2: DIETA BULKING - Single Source of Truth")
+        print("-" * 40)
+        self.test_diet_single_source_of_truth(bulking_user_id, "Bulking")
+        
+        # Test 3: Workout frequency validation
+        print("\n" + "-" * 40)
+        print("TESTE 3: TREINO BULKING - Frequência 5x/semana")
+        print("-" * 40)
+        self.test_workout_frequency_match(bulking_user_id, "Bulking", 5)
+        
+        print("\n" + "=" * 40)
+        print("TESTE 4: PERFIL CUTTING (3x/semana)")
+        print("=" * 40)
+        
+        # Test 4: Create CUTTING profile (3x/week)
+        cutting_profile = {
+            "name": "Teste Cutting",
+            "age": 35,
+            "sex": "feminino",
+            "height": 160,
+            "weight": 65,
+            "training_level": "iniciante",
+            "weekly_training_frequency": 3,
+            "available_time_per_session": 45,
             "goal": "cutting"
         }
         
-        profile_id = self.create_test_profile(test_profile)
-        if not profile_id:
-            self.log_test("UPDATE Profile Goal - Setup", False, "Could not create test profile")
-            return False
-        
-        try:
-            # Get original profile
-            original_response = requests.get(f"{self.base_url}/user/profile/{profile_id}", timeout=10)
-            original_profile = original_response.json()
-            original_calories = original_profile["target_calories"]
+        cutting_user_id = self.create_test_profile(cutting_profile)
+        if not cutting_user_id:
+            print("❌ Failed to create cutting profile.")
+        else:
+            # Test 5: Diet generation for cutting
+            print("\n" + "-" * 40)
+            print("TESTE 5: DIETA CUTTING - Single Source of Truth")
+            print("-" * 40)
+            self.test_diet_single_source_of_truth(cutting_user_id, "Cutting")
             
-            # Update goal from cutting to bulking
-            update_data = {"goal": "bulking"}
-            response = requests.put(
-                f"{self.base_url}/user/profile/{profile_id}",
-                json=update_data,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                updated_profile = response.json()
-                
-                # Verify goal was updated
-                if updated_profile["goal"] == "bulking":
-                    # Verify target calories increased (cutting -> bulking)
-                    new_calories = updated_profile["target_calories"]
-                    if new_calories > original_calories:
-                        self.log_test("UPDATE Profile Goal", True, 
-                                    f"Goal updated and calories recalculated: {original_calories} → {new_calories}")
-                        return True
-                    else:
-                        self.log_test("UPDATE Profile Goal", False, 
-                                    f"Calories not recalculated properly: {original_calories} → {new_calories}")
-                        return False
-                else:
-                    self.log_test("UPDATE Profile Goal", False, "Goal not updated")
-                    return False
-            else:
-                self.log_test("UPDATE Profile Goal", False, f"Status code: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log_test("UPDATE Profile Goal", False, f"Request error: {str(e)}")
-            return False
-    
-    def test_edge_case_female_profile(self):
-        """Test profile creation with female user (different BMR formula)"""
-        test_profile = {
-            "name": "Ana Costa",
-            "age": 26,
-            "sex": "feminino",
-            "height": 160.0,
-            "weight": 55.0,
-            "training_level": "iniciante",
-            "weekly_training_frequency": 2,
-            "available_time_per_session": 30,
-            "goal": "manutencao"
-        }
-        
-        try:
-            response = requests.post(
-                f"{self.base_url}/user/profile",
-                json=test_profile,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                profile = response.json()
-                self.created_profiles.append(profile["id"])
-                
-                # Verify calculations exist and are reasonable for female
-                tdee = profile["tdee"]
-                target_calories = profile["target_calories"]
-                
-                # For maintenance goal, target_calories should equal TDEE
-                if abs(tdee - target_calories) < 5:  # Small tolerance
-                    # Female BMR should be lower than male equivalent
-                    if 1200 < tdee < 2200:  # Reasonable range for this profile
-                        self.log_test("Edge Case - Female Profile", True, 
-                                    f"Female profile created successfully. TDEE: {tdee}")
-                        return True
-                    else:
-                        self.log_test("Edge Case - Female Profile", False, 
-                                    f"TDEE seems unreasonable for female: {tdee}")
-                        return False
-                else:
-                    self.log_test("Edge Case - Female Profile", False, 
-                                f"Maintenance goal error: TDEE {tdee} != Target {target_calories}")
-                    return False
-            else:
-                self.log_test("Edge Case - Female Profile", False, f"Status code: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Edge Case - Female Profile", False, f"Request error: {str(e)}")
-            return False
-    
-    def test_edge_case_athlete_goal(self):
-        """Test profile with athlete goal"""
-        test_profile = {
-            "name": "Pedro Atleta",
-            "age": 24,
-            "sex": "masculino",
-            "height": 185.0,
-            "weight": 78.0,
-            "training_level": "avancado",
-            "weekly_training_frequency": 6,
-            "available_time_per_session": 120,
-            "goal": "atleta"
-        }
-        
-        try:
-            response = requests.post(
-                f"{self.base_url}/user/profile",
-                json=test_profile,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                profile = response.json()
-                self.created_profiles.append(profile["id"])
-                
-                tdee = profile["tdee"]
-                target_calories = profile["target_calories"]
-                
-                # Athlete goal should have moderate surplus (8%)
-                expected_surplus = tdee * 0.08
-                actual_surplus = target_calories - tdee
-                
-                if abs(actual_surplus - expected_surplus) < 50:  # 50 calorie tolerance
-                    self.log_test("Edge Case - Athlete Goal", True, 
-                                f"Athlete profile created. TDEE: {tdee}, Target: {target_calories} (+{actual_surplus:.0f})")
-                    return True
-                else:
-                    self.log_test("Edge Case - Athlete Goal", False, 
-                                f"Athlete surplus incorrect: expected +{expected_surplus:.0f}, got +{actual_surplus:.0f}")
-                    return False
-            else:
-                self.log_test("Edge Case - Athlete Goal", False, f"Status code: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Edge Case - Athlete Goal", False, f"Request error: {str(e)}")
-            return False
-    
-    def test_minimal_profile(self):
-        """Test profile creation with minimal required data"""
-        test_profile = {
-            "name": "Usuário Mínimo",
-            "age": 25,
-            "sex": "masculino",
-            "height": 175.0,
-            "weight": 70.0,
-            "training_level": "iniciante",
-            "weekly_training_frequency": 1,
-            "available_time_per_session": 30,
-            "goal": "manutencao"
-        }
-        
-        try:
-            response = requests.post(
-                f"{self.base_url}/user/profile",
-                json=test_profile,
-                timeout=10
-            )
-            
-            if response.status_code == 200:
-                profile = response.json()
-                self.created_profiles.append(profile["id"])
-                
-                # Verify all required calculations are present
-                required_fields = ["tdee", "target_calories", "macros"]
-                missing_fields = [field for field in required_fields if field not in profile or profile[field] is None]
-                
-                if not missing_fields:
-                    self.log_test("Edge Case - Minimal Profile", True, 
-                                f"Minimal profile created successfully with all calculations")
-                    return True
-                else:
-                    self.log_test("Edge Case - Minimal Profile", False, 
-                                f"Missing calculated fields: {missing_fields}")
-                    return False
-            else:
-                self.log_test("Edge Case - Minimal Profile", False, f"Status code: {response.status_code}")
-                return False
-                
-        except Exception as e:
-            self.log_test("Edge Case - Minimal Profile", False, f"Request error: {str(e)}")
-            return False
-    
-    def run_all_tests(self):
-        """Run all backend tests"""
-        print("=" * 60)
-        print("LAF BACKEND API TESTING")
-        print("=" * 60)
-        print(f"Testing backend at: {self.base_url}")
-        print()
-        
-        # Test connectivity first
-        if not self.test_health_check():
-            print("\n❌ Backend is not accessible. Stopping tests.")
-            return False
-        
-        print()
-        
-        # Run all tests
-        tests = [
-            self.test_get_profile,
-            self.test_get_nonexistent_profile,
-            self.test_update_profile_weight,
-            self.test_update_profile_goal,
-            self.test_edge_case_female_profile,
-            self.test_edge_case_athlete_goal,
-            self.test_minimal_profile
-        ]
-        
-        for test in tests:
-            test()
-            print()
+            # Test 6: Workout frequency for 3x/week
+            print("\n" + "-" * 40)
+            print("TESTE 6: TREINO CUTTING - Frequência 3x/semana")
+            print("-" * 40)
+            self.test_workout_frequency_match(cutting_user_id, "Cutting", 3)
         
         # Summary
+        print("\n" + "=" * 60)
+        print("RESUMO DOS TESTES")
         print("=" * 60)
-        print("TEST SUMMARY")
-        print("=" * 60)
         
-        passed = sum(1 for result in self.test_results if result["success"])
-        total = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result['passed'])
+        total_tests = len(self.test_results)
         
-        print(f"Tests passed: {passed}/{total}")
+        print(f"Testes Executados: {total_tests}")
+        print(f"Testes Aprovados: {passed_tests}")
+        print(f"Testes Falharam: {total_tests - passed_tests}")
+        print(f"Taxa de Sucesso: {(passed_tests/total_tests)*100:.1f}%")
         
-        if passed == total:
-            print("🎉 ALL TESTS PASSED!")
-            return True
+        # Show failed tests
+        failed_tests = [result for result in self.test_results if not result['passed']]
+        if failed_tests:
+            print("\n❌ TESTES FALHARAM:")
+            for test in failed_tests:
+                print(f"  • {test['test']}: {test['details']}")
+        
+        return passed_tests == total_tests
+
+def main():
+    """Main test execution"""
+    tester = LAFBackendTester()
+    
+    try:
+        success = tester.run_comprehensive_tests()
+        
+        if success:
+            print("\n🎉 TODOS OS TESTES CRÍTICOS PASSARAM!")
+            print("✅ Single Source of Truth funcionando")
+            print("✅ Frequência de Treino funcionando") 
+            print("✅ Porções Realistas funcionando")
+            sys.exit(0)
         else:
-            print("❌ Some tests failed:")
-            for result in self.test_results:
-                if not result["success"]:
-                    print(f"  - {result['test']}: {result['details']}")
-            return False
+            print("\n⚠️  ALGUNS TESTES FALHARAM")
+            print("Verifique os detalhes acima para correções necessárias.")
+            sys.exit(1)
+            
+    except KeyboardInterrupt:
+        print("\n\nTestes interrompidos pelo usuário.")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Erro durante execução dos testes: {str(e)}")
+        sys.exit(1)
 
 if __name__ == "__main__":
-    tester = LAFBackendTester()
-    success = tester.run_all_tests()
-    sys.exit(0 if success else 1)
+    main()
