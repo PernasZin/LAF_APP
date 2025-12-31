@@ -82,9 +82,14 @@ export default function WorkoutScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadWorkout();
+    await loadUserData();
     setRefreshing(false);
   };
+
+  // Frequência configurada no perfil (Single Source of Truth)
+  const configuredFrequency = userProfile?.weekly_training_frequency || workoutPlan?.weekly_frequency || 0;
+  const actualWorkouts = workoutPlan?.workout_days?.length || 0;
+  const frequencyMatch = actualWorkouts === configuredFrequency;
 
   if (loading) {
     return (
