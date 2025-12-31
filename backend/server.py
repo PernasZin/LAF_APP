@@ -238,8 +238,17 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
 @api_router.post("/user/profile", response_model=UserProfile)
 async def create_user_profile(profile_data: UserProfileCreate):
     """
-    Cria perfil de usuário e calcula TDEE e macros automaticamente
+    Cria perfil de usuário e calcula TDEE e macros automaticamente.
+    
+    REGRA: Se goal == "atleta", competition_phase é OBRIGATÓRIO.
     """
+    # Validação: atleta requer fase de competição
+    if profile_data.goal == "atleta" and not profile_data.competition_phase:
+        raise HTTPException(
+            status_code=400, 
+            detail="Atletas devem especificar competition_phase: 'offseason' ou 'prep'"
+        )
+    
     # Calcula BMR
     bmr = calculate_bmr(
         weight=profile_data.weight,
@@ -255,18 +264,20 @@ async def create_user_profile(profile_data: UserProfileCreate):
         training_level=profile_data.training_level
     )
     
-    # Ajusta calorias para objetivo
+    # Ajusta calorias para objetivo (com fase se atleta)
     target_calories = calculate_target_calories(
         tdee=tdee,
         goal=profile_data.goal,
-        weight=profile_data.weight
+        weight=profile_data.weight,
+        competition_phase=profile_data.competition_phase
     )
     
-    # Calcula macros
+    # Calcula macros (com fase se atleta)
     macros = calculate_macros(
         target_calories=target_calories,
         weight=profile_data.weight,
-        goal=profile_data.goal
+        goal=profile_data.goal,
+        competition_phase=profile_data.competition_phase
     )
     
     # Cria perfil completo
