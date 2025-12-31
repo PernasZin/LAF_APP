@@ -46,6 +46,9 @@ class UserProfile(BaseModel):
     # Objetivo
     goal: str  # "cutting", "bulking", "manutencao", "atleta"
     
+    # Fase de Competição (OBRIGATÓRIO se goal == "atleta")
+    competition_phase: Optional[str] = None  # "offseason", "prep"
+    
     # Restrições e Preferências
     dietary_restrictions: List[str] = Field(default_factory=list)  # ["vegetariano", "lactose", etc]
     food_preferences: List[str] = Field(default_factory=list)
@@ -71,6 +74,7 @@ class UserProfileCreate(BaseModel):
     weekly_training_frequency: int
     available_time_per_session: int
     goal: str
+    competition_phase: Optional[str] = None  # OBRIGATÓRIO se goal == "atleta"
     dietary_restrictions: List[str] = Field(default_factory=list)
     food_preferences: List[str] = Field(default_factory=list)
     injury_history: List[str] = Field(default_factory=list)
@@ -81,6 +85,7 @@ class UserProfileUpdate(BaseModel):
     body_fat_percentage: Optional[float] = None
     weekly_training_frequency: Optional[int] = None
     goal: Optional[str] = None
+    competition_phase: Optional[str] = None
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
 
