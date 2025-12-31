@@ -219,16 +219,13 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
             fat_cal = fat_g * 9
             carbs_cal = target_calories - protein_cal - fat_cal
             carbs_g = max(0, carbs_cal / 4)
-        fat_cal = fat_g * 9
-        carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = carbs_cal / 4
     else:  # manutenção
         protein_g = weight * 1.8
         fat_g = weight * 1.0
         protein_cal = protein_g * 4
         fat_cal = fat_g * 9
         carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = carbs_cal / 4
+        carbs_g = max(0, carbs_cal / 4)
     
     return {
         "protein": round(protein_g, 1),
