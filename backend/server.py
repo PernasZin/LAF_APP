@@ -46,8 +46,15 @@ class UserProfile(BaseModel):
     # Objetivo
     goal: str  # "cutting", "bulking", "manutencao", "atleta"
     
-    # Fase de Competição (OBRIGATÓRIO se goal == "atleta")
-    competition_phase: Optional[str] = None  # "offseason", "prep"
+    # ==================== ATHLETE DOMAIN MODEL ====================
+    # OBRIGATÓRIO se goal == "atleta"
+    # Phases: "off_season", "pre_prep", "prep", "peak_week", "post_show"
+    competition_phase: Optional[str] = None
+    
+    # Timeline tracking
+    weeks_to_competition: Optional[int] = None  # Semanas até próxima competição
+    competition_date: Optional[datetime] = None  # Data alvo da competição
+    phase_start_date: Optional[datetime] = None  # Quando a fase atual começou
     
     # Restrições e Preferências
     dietary_restrictions: List[str] = Field(default_factory=list)  # ["vegetariano", "lactose", etc]
