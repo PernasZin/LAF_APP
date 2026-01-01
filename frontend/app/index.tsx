@@ -11,7 +11,12 @@ export default function WelcomeScreen() {
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
-    checkOnboardingStatus();
+    // Small delay to ensure router is ready
+    const timer = setTimeout(() => {
+      checkOnboardingStatus();
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, []);
 
   const checkOnboardingStatus = async () => {
@@ -24,28 +29,27 @@ export default function WelcomeScreen() {
       if (hasCompleted === 'true' && userId) {
         console.log('✅ Redirecting to home');
         router.replace('/(tabs)');
-        return;
+        return; // Don't set loading to false - we're navigating away
       }
     } catch (error) {
       console.error('Error checking status:', error);
-    } finally {
-      setIsLoading(false);
     }
+    // Only set loading to false if we're NOT redirecting
+    setIsLoading(false);
   };
 
   const handleStartPress = () => {
+    if (isNavigating) return;
+    
     console.log('🚀 Button pressed - navigating to onboarding');
     setIsNavigating(true);
     
-    // Use setTimeout to ensure state update is visible
-    setTimeout(() => {
-      try {
-        router.push('/onboarding');
-      } catch (error) {
-        console.error('Navigation error:', error);
-        setIsNavigating(false);
-      }
-    }, 100);
+    try {
+      router.push('/onboarding');
+    } catch (error) {
+      console.error('Navigation error:', error);
+      setIsNavigating(false);
+    }
   };
 
   if (isLoading) {
