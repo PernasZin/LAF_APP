@@ -1,11 +1,12 @@
 /**
  * Settings Store - Single Source of Truth para Theme e Privacy
  * Usa Zustand para gerenciamento de estado global
+ * SAFE: Handles initialization errors gracefully
  */
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Appearance, ColorSchemeName } from 'react-native';
+import { Appearance } from 'react-native';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
@@ -34,6 +35,7 @@ interface SettingsState {
   
   // Loading state
   isLoading: boolean;
+  isHydrated: boolean;
   
   // Actions
   setThemePreference: (theme: ThemePreference) => void;
@@ -42,10 +44,15 @@ interface SettingsState {
   setPrivacyNotifications: (enabled: boolean) => void;
   loadSettings: (settings: UserSettings) => void;
   getEffectiveTheme: () => 'light' | 'dark';
+  setHydrated: (hydrated: boolean) => void;
 }
 
 const getSystemTheme = (): 'light' | 'dark' => {
-  return Appearance.getColorScheme() || 'light';
+  try {
+    return Appearance.getColorScheme() || 'light';
+  } catch {
+    return 'light';
+  }
 };
 
 export const useSettingsStore = create<SettingsState>()(
@@ -53,11 +60,12 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       // Default values
       themePreference: 'system',
-      effectiveTheme: getSystemTheme(),
+      effectiveTheme: 'light',
       privacyAnalytics: true,
       privacyPersonalization: true,
       privacyNotifications: true,
       isLoading: false,
+      isHydrated: false,
       
       setThemePreference: (theme: ThemePreference) => {
         let effective: 'light' | 'dark';
@@ -105,6 +113,10 @@ export const useSettingsStore = create<SettingsState>()(
         }
         return state.themePreference;
       },
+      
+      setHydrated: (hydrated: boolean) => {
+        set({ isHydrated: hydrated });
+      },
     }),
     {
       name: 'laf-settings',
@@ -115,14 +127,31 @@ export const useSettingsStore = create<SettingsState>()(
         privacyPersonalization: state.privacyPersonalization,
         privacyNotifications: state.privacyNotifications,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.setHydrated(true);
+          // Update effective theme after rehydration
+          if (state.themePreference === 'system') {
+            state.effectiveTheme = getSystemTheme();
+          }
+        }
+      },
     }
   )
 );
 
-// Listener para mudanças no tema do sistema
-Appearance.addChangeListener(({ colorScheme }) => {
-  const { themePreference } = useSettingsStore.getState();
-  if (themePreference === 'system') {
-    useSettingsStore.setState({ effectiveTheme: colorScheme || 'light' });
-  }
-});
+// Safe listener for system theme changes
+try {
+  Appearance.addChangeListener(({ colorScheme }) => {
+    try {
+      const { themePreference } = useSettingsStore.getState();
+      if (themePreference === 'system') {
+        useSettingsStore.setState({ effectiveTheme: colorScheme || 'light' });
+      }
+    } catch (e) {
+      // Ignore errors during store initialization
+    }
+  });
+} catch (e) {
+  // Ignore if Appearance API is not available
+}

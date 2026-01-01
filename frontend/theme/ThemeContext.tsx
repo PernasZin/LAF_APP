@@ -1,6 +1,7 @@
 /**
  * Theme Context Provider
  * Fornece cores baseadas no tema atual para toda a aplicação
+ * SAFE: Handles errors gracefully to prevent app crash on startup
  */
 import React, { createContext, useContext, useMemo } from 'react';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -11,10 +12,23 @@ interface ThemeContextType {
   isDark: boolean;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+// Default light theme colors for fallback
+const defaultColors = getColors('light');
+
+const ThemeContext = createContext<ThemeContextType>({
+  colors: defaultColors,
+  isDark: false,
+});
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  // Safe access to store with fallback
+  let effectiveTheme: 'light' | 'dark' = 'light';
+  
+  try {
+    effectiveTheme = useSettingsStore((state) => state.effectiveTheme) || 'light';
+  } catch (error) {
+    console.log('ThemeProvider: Using default theme (store not ready)');
+  }
   
   const value = useMemo(() => ({
     colors: getColors(effectiveTheme),
@@ -30,8 +44,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useTheme = (): ThemeContextType => {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
+  // Always return context - it has defaults now
   return context;
 };

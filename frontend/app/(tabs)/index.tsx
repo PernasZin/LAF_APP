@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
 import { useFocusEffect } from '@react-navigation/native';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -11,6 +10,7 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 export default function HomeScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Carrega perfil quando a tela ganha foco
   useFocusEffect(
@@ -31,18 +31,29 @@ export default function HomeScreen() {
       const userId = await AsyncStorage.getItem('userId');
       if (userId && BACKEND_URL) {
         try {
-          const response = await axios.get(`${BACKEND_URL}/api/user/profile/${userId}`);
-          if (response.data) {
-            // Atualiza AsyncStorage com dados mais recentes
-            await AsyncStorage.setItem('userProfile', JSON.stringify(response.data));
-            setProfile(response.data);
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
+          
+          const response = await fetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
+            signal: controller.signal,
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (response.ok) {
+            const data = await response.json();
+            await AsyncStorage.setItem('userProfile', JSON.stringify(data));
+            setProfile(data);
           }
-        } catch (apiError) {
-          console.log('Usando dados locais (backend indisponível)');
+        } catch (apiError: any) {
+          // Silent fail - use local data
+          console.log('Using local data (backend unavailable):', apiError?.message || 'Unknown error');
         }
       }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+      console.error('Error loading profile:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,10 +63,27 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Ionicons name="fitness" size={60} color="#10B981" />
+          <Text style={styles.loading}>Carregando...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show welcome message if no profile yet
   if (!profile) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Carregando...</Text>
+        <View style={styles.emptyContainer}>
+          <Ionicons name="person-add-outline" size={60} color="#10B981" />
+          <Text style={styles.emptyTitle}>Bem-vindo ao LAF!</Text>
+          <Text style={styles.emptyText}>Complete seu perfil para começar</Text>
+        </View>
       </SafeAreaView>
     );
   }
@@ -92,7 +120,7 @@ export default function HomeScreen() {
           <StatsCard
             icon="barbell"
             label="Treino"
-            value={profile.weekly_training_frequency}
+            value={profile.weekly_training_frequency || 0}
             unit="x/semana"
             color="#10B981"
           />
@@ -105,17 +133,17 @@ export default function HomeScreen() {
             <View style={styles.macrosContainer}>
               <MacroItem
                 label="Proteínas"
-                value={profile.macros.protein}
+                value={profile.macros.protein || 0}
                 color="#3B82F6"
               />
               <MacroItem
                 label="Carboidratos"
-                value={profile.macros.carbs}
+                value={profile.macros.carbs || 0}
                 color="#F59E0B"
               />
               <MacroItem
                 label="Gorduras"
-                value={profile.macros.fat}
+                value={profile.macros.fat || 0}
                 color="#EF4444"
               />
             </View>
@@ -135,6 +163,7 @@ export default function HomeScreen() {
                 {profile.goal === 'bulking' && 'Ganho de Massa (Bulking)'}
                 {profile.goal === 'manutencao' && 'Manutenção'}
                 {profile.goal === 'atleta' && 'Atleta/Competição'}
+                {!profile.goal && 'Não definido'}
               </Text>
               <Text style={styles.goalDesc}>
                 TDEE: {Math.round(profile.tdee || 0)} kcal/dia
@@ -173,7 +202,7 @@ function MacroItem({ label, value, color }: any) {
       <View style={[styles.macroIndicator, { backgroundColor: color }]} />
       <View style={styles.macroContent}>
         <Text style={styles.macroLabel}>{label}</Text>
-        <Text style={styles.macroValue}>{value}g</Text>
+        <Text style={styles.macroValue}>{Math.round(value)}g</Text>
       </View>
     </View>
   );
@@ -184,12 +213,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F9FAFB',
   },
-  loading: {
+  loadingContainer: {
     flex: 1,
-    textAlign: 'center',
-    marginTop: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loading: {
+    marginTop: 16,
     fontSize: 16,
     color: '#6B7280',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6B7280',
+    marginTop: 8,
   },
   scrollView: {
     flex: 1,
