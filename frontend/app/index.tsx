@@ -86,15 +86,25 @@ export default function WelcomeScreen() {
           />
         </View>
 
-        {/* CTA Button */}
-        <TouchableOpacity 
-          style={styles.button}
-          onPress={() => router.push('/onboarding')}
-          activeOpacity={0.8}
+        {/* CTA Button - Using Pressable for better cross-platform support */}
+        <Pressable 
+          style={({ pressed }) => [
+            styles.button,
+            pressed && styles.buttonPressed,
+            isNavigating && styles.buttonDisabled,
+          ]}
+          onPress={handleStartPress}
+          disabled={isNavigating}
         >
-          <Text style={styles.buttonText}>Começar Agora</Text>
-          <Ionicons name="arrow-forward" size={20} color="#fff" />
-        </TouchableOpacity>
+          {isNavigating ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <>
+              <Text style={styles.buttonText}>Começar Agora</Text>
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
+            </>
+          )}
+        </Pressable>
 
         <Text style={styles.footerText}>
           Planos personalizados para seus objetivos
