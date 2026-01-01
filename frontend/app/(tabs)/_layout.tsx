@@ -2,34 +2,38 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { getColors } from '../../theme/colors';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const colors = getColors(effectiveTheme);
   
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#10B981',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarActiveTintColor: colors.tabBarActive,
+        tabBarInactiveTintColor: colors.tabBarInactive,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: colors.tabBarBackground,
           borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          height: 64 + insets.bottom, // Increased base height + safe area
-          paddingBottom: insets.bottom, // Respect iOS home indicator
+          borderTopColor: colors.border,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom,
         },
         tabBarItemStyle: {
-          paddingBottom: insets.bottom > 0 ? 6 : 0, // Extra padding for items on iOS
+          paddingBottom: insets.bottom > 0 ? 4 : 0,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: '600',
-          paddingBottom: insets.bottom > 0 ? 4 : 0, // Extra padding for labels on iOS
+          paddingBottom: insets.bottom > 0 ? 2 : 0,
           marginTop: Platform.OS === 'ios' ? 2 : 0,
         },
         tabBarIconStyle: {
-          marginTop: 6, // Prevent icon+label block from drifting downward
+          marginTop: 4,
         },
       }}
     >
@@ -66,6 +70,15 @@ export default function TabLayout() {
           title: 'Progresso',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="trending-up" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Config',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
           ),
         }}
       />
