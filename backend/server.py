@@ -497,6 +497,67 @@ async def get_user_workout(user_id: str):
     workout_plan["id"] = workout_plan["_id"]
     return workout_plan
 
+# ==================== SETTINGS ENDPOINTS ====================
+
+@api_router.get("/user/settings/{user_id}", response_model=UserSettings)
+async def get_user_settings(user_id: str):
+    """
+    Busca configurações do usuário
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca settings ou retorna defaults
+    settings = await db.user_settings.find_one({"user_id": user_id})
+    
+    if not settings:
+        # Cria settings padrão
+        default_settings = UserSettings(user_id=user_id)
+        settings_dict = default_settings.dict()
+        await db.user_settings.insert_one(settings_dict)
+        return default_settings
+    
+    return UserSettings(**settings)
+
+@api_router.patch("/user/settings/{user_id}", response_model=UserSettings)
+async def update_user_settings(user_id: str, update_data: UserSettingsUpdate):
+    """
+    Atualiza configurações do usuário
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Valida theme_preference
+    if update_data.theme_preference and update_data.theme_preference not in ["system", "light", "dark"]:
+        raise HTTPException(
+            status_code=400,
+            detail="theme_preference deve ser 'system', 'light' ou 'dark'"
+        )
+    
+    # Busca settings existentes ou cria
+    settings = await db.user_settings.find_one({"user_id": user_id})
+    
+    update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
+    update_dict["updated_at"] = datetime.utcnow()
+    
+    if settings:
+        await db.user_settings.update_one(
+            {"user_id": user_id},
+            {"$set": update_dict}
+        )
+    else:
+        # Cria novo settings com updates
+        new_settings = UserSettings(user_id=user_id, **update_dict)
+        await db.user_settings.insert_one(new_settings.dict())
+    
+    # Retorna settings atualizado
+    updated = await db.user_settings.find_one({"user_id": user_id})
+    return UserSettings(**updated)
+
 # Include router
 app.include_router(api_router)
 
