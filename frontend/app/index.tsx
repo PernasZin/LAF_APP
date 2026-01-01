@@ -134,6 +134,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingLogo: {
+    fontSize: 48,
+    fontWeight: '700',
+    color: '#10B981',
+  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
