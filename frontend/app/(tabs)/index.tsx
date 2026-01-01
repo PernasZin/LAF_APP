@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTheme } from '../../theme/ThemeContext';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -23,6 +24,7 @@ const safeFetch = async (url: string, options?: RequestInit) => {
 };
 
 export default function HomeScreen() {
+  const { colors, isDark } = useTheme();
   const [profile, setProfile] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,13 +73,15 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
+  const styles = createStyles(colors);
+
   // Show loading state
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="fitness" size={60} color="#10B981" />
-          <Text style={styles.loading}>Carregando...</Text>
+          <Ionicons name="fitness" size={60} color={colors.primary} />
+          <Text style={[styles.loading, { color: colors.textSecondary }]}>Carregando...</Text>
         </View>
       </SafeAreaView>
     );
@@ -86,94 +90,103 @@ export default function HomeScreen() {
   // Show welcome message if no profile yet
   if (!profile) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.emptyContainer}>
-          <Ionicons name="person-add-outline" size={60} color="#10B981" />
-          <Text style={styles.emptyTitle}>Bem-vindo ao LAF!</Text>
-          <Text style={styles.emptyText}>Complete seu perfil para começar</Text>
+          <Ionicons name="person-add-outline" size={60} color={colors.primary} />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>Bem-vindo ao LAF!</Text>
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Complete seu perfil para começar</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         style={styles.scrollView} 
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#10B981']} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={[colors.primary]} 
+            tintColor={colors.primary}
+          />
         }
       >
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Olá, {profile.name}!</Text>
-            <Text style={styles.subtitle}>Vamos conquistar seus objetivos</Text>
+            <Text style={[styles.greeting, { color: colors.text }]}>Olá, {profile.name}!</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Vamos conquistar seus objetivos</Text>
           </View>
           <TouchableOpacity style={styles.profileButton}>
-            <Ionicons name="person-circle-outline" size={40} color="#10B981" />
+            <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Stats Cards */}
         <View style={styles.statsContainer}>
-          <StatsCard
-            icon="flame"
-            label="Meta Diária"
-            value={`${Math.round(profile.target_calories || 0)}`}
-            unit="kcal"
-            color="#EF4444"
-          />
-          <StatsCard
-            icon="barbell"
-            label="Treino"
-            value={profile.weekly_training_frequency || 0}
-            unit="x/semana"
-            color="#10B981"
-          />
+          <View style={[styles.statsCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+            <Ionicons name="flame" size={28} color="#EF4444" />
+            <Text style={[styles.statsValue, { color: colors.text }]}>{Math.round(profile.target_calories || 0)}</Text>
+            <Text style={[styles.statsUnit, { color: colors.textSecondary }]}>kcal</Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>Meta Diária</Text>
+          </View>
+          <View style={[styles.statsCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+            <Ionicons name="barbell" size={28} color={colors.primary} />
+            <Text style={[styles.statsValue, { color: colors.text }]}>{profile.weekly_training_frequency || 0}</Text>
+            <Text style={[styles.statsUnit, { color: colors.textSecondary }]}>x/semana</Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>Treino</Text>
+          </View>
         </View>
 
         {/* Macros */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Distribuição de Macros</Text>
+        <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Distribuição de Macros</Text>
           {profile.macros && (
             <View style={styles.macrosContainer}>
               <MacroItem
                 label="Proteínas"
                 value={profile.macros.protein || 0}
                 color="#3B82F6"
+                textColor={colors.text}
+                labelColor={colors.textSecondary}
               />
               <MacroItem
                 label="Carboidratos"
                 value={profile.macros.carbs || 0}
                 color="#F59E0B"
+                textColor={colors.text}
+                labelColor={colors.textSecondary}
               />
               <MacroItem
                 label="Gorduras"
                 value={profile.macros.fat || 0}
                 color="#EF4444"
+                textColor={colors.text}
+                labelColor={colors.textSecondary}
               />
             </View>
           )}
         </View>
 
         {/* Goal Card */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Seu Objetivo</Text>
+        <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>Seu Objetivo</Text>
           <View style={styles.goalContainer}>
-            <View style={styles.goalIcon}>
-              <Ionicons name="trophy" size={24} color="#10B981" />
+            <View style={[styles.goalIcon, { backgroundColor: colors.primary + '20' }]}>
+              <Ionicons name="trophy" size={24} color={colors.primary} />
             </View>
             <View style={styles.goalContent}>
-              <Text style={styles.goalLabel}>
+              <Text style={[styles.goalLabel, { color: colors.text }]}>
                 {profile.goal === 'cutting' && 'Emagrecimento (Cutting)'}
                 {profile.goal === 'bulking' && 'Ganho de Massa (Bulking)'}
                 {profile.goal === 'manutencao' && 'Manutenção'}
-                {profile.goal === 'atleta' && 'Atleta/Competição'}
+                {profile.goal === 'atleta' && `Atleta - ${profile.competition_phase || 'Prep'}`}
                 {!profile.goal && 'Não definido'}
               </Text>
-              <Text style={styles.goalDesc}>
+              <Text style={[styles.goalDesc, { color: colors.textSecondary }]}>
                 TDEE: {Math.round(profile.tdee || 0)} kcal/dia
               </Text>
             </View>
@@ -181,10 +194,10 @@ export default function HomeScreen() {
         </View>
 
         {/* Coming Soon */}
-        <View style={styles.comingSoonCard}>
-          <Ionicons name="rocket-outline" size={48} color="#10B981" />
-          <Text style={styles.comingSoonTitle}>Em Breve</Text>
-          <Text style={styles.comingSoonText}>
+        <View style={[styles.comingSoonCard, { backgroundColor: colors.primary + '15' }]}>
+          <Ionicons name="rocket-outline" size={48} color={colors.primary} />
+          <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>Em Breve</Text>
+          <Text style={[styles.comingSoonText, { color: colors.textSecondary }]}>
             Sistema de dieta personalizada e treinos sob medida com IA
           </Text>
         </View>
@@ -193,137 +206,19 @@ export default function HomeScreen() {
   );
 }
 
-function StatsCard({ icon, label, value, unit, color }: any) {
+function MacroItem({ label, value, color, textColor, labelColor }: any) {
   return (
-    <View style={styles.statsCard}>
-      <Ionicons name={icon} size={28} color={color} />
-      <Text style={styles.statsValue}>{value}</Text>
-      <Text style={styles.statsUnit}>{unit}</Text>
-      <Text style={styles.statsLabel}>{label}</Text>
-    </View>
-  );
-}
-
-function MacroItem({ label, value, color }: any) {
-  return (
-    <View style={styles.macroItem}>
-      <View style={[styles.macroIndicator, { backgroundColor: color }]} />
-      <View style={styles.macroContent}>
-        <Text style={styles.macroLabel}>{label}</Text>
-        <Text style={styles.macroValue}>{Math.round(value)}g</Text>
+    <View style={macroStyles.macroItem}>
+      <View style={[macroStyles.macroIndicator, { backgroundColor: color }]} />
+      <View style={macroStyles.macroContent}>
+        <Text style={[macroStyles.macroLabel, { color: labelColor }]}>{label}</Text>
+        <Text style={[macroStyles.macroValue, { color: textColor }]}>{Math.round(value)}g</Text>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loading: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    gap: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  greeting: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 4,
-  },
-  profileButton: {
-    padding: 4,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  statsCard: {
-    flex: 1,
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statsValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111827',
-    marginTop: 8,
-  },
-  statsUnit: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  statsLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 4,
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 16,
-  },
-  macrosContainer: {
-    gap: 12,
-  },
+const macroStyles = StyleSheet.create({
   macroItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -342,13 +237,101 @@ const styles = StyleSheet.create({
   },
   macroLabel: {
     fontSize: 16,
-    color: '#374151',
     fontWeight: '500',
   },
   macroValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111827',
+  },
+});
+
+const createStyles = (colors: any) => StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loading: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginTop: 16,
+  },
+  emptyText: {
+    fontSize: 16,
+    marginTop: 8,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    gap: 16,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  subtitle: {
+    fontSize: 16,
+    marginTop: 4,
+  },
+  profileButton: {
+    padding: 4,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statsCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  statsValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginTop: 8,
+  },
+  statsUnit: {
+    fontSize: 14,
+  },
+  statsLabel: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  card: {
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  macrosContainer: {
+    gap: 12,
   },
   goalContainer: {
     flexDirection: 'row',
@@ -359,7 +342,6 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#F0FDF4',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -369,15 +351,12 @@ const styles = StyleSheet.create({
   goalLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111827',
     marginBottom: 4,
   },
   goalDesc: {
     fontSize: 14,
-    color: '#6B7280',
   },
   comingSoonCard: {
-    backgroundColor: '#F0FDF4',
     padding: 32,
     borderRadius: 16,
     alignItems: 'center',
@@ -386,12 +365,10 @@ const styles = StyleSheet.create({
   comingSoonTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#10B981',
     marginTop: 12,
   },
   comingSoonText: {
     fontSize: 14,
-    color: '#6B7280',
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
