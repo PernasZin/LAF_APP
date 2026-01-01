@@ -67,23 +67,28 @@ export default function SettingsScreen() {
       setUserId(id);
       
       if (id && BACKEND_URL) {
-        // Load profile
+        // Load profile - non-blocking
         try {
-          const profileRes = await axios.get(`${BACKEND_URL}/api/user/profile/${id}`);
-          setProfile(profileRes.data);
+          const profileRes = await safeFetch(`${BACKEND_URL}/api/user/profile/${id}`);
+          if (profileRes.ok) {
+            const data = await profileRes.json();
+            setProfile(data);
+          }
         } catch (err) {
           const profileData = await AsyncStorage.getItem('userProfile');
           if (profileData) setProfile(JSON.parse(profileData));
         }
         
-        // Load settings from backend
+        // Load settings from backend - non-blocking
         try {
-          const settingsRes = await axios.get(`${BACKEND_URL}/api/user/settings/${id}`);
-          const { theme_preference, privacy_analytics, privacy_personalization, privacy_notifications } = settingsRes.data;
-          setThemePreference(theme_preference || 'system');
-          setPrivacyAnalytics(privacy_analytics ?? true);
-          setPrivacyPersonalization(privacy_personalization ?? true);
-          setPrivacyNotifications(privacy_notifications ?? true);
+          const settingsRes = await safeFetch(`${BACKEND_URL}/api/user/settings/${id}`);
+          if (settingsRes.ok) {
+            const { theme_preference, privacy_analytics, privacy_personalization, privacy_notifications } = await settingsRes.json();
+            setThemePreference(theme_preference || 'system');
+            setPrivacyAnalytics(privacy_analytics ?? true);
+            setPrivacyPersonalization(privacy_personalization ?? true);
+            setPrivacyNotifications(privacy_notifications ?? true);
+          }
         } catch (err) {
           // Use local defaults if backend fails
         }
@@ -100,7 +105,11 @@ export default function SettingsScreen() {
     
     setSaving(true);
     try {
-      await axios.patch(`${BACKEND_URL}/api/user/settings/${userId}`, settings);
+      await safeFetch(`${BACKEND_URL}/api/user/settings/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
     } catch (error) {
       console.error('Error saving settings:', error);
     } finally {
