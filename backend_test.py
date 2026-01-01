@@ -84,7 +84,7 @@ class LAFBackendTester:
             return None
     
     def test_diet_single_source_of_truth(self, user_id: str, profile_name: str):
-        """Test if diet generation matches profile calories/macros exactly"""
+        """Test if diet generation matches profile calories/macros exactly with STRICT tolerances"""
         try:
             # Get user profile first
             profile_response = requests.get(f"{self.backend_url}/user/profile/{user_id}", timeout=10)
@@ -97,8 +97,9 @@ class LAFBackendTester:
             target_calories = profile['target_calories']
             target_macros = profile['macros']
             
-            # Generate diet
-            diet_response = requests.post(f"{self.backend_url}/diet/generate?user_id={user_id}", timeout=30)
+            # Generate diet using the correct endpoint format
+            diet_response = requests.post(f"{self.backend_url}/diet/generate", 
+                                        json={"user_id": user_id}, timeout=30)
             
             if diet_response.status_code != 200:
                 self.log_test(f"Diet SST - {profile_name}", False, 
@@ -107,31 +108,51 @@ class LAFBackendTester:
             
             diet_plan = diet_response.json()
             
-            # Calculate total calories and macros from meals
-            total_calories = 0
-            total_protein = 0
-            total_carbs = 0
-            total_fat = 0
+            # Validate response structure
+            required_fields = ["meals", "computed_calories", "computed_macros", "target_calories", "target_macros"]
+            missing_fields = [field for field in required_fields if field not in diet_plan]
+            if missing_fields:
+                self.log_test(f"Diet SST - {profile_name}", False, 
+                            f"Missing fields in response: {missing_fields}")
+                return False
             
-            for meal in diet_plan.get('meals', []):
-                total_calories += meal.get('total_calories', 0)
-                macros = meal.get('macros', {})
-                total_protein += macros.get('protein', 0)
-                total_carbs += macros.get('carbs', 0)
-                total_fat += macros.get('fat', 0)
+            # Validate meals structure
+            if not isinstance(diet_plan["meals"], list) or len(diet_plan["meals"]) != 5:
+                self.log_test(f"Diet SST - {profile_name}", False, 
+                            f"Expected 5 meals, got {len(diet_plan.get('meals', []))}")
+                return False
             
-            # Check Single Source of Truth (±50 kcal, ±10g tolerance)
-            cal_diff = abs(total_calories - target_calories)
-            protein_diff = abs(total_protein - target_macros['protein'])
-            carbs_diff = abs(total_carbs - target_macros['carbs'])
-            fat_diff = abs(total_fat - target_macros['fat'])
+            # Use computed values from response (more accurate)
+            computed_calories = diet_plan["computed_calories"]
+            computed_macros = diet_plan["computed_macros"]
             
-            sst_passed = (cal_diff <= 50 and protein_diff <= 10 and carbs_diff <= 10 and fat_diff <= 10)
+            # Check STRICT tolerances as specified in the request
+            # Tolerances: P±3g, C±3g, F±2g, Cal±25kcal
+            cal_diff = abs(computed_calories - target_calories)
+            protein_diff = abs(computed_macros["protein"] - target_macros['protein'])
+            carbs_diff = abs(computed_macros["carbs"] - target_macros['carbs'])
+            fat_diff = abs(computed_macros["fat"] - target_macros['fat'])
             
-            details = f"Target: {target_calories}kcal, Got: {total_calories}kcal (Δ{cal_diff:.0f})"
-            details += f" | P: {target_macros['protein']:.0f}g→{total_protein:.1f}g (Δ{protein_diff:.1f})"
-            details += f" | C: {target_macros['carbs']:.0f}g→{total_carbs:.1f}g (Δ{carbs_diff:.1f})"
-            details += f" | F: {target_macros['fat']:.0f}g→{total_fat:.1f}g (Δ{fat_diff:.1f})"
+            # STRICT tolerance validation
+            sst_passed = (cal_diff <= 25 and protein_diff <= 3 and carbs_diff <= 3 and fat_diff <= 2)
+            
+            details = f"Target: {target_calories}kcal, Got: {computed_calories}kcal (Δ{cal_diff:.0f})"
+            details += f" | P: {target_macros['protein']:.0f}g→{computed_macros['protein']:.1f}g (Δ{protein_diff:.1f})"
+            details += f" | C: {target_macros['carbs']:.0f}g→{computed_macros['carbs']:.1f}g (Δ{carbs_diff:.1f})"
+            details += f" | F: {target_macros['fat']:.0f}g→{computed_macros['fat']:.1f}g (Δ{fat_diff:.1f})"
+            
+            # Add tolerance status
+            if not sst_passed:
+                tolerance_issues = []
+                if cal_diff > 25:
+                    tolerance_issues.append(f"Cal±{cal_diff:.0f} > ±25")
+                if protein_diff > 3:
+                    tolerance_issues.append(f"P±{protein_diff:.1f}g > ±3g")
+                if carbs_diff > 3:
+                    tolerance_issues.append(f"C±{carbs_diff:.1f}g > ±3g")
+                if fat_diff > 2:
+                    tolerance_issues.append(f"F±{fat_diff:.1f}g > ±2g")
+                details += f" | TOLERANCE EXCEEDED: {', '.join(tolerance_issues)}"
             
             self.log_test(f"Diet SST - {profile_name}", sst_passed, details)
             
