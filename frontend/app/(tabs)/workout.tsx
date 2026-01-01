@@ -44,10 +44,11 @@ export default function WorkoutScreen() {
       if (id && BACKEND_URL) {
         // Busca perfil atualizado do backend (Single Source of Truth)
         try {
-          const profileResponse = await axios.get(`${BACKEND_URL}/api/user/profile/${id}`);
-          if (profileResponse.data) {
-            setUserProfile(profileResponse.data);
-            await AsyncStorage.setItem('userProfile', JSON.stringify(profileResponse.data));
+          const profileResponse = await safeFetch(`${BACKEND_URL}/api/user/profile/${id}`);
+          if (profileResponse.ok) {
+            const data = await profileResponse.json();
+            setUserProfile(data);
+            await AsyncStorage.setItem('userProfile', JSON.stringify(data));
           }
         } catch (err) {
           const profileData = await AsyncStorage.getItem('userProfile');
@@ -65,30 +66,38 @@ export default function WorkoutScreen() {
   };
 
   const loadWorkout = async (uid: string) => {
-    if (!uid) return;
+    if (!uid || !BACKEND_URL) return;
     
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/workout/${uid}`);
-      setWorkoutPlan(response.data);
-    } catch (error: any) {
-      if (error.response?.status !== 404) {
-        console.error('Erro ao carregar treino:', error);
+      const response = await safeFetch(`${BACKEND_URL}/api/workout/${uid}`);
+      if (response.ok) {
+        const data = await response.json();
+        setWorkoutPlan(data);
       }
+    } catch (error: any) {
+      console.log('Workout not loaded (may not exist yet)');
     }
   };
 
   const generateWorkout = async () => {
-    if (!userId) return;
+    if (!userId || !BACKEND_URL) return;
     
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/api/workout/generate?user_id=${userId}`
+      const response = await safeFetch(
+        `${BACKEND_URL}/api/workout/generate?user_id=${userId}`,
+        { method: 'POST' }
       );
-      setWorkoutPlan(response.data);
+      if (response.ok) {
+        const data = await response.json();
+        setWorkoutPlan(data);
+      } else {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        alert(`Erro ao gerar treino: ${errorData.detail || 'Tente novamente'}`);
+      }
     } catch (error) {
       console.error('Erro ao gerar treino:', error);
-      alert('Erro ao gerar treino. Tente novamente.');
+      alert('Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setLoading(false);
     }
