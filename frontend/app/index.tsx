@@ -7,12 +7,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [isChecking, setIsChecking] = useState(true);
-  const [isNavigating, setIsNavigating] = useState(false);
-  const [redirectToTabs, setRedirectToTabs] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'welcome' | 'redirect'>('loading');
 
   useEffect(() => {
-    checkOnboardingStatus();
+    const timer = setTimeout(() => {
+      checkOnboardingStatus();
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const checkOnboardingStatus = async () => {
@@ -23,36 +24,33 @@ export default function WelcomeScreen() {
       console.log('🏠 Welcome: Status check', { hasCompleted, userId });
       
       if (hasCompleted === 'true' && userId) {
-        console.log('✅ User completed onboarding, will redirect');
-        setRedirectToTabs(true);
+        console.log('✅ Redirecting to tabs');
+        setStatus('redirect');
+      } else {
+        setStatus('welcome');
       }
     } catch (error) {
       console.error('Status check error:', error);
-    } finally {
-      setIsChecking(false);
+      setStatus('welcome');
     }
   };
 
   const handleStartPress = () => {
-    if (isNavigating) return;
-    
     console.log('🚀 Starting onboarding...');
-    setIsNavigating(true);
-    
     router.push('/onboarding');
   };
 
-  // Use Redirect component for reliable navigation
-  if (redirectToTabs) {
+  // Redirect to tabs if onboarding is complete
+  if (status === 'redirect') {
     return <Redirect href="/(tabs)" />;
   }
 
-  // Show loading while checking status
-  if (isChecking) {
+  // Show loading
+  if (status === 'loading') {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Ionicons name="fitness" size={80} color="#10B981" />
+          <Text style={styles.loadingLogo}>LAF</Text>
           <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 20 }} />
         </View>
       </SafeAreaView>
