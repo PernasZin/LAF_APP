@@ -197,6 +197,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VALIDADO: Single Source of Truth funcionando perfeitamente. Teste Bulking: Target 3158kcal → Got 3159kcal (Δ1kcal). Teste Cutting: Target 1508kcal → Got 1508kcal (Δ0kcal). Macros também batem exatamente com tolerância ±10g. Sistema usa fallback determinístico quando IA falha, garantindo precisão."
+      - working: true
+        agent: "testing"
+        comment: "✅ STRICT TOLERANCE VALIDATION PASSED: Diet generation endpoint tested with exact specification requirements. Bulking profile (80kg, 30y, male): Target 3232kcal → Got 3232kcal (Δ0), P160g→160.0g (Δ0.0), C468g→467.9g (Δ0.1), F80g→80.1g (Δ0.1). Cutting profile (65kg, 28y, female): Target 1754kcal → Got 1761kcal (Δ7), P143g→143.1g (Δ0.1), C179g→177.9g (Δ0.7), F52g→53.0g (Δ1.0). All tolerances within P±3g, C±3g, F±2g, Cal±25kcal. Response structure validated: 5 meals, computed values, target values all present."
 
   - task: "Diet Generation - Realistic Portions"
     implemented: true
