@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     checkOnboardingStatus();
@@ -22,11 +24,39 @@ export default function WelcomeScreen() {
       if (hasCompleted === 'true' && userId) {
         console.log('✅ Redirecting to home');
         router.replace('/(tabs)');
+        return;
       }
     } catch (error) {
       console.error('Error checking status:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleStartPress = () => {
+    console.log('🚀 Button pressed - navigating to onboarding');
+    setIsNavigating(true);
+    
+    // Use setTimeout to ensure state update is visible
+    setTimeout(() => {
+      try {
+        router.push('/onboarding');
+      } catch (error) {
+        console.error('Navigation error:', error);
+        setIsNavigating(false);
+      }
+    }, 100);
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#10B981" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
