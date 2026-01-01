@@ -7,6 +7,21 @@ import { useFocusEffect } from '@react-navigation/native';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
+// Safe fetch with timeout - prevents blocking UI on iOS
+const safeFetch = async (url: string, options?: RequestInit) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
+
 export default function HomeScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
