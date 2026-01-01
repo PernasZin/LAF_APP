@@ -219,33 +219,39 @@ export default function OnboardingScreen() {
       console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
       console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
 
-      // Cria perfil no backend com timeout e signal
-      const response = await axios.post(
+      // Cria perfil no backend com safeFetch (timeout + abort signal)
+      const response = await safeFetch(
         `${BACKEND_URL}/api/user/profile`,
-        profileData,
         {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 15000, // 15 segundos timeout
-          signal, // Permite cancelamento
-        }
+          body: JSON.stringify(profileData),
+        },
+        15000 // 15 segundos timeout
       );
 
-      console.log('✅ Response received:', response.status, response.data);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw { response: { status: response.status, data: errorData } };
+      }
+
+      const data = await response.json();
+      console.log('✅ Response received:', response.status, data);
 
       // Valida resposta
-      if (!response.data || !response.data.id) {
+      if (!data || !data.id) {
         throw new Error('Resposta inválida do servidor - ID não encontrado');
       }
 
-      if (!response.data.tdee || !response.data.target_calories || !response.data.macros) {
+      if (!data.tdee || !data.target_calories || !data.macros) {
         throw new Error('Dados incompletos retornados pelo servidor');
       }
 
       // Salva perfil localmente
-      await AsyncStorage.setItem('userId', response.data.id);
-      await AsyncStorage.setItem('userProfile', JSON.stringify(response.data));
+      await AsyncStorage.setItem('userId', data.id);
+      await AsyncStorage.setItem('userProfile', JSON.stringify(data));
       await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
 
       console.log('💾 Profile saved to AsyncStorage');
