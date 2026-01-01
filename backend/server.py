@@ -89,6 +89,24 @@ class UserProfileUpdate(BaseModel):
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
 
+# ==================== SETTINGS MODELS ====================
+
+class UserSettings(BaseModel):
+    """User settings for theme and privacy"""
+    user_id: str
+    theme_preference: str = "system"  # "system", "light", "dark"
+    privacy_analytics: bool = True
+    privacy_personalization: bool = True
+    privacy_notifications: bool = True
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class UserSettingsUpdate(BaseModel):
+    """Partial update for settings"""
+    theme_preference: Optional[str] = None
+    privacy_analytics: Optional[bool] = None
+    privacy_personalization: Optional[bool] = None
+    privacy_notifications: Optional[bool] = None
+
 # ==================== CÁLCULOS TDEE ====================
 
 def calculate_bmr(weight: float, height: float, age: int, sex: str) -> float:
