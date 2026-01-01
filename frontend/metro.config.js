@@ -5,6 +5,11 @@ const { FileStore } = require('metro-cache');
 
 const config = getDefaultConfig(__dirname);
 
+// Fix for 'Cannot use import.meta outside a module' error on web
+// This is caused by ESM-only packages like Zustand
+// See: https://github.com/expo/expo/issues/30323
+config.resolver.unstable_enablePackageExports = false;
+
 // Use a stable on-disk store (shared across web/android)
 const root = process.env.METRO_CACHE_ROOT || path.join(__dirname, '.metro-cache');
 config.cacheStores = [
