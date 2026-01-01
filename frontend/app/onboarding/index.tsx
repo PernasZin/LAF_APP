@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 
 import BasicInfoStep from './steps/BasicInfoStep';
 import PhysicalDataStep from './steps/PhysicalDataStep';
@@ -13,6 +12,24 @@ import GoalStep from './steps/GoalStep';
 import RestrictionsStep from './steps/RestrictionsStep';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+// Safe fetch with configurable timeout for onboarding
+const safeFetch = async (url: string, options?: RequestInit, timeout = 15000) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('A requisição demorou muito tempo. Verifique sua conexão.');
+    }
+    throw error;
+  }
+};
 
 export default function OnboardingScreen() {
   const router = useRouter();
