@@ -344,11 +344,11 @@ class LAFBackendTester:
             print("-" * 40)
             self.test_diet_single_source_of_truth(cutting_user_id, "Cutting")
             
-            # Test 6: Workout frequency for 3x/week
+            # Test 6: Workout frequency for 4x/week
             print("\n" + "-" * 40)
-            print("TESTE 6: TREINO CUTTING - Frequência 3x/semana")
+            print("TESTE 6: TREINO CUTTING - Frequência 4x/semana")
             print("-" * 40)
-            self.test_workout_frequency_match(cutting_user_id, "Cutting", 3)
+            self.test_workout_frequency_match(cutting_user_id, "Cutting", 4)
         
         # Summary
         print("\n" + "=" * 60)
