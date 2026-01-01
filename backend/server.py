@@ -177,8 +177,11 @@ def calculate_target_calories(tdee: float, goal: str, weight: float, competition
     Ajusta calorias baseado no objetivo e fase de competição.
     
     REGRAS PARA ATLETA/COMPETIÇÃO:
-    - offseason: superávit de +5% a +10% (lean bulk)
-    - prep: déficit de -20% a -25% (corte agressivo preservando massa)
+    - off_season: superávit de +7.5% (lean bulk)
+    - pre_prep: manutenção ou leve déficit (-5%)
+    - prep: déficit agressivo (-22.5%)
+    - peak_week: déficit muito agressivo (-25%) + manipulação
+    - post_show: superávit moderado (+10%) para recuperação
     """
     if goal == "cutting":
         # Déficit de 15-20% para perda de gordura
@@ -188,14 +191,23 @@ def calculate_target_calories(tdee: float, goal: str, weight: float, competition
         return tdee * 1.12  # 12% de superávit
     elif goal == "atleta":
         # OBRIGATÓRIO: fase de competição deve estar definida
-        if competition_phase == "offseason":
-            # Off-Season: superávit moderado (+7.5% - média entre 5-10%)
+        if competition_phase == "off_season":
+            # Off-Season: superávit moderado (+7.5%)
             return tdee * 1.075
+        elif competition_phase == "pre_prep":
+            # Pre-Prep: transição, leve déficit (-5%)
+            return tdee * 0.95
         elif competition_phase == "prep":
-            # Prep/Cutting: déficit agressivo (-22.5% - média entre 20-25%)
+            # Prep/Contest: déficit agressivo (-22.5%)
             return tdee * 0.775
+        elif competition_phase == "peak_week":
+            # Peak Week: déficit muito agressivo (-25%)
+            return tdee * 0.75
+        elif competition_phase == "post_show":
+            # Post-Show: superávit para recuperação (+10%)
+            return tdee * 1.10
         else:
-            # Se atleta sem fase definida, assume prep por segurança
+            # Default para prep se fase não especificada
             return tdee * 0.775
     else:  # manutenção
         return tdee
