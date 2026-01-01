@@ -81,7 +81,10 @@ class UserProfileCreate(BaseModel):
     weekly_training_frequency: int
     available_time_per_session: int
     goal: str
-    competition_phase: Optional[str] = None  # OBRIGATÓRIO se goal == "atleta"
+    # Athlete-specific fields (REQUIRED if goal == "atleta")
+    competition_phase: Optional[str] = None  # "off_season", "pre_prep", "prep", "peak_week", "post_show"
+    weeks_to_competition: Optional[int] = None
+    competition_date: Optional[str] = None  # ISO date string
     dietary_restrictions: List[str] = Field(default_factory=list)
     food_preferences: List[str] = Field(default_factory=list)
     injury_history: List[str] = Field(default_factory=list)
@@ -93,6 +96,8 @@ class UserProfileUpdate(BaseModel):
     weekly_training_frequency: Optional[int] = None
     goal: Optional[str] = None
     competition_phase: Optional[str] = None
+    weeks_to_competition: Optional[int] = None
+    competition_date: Optional[str] = None
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
 
