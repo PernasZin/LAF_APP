@@ -44,11 +44,11 @@ export default function DietScreen() {
       if (id && BACKEND_URL) {
         // Busca perfil atualizado do backend (Single Source of Truth)
         try {
-          const profileResponse = await axios.get(`${BACKEND_URL}/api/user/profile/${id}`);
-          if (profileResponse.data) {
-            setUserProfile(profileResponse.data);
-            // Atualiza AsyncStorage
-            await AsyncStorage.setItem('userProfile', JSON.stringify(profileResponse.data));
+          const profileResponse = await safeFetch(`${BACKEND_URL}/api/user/profile/${id}`);
+          if (profileResponse.ok) {
+            const data = await profileResponse.json();
+            setUserProfile(data);
+            await AsyncStorage.setItem('userProfile', JSON.stringify(data));
           }
         } catch (err) {
           // Fallback para AsyncStorage
@@ -67,30 +67,38 @@ export default function DietScreen() {
   };
 
   const loadDiet = async (uid: string) => {
-    if (!uid) return;
+    if (!uid || !BACKEND_URL) return;
     
     try {
-      const response = await axios.get(`${BACKEND_URL}/api/diet/${uid}`);
-      setDietPlan(response.data);
-    } catch (error: any) {
-      if (error.response?.status !== 404) {
-        console.error('Erro ao carregar dieta:', error);
+      const response = await safeFetch(`${BACKEND_URL}/api/diet/${uid}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDietPlan(data);
       }
+    } catch (error: any) {
+      console.log('Diet not loaded (may not exist yet)');
     }
   };
 
   const generateDiet = async () => {
-    if (!userId) return;
+    if (!userId || !BACKEND_URL) return;
     
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${BACKEND_URL}/api/diet/generate?user_id=${userId}`
+      const response = await safeFetch(
+        `${BACKEND_URL}/api/diet/generate?user_id=${userId}`,
+        { method: 'POST' }
       );
-      setDietPlan(response.data);
+      if (response.ok) {
+        const data = await response.json();
+        setDietPlan(data);
+      } else {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+        alert(`Erro ao gerar dieta: ${errorData.detail || 'Tente novamente'}`);
+      }
     } catch (error) {
       console.error('Erro ao gerar dieta:', error);
-      alert('Erro ao gerar dieta. Tente novamente.');
+      alert('Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setLoading(false);
     }
