@@ -9,6 +9,7 @@ import BasicInfoStep from './steps/BasicInfoStep';
 import PhysicalDataStep from './steps/PhysicalDataStep';
 import TrainingLevelStep from './steps/TrainingLevelStep';
 import GoalStep from './steps/GoalStep';
+import AthleteStep from './steps/AthleteStep';
 import RestrictionsStep from './steps/RestrictionsStep';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -24,11 +25,75 @@ const safeFetch = async (url: string, options?: RequestInit, timeout = 15000) =>
     return response;
   } catch (error: any) {
     clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
+    // Defensive check for error properties
+    const errorName = typeof error?.name === 'string' ? error.name : '';
+    if (errorName === 'AbortError') {
       throw new Error('A requisição demorou muito tempo. Verifique sua conexão.');
     }
     throw error;
   }
+};
+
+// Utility to safely extract error message
+const getErrorMessage = (error: unknown): string => {
+  if (error === null || error === undefined) {
+    return 'Erro desconhecido';
+  }
+  
+  if (typeof error === 'string') {
+    return error;
+  }
+  
+  if (error instanceof Error) {
+    return error.message || 'Erro desconhecido';
+  }
+  
+  if (typeof error === 'object') {
+    const err = error as any;
+    if (typeof err.message === 'string') {
+      return err.message;
+    }
+    if (typeof err.detail === 'string') {
+      return err.detail;
+    }
+  }
+  
+  return 'Erro desconhecido';
+};
+
+// Utility to safely check if error is timeout-related
+const isTimeoutError = (error: unknown): boolean => {
+  if (error === null || error === undefined) {
+    return false;
+  }
+  
+  const message = getErrorMessage(error);
+  const code = typeof (error as any)?.code === 'string' ? (error as any).code : '';
+  const name = typeof (error as any)?.name === 'string' ? (error as any).name : '';
+  
+  return (
+    code === 'ECONNABORTED' ||
+    name === 'AbortError' ||
+    message.toLowerCase().includes('timeout') ||
+    message.toLowerCase().includes('demorou')
+  );
+};
+
+// Utility to safely check if error is network-related
+const isNetworkError = (error: unknown): boolean => {
+  if (error === null || error === undefined) {
+    return false;
+  }
+  
+  const message = getErrorMessage(error);
+  const hasResponse = typeof (error as any)?.response === 'object' && (error as any).response !== null;
+  
+  return (
+    message === 'Network Error' ||
+    message.toLowerCase().includes('network') ||
+    message.toLowerCase().includes('conexão') ||
+    (!hasResponse && message.toLowerCase().includes('fetch'))
+  );
 };
 
 export default function OnboardingScreen() {
@@ -37,7 +102,7 @@ export default function OnboardingScreen() {
   const [loading, setLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   
-  // TODOS os useState devem vir ANTES de qualquer useEffect ou lógica condicional
+  // Form data state
   const [formData, setFormData] = useState({
     // Básico
     name: '',
@@ -54,6 +119,11 @@ export default function OnboardingScreen() {
     available_time_per_session: '',
     // Objetivo
     goal: '',
+    // Atleta/Competição (OBRIGATÓRIO se goal === 'atleta')
+    weeks_to_competition: '',
+    competition_phase: '',
+    competition_phase_manual: false,
+    competition_start_date: null as Date | null,
     // Restrições
     dietary_restrictions: [] as string[],
     food_preferences: [] as string[],
@@ -97,13 +167,26 @@ export default function OnboardingScreen() {
     );
   }
 
-  const steps = [
-    { title: 'Dados Básicos', component: BasicInfoStep },
-    { title: 'Dados Físicos', component: PhysicalDataStep },
-    { title: 'Nível de Treino', component: TrainingLevelStep },
-    { title: 'Seu Objetivo', component: GoalStep },
-    { title: 'Preferências', component: RestrictionsStep },
-  ];
+  // Dynamic steps based on goal selection
+  const getSteps = () => {
+    const baseSteps = [
+      { title: 'Dados Básicos', component: BasicInfoStep },
+      { title: 'Dados Físicos', component: PhysicalDataStep },
+      { title: 'Nível de Treino', component: TrainingLevelStep },
+      { title: 'Seu Objetivo', component: GoalStep },
+    ];
+    
+    // Add athlete step if goal is 'atleta'
+    if (formData.goal === 'atleta') {
+      baseSteps.push({ title: 'Competição', component: AthleteStep });
+    }
+    
+    baseSteps.push({ title: 'Preferências', component: RestrictionsStep });
+    
+    return baseSteps;
+  };
+
+  const steps = getSteps();
 
   const updateFormData = (data: any) => {
     setFormData({ ...formData, ...data });
@@ -112,8 +195,11 @@ export default function OnboardingScreen() {
   const validateCurrentStep = () => {
     console.log('Validating step:', currentStep, 'Data:', formData);
     
-    switch (currentStep) {
-      case 0: // Dados Básicos
+    // Find which step we're validating based on current position
+    const currentStepTitle = steps[currentStep]?.title;
+    
+    switch (currentStepTitle) {
+      case 'Dados Básicos':
         if (!formData.name || !formData.age || !formData.sex) {
           Alert.alert('Campos Obrigatórios', 'Preencha nome, idade e sexo.');
           return false;
@@ -124,7 +210,7 @@ export default function OnboardingScreen() {
         }
         break;
       
-      case 1: // Dados Físicos
+      case 'Dados Físicos':
         if (!formData.height || !formData.weight) {
           Alert.alert('Campos Obrigatórios', 'Preencha altura e peso atual.');
           return false;
@@ -139,7 +225,7 @@ export default function OnboardingScreen() {
         }
         break;
       
-      case 2: // Nível de Treino
+      case 'Nível de Treino':
         if (!formData.training_level || !formData.weekly_training_frequency || !formData.available_time_per_session) {
           Alert.alert('Campos Obrigatórios', 'Preencha todos os campos de treino.');
           return false;
@@ -150,14 +236,28 @@ export default function OnboardingScreen() {
         }
         break;
       
-      case 3: // Objetivo
+      case 'Seu Objetivo':
         if (!formData.goal) {
           Alert.alert('Objetivo Obrigatório', 'Selecione seu objetivo principal.');
           return false;
         }
         break;
       
-      case 4: // Preferências (opcional)
+      case 'Competição':
+        // Athlete-specific validation
+        if (formData.goal === 'atleta') {
+          if (!formData.competition_phase) {
+            Alert.alert('Fase Obrigatória', 'Selecione sua fase de competição atual.');
+            return false;
+          }
+          if (!formData.weeks_to_competition || parseInt(formData.weeks_to_competition) < 0) {
+            Alert.alert('Semanas Obrigatórias', 'Informe as semanas até sua próxima competição.');
+            return false;
+          }
+        }
+        break;
+      
+      case 'Preferências':
         // Este step é opcional
         break;
     }
@@ -193,13 +293,9 @@ export default function OnboardingScreen() {
     
     setLoading(true);
     
-    // AbortController para cancelar requisição se componente desmontar
-    const controller = new AbortController();
-    const signal = controller.signal;
-    
     try {
       // Prepara dados para API
-      const profileData = {
+      const profileData: any = {
         name: formData.name.trim(),
         age: parseInt(formData.age),
         sex: formData.sex,
@@ -215,6 +311,18 @@ export default function OnboardingScreen() {
         food_preferences: formData.food_preferences,
         injury_history: formData.injury_history,
       };
+
+      // Add athlete-specific fields
+      if (formData.goal === 'atleta') {
+        profileData.competition_phase = formData.competition_phase;
+        profileData.weeks_to_competition = parseInt(formData.weeks_to_competition);
+        // Calculate competition date for timeline tracking
+        if (formData.weeks_to_competition) {
+          const competitionDate = new Date();
+          competitionDate.setDate(competitionDate.getDate() + (parseInt(formData.weeks_to_competition) * 7));
+          profileData.competition_date = competitionDate.toISOString();
+        }
+      }
 
       console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
       console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
@@ -261,29 +369,43 @@ export default function OnboardingScreen() {
       setLoading(false);
       router.replace('/(tabs)');
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Erro ao criar perfil:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
       
-      // Determina mensagem de erro específica
+      // DEFENSIVE ERROR HANDLING - Never crash on malformed errors
       let errorMessage = 'Não foi possível criar seu perfil. ';
       
-      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        errorMessage += 'A requisição demorou muito tempo. Verifique sua conexão e tente novamente.';
-      } else if (error.message === 'Network Error' || !error.response) {
-        errorMessage += 'Sem conexão com o servidor. Verifique sua internet.';
-      } else if (error.response?.status === 400) {
-        errorMessage += `Dados inválidos: ${error.response.data?.detail || 'Verifique os campos preenchidos.'}`;
-      } else if (error.response?.status === 500) {
-        errorMessage += 'Erro no servidor. Tente novamente em alguns instantes.';
-      } else if (error.response?.data?.detail) {
-        errorMessage += error.response.data.detail;
-      } else {
-        errorMessage += error.message || 'Erro desconhecido.';
+      try {
+        // Safe extraction of error details
+        const errorObj = error as any;
+        const responseStatus = errorObj?.response?.status;
+        const responseData = errorObj?.response?.data;
+        const responseDetail = typeof responseData?.detail === 'string' ? responseData.detail : '';
+        
+        console.error('❌ Error details:', {
+          message: getErrorMessage(error),
+          status: responseStatus,
+          detail: responseDetail,
+        });
+        
+        if (isTimeoutError(error)) {
+          errorMessage += 'A requisição demorou muito tempo. Verifique sua conexão e tente novamente.';
+        } else if (isNetworkError(error)) {
+          errorMessage += 'Sem conexão com o servidor. Verifique sua internet.';
+        } else if (responseStatus === 400) {
+          errorMessage += responseDetail || 'Dados inválidos. Verifique os campos preenchidos.';
+        } else if (responseStatus === 500) {
+          errorMessage += 'Erro no servidor. Tente novamente em alguns instantes.';
+        } else if (responseDetail) {
+          errorMessage += responseDetail;
+        } else {
+          const msg = getErrorMessage(error);
+          errorMessage += msg !== 'Erro desconhecido' ? msg : 'Tente novamente.';
+        }
+      } catch (extractionError) {
+        // Even error extraction failed - use safest fallback
+        console.error('❌ Error extraction failed:', extractionError);
+        errorMessage += 'Tente novamente.';
       }
       
       Alert.alert(
