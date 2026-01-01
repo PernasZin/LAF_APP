@@ -152,8 +152,39 @@ export default function SettingsScreen() {
           text: 'Sair',
           style: 'destructive',
           onPress: async () => {
-            await AsyncStorage.multiRemove(['userId', 'userProfile', 'hasCompletedOnboarding']);
-            router.replace('/onboarding');
+            try {
+              // 1. Clear AsyncStorage completely
+              await AsyncStorage.multiRemove([
+                'userId', 
+                'userProfile', 
+                'hasCompletedOnboarding',
+                'laf-settings', // Zustand settings store
+                'dietPlan',
+                'workoutPlan',
+              ]);
+              
+              // 2. Reset Zustand stores to defaults
+              useSettingsStore.setState({
+                themePreference: 'system',
+                effectiveTheme: 'light',
+                privacyAnalytics: true,
+                privacyPersonalization: true,
+                privacyNotifications: true,
+                isHydrated: false,
+              });
+              
+              // 3. Clear all AsyncStorage keys (belt and suspenders)
+              const allKeys = await AsyncStorage.getAllKeys();
+              await AsyncStorage.multiRemove(allKeys);
+              
+              console.log('✅ Logout complete - all data cleared');
+              
+              // 4. Navigate to welcome/onboarding
+              router.replace('/');
+            } catch (error) {
+              console.error('Error during logout:', error);
+              Alert.alert('Erro', 'Não foi possível sair. Tente novamente.');
+            }
           },
         },
       ]
