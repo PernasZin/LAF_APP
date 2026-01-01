@@ -1,40 +1,63 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { useRouter, Redirect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  // Default to showing welcome to prevent infinite loading
-  const [showWelcome, setShowWelcome] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [shouldRedirectToTabs, setShouldRedirectToTabs] = useState(false);
+  const checkDone = useRef(false);
 
   useEffect(() => {
-    checkAndNavigate();
+    // Prevent double execution
+    if (checkDone.current) return;
+    checkDone.current = true;
+    
+    // Safety timeout - never show loading forever
+    const safetyTimeout = setTimeout(() => {
+      console.log('⏰ Safety timeout - forcing welcome screen');
+      setIsChecking(false);
+    }, 3000);
+
+    checkAndNavigate().finally(() => {
+      clearTimeout(safetyTimeout);
+    });
+    
+    return () => clearTimeout(safetyTimeout);
   }, []);
 
   const checkAndNavigate = async () => {
     try {
+      console.log('🏠 Starting welcome check...');
+      
       const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
       const userId = await AsyncStorage.getItem('userId');
       
-      console.log('🏠 Welcome check:', { hasCompleted, userId });
+      console.log('🏠 Welcome check result:', { hasCompleted, userId, platform: Platform.OS });
       
       if (hasCompleted === 'true' && userId) {
-        console.log('✅ User completed onboarding, navigating to tabs...');
-        // Navigate to tabs - don't wait for completion
-        router.replace('/(tabs)');
+        console.log('✅ User completed onboarding, setting redirect flag...');
+        // Use state to trigger redirect - works better on web
+        setShouldRedirectToTabs(true);
       }
     } catch (error) {
-      console.error('Check error:', error);
+      console.error('❌ Check error:', error);
     } finally {
       // Always finish checking
+      console.log('✅ Check complete, hiding loading...');
       setIsChecking(false);
     }
   };
+
+  // Handle redirect using Redirect component (works better on web)
+  if (shouldRedirectToTabs && !isChecking) {
+    console.log('🚀 Redirecting to tabs via Redirect component...');
+    return <Redirect href="/(tabs)" />;
+  }
 
   const handleStartPress = () => {
     if (isNavigating) return;
