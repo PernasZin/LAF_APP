@@ -283,6 +283,23 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
         "fat": round(fat_g, 1)
     }
 
+# ==================== HELPER FUNCTIONS ====================
+
+VALID_COMPETITION_PHASES = ["off_season", "pre_prep", "prep", "peak_week", "post_show"]
+
+def derive_phase_from_weeks(weeks: int) -> str:
+    """Derives competition phase from weeks to competition"""
+    if weeks > 20:
+        return "off_season"
+    elif weeks >= 16:
+        return "pre_prep"
+    elif weeks >= 8:
+        return "prep"
+    elif weeks >= 1:
+        return "peak_week"
+    else:
+        return "post_show"
+
 # ==================== ROUTES ====================
 
 @api_router.post("/user/profile", response_model=UserProfile)
@@ -290,14 +307,30 @@ async def create_user_profile(profile_data: UserProfileCreate):
     """
     Cria perfil de usuário e calcula TDEE e macros automaticamente.
     
-    REGRA: Se goal == "atleta", competition_phase é OBRIGATÓRIO.
+    REGRAS PARA ATLETA:
+    - competition_phase é OBRIGATÓRIO
+    - weeks_to_competition é OBRIGATÓRIO
+    - Fases válidas: off_season, pre_prep, prep, peak_week, post_show
     """
-    # Validação: atleta requer fase de competição
-    if profile_data.goal == "atleta" and not profile_data.competition_phase:
-        raise HTTPException(
-            status_code=400, 
-            detail="Atletas devem especificar competition_phase: 'offseason' ou 'prep'"
-        )
+    # Validação: atleta requer fase de competição e semanas
+    if profile_data.goal == "atleta":
+        if not profile_data.competition_phase:
+            raise HTTPException(
+                status_code=400, 
+                detail="Atletas devem especificar competition_phase: 'off_season', 'pre_prep', 'prep', 'peak_week' ou 'post_show'"
+            )
+        
+        if profile_data.competition_phase not in VALID_COMPETITION_PHASES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Fase inválida. Use: {', '.join(VALID_COMPETITION_PHASES)}"
+            )
+        
+        if profile_data.weeks_to_competition is None or profile_data.weeks_to_competition < 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Atletas devem especificar weeks_to_competition (número de semanas até a competição)"
+            )
     
     # Calcula BMR
     bmr = calculate_bmr(
