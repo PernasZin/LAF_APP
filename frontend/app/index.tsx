@@ -1,46 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Pressable, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import { useRouter, Redirect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [isReady, setIsReady] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
-  const [shouldShowWelcome, setShouldShowWelcome] = useState(true);
+  const [redirectToTabs, setRedirectToTabs] = useState(false);
 
   useEffect(() => {
-    // Give time for router to be ready
-    const initTimeout = setTimeout(async () => {
-      try {
-        const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
-        const userId = await AsyncStorage.getItem('userId');
-        
-        console.log('🏠 Welcome: Status check', { hasCompleted, userId });
-        
-        if (hasCompleted === 'true' && userId) {
-          console.log('✅ User has completed onboarding, redirecting...');
-          setShouldShowWelcome(false);
-          
-          // Try to navigate to tabs
-          try {
-            router.replace('/(tabs)');
-          } catch (navError) {
-            console.error('Navigation failed, showing welcome:', navError);
-            setShouldShowWelcome(true);
-          }
-        }
-      } catch (error) {
-        console.error('Status check error:', error);
-      } finally {
-        setIsReady(true);
-      }
-    }, 300);
-    
-    return () => clearTimeout(initTimeout);
+    checkOnboardingStatus();
   }, []);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      console.log('🏠 Welcome: Status check', { hasCompleted, userId });
+      
+      if (hasCompleted === 'true' && userId) {
+        console.log('✅ User completed onboarding, will redirect');
+        setRedirectToTabs(true);
+      }
+    } catch (error) {
+      console.error('Status check error:', error);
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   const handleStartPress = () => {
     if (isNavigating) return;
@@ -51,26 +42,18 @@ export default function WelcomeScreen() {
     router.push('/onboarding');
   };
 
-  // Show loading only briefly
-  if (!isReady) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <Ionicons name="fitness" size={80} color="#10B981" />
-          <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 20 }} />
-        </View>
-      </SafeAreaView>
-    );
+  // Use Redirect component for reliable navigation
+  if (redirectToTabs) {
+    return <Redirect href="/(tabs)" />;
   }
 
-  // If redirecting, show minimal loading
-  if (!shouldShowWelcome) {
+  // Show loading while checking status
+  if (isChecking) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Ionicons name="fitness" size={80} color="#10B981" />
           <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 20 }} />
-          <Text style={{ marginTop: 16, color: '#6B7280' }}>Carregando...</Text>
         </View>
       </SafeAreaView>
     );
