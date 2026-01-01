@@ -7,56 +7,70 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [shouldShowWelcome, setShouldShowWelcome] = useState(true);
 
   useEffect(() => {
-    // Small delay to ensure router is ready
-    const timer = setTimeout(() => {
-      checkOnboardingStatus();
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, []);
-
-  const checkOnboardingStatus = async () => {
-    try {
-      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
-      const userId = await AsyncStorage.getItem('userId');
-      
-      console.log('🏠 Welcome: Checking status', { hasCompleted, userId });
-      
-      if (hasCompleted === 'true' && userId) {
-        console.log('✅ Redirecting to home');
-        router.replace('/(tabs)');
-        return; // Don't set loading to false - we're navigating away
+    // Give time for router to be ready
+    const initTimeout = setTimeout(async () => {
+      try {
+        const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
+        const userId = await AsyncStorage.getItem('userId');
+        
+        console.log('🏠 Welcome: Status check', { hasCompleted, userId });
+        
+        if (hasCompleted === 'true' && userId) {
+          console.log('✅ User has completed onboarding, redirecting...');
+          setShouldShowWelcome(false);
+          
+          // Try to navigate to tabs
+          try {
+            router.replace('/(tabs)');
+          } catch (navError) {
+            console.error('Navigation failed, showing welcome:', navError);
+            setShouldShowWelcome(true);
+          }
+        }
+      } catch (error) {
+        console.error('Status check error:', error);
+      } finally {
+        setIsReady(true);
       }
-    } catch (error) {
-      console.error('Error checking status:', error);
-    }
-    // Only set loading to false if we're NOT redirecting
-    setIsLoading(false);
-  };
+    }, 300);
+    
+    return () => clearTimeout(initTimeout);
+  }, []);
 
   const handleStartPress = () => {
     if (isNavigating) return;
     
-    console.log('🚀 Button pressed - navigating to onboarding');
+    console.log('🚀 Starting onboarding...');
     setIsNavigating(true);
     
-    try {
-      router.push('/onboarding');
-    } catch (error) {
-      console.error('Navigation error:', error);
-      setIsNavigating(false);
-    }
+    router.push('/onboarding');
   };
 
-  if (isLoading) {
+  // Show loading only briefly
+  if (!isReady) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#10B981" />
+          <Ionicons name="fitness" size={80} color="#10B981" />
+          <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 20 }} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // If redirecting, show minimal loading
+  if (!shouldShowWelcome) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Ionicons name="fitness" size={80} color="#10B981" />
+          <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 20 }} />
+          <Text style={{ marginTop: 16, color: '#6B7280' }}>Carregando...</Text>
         </View>
       </SafeAreaView>
     );
