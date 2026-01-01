@@ -285,13 +285,14 @@ class LAFBackendTester:
         print("TESTE 1: PERFIL BULKING (5x/semana)")
         print("=" * 40)
         
-        # Test 1: Create BULKING profile (5x/week)
+        # Test 1: Create BULKING profile (5x/week) - EXACT specification from request
         bulking_profile = {
-            "name": "Teste Bulking",
-            "age": 28,
+            "name": "Test User",
+            "age": 30,
             "sex": "masculino",
             "height": 175,
-            "weight": 75,
+            "weight": 80,
+            "target_weight": 85,
             "training_level": "intermediario",
             "weekly_training_frequency": 5,
             "available_time_per_session": 60,
