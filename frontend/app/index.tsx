@@ -7,51 +7,34 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-  const [showWelcome, setShowWelcome] = useState(false);
+  // Default to showing welcome to prevent infinite loading
+  const [showWelcome, setShowWelcome] = useState(true);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-    
-    const checkAndNavigate = async () => {
-      try {
-        const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
-        const userId = await AsyncStorage.getItem('userId');
-        
-        console.log('🏠 Welcome check:', { hasCompleted, userId });
-        
-        if (hasCompleted === 'true' && userId) {
-          // User completed onboarding - navigate to tabs
-          console.log('✅ Navigating to tabs...');
-          
-          // Small delay to ensure router is ready
-          setTimeout(() => {
-            if (mounted) {
-              router.replace('/(tabs)');
-            }
-          }, 200);
-        } else {
-          // Show welcome screen
-          if (mounted) {
-            setShowWelcome(true);
-          }
-        }
-      } catch (error) {
-        console.error('Check error:', error);
-        if (mounted) {
-          setShowWelcome(true);
-        }
-      }
-    };
-    
-    // Small initial delay for router readiness
-    const timer = setTimeout(checkAndNavigate, 100);
-    
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-    };
+    checkAndNavigate();
   }, []);
+
+  const checkAndNavigate = async () => {
+    try {
+      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      console.log('🏠 Welcome check:', { hasCompleted, userId });
+      
+      if (hasCompleted === 'true' && userId) {
+        console.log('✅ User completed onboarding, navigating to tabs...');
+        // Navigate to tabs - don't wait for completion
+        router.replace('/(tabs)');
+      }
+    } catch (error) {
+      console.error('Check error:', error);
+    } finally {
+      // Always finish checking
+      setIsChecking(false);
+    }
+  };
 
   const handleStartPress = () => {
     if (isNavigating) return;
@@ -62,14 +45,13 @@ export default function WelcomeScreen() {
     router.push('/onboarding');
   };
 
-  // Show loading while checking
-  if (!showWelcome) {
+  // Brief loading state
+  if (isChecking) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingLogo}>LAF</Text>
           <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 20 }} />
-          <Text style={{ marginTop: 12, color: '#9CA3AF', fontSize: 14 }}>Carregando...</Text>
         </View>
       </SafeAreaView>
     );
