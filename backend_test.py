@@ -320,15 +320,16 @@ class LAFBackendTester:
         print("TESTE 4: PERFIL CUTTING (3x/semana)")
         print("=" * 40)
         
-        # Test 4: Create CUTTING profile (3x/week)
+        # Test 4: Create CUTTING profile (3x/week) - for low calorie diet validation
         cutting_profile = {
-            "name": "Teste Cutting",
-            "age": 35,
+            "name": "Test User Cutting",
+            "age": 28,
             "sex": "feminino",
-            "height": 160,
+            "height": 165,
             "weight": 65,
-            "training_level": "iniciante",
-            "weekly_training_frequency": 3,
+            "target_weight": 60,
+            "training_level": "intermediario",
+            "weekly_training_frequency": 4,
             "available_time_per_session": 45,
             "goal": "cutting"
         }
