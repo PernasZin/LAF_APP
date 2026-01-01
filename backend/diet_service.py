@@ -270,18 +270,36 @@ def fine_tune_diet(meals: List[Dict], target_p: float, target_c: float, target_f
     """
     Ajuste fino iterativo.
     """
+    target_cal = target_p * 4 + target_c * 4 + target_f * 9
     
     for _ in range(max_iter):
         all_foods = [f for m in meals for f in m["foods"]]
-        curr_p, curr_c, curr_f, _ = sum_foods(all_foods)
+        curr_p, curr_c, curr_f, curr_cal = sum_foods(all_foods)
         
         gap_p = target_p - curr_p
         gap_c = target_c - curr_c
         gap_f = target_f - curr_f
+        gap_cal = target_cal - curr_cal
         
-        # Verifica tolerâncias
-        if abs(gap_p) <= TOL_P and abs(gap_c) <= TOL_C and abs(gap_f) <= TOL_F:
+        # Verifica tolerâncias - usa tolerância mais estrita para garantir cal
+        if abs(gap_p) <= TOL_P and abs(gap_c) <= TOL_C and abs(gap_f) <= TOL_F and abs(gap_cal) <= TOL_CAL:
             return meals
+        
+        # Se macros estão ok mas calorias não, prioriza ajuste de calorias
+        if abs(gap_p) <= TOL_P and abs(gap_c) <= TOL_C and abs(gap_f) <= TOL_F:
+            # Ajusta via carboidratos (4 cal/g) - mais fácil de controlar
+            c_adjustment = gap_cal / 4
+            for m_idx, key in [(3, "batata"), (2, "arroz")]:
+                for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                    if food["key"] == key:
+                        c_per_100 = FOODS[key]["c"]
+                        delta_g = c_adjustment / (c_per_100 / 100)
+                        new_g = clamp(food["grams"] + delta_g, 20, 500)
+                        if abs(new_g - food["grams"]) >= 5:
+                            meals[m_idx]["foods"][f_idx] = calc_food(key, round(new_g))
+                            break
+                break
+            continue
         
         adjusted = False
         
