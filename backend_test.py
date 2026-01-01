@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """
-LAF Backend Testing Suite
-Testa correções de bugs críticos de lógica de negócio:
-1. Single Source of Truth (Calorias/Macros)
-2. Frequência de Treino
-3. Porções Realistas
+LAF App - Teste de Integração do Modelo de Domínio de Atleta
+Testa validação, criação de perfis em diferentes fases, geração de dieta e comparações.
 """
 
 import requests
@@ -12,388 +9,535 @@ import json
 import sys
 from typing import Dict, Any
 
-# Backend URL from frontend .env
+# Backend URL from environment
 BACKEND_URL = "https://fit-buddy-81.preview.emergentagent.com/api"
 
-class LAFBackendTester:
+class AthleteModelTester:
     def __init__(self):
-        self.backend_url = BACKEND_URL
+        self.base_url = BACKEND_URL
         self.test_results = []
-        self.created_users = []
-    
-    def log_test(self, test_name: str, passed: bool, details: str = ""):
-        """Log test result"""
-        status = "✅ PASS" if passed else "❌ FAIL"
-        print(f"{status} {test_name}")
-        if details:
-            print(f"   {details}")
+        self.created_profiles = []  # Track for cleanup
         
+    def log_test(self, test_name: str, success: bool, details: str = ""):
+        """Log test result"""
+        status = "✅ PASS" if success else "❌ FAIL"
         self.test_results.append({
             "test": test_name,
-            "passed": passed,
+            "success": success,
             "details": details
         })
-    
-    def test_health_check(self):
-        """Test if backend is running"""
-        try:
-            response = requests.get(f"{self.backend_url}/health", timeout=10)
-            if response.status_code == 200:
-                self.log_test("Backend Health Check", True, f"Status: {response.json()}")
-                return True
-            else:
-                self.log_test("Backend Health Check", False, f"Status code: {response.status_code}")
-                return False
-        except Exception as e:
-            self.log_test("Backend Health Check", False, f"Error: {str(e)}")
-            return False
-    
-    def create_test_profile(self, profile_data: Dict[str, Any]) -> str:
-        """Create a test user profile and return user_id"""
-        try:
-            response = requests.post(
-                f"{self.backend_url}/user/profile",
-                json=profile_data,
-                timeout=15
-            )
-            
-            if response.status_code == 200:
-                user_data = response.json()
-                user_id = user_data.get('id')
-                self.created_users.append(user_id)
-                
-                # Validate TDEE and macros calculation
-                expected_keys = ['tdee', 'target_calories', 'macros']
-                missing_keys = [key for key in expected_keys if key not in user_data or user_data[key] is None]
-                
-                if missing_keys:
-                    self.log_test(f"Profile Creation - {profile_data['name']}", False, 
-                                f"Missing calculated fields: {missing_keys}")
-                    return None
-                
-                self.log_test(f"Profile Creation - {profile_data['name']}", True, 
-                            f"TDEE: {user_data['tdee']} kcal, Target: {user_data['target_calories']} kcal")
-                return user_id
-            else:
-                self.log_test(f"Profile Creation - {profile_data['name']}", False, 
-                            f"Status: {response.status_code}, Response: {response.text}")
-                return None
-                
-        except Exception as e:
-            self.log_test(f"Profile Creation - {profile_data['name']}", False, f"Error: {str(e)}")
-            return None
-    
-    def test_diet_single_source_of_truth(self, user_id: str, profile_name: str):
-        """Test if diet generation matches profile calories/macros exactly with STRICT tolerances"""
-        try:
-            # Get user profile first
-            profile_response = requests.get(f"{self.backend_url}/user/profile/{user_id}", timeout=10)
-            if profile_response.status_code != 200:
-                self.log_test(f"Diet SST - {profile_name} (Get Profile)", False, 
-                            f"Failed to get profile: {profile_response.status_code}")
-                return False
-            
-            profile = profile_response.json()
-            target_calories = profile['target_calories']
-            target_macros = profile['macros']
-            
-            # Generate diet using the correct endpoint format (query parameter)
-            diet_response = requests.post(f"{self.backend_url}/diet/generate?user_id={user_id}", timeout=30)
-            
-            if diet_response.status_code != 200:
-                self.log_test(f"Diet SST - {profile_name}", False, 
-                            f"Diet generation failed: {diet_response.status_code}, {diet_response.text}")
-                return False
-            
-            diet_plan = diet_response.json()
-            
-            # Validate response structure
-            required_fields = ["meals", "computed_calories", "computed_macros", "target_calories", "target_macros"]
-            missing_fields = [field for field in required_fields if field not in diet_plan]
-            if missing_fields:
-                self.log_test(f"Diet SST - {profile_name}", False, 
-                            f"Missing fields in response: {missing_fields}")
-                return False
-            
-            # Validate meals structure
-            if not isinstance(diet_plan["meals"], list) or len(diet_plan["meals"]) != 5:
-                self.log_test(f"Diet SST - {profile_name}", False, 
-                            f"Expected 5 meals, got {len(diet_plan.get('meals', []))}")
-                return False
-            
-            # Use computed values from response (more accurate)
-            computed_calories = diet_plan["computed_calories"]
-            computed_macros = diet_plan["computed_macros"]
-            
-            # Check STRICT tolerances as specified in the request
-            # Tolerances: P±3g, C±3g, F±2g, Cal±25kcal
-            cal_diff = abs(computed_calories - target_calories)
-            protein_diff = abs(computed_macros["protein"] - target_macros['protein'])
-            carbs_diff = abs(computed_macros["carbs"] - target_macros['carbs'])
-            fat_diff = abs(computed_macros["fat"] - target_macros['fat'])
-            
-            # STRICT tolerance validation
-            sst_passed = (cal_diff <= 25 and protein_diff <= 3 and carbs_diff <= 3 and fat_diff <= 2)
-            
-            details = f"Target: {target_calories}kcal, Got: {computed_calories}kcal (Δ{cal_diff:.0f})"
-            details += f" | P: {target_macros['protein']:.0f}g→{computed_macros['protein']:.1f}g (Δ{protein_diff:.1f})"
-            details += f" | C: {target_macros['carbs']:.0f}g→{computed_macros['carbs']:.1f}g (Δ{carbs_diff:.1f})"
-            details += f" | F: {target_macros['fat']:.0f}g→{computed_macros['fat']:.1f}g (Δ{fat_diff:.1f})"
-            
-            # Add tolerance status
-            if not sst_passed:
-                tolerance_issues = []
-                if cal_diff > 25:
-                    tolerance_issues.append(f"Cal±{cal_diff:.0f} > ±25")
-                if protein_diff > 3:
-                    tolerance_issues.append(f"P±{protein_diff:.1f}g > ±3g")
-                if carbs_diff > 3:
-                    tolerance_issues.append(f"C±{carbs_diff:.1f}g > ±3g")
-                if fat_diff > 2:
-                    tolerance_issues.append(f"F±{fat_diff:.1f}g > ±2g")
-                details += f" | TOLERANCE EXCEEDED: {', '.join(tolerance_issues)}"
-            
-            self.log_test(f"Diet SST - {profile_name}", sst_passed, details)
-            
-            # Also test realistic portions
-            self.test_realistic_portions(diet_plan, profile_name)
-            
-            return sst_passed
-            
-        except Exception as e:
-            self.log_test(f"Diet SST - {profile_name}", False, f"Error: {str(e)}")
-            return False
-    
-    def test_realistic_portions(self, diet_plan: Dict, profile_name: str):
-        """Test if food portions are realistic and rounded"""
-        try:
-            unrealistic_portions = []
-            excessive_olive_oil = []
-            
-            for meal in diet_plan.get('meals', []):
-                meal_name = meal.get('name', 'Unknown')
-                
-                for food in meal.get('foods', []):
-                    food_name = food.get('name', '')
-                    quantity_str = food.get('quantity', '0g')
-                    
-                    # Extract numeric value from quantity (e.g., "150g" -> 150)
-                    try:
-                        quantity = float(quantity_str.replace('g', '').replace('ml', '').strip())
-                    except:
-                        continue
-                    
-                    # Check if quantity is rounded to reasonable steps
-                    if quantity > 0:
-                        # Check for unrealistic precision (not multiples of 5g, 10g, 25g)
-                        if quantity >= 50:
-                            if quantity % 25 != 0:
-                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 25g)")
-                        elif quantity >= 25:
-                            if quantity % 25 != 0 and quantity % 10 != 0:
-                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 10g or 25g)")
-                        elif quantity >= 10:
-                            if quantity % 10 != 0 and quantity % 5 != 0:
-                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 5g or 10g)")
-                        elif quantity >= 5:
-                            if quantity % 5 != 0:
-                                unrealistic_portions.append(f"{food_name}: {quantity_str} (should be multiple of 5g)")
-                    
-                    # Check olive oil limits (≤15g per meal)
-                    if "azeite" in food_name.lower() or "olive" in food_name.lower():
-                        if quantity > 15:
-                            excessive_olive_oil.append(f"{meal_name}: {food_name} {quantity_str} (max 15g)")
-            
-            # Test results
-            portions_passed = len(unrealistic_portions) == 0
-            olive_oil_passed = len(excessive_olive_oil) == 0
-            
-            if portions_passed:
-                self.log_test(f"Realistic Portions - {profile_name}", True, "All portions properly rounded")
-            else:
-                self.log_test(f"Realistic Portions - {profile_name}", False, 
-                            f"Unrealistic portions: {'; '.join(unrealistic_portions[:3])}")
-            
-            if olive_oil_passed:
-                self.log_test(f"Olive Oil Limits - {profile_name}", True, "Olive oil within limits")
-            else:
-                self.log_test(f"Olive Oil Limits - {profile_name}", False, 
-                            f"Excessive olive oil: {'; '.join(excessive_olive_oil)}")
-            
-            return portions_passed and olive_oil_passed
-            
-        except Exception as e:
-            self.log_test(f"Realistic Portions - {profile_name}", False, f"Error: {str(e)}")
-            return False
-    
-    def test_workout_frequency_match(self, user_id: str, profile_name: str, expected_frequency: int):
-        """Test if workout generation creates exactly N workouts where N = weekly_training_frequency"""
-        try:
-            # Generate workout
-            workout_response = requests.post(f"{self.backend_url}/workout/generate?user_id={user_id}", timeout=30)
-            
-            if workout_response.status_code != 200:
-                self.log_test(f"Workout Frequency - {profile_name}", False, 
-                            f"Workout generation failed: {workout_response.status_code}, {workout_response.text}")
-                return False
-            
-            workout_plan = workout_response.json()
-            
-            # Check frequency match
-            actual_frequency = workout_plan.get('weekly_frequency', 0)
-            workout_days = workout_plan.get('workout_days', [])
-            actual_workouts = len(workout_days)
-            
-            frequency_match = (actual_frequency == expected_frequency and actual_workouts == expected_frequency)
-            
-            # Check for distinct workout names
-            workout_names = [day.get('name', '') for day in workout_days]
-            unique_names = len(set(workout_names))
-            distinct_workouts = (unique_names == actual_workouts)
-            
-            details = f"Expected: {expected_frequency}x/week, Got: {actual_frequency}x/week, Workouts: {actual_workouts}"
-            details += f" | Names: {', '.join(workout_names[:3])}" + ("..." if len(workout_names) > 3 else "")
-            
-            overall_passed = frequency_match and distinct_workouts
-            
-            if not frequency_match:
-                details += " | FREQUENCY MISMATCH"
-            if not distinct_workouts:
-                details += " | DUPLICATE NAMES"
-            
-            self.log_test(f"Workout Frequency - {profile_name}", overall_passed, details)
-            
-            return overall_passed
-            
-        except Exception as e:
-            self.log_test(f"Workout Frequency - {profile_name}", False, f"Error: {str(e)}")
-            return False
-    
-    def run_comprehensive_tests(self):
-        """Run all critical bug fix tests"""
-        print("=" * 60)
-        print("LAF BACKEND CRITICAL BUG FIXES VALIDATION")
-        print("=" * 60)
+        print(f"{status} {test_name}")
+        if details:
+            print(f"    {details}")
+        print()
+
+    def test_athlete_validation_missing_phase(self):
+        """Test 1a: Atleta sem competition_phase → DEVE retornar 400"""
+        payload = {
+            "name": "Atleta Falha",
+            "age": 28,
+            "sex": "masculino",
+            "height": 180,
+            "weight": 85,
+            "training_level": "avancado",
+            "weekly_training_frequency": 6,
+            "available_time_per_session": 90,
+            "goal": "atleta"
+            # Missing competition_phase
+        }
         
-        # Test 1: Health check
-        if not self.test_health_check():
-            print("\n❌ Backend not accessible. Stopping tests.")
-            return False
+        try:
+            response = requests.post(f"{self.base_url}/user/profile", json=payload)
+            
+            if response.status_code == 400:
+                error_msg = response.json().get("detail", "")
+                if "competition_phase" in error_msg:
+                    self.log_test("Validação: Atleta sem competition_phase", True, 
+                                f"Retornou 400 corretamente: {error_msg}")
+                else:
+                    self.log_test("Validação: Atleta sem competition_phase", False,
+                                f"Erro 400 mas mensagem incorreta: {error_msg}")
+            else:
+                self.log_test("Validação: Atleta sem competition_phase", False,
+                            f"Deveria retornar 400, mas retornou {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Validação: Atleta sem competition_phase", False, f"Erro de conexão: {e}")
+
+    def test_athlete_validation_missing_weeks(self):
+        """Test 1b: Atleta sem weeks_to_competition → DEVE retornar 400"""
+        payload = {
+            "name": "Atleta Falha",
+            "age": 28,
+            "sex": "masculino", 
+            "height": 180,
+            "weight": 85,
+            "training_level": "avancado",
+            "weekly_training_frequency": 6,
+            "available_time_per_session": 90,
+            "goal": "atleta",
+            "competition_phase": "prep"
+            # Missing weeks_to_competition
+        }
         
-        print("\n" + "=" * 40)
-        print("TESTE 1: PERFIL BULKING (5x/semana)")
-        print("=" * 40)
+        try:
+            response = requests.post(f"{self.base_url}/user/profile", json=payload)
+            
+            if response.status_code == 400:
+                error_msg = response.json().get("detail", "")
+                if "weeks_to_competition" in error_msg:
+                    self.log_test("Validação: Atleta sem weeks_to_competition", True,
+                                f"Retornou 400 corretamente: {error_msg}")
+                else:
+                    self.log_test("Validação: Atleta sem weeks_to_competition", False,
+                                f"Erro 400 mas mensagem incorreta: {error_msg}")
+            else:
+                self.log_test("Validação: Atleta sem weeks_to_competition", False,
+                            f"Deveria retornar 400, mas retornou {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Validação: Atleta sem weeks_to_competition", False, f"Erro de conexão: {e}")
+
+    def test_athlete_validation_invalid_phase(self):
+        """Test 1c: Atleta com fase inválida → DEVE retornar 400"""
+        payload = {
+            "name": "Atleta Falha",
+            "age": 28,
+            "sex": "masculino",
+            "height": 180,
+            "weight": 85,
+            "training_level": "avancado",
+            "weekly_training_frequency": 6,
+            "available_time_per_session": 90,
+            "goal": "atleta",
+            "competition_phase": "invalid_phase",
+            "weeks_to_competition": 10
+        }
         
-        # Test 1: Create BULKING profile (5x/week) - EXACT specification from request
-        bulking_profile = {
-            "name": "Test User",
-            "age": 30,
+        try:
+            response = requests.post(f"{self.base_url}/user/profile", json=payload)
+            
+            if response.status_code == 400:
+                error_msg = response.json().get("detail", "")
+                if "Fase inválida" in error_msg or "invalid" in error_msg.lower():
+                    self.log_test("Validação: Atleta com fase inválida", True,
+                                f"Retornou 400 corretamente: {error_msg}")
+                else:
+                    self.log_test("Validação: Atleta com fase inválida", False,
+                                f"Erro 400 mas mensagem incorreta: {error_msg}")
+            else:
+                self.log_test("Validação: Atleta com fase inválida", False,
+                            f"Deveria retornar 400, mas retornou {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Validação: Atleta com fase inválida", False, f"Erro de conexão: {e}")
+
+    def create_athlete_profile(self, phase: str, weeks: int, test_name: str) -> Dict[str, Any]:
+        """Helper para criar perfil de atleta e validar cálculos"""
+        # Dados base: peso=80kg, height=175, age=28, sex=masculino
+        payload = {
+            "name": f"Atleta {phase.title()}",
+            "age": 28,
             "sex": "masculino",
             "height": 175,
             "weight": 80,
-            "target_weight": 85,
-            "training_level": "intermediario",
-            "weekly_training_frequency": 5,
-            "available_time_per_session": 60,
-            "goal": "bulking"
+            "training_level": "avancado",
+            "weekly_training_frequency": 6,
+            "available_time_per_session": 90,
+            "goal": "atleta",
+            "competition_phase": phase,
+            "weeks_to_competition": weeks
         }
         
-        bulking_user_id = self.create_test_profile(bulking_profile)
-        if not bulking_user_id:
-            print("❌ Failed to create bulking profile. Stopping tests.")
-            return False
+        try:
+            response = requests.post(f"{self.base_url}/user/profile", json=payload)
+            
+            if response.status_code == 200:
+                profile = response.json()
+                self.created_profiles.append(profile["id"])
+                return profile
+            else:
+                self.log_test(test_name, False, 
+                            f"Falha ao criar perfil: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test(test_name, False, f"Erro de conexão: {e}")
+            return None
+
+    def test_athlete_off_season(self):
+        """Test 2a: off_season (weeks=25) - superávit +7.5%, P=2.0g/kg, F=0.9g/kg"""
+        profile = self.create_athlete_profile("off_season", 25, "Criação: Atleta Off-Season")
         
-        # Test 2: Diet generation and SST validation
-        print("\n" + "-" * 40)
-        print("TESTE 2: DIETA BULKING - Single Source of Truth")
-        print("-" * 40)
-        self.test_diet_single_source_of_truth(bulking_user_id, "Bulking")
+        if not profile:
+            return
+            
+        # Validações esperadas para peso=80kg, height=175, age=28, masculino, avançado, 6x/semana
+        # BMR = (10*80) + (6.25*175) - (5*28) + 5 = 800 + 1093.75 - 140 + 5 = 1758.75
+        # TDEE = BMR * 1.9 (avançado, 6x/semana) = 1758.75 * 1.9 = 3341.625
+        # Target = TDEE * 1.075 (off_season +7.5%) = 3341.625 * 1.075 = 3592.25 ≈ 3592
+        expected_calories_min = 3580  # Tolerância
+        expected_calories_max = 3605
         
-        # Test 3: Workout frequency validation
-        print("\n" + "-" * 40)
-        print("TESTE 3: TREINO BULKING - Frequência 5x/semana")
-        print("-" * 40)
-        self.test_workout_frequency_match(bulking_user_id, "Bulking", 5)
+        # Macros esperados: P=2.0g/kg=160g, F=0.9g/kg=72g
+        expected_protein = 160.0
+        expected_fat = 72.0
         
-        print("\n" + "=" * 40)
-        print("TESTE 4: PERFIL CUTTING (3x/semana)")
-        print("=" * 40)
+        success = True
+        details = []
         
-        # Test 4: Create CUTTING profile (3x/week) - for low calorie diet validation
-        cutting_profile = {
-            "name": "Test User Cutting",
+        # Verifica calorias
+        actual_calories = profile.get("target_calories")
+        if not (expected_calories_min <= actual_calories <= expected_calories_max):
+            success = False
+            details.append(f"Calorias incorretas: esperado ~3592, obtido {actual_calories}")
+        else:
+            details.append(f"Calorias OK: {actual_calories} (esperado ~3592)")
+            
+        # Verifica macros
+        macros = profile.get("macros", {})
+        actual_protein = macros.get("protein", 0)
+        actual_fat = macros.get("fat", 0)
+        
+        if abs(actual_protein - expected_protein) > 1:
+            success = False
+            details.append(f"Proteína incorreta: esperado {expected_protein}g, obtido {actual_protein}g")
+        else:
+            details.append(f"Proteína OK: {actual_protein}g")
+            
+        if abs(actual_fat - expected_fat) > 1:
+            success = False
+            details.append(f"Gordura incorreta: esperado {expected_fat}g, obtido {actual_fat}g")
+        else:
+            details.append(f"Gordura OK: {actual_fat}g")
+            
+        # Verifica campos obrigatórios
+        if not profile.get("weeks_to_competition"):
+            success = False
+            details.append("weeks_to_competition não persistido")
+        else:
+            details.append(f"weeks_to_competition: {profile.get('weeks_to_competition')}")
+            
+        if not profile.get("phase_start_date"):
+            success = False
+            details.append("phase_start_date não criado")
+        else:
+            details.append("phase_start_date criado")
+            
+        self.log_test("Criação: Atleta Off-Season", success, " | ".join(details))
+        return profile
+
+    def test_athlete_pre_prep(self):
+        """Test 2b: pre_prep (weeks=18) - leve déficit -5%, P=2.2g/kg, F=0.8g/kg"""
+        profile = self.create_athlete_profile("pre_prep", 18, "Criação: Atleta Pre-Prep")
+        
+        if not profile:
+            return
+            
+        # Target = TDEE * 0.95 (pre_prep -5%) = 3341.625 * 0.95 = 3174.54 ≈ 3175
+        expected_calories_min = 3165
+        expected_calories_max = 3185
+        
+        # Macros esperados: P=2.2g/kg=176g, F=0.8g/kg=64g
+        expected_protein = 176.0
+        expected_fat = 64.0
+        
+        success = True
+        details = []
+        
+        actual_calories = profile.get("target_calories")
+        if not (expected_calories_min <= actual_calories <= expected_calories_max):
+            success = False
+            details.append(f"Calorias incorretas: esperado ~3175, obtido {actual_calories}")
+        else:
+            details.append(f"Calorias OK: {actual_calories}")
+            
+        macros = profile.get("macros", {})
+        actual_protein = macros.get("protein", 0)
+        actual_fat = macros.get("fat", 0)
+        
+        if abs(actual_protein - expected_protein) > 1:
+            success = False
+            details.append(f"Proteína incorreta: esperado {expected_protein}g, obtido {actual_protein}g")
+        else:
+            details.append(f"Proteína OK: {actual_protein}g")
+            
+        if abs(actual_fat - expected_fat) > 1:
+            success = False
+            details.append(f"Gordura incorreta: esperado {expected_fat}g, obtido {actual_fat}g")
+        else:
+            details.append(f"Gordura OK: {actual_fat}g")
+            
+        self.log_test("Criação: Atleta Pre-Prep", success, " | ".join(details))
+        return profile
+
+    def test_athlete_prep(self):
+        """Test 2c: prep (weeks=12) - déficit agressivo -22.5%, P=2.6g/kg, F=0.7g/kg"""
+        profile = self.create_athlete_profile("prep", 12, "Criação: Atleta Prep")
+        
+        if not profile:
+            return
+            
+        # Target = TDEE * 0.775 (prep -22.5%) = 3341.625 * 0.775 = 2589.76 ≈ 2590
+        expected_calories_min = 2580
+        expected_calories_max = 2600
+        
+        # Macros esperados: P=2.6g/kg=208g, F=0.7g/kg=56g
+        expected_protein = 208.0
+        expected_fat = 56.0
+        
+        success = True
+        details = []
+        
+        actual_calories = profile.get("target_calories")
+        if not (expected_calories_min <= actual_calories <= expected_calories_max):
+            success = False
+            details.append(f"Calorias incorretas: esperado ~2590, obtido {actual_calories}")
+        else:
+            details.append(f"Calorias OK: {actual_calories}")
+            
+        macros = profile.get("macros", {})
+        actual_protein = macros.get("protein", 0)
+        actual_fat = macros.get("fat", 0)
+        
+        if abs(actual_protein - expected_protein) > 1:
+            success = False
+            details.append(f"Proteína incorreta: esperado {expected_protein}g, obtido {actual_protein}g")
+        else:
+            details.append(f"Proteína OK: {actual_protein}g")
+            
+        if abs(actual_fat - expected_fat) > 1:
+            success = False
+            details.append(f"Gordura incorreta: esperado {expected_fat}g, obtido {actual_fat}g")
+        else:
+            details.append(f"Gordura OK: {actual_fat}g")
+            
+        self.log_test("Criação: Atleta Prep", success, " | ".join(details))
+        return profile
+
+    def test_athlete_peak_week(self):
+        """Test 2d: peak_week (weeks=1) - déficit máximo -25%, P=2.8g/kg, F=0.5g/kg"""
+        profile = self.create_athlete_profile("peak_week", 1, "Criação: Atleta Peak Week")
+        
+        if not profile:
+            return
+            
+        # Target = TDEE * 0.75 (peak_week -25%) = 3341.625 * 0.75 = 2506.22 ≈ 2506
+        expected_calories_min = 2495
+        expected_calories_max = 2515
+        
+        # Macros esperados: P=2.8g/kg=224g, F=0.5g/kg=40g
+        expected_protein = 224.0
+        expected_fat = 40.0
+        
+        success = True
+        details = []
+        
+        actual_calories = profile.get("target_calories")
+        if not (expected_calories_min <= actual_calories <= expected_calories_max):
+            success = False
+            details.append(f"Calorias incorretas: esperado ~2506, obtido {actual_calories}")
+        else:
+            details.append(f"Calorias OK: {actual_calories}")
+            
+        macros = profile.get("macros", {})
+        actual_protein = macros.get("protein", 0)
+        actual_fat = macros.get("fat", 0)
+        
+        if abs(actual_protein - expected_protein) > 1:
+            success = False
+            details.append(f"Proteína incorreta: esperado {expected_protein}g, obtido {actual_protein}g")
+        else:
+            details.append(f"Proteína OK: {actual_protein}g")
+            
+        if abs(actual_fat - expected_fat) > 1:
+            success = False
+            details.append(f"Gordura incorreta: esperado {expected_fat}g, obtido {actual_fat}g")
+        else:
+            details.append(f"Gordura OK: {actual_fat}g")
+            
+        self.log_test("Criação: Atleta Peak Week", success, " | ".join(details))
+        return profile
+
+    def test_diet_generation_for_athlete(self, athlete_profile):
+        """Test 3: Geração de dieta para atleta em fase prep"""
+        if not athlete_profile:
+            self.log_test("Geração de Dieta: Atleta Prep", False, "Perfil de atleta não disponível")
+            return
+            
+        user_id = athlete_profile["id"]
+        
+        try:
+            response = requests.post(f"{self.base_url}/diet/generate?user_id={user_id}")
+            
+            if response.status_code == 200:
+                diet = response.json()
+                
+                # Verifica estrutura da resposta
+                success = True
+                details = []
+                
+                if "meals" not in diet:
+                    success = False
+                    details.append("Campo 'meals' ausente")
+                elif len(diet["meals"]) != 5:
+                    success = False
+                    details.append(f"Esperado 5 refeições, obtido {len(diet['meals'])}")
+                else:
+                    details.append("5 refeições criadas")
+                
+                # Verifica tolerâncias dos macros
+                target_macros = athlete_profile.get("macros", {})
+                computed_macros = diet.get("computed_macros", {})
+                
+                if target_macros and computed_macros:
+                    p_diff = abs(computed_macros.get("protein", 0) - target_macros.get("protein", 0))
+                    c_diff = abs(computed_macros.get("carbs", 0) - target_macros.get("carbs", 0))
+                    f_diff = abs(computed_macros.get("fat", 0) - target_macros.get("fat", 0))
+                    
+                    if p_diff <= 3:
+                        details.append(f"Proteína OK: Δ{p_diff:.1f}g")
+                    else:
+                        success = False
+                        details.append(f"Proteína fora da tolerância: Δ{p_diff:.1f}g (máx 3g)")
+                        
+                    if c_diff <= 3:
+                        details.append(f"Carboidratos OK: Δ{c_diff:.1f}g")
+                    else:
+                        success = False
+                        details.append(f"Carboidratos fora da tolerância: Δ{c_diff:.1f}g (máx 3g)")
+                        
+                    if f_diff <= 2:
+                        details.append(f"Gordura OK: Δ{f_diff:.1f}g")
+                    else:
+                        success = False
+                        details.append(f"Gordura fora da tolerância: Δ{f_diff:.1f}g (máx 2g)")
+                
+                self.log_test("Geração de Dieta: Atleta Prep", success, " | ".join(details))
+                
+            else:
+                self.log_test("Geração de Dieta: Atleta Prep", False,
+                            f"Falha na geração: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_test("Geração de Dieta: Atleta Prep", False, f"Erro de conexão: {e}")
+
+    def test_comparison_with_non_athlete(self, athlete_prep_profile):
+        """Test 4: Comparação com não-atleta (cutting)"""
+        if not athlete_prep_profile:
+            self.log_test("Comparação: Atleta vs Cutting", False, "Perfil de atleta prep não disponível")
+            return
+            
+        # Cria perfil cutting com mesmo peso/altura
+        cutting_payload = {
+            "name": "Cutting Normal",
             "age": 28,
-            "sex": "feminino",
-            "height": 165,
-            "weight": 65,
-            "target_weight": 60,
-            "training_level": "intermediario",
-            "weekly_training_frequency": 4,
-            "available_time_per_session": 45,
+            "sex": "masculino",
+            "height": 175,
+            "weight": 80,
+            "training_level": "avancado",
+            "weekly_training_frequency": 6,
+            "available_time_per_session": 90,
             "goal": "cutting"
         }
         
-        cutting_user_id = self.create_test_profile(cutting_profile)
-        if not cutting_user_id:
-            print("❌ Failed to create cutting profile.")
-        else:
-            # Test 5: Diet generation for cutting
-            print("\n" + "-" * 40)
-            print("TESTE 5: DIETA CUTTING - Single Source of Truth")
-            print("-" * 40)
-            self.test_diet_single_source_of_truth(cutting_user_id, "Cutting")
+        try:
+            response = requests.post(f"{self.base_url}/user/profile", json=cutting_payload)
             
-            # Test 6: Workout frequency for 4x/week
-            print("\n" + "-" * 40)
-            print("TESTE 6: TREINO CUTTING - Frequência 4x/semana")
-            print("-" * 40)
-            self.test_workout_frequency_match(cutting_user_id, "Cutting", 4)
-        
-        # Summary
-        print("\n" + "=" * 60)
-        print("RESUMO DOS TESTES")
+            if response.status_code == 200:
+                cutting_profile = response.json()
+                self.created_profiles.append(cutting_profile["id"])
+                
+                athlete_calories = athlete_prep_profile.get("target_calories")
+                cutting_calories = cutting_profile.get("target_calories")
+                
+                # Atleta em prep deve ter menos calorias que cutting normal
+                if athlete_calories < cutting_calories:
+                    difference = cutting_calories - athlete_calories
+                    self.log_test("Comparação: Atleta vs Cutting", True,
+                                f"Atleta prep ({athlete_calories}kcal) < Cutting ({cutting_calories}kcal) - Diferença: {difference}kcal")
+                else:
+                    self.log_test("Comparação: Atleta vs Cutting", False,
+                                f"Atleta prep ({athlete_calories}kcal) >= Cutting ({cutting_calories}kcal)")
+                    
+            else:
+                self.log_test("Comparação: Atleta vs Cutting", False,
+                            f"Falha ao criar perfil cutting: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Comparação: Atleta vs Cutting", False, f"Erro de conexão: {e}")
+
+    def run_all_tests(self):
+        """Executa todos os testes do modelo de atleta"""
+        print("🏃‍♂️ INICIANDO TESTES DO MODELO DE DOMÍNIO DE ATLETA")
         print("=" * 60)
+        print()
         
-        passed_tests = sum(1 for result in self.test_results if result['passed'])
-        total_tests = len(self.test_results)
+        # Teste 1: Validações
+        print("📋 TESTE 1: VALIDAÇÃO DE ATLETA")
+        print("-" * 40)
+        self.test_athlete_validation_missing_phase()
+        self.test_athlete_validation_missing_weeks()
+        self.test_athlete_validation_invalid_phase()
         
-        print(f"Testes Executados: {total_tests}")
-        print(f"Testes Aprovados: {passed_tests}")
-        print(f"Testes Falharam: {total_tests - passed_tests}")
-        print(f"Taxa de Sucesso: {(passed_tests/total_tests)*100:.1f}%")
+        # Teste 2: Criação em diferentes fases
+        print("🏗️ TESTE 2: CRIAÇÃO DE ATLETAS EM DIFERENTES FASES")
+        print("-" * 50)
+        off_season_profile = self.test_athlete_off_season()
+        pre_prep_profile = self.test_athlete_pre_prep()
+        prep_profile = self.test_athlete_prep()
+        peak_week_profile = self.test_athlete_peak_week()
         
-        # Show failed tests
-        failed_tests = [result for result in self.test_results if not result['passed']]
-        if failed_tests:
-            print("\n❌ TESTES FALHARAM:")
-            for test in failed_tests:
-                print(f"  • {test['test']}: {test['details']}")
+        # Teste 3: Geração de dieta
+        print("🍽️ TESTE 3: GERAÇÃO DE DIETA PARA ATLETAS")
+        print("-" * 40)
+        self.test_diet_generation_for_athlete(prep_profile)
         
-        return passed_tests == total_tests
+        # Teste 4: Comparação
+        print("⚖️ TESTE 4: COMPARAÇÃO COM NÃO-ATLETA")
+        print("-" * 35)
+        self.test_comparison_with_non_athlete(prep_profile)
+        
+        # Resumo
+        print("📊 RESUMO DOS TESTES")
+        print("=" * 20)
+        
+        passed = sum(1 for r in self.test_results if r["success"])
+        total = len(self.test_results)
+        
+        print(f"✅ Testes aprovados: {passed}/{total}")
+        print(f"❌ Testes falharam: {total - passed}/{total}")
+        print(f"📈 Taxa de sucesso: {(passed/total)*100:.1f}%")
+        print()
+        
+        if total - passed > 0:
+            print("❌ TESTES QUE FALHARAM:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"  • {result['test']}: {result['details']}")
+            print()
+        
+        return passed == total
 
 def main():
-    """Main test execution"""
-    tester = LAFBackendTester()
+    """Função principal"""
+    tester = AthleteModelTester()
     
     try:
-        success = tester.run_comprehensive_tests()
+        success = tester.run_all_tests()
         
         if success:
-            print("\n🎉 TODOS OS TESTES CRÍTICOS PASSARAM!")
-            print("✅ Single Source of Truth funcionando")
-            print("✅ Frequência de Treino funcionando") 
-            print("✅ Porções Realistas funcionando")
+            print("🎉 TODOS OS TESTES PASSARAM! Modelo de atleta funcionando corretamente.")
             sys.exit(0)
         else:
-            print("\n⚠️  ALGUNS TESTES FALHARAM")
-            print("Verifique os detalhes acima para correções necessárias.")
+            print("⚠️ ALGUNS TESTES FALHARAM. Verifique os detalhes acima.")
             sys.exit(1)
             
     except KeyboardInterrupt:
-        print("\n\nTestes interrompidos pelo usuário.")
+        print("\n⏹️ Testes interrompidos pelo usuário.")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Erro durante execução dos testes: {str(e)}")
+        print(f"💥 Erro inesperado: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
