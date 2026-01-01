@@ -364,17 +364,31 @@ async def create_user_profile(profile_data: UserProfileCreate):
     )
     
     # Cria perfil completo
+    profile_dict = profile_data.dict()
+    
+    # Processa campos de atleta
+    if profile_data.goal == "atleta":
+        # Parse competition_date se fornecida
+        if profile_data.competition_date:
+            try:
+                profile_dict["competition_date"] = datetime.fromisoformat(profile_data.competition_date.replace('Z', '+00:00'))
+            except:
+                profile_dict["competition_date"] = None
+        
+        # Define phase_start_date
+        profile_dict["phase_start_date"] = datetime.utcnow()
+    
     profile = UserProfile(
-        **profile_data.dict(),
+        **profile_dict,
         tdee=round(tdee, 0),
         target_calories=round(target_calories, 0),
         macros=macros
     )
     
     # Salva no banco
-    profile_dict = profile.dict()
-    profile_dict["_id"] = profile_dict["id"]
-    await db.user_profiles.insert_one(profile_dict)
+    profile_save = profile.dict()
+    profile_save["_id"] = profile_save["id"]
+    await db.user_profiles.insert_one(profile_save)
     
     return profile
 
