@@ -13,7 +13,7 @@ import sys
 from typing import Dict, Any
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://laffix.preview.emergentagent.com/api"
+BACKEND_URL = "https://fit-buddy-81.preview.emergentagent.com/api"
 
 class LAFBackendTester:
     def __init__(self):
