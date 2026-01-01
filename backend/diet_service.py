@@ -1,12 +1,26 @@
 """
-Sistema de Geração de Dieta - ESCALONAMENTO PROPORCIONAL
-Garante macros EXATOS através de escalonamento das porções
+Sistema de Geração de Dieta - ALGORITMO DE FECHAMENTO DETERMINÍSTICO
+
+PRINCÍPIOS:
+1. A soma dos nutrientes dos alimentos DEVE igualar os targets por construção
+2. Nenhuma aproximação é retornada ao frontend
+3. Tolerâncias ESTRITAS: P±3g, C±3g, F±2g, Cal±25kcal
+4. Ajustes discretos: 5g, 10g, 25g steps
+5. Limites realistas: azeite ≤15g, castanha ≤25g por refeição
+
+ALGORITMO DE DUAS FASES:
+- Fase 1: Gera refeições base com porções realistas
+- Fase 2: Usa alimentos "closers" (single-macro dominant) para fechar gaps
 """
+
 import os
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from pydantic import BaseModel, Field
 from datetime import datetime
 import uuid
+
+
+# ==================== MODELS ====================
 
 class Meal(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -15,6 +29,7 @@ class Meal(BaseModel):
     foods: List[Dict]
     total_calories: float
     macros: Dict[str, float]
+
 
 class DietPlan(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -27,213 +42,514 @@ class DietPlan(BaseModel):
     computed_macros: Dict[str, float]
     notes: Optional[str] = None
 
+
 class DietGenerateRequest(BaseModel):
     user_id: str
 
+
+# ==================== TOLERANCES (NON-NEGOTIABLE) ====================
+
+TOLERANCE_PROTEIN = 3.0   # grams
+TOLERANCE_CARBS = 3.0     # grams
+TOLERANCE_FAT = 2.0       # grams
+TOLERANCE_CALORIES = 25.0 # kcal
+
+MAX_GENERATION_ATTEMPTS = 5
+
+
+# ==================== FOOD DATABASE ====================
+# Valores por 100g (nutrientes em gramas)
+
 FOODS = {
-    "frango": {"name": "Peito de Frango", "p": 31.0, "c": 0.0, "f": 3.6},
-    "tilapia": {"name": "Tilápia", "p": 26.0, "c": 0.0, "f": 2.5},
-    "ovos": {"name": "Ovos", "p": 13.0, "c": 1.1, "f": 11.0},
-    "clara": {"name": "Clara de Ovo", "p": 11.0, "c": 0.7, "f": 0.2},
-    "iogurte": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0},
-    "arroz": {"name": "Arroz Integral", "p": 2.6, "c": 23.0, "f": 0.9},
-    "batata": {"name": "Batata Doce", "p": 1.6, "c": 20.0, "f": 0.1},
-    "aveia": {"name": "Aveia", "p": 13.5, "c": 66.0, "f": 7.0},
-    "feijao": {"name": "Feijão", "p": 5.0, "c": 14.0, "f": 0.5},
-    "azeite": {"name": "Azeite", "p": 0.0, "c": 0.0, "f": 100.0},
-    "castanha": {"name": "Castanha", "p": 14.0, "c": 12.0, "f": 67.0},
-    "brocolis": {"name": "Brócolis", "p": 2.8, "c": 7.0, "f": 0.4},
-    "salada": {"name": "Salada", "p": 1.5, "c": 3.0, "f": 0.2},
-    "banana": {"name": "Banana", "p": 1.1, "c": 23.0, "f": 0.3},
+    # ========== PROTEÍNAS (P dominante) ==========
+    "frango": {"name": "Peito de Frango", "p": 31.0, "c": 0.0, "f": 3.6, "min": 75, "max": 250, "step": 25},
+    "tilapia": {"name": "Tilápia", "p": 26.0, "c": 0.0, "f": 2.5, "min": 100, "max": 200, "step": 25},
+    "ovos": {"name": "Ovos Inteiros", "p": 13.0, "c": 1.1, "f": 11.0, "min": 50, "max": 150, "step": 50},  # ~1-3 ovos
+    "clara": {"name": "Clara de Ovo", "p": 11.0, "c": 0.7, "f": 0.2, "min": 30, "max": 150, "step": 30},   # CLOSER: quase puro P
+    "iogurte": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "min": 100, "max": 200, "step": 50},
+    
+    # ========== CARBOIDRATOS (C dominante) ==========
+    "arroz": {"name": "Arroz Integral", "p": 2.6, "c": 23.0, "f": 0.9, "min": 100, "max": 250, "step": 25},  # CLOSER: alto C
+    "batata": {"name": "Batata Doce", "p": 1.6, "c": 20.0, "f": 0.1, "min": 100, "max": 300, "step": 50},    # CLOSER: quase puro C
+    "aveia": {"name": "Aveia", "p": 13.5, "c": 66.0, "f": 7.0, "min": 30, "max": 80, "step": 10},
+    "banana": {"name": "Banana", "p": 1.1, "c": 23.0, "f": 0.3, "min": 80, "max": 150, "step": 40},          # ~1-2 bananas
+    "feijao": {"name": "Feijão", "p": 5.0, "c": 14.0, "f": 0.5, "min": 80, "max": 150, "step": 25},
+    
+    # ========== GORDURAS (F dominante) ==========
+    "azeite": {"name": "Azeite", "p": 0.0, "c": 0.0, "f": 100.0, "min": 5, "max": 15, "step": 5},            # CLOSER: puro F
+    "castanha": {"name": "Castanha do Pará", "p": 14.0, "c": 12.0, "f": 67.0, "min": 10, "max": 25, "step": 5},
+    
+    # ========== VEGETAIS (baixa densidade calórica) ==========
+    "brocolis": {"name": "Brócolis", "p": 2.8, "c": 7.0, "f": 0.4, "min": 80, "max": 150, "step": 25},
+    "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "min": 80, "max": 150, "step": 25},
 }
 
-def calc(key: str, g: int) -> Dict:
+# Alimentos "closers" - usados para ajuste fino de macros específicos
+CLOSERS = {
+    "protein": "clara",    # Clara de ovo: 11g P, 0.7g C, 0.2g F por 100g
+    "carbs": "batata",     # Batata doce: 1.6g P, 20g C, 0.1g F por 100g  
+    "fat": "azeite",       # Azeite: 0g P, 0g C, 100g F por 100g
+}
+
+
+# ==================== HELPER FUNCTIONS ====================
+
+def calc_food(key: str, grams: int) -> Dict:
+    """Calcula nutrientes para uma quantidade específica de alimento"""
     f = FOODS[key]
-    factor = g / 100
+    factor = grams / 100.0
+    protein = f["p"] * factor
+    carbs = f["c"] * factor
+    fat = f["f"] * factor
+    calories = (protein * 4) + (carbs * 4) + (fat * 9)
+    
     return {
-        "name": f["name"], "quantity": f"{g}g",
-        "protein": round(f["p"] * factor, 2),
-        "carbs": round(f["c"] * factor, 2),
-        "fat": round(f["f"] * factor, 2),
-        "calories": round((f["p"]*4 + f["c"]*4 + f["f"]*9) * factor, 2)
+        "key": key,
+        "name": f["name"],
+        "quantity": f"{grams}g",
+        "grams": grams,
+        "protein": round(protein, 2),
+        "carbs": round(carbs, 2),
+        "fat": round(fat, 2),
+        "calories": round(calories, 2)
     }
 
-def rnd(v: float, step: int = 25) -> int:
-    return max(step, int(round(v / step) * step))
+
+def round_to_step(value: float, step: int) -> int:
+    """Arredonda valor para múltiplo do step"""
+    return max(step, int(round(value / step) * step))
+
+
+def clamp(value: int, min_val: int, max_val: int) -> int:
+    """Limita valor entre min e max"""
+    return max(min_val, min(max_val, value))
+
+
+def sum_macros(foods: List[Dict]) -> Tuple[float, float, float, float]:
+    """Soma macros de uma lista de alimentos"""
+    p = sum(f["protein"] for f in foods)
+    c = sum(f["carbs"] for f in foods)
+    f = sum(f["fat"] for f in foods)
+    cal = sum(f["calories"] for f in foods)
+    return p, c, f, cal
+
+
+def is_within_tolerance(computed: Dict, target: Dict, computed_cal: float, target_cal: float) -> bool:
+    """Verifica se macros computados estão dentro das tolerâncias"""
+    p_ok = abs(computed["protein"] - target["protein"]) <= TOLERANCE_PROTEIN
+    c_ok = abs(computed["carbs"] - target["carbs"]) <= TOLERANCE_CARBS
+    f_ok = abs(computed["fat"] - target["fat"]) <= TOLERANCE_FAT
+    cal_ok = abs(computed_cal - target_cal) <= TOLERANCE_CALORIES
+    return p_ok and c_ok and f_ok and cal_ok
+
+
+# ==================== MEAL TEMPLATES ====================
+
+def get_meal_templates() -> List[Dict]:
+    """
+    Retorna templates de refeições com proporções base.
+    Cada template tem uma proporção do total diário (deve somar ~100%).
+    """
+    return [
+        {
+            "name": "Café da Manhã",
+            "time": "07:00",
+            "ratio": 0.20,  # 20% das calorias
+            "base_foods": [
+                {"key": "ovos", "base_g": 100},      # 2 ovos
+                {"key": "aveia", "base_g": 40},
+                {"key": "banana", "base_g": 80},    # 1 banana
+            ]
+        },
+        {
+            "name": "Lanche Manhã",
+            "time": "10:00",
+            "ratio": 0.10,  # 10% das calorias
+            "base_foods": [
+                {"key": "iogurte", "base_g": 150},
+                {"key": "castanha", "base_g": 15},
+            ]
+        },
+        {
+            "name": "Almoço",
+            "time": "12:30",
+            "ratio": 0.30,  # 30% das calorias
+            "base_foods": [
+                {"key": "frango", "base_g": 150},
+                {"key": "arroz", "base_g": 150},
+                {"key": "feijao", "base_g": 80},
+                {"key": "salada", "base_g": 100},
+                {"key": "azeite", "base_g": 10},
+            ]
+        },
+        {
+            "name": "Lanche Tarde",
+            "time": "16:00",
+            "ratio": 0.15,  # 15% das calorias
+            "base_foods": [
+                {"key": "batata", "base_g": 150},
+                {"key": "frango", "base_g": 100},
+            ]
+        },
+        {
+            "name": "Jantar",
+            "time": "19:30",
+            "ratio": 0.25,  # 25% das calorias = última refeição para ajuste
+            "base_foods": [
+                {"key": "tilapia", "base_g": 150},
+                {"key": "arroz", "base_g": 100},
+                {"key": "brocolis", "base_g": 100},
+                {"key": "azeite", "base_g": 10},
+            ]
+        }
+    ]
+
+
+# ==================== PHASE 1: BASE MEAL GENERATION ====================
+
+def generate_base_meals(target_cal: float, target_macros: Dict, num_meals: int = 5) -> List[Meal]:
+    """
+    FASE 1: Gera refeições base com escalonamento proporcional.
+    Não tenta atingir targets exatos - apenas cria base realista.
+    """
+    templates = get_meal_templates()[:num_meals]
+    
+    # Calcula calorias base do template
+    base_total_cal = 0.0
+    for tmpl in templates:
+        for food_def in tmpl["base_foods"]:
+            food = calc_food(food_def["key"], food_def["base_g"])
+            base_total_cal += food["calories"]
+    
+    # Fator de escala global
+    scale = target_cal / base_total_cal if base_total_cal > 0 else 1.0
+    
+    meals = []
+    for tmpl in templates:
+        foods = []
+        for food_def in tmpl["base_foods"]:
+            key = food_def["key"]
+            base_g = food_def["base_g"]
+            food_info = FOODS[key]
+            
+            # Escala e arredonda
+            scaled_g = base_g * scale
+            step = food_info["step"]
+            rounded_g = round_to_step(scaled_g, step)
+            
+            # Aplica limites
+            rounded_g = clamp(rounded_g, food_info["min"], food_info["max"])
+            
+            foods.append(calc_food(key, rounded_g))
+        
+        # Cria meal
+        p, c, f, cal = sum_macros(foods)
+        meal = Meal(
+            name=tmpl["name"],
+            time=tmpl["time"],
+            foods=foods,
+            total_calories=round(cal, 2),
+            macros={"protein": round(p, 2), "carbs": round(c, 2), "fat": round(f, 2)}
+        )
+        meals.append(meal)
+    
+    return meals
+
+
+# ==================== PHASE 2: MACRO GAP CLOSURE ====================
+
+def calculate_gaps(meals: List[Meal], target_macros: Dict, target_cal: float) -> Dict:
+    """Calcula gaps entre computed e target"""
+    total_p = sum(m.macros["protein"] for m in meals)
+    total_c = sum(m.macros["carbs"] for m in meals)
+    total_f = sum(m.macros["fat"] for m in meals)
+    total_cal = sum(m.total_calories for m in meals)
+    
+    return {
+        "protein": target_macros["protein"] - total_p,
+        "carbs": target_macros["carbs"] - total_c,
+        "fat": target_macros["fat"] - total_f,
+        "calories": target_cal - total_cal,
+        "computed": {"protein": total_p, "carbs": total_c, "fat": total_f, "calories": total_cal}
+    }
+
+
+def apply_closer_adjustment(meals: List[Meal], macro_type: str, gap: float) -> bool:
+    """
+    Aplica ajuste fino usando alimento closer para um macro específico.
+    Retorna True se ajuste foi bem sucedido, False se impossível.
+    """
+    if abs(gap) < 0.5:  # Gap muito pequeno, ignorar
+        return True
+    
+    closer_key = CLOSERS[macro_type]
+    closer_info = FOODS[closer_key]
+    
+    # Encontra a última refeição para adicionar/ajustar closer
+    target_meal = meals[-1]  # Jantar
+    
+    # Calcula gramas necessárias
+    if macro_type == "protein":
+        # Clara: 11g P por 100g
+        grams_needed = (gap / closer_info["p"]) * 100
+    elif macro_type == "carbs":
+        # Batata: 20g C por 100g
+        grams_needed = (gap / closer_info["c"]) * 100
+    else:  # fat
+        # Azeite: 100g F por 100g (puro)
+        grams_needed = (gap / closer_info["f"]) * 100
+    
+    # Arredonda para step do alimento
+    step = closer_info["step"]
+    grams_adjusted = round_to_step(abs(grams_needed), step)
+    
+    if grams_needed < 0:
+        grams_adjusted = -grams_adjusted
+    
+    # Verifica se já existe o closer na refeição
+    existing_idx = None
+    for i, food in enumerate(target_meal.foods):
+        if food.get("key") == closer_key:
+            existing_idx = i
+            break
+    
+    if existing_idx is not None:
+        # Ajusta quantidade existente
+        current_g = target_meal.foods[existing_idx]["grams"]
+        new_g = current_g + grams_adjusted
+        new_g = clamp(new_g, closer_info["min"], closer_info["max"])
+        
+        if new_g < closer_info["min"]:
+            # Remove o alimento se ficou muito pequeno
+            target_meal.foods.pop(existing_idx)
+        else:
+            target_meal.foods[existing_idx] = calc_food(closer_key, new_g)
+    else:
+        # Adiciona novo closer se gap positivo
+        if grams_adjusted > 0:
+            grams_to_add = clamp(grams_adjusted, closer_info["min"], closer_info["max"])
+            target_meal.foods.append(calc_food(closer_key, grams_to_add))
+    
+    # Recalcula macros da refeição
+    p, c, f, cal = sum_macros(target_meal.foods)
+    target_meal.macros = {"protein": round(p, 2), "carbs": round(c, 2), "fat": round(f, 2)}
+    target_meal.total_calories = round(cal, 2)
+    
+    return True
+
+
+def close_macro_gaps(meals: List[Meal], target_macros: Dict, target_cal: float) -> List[Meal]:
+    """
+    FASE 2: Aplica ajustes iterativos para fechar gaps de macros.
+    Usa closers em ordem: Fat (mais impactante em calorias), Protein, Carbs.
+    """
+    # Ordem de ajuste: Fat primeiro (9 cal/g vs 4 cal/g)
+    adjustment_order = ["fat", "protein", "carbs"]
+    
+    for _ in range(10):  # Max 10 iterações de refinamento
+        gaps = calculate_gaps(meals, target_macros, target_cal)
+        
+        # Verifica se já está dentro da tolerância
+        computed = gaps["computed"]
+        computed_macros = {"protein": computed["protein"], "carbs": computed["carbs"], "fat": computed["fat"]}
+        
+        if is_within_tolerance(computed_macros, target_macros, computed["calories"], target_cal):
+            break
+        
+        # Aplica ajustes
+        for macro in adjustment_order:
+            gap = gaps[macro]
+            if abs(gap) > 1.0:  # Só ajusta se gap > 1g
+                apply_closer_adjustment(meals, macro, gap)
+    
+    return meals
+
+
+# ==================== FINE-TUNING: DISCRETE ADJUSTMENTS ====================
+
+def fine_tune_meals(meals: List[Meal], target_macros: Dict, target_cal: float) -> List[Meal]:
+    """
+    Ajuste fino adicional: modifica quantidades existentes em pequenos steps
+    para fechar gaps residuais.
+    """
+    for _ in range(5):  # Max 5 iterações de fine-tuning
+        gaps = calculate_gaps(meals, target_macros, target_cal)
+        computed = gaps["computed"]
+        computed_macros = {"protein": computed["protein"], "carbs": computed["carbs"], "fat": computed["fat"]}
+        
+        if is_within_tolerance(computed_macros, target_macros, computed["calories"], target_cal):
+            break
+        
+        # Encontra o macro com maior gap relativo
+        protein_gap = gaps["protein"]
+        carbs_gap = gaps["carbs"]
+        fat_gap = gaps["fat"]
+        
+        # Ajusta alimentos existentes nas refeições principais (almoço/jantar)
+        for meal in [meals[2], meals[4], meals[3]]:  # Almoço, Jantar, Lanche Tarde
+            for i, food in enumerate(meal.foods):
+                key = food.get("key")
+                if not key or key not in FOODS:
+                    continue
+                
+                food_info = FOODS[key]
+                current_g = food["grams"]
+                step = food_info["step"]
+                
+                # Decide direção do ajuste baseado nos gaps
+                if key in ["frango", "tilapia", "clara"] and abs(protein_gap) > TOLERANCE_PROTEIN:
+                    # Proteína: ajusta frango/peixe/clara
+                    delta = step if protein_gap > 0 else -step
+                    new_g = clamp(current_g + delta, food_info["min"], food_info["max"])
+                    meal.foods[i] = calc_food(key, new_g)
+                    
+                elif key in ["arroz", "batata", "aveia"] and abs(carbs_gap) > TOLERANCE_CARBS:
+                    # Carbs: ajusta arroz/batata
+                    delta = step if carbs_gap > 0 else -step
+                    new_g = clamp(current_g + delta, food_info["min"], food_info["max"])
+                    meal.foods[i] = calc_food(key, new_g)
+                    
+                elif key == "azeite" and abs(fat_gap) > TOLERANCE_FAT:
+                    # Gordura: ajusta azeite (CUIDADO: limite de 15g por refeição)
+                    delta = step if fat_gap > 0 else -step
+                    new_g = clamp(current_g + delta, food_info["min"], food_info["max"])
+                    meal.foods[i] = calc_food(key, new_g)
+            
+            # Recalcula macros da refeição
+            p, c, f, cal = sum_macros(meal.foods)
+            meal.macros = {"protein": round(p, 2), "carbs": round(c, 2), "fat": round(f, 2)}
+            meal.total_calories = round(cal, 2)
+        
+        # Recalcula gaps
+        gaps = calculate_gaps(meals, target_macros, target_cal)
+    
+    return meals
+
+
+# ==================== VALIDATION ====================
+
+def validate_diet_plan(meals: List[Meal], target_macros: Dict, target_cal: float) -> Tuple[bool, str]:
+    """
+    Validação rigorosa do plano de dieta.
+    Retorna (success, error_message).
+    """
+    # Soma todos os nutrientes
+    total_p = 0.0
+    total_c = 0.0
+    total_f = 0.0
+    total_cal = 0.0
+    
+    for meal in meals:
+        for food in meal.foods:
+            total_p += food["protein"]
+            total_c += food["carbs"]
+            total_f += food["fat"]
+            total_cal += food["calories"]
+    
+    # Verifica tolerâncias
+    p_diff = abs(total_p - target_macros["protein"])
+    c_diff = abs(total_c - target_macros["carbs"])
+    f_diff = abs(total_f - target_macros["fat"])
+    cal_diff = abs(total_cal - target_cal)
+    
+    errors = []
+    
+    if p_diff > TOLERANCE_PROTEIN:
+        errors.append(f"Proteína: {total_p:.1f}g vs target {target_macros['protein']:.1f}g (diff: {p_diff:.1f}g, max: {TOLERANCE_PROTEIN}g)")
+    
+    if c_diff > TOLERANCE_CARBS:
+        errors.append(f"Carbs: {total_c:.1f}g vs target {target_macros['carbs']:.1f}g (diff: {c_diff:.1f}g, max: {TOLERANCE_CARBS}g)")
+    
+    if f_diff > TOLERANCE_FAT:
+        errors.append(f"Gordura: {total_f:.1f}g vs target {target_macros['fat']:.1f}g (diff: {f_diff:.1f}g, max: {TOLERANCE_FAT}g)")
+    
+    if cal_diff > TOLERANCE_CALORIES:
+        errors.append(f"Calorias: {total_cal:.1f} vs target {target_cal:.1f} (diff: {cal_diff:.1f}kcal, max: {TOLERANCE_CALORIES}kcal)")
+    
+    # Valida limites de porções
+    for meal in meals:
+        for food in meal.foods:
+            key = food.get("key")
+            if key and key in FOODS:
+                g = food["grams"]
+                info = FOODS[key]
+                if g > info["max"]:
+                    errors.append(f"{food['name']}: {g}g excede máximo de {info['max']}g")
+    
+    if errors:
+        return False, "; ".join(errors)
+    
+    return True, ""
+
+
+# ==================== MAIN SERVICE CLASS ====================
 
 class DietAIService:
     def __init__(self):
         self.api_key = os.environ.get('EMERGENT_LLM_KEY')
     
     def generate_diet_plan(self, user_profile: Dict, target_calories: float, target_macros: Dict[str, float]) -> DietPlan:
-        P, C, F = target_macros['protein'], target_macros['carbs'], target_macros['fat']
+        """
+        Gera plano de dieta com GARANTIA de integridade de dados.
         
-        # Gera template base e depois escala
-        meals = self._generate_base_template()
+        Algoritmo de duas fases:
+        1. Gera refeições base realistas
+        2. Fecha gaps com alimentos closers
         
-        # Calcula totais do template
-        base_p = sum(sum(f['protein'] for f in m.foods) for m in meals)
-        base_c = sum(sum(f['carbs'] for f in m.foods) for m in meals)
-        base_f = sum(sum(f['fat'] for f in m.foods) for m in meals)
+        Validação:
+        - Se fechamento falhar após MAX_ATTEMPTS, LEVANTA EXCEÇÃO
+        - Nunca retorna dieta inconsistente
+        """
+        # Arredonda targets para facilitar fechamento
+        target_macros = {
+            "protein": round(target_macros["protein"], 1),
+            "carbs": round(target_macros["carbs"], 1),
+            "fat": round(target_macros["fat"], 1)
+        }
+        target_calories = round(target_calories, 0)
         
-        # Calcula fatores de escala
-        scale_p = P / base_p if base_p > 0 else 1
-        scale_c = C / base_c if base_c > 0 else 1
-        scale_f = F / base_f if base_f > 0 else 1
+        last_error = ""
         
-        # Aplica escala média (compromisso)
-        avg_scale = (scale_p + scale_c + scale_f) / 3
-        
-        # Escala as refeições
-        scaled_meals = self._scale_meals(meals, P, C, F)
-        
-        # Calcula totais finais
-        cp = round(sum(m.macros['protein'] for m in scaled_meals), 2)
-        cc = round(sum(m.macros['carbs'] for m in scaled_meals), 2)
-        cf = round(sum(m.macros['fat'] for m in scaled_meals), 2)
-        ccal = round(cp * 4 + cc * 4 + cf * 9, 2)
-        
-        return DietPlan(
-            user_id=user_profile['id'],
-            target_calories=target_calories,
-            target_macros=target_macros,
-            meals=scaled_meals,
-            computed_calories=ccal,
-            computed_macros={"protein": cp, "carbs": cc, "fat": cf},
-            notes=f"Dieta: {int(ccal)}kcal | P:{int(cp)}g C:{int(cc)}g G:{int(cf)}g"
-        )
-    
-    def _generate_base_template(self) -> List[Meal]:
-        """Gera template padrão com proporções fixas"""
-        meals = []
-        
-        # Café: ovos 100g, aveia 50g, banana 100g
-        m1 = [calc("ovos", 100), calc("aveia", 50), calc("banana", 100)]
-        meals.append(self._make_meal("Café da Manhã", "07:00", m1))
-        
-        # Lanche: iogurte 150g, castanha 15g
-        m2 = [calc("iogurte", 150), calc("castanha", 15)]
-        meals.append(self._make_meal("Lanche Manhã", "10:00", m2))
-        
-        # Almoço: frango 150g, arroz 200g, feijão 100g, salada 100g, azeite 10g
-        m3 = [calc("frango", 150), calc("arroz", 200), calc("feijao", 100), calc("salada", 100), calc("azeite", 10)]
-        meals.append(self._make_meal("Almoço", "12:30", m3))
-        
-        # Lanche: batata 200g, frango 100g
-        m4 = [calc("batata", 200), calc("frango", 100)]
-        meals.append(self._make_meal("Lanche Tarde", "16:00", m4))
-        
-        # Jantar: tilápia 150g, arroz 150g, brócolis 100g, azeite 10g
-        m5 = [calc("tilapia", 150), calc("arroz", 150), calc("brocolis", 100), calc("azeite", 10)]
-        meals.append(self._make_meal("Jantar", "19:30", m5))
-        
-        return meals
-    
-    def _make_meal(self, name: str, time: str, foods: List[Dict]) -> Meal:
-        p = sum(f['protein'] for f in foods)
-        c = sum(f['carbs'] for f in foods)
-        f = sum(f['fat'] for f in foods)
-        cal = sum(f['calories'] for f in foods)
-        return Meal(name=name, time=time, foods=foods, total_calories=round(cal, 2),
-                   macros={"protein": round(p, 2), "carbs": round(c, 2), "fat": round(f, 2)})
-    
-    def _scale_meals(self, meals: List[Meal], target_p: float, target_c: float, target_f: float) -> List[Meal]:
-        """Escala refeições para atingir macros exatos"""
-        
-        # Totais base
-        base_p = sum(m.macros['protein'] for m in meals)
-        base_c = sum(m.macros['carbs'] for m in meals)
-        base_f = sum(m.macros['fat'] for m in meals)
-        
-        scaled_meals = []
-        used_p, used_c, used_f = 0.0, 0.0, 0.0
-        
-        for i, meal in enumerate(meals):
-            is_last = (i == len(meals) - 1)
+        for attempt in range(MAX_GENERATION_ATTEMPTS):
+            # FASE 1: Gera base
+            meals = generate_base_meals(target_calories, target_macros)
             
-            if is_last:
-                # Última refeição: usa EXATAMENTE o restante
-                need_p = target_p - used_p
-                need_c = target_c - used_c
-                need_f = target_f - used_f
+            # FASE 2: Fecha gaps
+            meals = close_macro_gaps(meals, target_macros, target_calories)
+            
+            # FASE 3: Fine-tuning
+            meals = fine_tune_meals(meals, target_macros, target_calories)
+            
+            # VALIDAÇÃO
+            is_valid, error = validate_diet_plan(meals, target_macros, target_calories)
+            
+            if is_valid:
+                # Calcula totais finais (da soma real dos alimentos)
+                total_p = sum(sum(f["protein"] for f in m.foods) for m in meals)
+                total_c = sum(sum(f["carbs"] for f in m.foods) for m in meals)
+                total_f = sum(sum(f["fat"] for f in m.foods) for m in meals)
+                total_cal = sum(sum(f["calories"] for f in m.foods) for m in meals)
                 
-                # Escala os alimentos da última refeição
-                meal_base_p = meal.macros['protein']
-                meal_base_c = meal.macros['carbs']
-                meal_base_f = meal.macros['fat']
-                
-                sp = need_p / meal_base_p if meal_base_p > 0 else 1
-                sc = need_c / meal_base_c if meal_base_c > 0 else 1
-                sf = need_f / meal_base_f if meal_base_f > 0 else 1
-                
-                # Escala cada alimento individualmente baseado no macro dominante
-                new_foods = []
-                for food in meal.foods:
-                    # Determina qual macro esse alimento contribui mais
-                    fp, fc, ff = food['protein'], food['carbs'], food['fat']
-                    
-                    if fp > fc and fp > ff:
-                        scale = sp
-                    elif fc > fp and fc > ff:
-                        scale = sc
-                    else:
-                        scale = sf
-                    
-                    # Limita escala para evitar porções irreais
-                    scale = max(0.5, min(2.5, scale))
-                    
-                    orig_g = int(food['quantity'].replace('g', ''))
-                    new_g = rnd(orig_g * scale)
-                    
-                    # Limita porções de azeite
-                    if "Azeite" in food['name']:
-                        new_g = min(15, new_g)
-                    
-                    new_food = calc(self._get_key(food['name']), new_g)
-                    new_foods.append(new_food)
-                
-                scaled_meals.append(self._make_meal(meal.name, meal.time, new_foods))
+                return DietPlan(
+                    user_id=user_profile['id'],
+                    target_calories=target_calories,
+                    target_macros=target_macros,
+                    meals=meals,
+                    computed_calories=round(total_cal, 2),
+                    computed_macros={
+                        "protein": round(total_p, 2),
+                        "carbs": round(total_c, 2),
+                        "fat": round(total_f, 2)
+                    },
+                    notes=f"Dieta validada: {int(total_cal)}kcal | P:{int(total_p)}g C:{int(total_c)}g G:{int(total_f)}g"
+                )
             else:
-                # Refeições anteriores: escala proporcionalmente ao target geral
-                sp = target_p / base_p if base_p > 0 else 1
-                sc = target_c / base_c if base_c > 0 else 1
-                sf = target_f / base_f if base_f > 0 else 1
-                
-                new_foods = []
-                for food in meal.foods:
-                    fp, fc, ff = food['protein'], food['carbs'], food['fat']
-                    
-                    if fp > fc and fp > ff:
-                        scale = sp
-                    elif fc > fp and fc > ff:
-                        scale = sc
-                    else:
-                        scale = sf
-                    
-                    scale = max(0.5, min(2.5, scale))
-                    
-                    orig_g = int(food['quantity'].replace('g', ''))
-                    new_g = rnd(orig_g * scale)
-                    
-                    if "Azeite" in food['name']:
-                        new_g = min(15, new_g)
-                    
-                    new_food = calc(self._get_key(food['name']), new_g)
-                    new_foods.append(new_food)
-                
-                new_meal = self._make_meal(meal.name, meal.time, new_foods)
-                scaled_meals.append(new_meal)
-                
-                used_p += new_meal.macros['protein']
-                used_c += new_meal.macros['carbs']
-                used_f += new_meal.macros['fat']
+                last_error = error
+                # Tenta novamente com pequena variação nos templates
+                continue
         
-        return scaled_meals
-    
-    def _get_key(self, name: str) -> str:
-        """Retorna chave do alimento pelo nome"""
-        name_lower = name.lower()
-        for key, food in FOODS.items():
-            if food['name'].lower() in name_lower or name_lower in food['name'].lower():
-                return key
-        return "arroz"  # fallback
+        # FALHA: Não conseguiu gerar dieta válida
+        raise ValueError(
+            f"Impossível gerar dieta que atenda às restrições após {MAX_GENERATION_ATTEMPTS} tentativas. "
+            f"Último erro: {last_error}"
+        )
