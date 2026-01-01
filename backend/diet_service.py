@@ -181,10 +181,10 @@ def build_diet(target_p: float, target_c: float, target_f: float, target_cal: fl
 def fine_tune(meals: List[Dict], target_p: float, target_c: float, target_f: float, target_cal: float) -> List[Dict]:
     """
     Ajuste fino para atingir tolerâncias estritas.
-    Prioriza ajustes que afetam menos outros macros.
+    Faz múltiplas passagens ajustando cada macro de forma independente.
     """
     
-    for iteration in range(200):
+    for iteration in range(500):
         all_foods = [f for m in meals for f in m["foods"]]
         curr_p, curr_c, curr_f, curr_cal = sum_foods(all_foods)
         
@@ -200,92 +200,119 @@ def fine_tune(meals: List[Dict], target_p: float, target_c: float, target_f: flo
         gap_p = target_p - curr_p
         gap_c = target_c - curr_c
         gap_f = target_f - curr_f
+        gap_cal = target_cal - curr_cal
         
         adjusted = False
         
-        # 1. PROTEÍNA: usar frango (mais puro) ou tilápia
-        if not p_ok and not adjusted:
-            # Frango: 31g P, 0g C, 3.6g F por 100g
-            target_food = "frango"
-            for m_idx in [2, 3]:  # Almoço, Lanche
-                for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    if food["key"] == target_food:
-                        info = FOODS[target_food]
-                        # Calcula ajuste: gap_p / 0.31 = gramas
-                        delta = int(gap_p / 0.31)
-                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
-                        new_g = clamp(food["grams"] + delta, info["min"], info["max"])
-                        if new_g != food["grams"]:
-                            meals[m_idx]["foods"][f_idx] = calc(target_food, new_g)
-                            adjusted = True
-                            break
-                if adjusted:
-                    break
-            
-            # Se frango no limite, tenta tilápia
-            if not adjusted:
-                for f_idx, food in enumerate(meals[4]["foods"]):
-                    if food["key"] == "tilapia":
-                        info = FOODS["tilapia"]
-                        delta = int(gap_p / 0.26)
-                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
-                        new_g = clamp(food["grams"] + delta, info["min"], info["max"])
-                        if new_g != food["grams"]:
-                            meals[4]["foods"][f_idx] = calc("tilapia", new_g)
-                            adjusted = True
-                            break
+        # Escolhe qual macro ajustar baseado no maior gap relativo
+        gaps = [
+            ("p", abs(gap_p) / TOL_P if not p_ok else 0, gap_p),
+            ("c", abs(gap_c) / TOL_C if not c_ok else 0, gap_c),
+            ("f", abs(gap_f) / TOL_F if not f_ok else 0, gap_f),
+        ]
+        gaps.sort(key=lambda x: x[1], reverse=True)
         
-        # 2. GORDURA: usar azeite (puro) ou castanha
-        if not f_ok and not adjusted:
-            # Azeite: 0g P, 0g C, 100g F por 100g
-            for m_idx in [2, 4]:  # Almoço, Jantar
-                for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    if food["key"] == "azeite":
-                        info = FOODS["azeite"]
-                        delta = int(gap_f)  # 1g azeite = 1g F
-                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
-                        new_g = clamp(food["grams"] + delta, info["min"], info["max"])
-                        if new_g != food["grams"]:
-                            meals[m_idx]["foods"][f_idx] = calc("azeite", new_g)
-                            adjusted = True
-                            break
-                if adjusted:
-                    break
+        for macro_type, _, gap in gaps:
+            if adjusted:
+                break
+                
+            # 1. PROTEÍNA
+            if macro_type == "p" and not p_ok:
+                for m_idx in [2, 3, 4]:  # Almoço, Lanche, Jantar
+                    for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                        if food["key"] in ["frango", "tilapia"]:
+                            info = FOODS[food["key"]]
+                            p_per_100 = info["p"]
+                            # gramas = gap / (p_per_100 / 100)
+                            delta = int(gap / (p_per_100 / 100))
+                            delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
+                            new_g = clamp(food["grams"] + delta, info["min"], info["max"])
+                            if new_g != food["grams"]:
+                                meals[m_idx]["foods"][f_idx] = calc(food["key"], new_g)
+                                adjusted = True
+                                break
+                    if adjusted:
+                        break
             
-            # Se azeite no limite, tenta castanha
-            if not adjusted:
-                for f_idx, food in enumerate(meals[1]["foods"]):
-                    if food["key"] == "castanha":
-                        info = FOODS["castanha"]
-                        delta = int(gap_f / 0.67)
-                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
-                        new_g = clamp(food["grams"] + delta, info["min"], info["max"])
-                        if new_g != food["grams"]:
-                            meals[1]["foods"][f_idx] = calc("castanha", new_g)
-                            adjusted = True
+            # 2. GORDURA
+            elif macro_type == "f" and not f_ok:
+                # Primeiro tenta azeite (puro)
+                for m_idx in [2, 4, 1]:  # Almoço, Jantar, Lanche1
+                    for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                        if food["key"] == "azeite":
+                            info = FOODS["azeite"]
+                            delta = int(gap)  # 1g azeite = 1g F
+                            delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
+                            new_g = clamp(food["grams"] + delta, info["min"], info["max"])
+                            if new_g != food["grams"]:
+                                meals[m_idx]["foods"][f_idx] = calc("azeite", new_g)
+                                adjusted = True
+                                break
+                    if adjusted:
+                        break
+                
+                # Se azeite no limite, tenta castanha
+                if not adjusted:
+                    for f_idx, food in enumerate(meals[1]["foods"]):
+                        if food["key"] == "castanha":
+                            info = FOODS["castanha"]
+                            delta = int(gap / 0.67)
+                            delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
+                            new_g = clamp(food["grams"] + delta, info["min"], info["max"])
+                            if new_g != food["grams"]:
+                                meals[1]["foods"][f_idx] = calc("castanha", new_g)
+                                adjusted = True
+                                break
+                
+                # Se ainda não ajustou e gap < 0 (muita gordura), reduz ovos
+                if not adjusted and gap < -2:
+                    for f_idx, food in enumerate(meals[0]["foods"]):
+                        if food["key"] == "ovos":
+                            info = FOODS["ovos"]
+                            # Ovos: 11g F por 100g
+                            delta = int(gap / 0.11)
+                            delta = -rnd(abs(delta), info["step"])
+                            new_g = clamp(food["grams"] + delta, info["min"], info["max"])
+                            if new_g != food["grams"]:
+                                meals[0]["foods"][f_idx] = calc("ovos", new_g)
+                                adjusted = True
+                                break
+            
+            # 3. CARBOIDRATOS
+            elif macro_type == "c" and not c_ok:
+                for m_idx, key in [(3, "batata"), (2, "arroz"), (4, "arroz")]:
+                    for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                        if food["key"] == key:
+                            info = FOODS[key]
+                            c_per_100 = info["c"]
+                            delta = int(gap / (c_per_100 / 100))
+                            delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
+                            new_g = clamp(food["grams"] + delta, info["min"], info["max"])
+                            if new_g != food["grams"]:
+                                meals[m_idx]["foods"][f_idx] = calc(key, new_g)
+                                adjusted = True
+                                break
+                    if adjusted:
+                        break
+                
+                # Se arroz/batata no limite, tenta aveia ou banana
+                if not adjusted:
+                    for m_idx, key in [(0, "aveia"), (0, "banana")]:
+                        for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                            if food["key"] == key:
+                                info = FOODS[key]
+                                c_per_100 = info["c"]
+                                delta = int(gap / (c_per_100 / 100))
+                                delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
+                                new_g = clamp(food["grams"] + delta, info["min"], info["max"])
+                                if new_g != food["grams"]:
+                                    meals[m_idx]["foods"][f_idx] = calc(key, new_g)
+                                    adjusted = True
+                                    break
+                        if adjusted:
                             break
-        
-        # 3. CARBOIDRATOS: usar batata ou arroz (mais puros em C)
-        if not c_ok and not adjusted:
-            # Batata: 1.6g P, 20g C, 0.1g F por 100g
-            # Arroz: 2.6g P, 23g C, 0.9g F por 100g
-            for m_idx, key in [(3, "batata"), (2, "arroz"), (4, "arroz")]:
-                for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    if food["key"] == key:
-                        info = FOODS[key]
-                        c_per_100 = info["c"]
-                        delta = int(gap_c / (c_per_100 / 100))
-                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
-                        new_g = clamp(food["grams"] + delta, info["min"], info["max"])
-                        if new_g != food["grams"]:
-                            meals[m_idx]["foods"][f_idx] = calc(key, new_g)
-                            adjusted = True
-                            break
-                if adjusted:
-                    break
         
         if not adjusted:
-            # Não conseguiu ajustar mais - sai do loop
             break
     
     return meals
