@@ -217,8 +217,11 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
     Calcula distribuição de macronutrientes.
     
     REGRAS PARA ATLETA/COMPETIÇÃO:
-    - offseason: P=1.8-2.2g/kg, G=0.8-1.0g/kg, C=restante (ALTO)
-    - prep: P=2.4-2.8g/kg, G=0.6-0.8g/kg, C=restante (BAIXO)
+    - off_season: P=2.0g/kg, G=0.9g/kg, C=restante (ALTO)
+    - pre_prep: P=2.2g/kg, G=0.8g/kg, C=restante (MODERADO)
+    - prep: P=2.6g/kg, G=0.7g/kg, C=restante (BAIXO)
+    - peak_week: P=2.8g/kg, G=0.5g/kg, C=restante (MUITO BAIXO)
+    - post_show: P=2.0g/kg, G=1.0g/kg, C=restante (RECUPERAÇÃO)
     """
     if goal == "cutting":
         # Alto proteína, moderado carbo, baixo gordura
@@ -237,30 +240,35 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
         carbs_cal = target_calories - protein_cal - fat_cal
         carbs_g = max(0, carbs_cal / 4)
     elif goal == "atleta":
-        if competition_phase == "offseason":
+        if competition_phase == "off_season":
             # OFF-SEASON (Lean Bulk): P=2.0g/kg, G=0.9g/kg, C=restante (ALTO)
             protein_g = weight * 2.0
             fat_g = weight * 0.9
-            protein_cal = protein_g * 4
-            fat_cal = fat_g * 9
-            carbs_cal = target_calories - protein_cal - fat_cal
-            carbs_g = max(0, carbs_cal / 4)
+        elif competition_phase == "pre_prep":
+            # PRE-PREP (Transição): P=2.2g/kg, G=0.8g/kg, C=restante (MODERADO)
+            protein_g = weight * 2.2
+            fat_g = weight * 0.8
         elif competition_phase == "prep":
             # PREP (Cutting Agressivo): P=2.6g/kg, G=0.7g/kg, C=restante (BAIXO)
             protein_g = weight * 2.6
             fat_g = weight * 0.7
-            protein_cal = protein_g * 4
-            fat_cal = fat_g * 9
-            carbs_cal = target_calories - protein_cal - fat_cal
-            carbs_g = max(0, carbs_cal / 4)
+        elif competition_phase == "peak_week":
+            # PEAK WEEK (Final): P=2.8g/kg, G=0.5g/kg, C=restante (MUITO BAIXO)
+            protein_g = weight * 2.8
+            fat_g = weight * 0.5
+        elif competition_phase == "post_show":
+            # POST-SHOW (Recuperação): P=2.0g/kg, G=1.0g/kg, C=restante
+            protein_g = weight * 2.0
+            fat_g = weight * 1.0
         else:
             # Default para prep se fase não especificada
             protein_g = weight * 2.6
             fat_g = weight * 0.7
-            protein_cal = protein_g * 4
-            fat_cal = fat_g * 9
-            carbs_cal = target_calories - protein_cal - fat_cal
-            carbs_g = max(0, carbs_cal / 4)
+        
+        protein_cal = protein_g * 4
+        fat_cal = fat_g * 9
+        carbs_cal = target_calories - protein_cal - fat_cal
+        carbs_g = max(0, carbs_cal / 4)
     else:  # manutenção
         protein_g = weight * 1.8
         fat_g = weight * 1.0
