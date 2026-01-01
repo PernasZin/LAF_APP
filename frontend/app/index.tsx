@@ -130,6 +130,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: {
     flex: 1,
     paddingHorizontal: 24,
@@ -192,6 +197,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
+  },
+  buttonPressed: {
+    backgroundColor: '#059669',
+    transform: [{ scale: 0.98 }],
+  },
+  buttonDisabled: {
+    backgroundColor: '#9CA3AF',
   },
   buttonText: {
     color: '#fff',
