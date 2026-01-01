@@ -97,9 +97,8 @@ class LAFBackendTester:
             target_calories = profile['target_calories']
             target_macros = profile['macros']
             
-            # Generate diet using the correct endpoint format
-            diet_response = requests.post(f"{self.backend_url}/diet/generate", 
-                                        json={"user_id": user_id}, timeout=30)
+            # Generate diet using the correct endpoint format (query parameter)
+            diet_response = requests.post(f"{self.backend_url}/diet/generate?user_id={user_id}", timeout=30)
             
             if diet_response.status_code != 200:
                 self.log_test(f"Diet SST - {profile_name}", False, 
