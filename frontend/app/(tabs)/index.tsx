@@ -46,14 +46,7 @@ export default function HomeScreen() {
       const userId = await AsyncStorage.getItem('userId');
       if (userId && BACKEND_URL) {
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-          
-          const response = await fetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
-            signal: controller.signal,
-          });
-          
-          clearTimeout(timeoutId);
+          const response = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`);
           
           if (response.ok) {
             const data = await response.json();
