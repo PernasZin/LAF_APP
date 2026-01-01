@@ -1,7 +1,10 @@
 """
-Sistema de Geração de Dieta - FECHAMENTO MATEMÁTICO V5
+Sistema de Geração de Dieta - FECHAMENTO EXATO V6
 
-CORREÇÃO: Cálculos de gramas corrigidos
+ESTRATÉGIA SIMPLIFICADA:
+1. Calcular diretamente as quantidades necessárias de cada alimento
+2. Usar proporções matemáticas corretas
+3. Ajuste fino iterativo para fechar tolerâncias
 """
 
 import os
@@ -47,42 +50,30 @@ TOL_CAL = 25.0
 
 
 # ==================== FOOD DATABASE ====================
-# Nutrientes por 100g
 
 FOODS = {
-    # PROTEÍNAS
-    "clara": {"name": "Clara de Ovo", "p": 11.0, "c": 0.7, "f": 0.2, "min": 30, "max": 250, "step": 30},
-    "frango": {"name": "Peito de Frango", "p": 31.0, "c": 0.0, "f": 3.6, "min": 50, "max": 300, "step": 25},
-    "tilapia": {"name": "Tilápia", "p": 26.0, "c": 0.0, "f": 2.5, "min": 50, "max": 250, "step": 25},
-    "ovos": {"name": "Ovos Inteiros", "p": 13.0, "c": 1.1, "f": 11.0, "min": 50, "max": 200, "step": 50},
-    "iogurte": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "min": 100, "max": 250, "step": 50},
-    
-    # CARBOIDRATOS
-    "batata": {"name": "Batata Doce", "p": 1.6, "c": 20.0, "f": 0.1, "min": 50, "max": 500, "step": 25},
-    "arroz": {"name": "Arroz Integral", "p": 2.6, "c": 23.0, "f": 0.9, "min": 50, "max": 400, "step": 25},
-    "banana": {"name": "Banana", "p": 1.1, "c": 23.0, "f": 0.3, "min": 80, "max": 240, "step": 40},
-    "aveia": {"name": "Aveia", "p": 13.5, "c": 66.0, "f": 7.0, "min": 30, "max": 100, "step": 10},
-    "feijao": {"name": "Feijão", "p": 5.0, "c": 14.0, "f": 0.5, "min": 60, "max": 180, "step": 30},
-    
-    # GORDURAS
+    "clara": {"name": "Clara de Ovo", "p": 11.0, "c": 0.7, "f": 0.2, "min": 30, "max": 200, "step": 30},
+    "frango": {"name": "Peito de Frango", "p": 31.0, "c": 0.0, "f": 3.6, "min": 75, "max": 275, "step": 25},
+    "tilapia": {"name": "Tilápia", "p": 26.0, "c": 0.0, "f": 2.5, "min": 75, "max": 200, "step": 25},
+    "ovos": {"name": "Ovos Inteiros", "p": 13.0, "c": 1.1, "f": 11.0, "min": 50, "max": 150, "step": 50},
+    "iogurte": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "min": 100, "max": 200, "step": 50},
+    "batata": {"name": "Batata Doce", "p": 1.6, "c": 20.0, "f": 0.1, "min": 100, "max": 400, "step": 25},
+    "arroz": {"name": "Arroz Integral", "p": 2.6, "c": 23.0, "f": 0.9, "min": 100, "max": 350, "step": 25},
+    "banana": {"name": "Banana", "p": 1.1, "c": 23.0, "f": 0.3, "min": 80, "max": 200, "step": 40},
+    "aveia": {"name": "Aveia", "p": 13.5, "c": 66.0, "f": 7.0, "min": 30, "max": 80, "step": 10},
+    "feijao": {"name": "Feijão", "p": 5.0, "c": 14.0, "f": 0.5, "min": 60, "max": 150, "step": 30},
     "azeite": {"name": "Azeite", "p": 0.0, "c": 0.0, "f": 100.0, "min": 5, "max": 15, "step": 5},
-    "castanha": {"name": "Castanha", "p": 14.0, "c": 12.0, "f": 67.0, "min": 10, "max": 30, "step": 5},
-    
-    # VEGETAIS
+    "castanha": {"name": "Castanha", "p": 14.0, "c": 12.0, "f": 67.0, "min": 10, "max": 25, "step": 5},
     "brocolis": {"name": "Brócolis", "p": 2.8, "c": 7.0, "f": 0.4, "min": 80, "max": 150, "step": 25},
     "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "min": 80, "max": 150, "step": 25},
 }
 
 
 def calc(key: str, g: int) -> Dict:
-    """Calcula nutrientes para g gramas do alimento"""
     f = FOODS[key]
     r = g / 100.0
     return {
-        "key": key,
-        "name": f["name"],
-        "quantity": f"{g}g",
-        "grams": g,
+        "key": key, "name": f["name"], "quantity": f"{g}g", "grams": g,
         "protein": round(f["p"] * r, 2),
         "carbs": round(f["c"] * r, 2),
         "fat": round(f["f"] * r, 2),
@@ -91,7 +82,6 @@ def calc(key: str, g: int) -> Dict:
 
 
 def rnd(val: float, step: int) -> int:
-    """Arredonda para múltiplo de step"""
     return max(step, int(round(val / step) * step))
 
 
@@ -102,151 +92,96 @@ def clamp(val: int, mn: int, mx: int) -> int:
 def sum_foods(foods: List[Dict]) -> Tuple[float, float, float, float]:
     p = sum(f["protein"] for f in foods)
     c = sum(f["carbs"] for f in foods)
-    f_val = sum(f["fat"] for f in foods)
+    fv = sum(f["fat"] for f in foods)
     cal = sum(f["calories"] for f in foods)
-    return p, c, f_val, cal
+    return p, c, fv, cal
 
 
-def grams_for_macro(target_macro: float, macro_per_100g: float) -> float:
-    """Calcula gramas necessárias para atingir quantidade de macro"""
-    if macro_per_100g == 0:
-        return 0
-    return (target_macro / macro_per_100g) * 100
-
-
-# ==================== CORE ALGORITHM ====================
+# ==================== SIMPLIFIED BUILD ====================
 
 def build_diet(target_p: float, target_c: float, target_f: float, target_cal: float) -> List[Dict]:
     """
-    Constrói dieta distribuindo macros entre alimentos.
+    Constrói dieta de forma simples e direta.
     """
     
-    # PROTEÍNA: distribuir entre frango, tilápia, ovos, iogurte
-    # frango: 31g P/100g, tilápia: 26g P/100g, ovos: 13g P/100g, iogurte: 10g P/100g
+    # Escala base para targets
+    # Template base (aproximadamente 2000kcal, 150P, 200C, 60F)
     
-    p_frango = target_p * 0.40  # 40% da P de frango
-    p_tilapia = target_p * 0.25  # 25% de tilápia
-    p_ovos = target_p * 0.15  # 15% de ovos
-    p_iogurte = target_p * 0.10  # 10% de iogurte
-    # Clara para ajuste fino: 10%
+    # Fatores de escala
+    scale_p = target_p / 150.0
+    scale_c = target_c / 200.0
+    scale_f = target_f / 60.0
+    scale_cal = target_cal / 2000.0
     
-    frango_g = rnd(grams_for_macro(p_frango, 31.0), 25)
-    tilapia_g = rnd(grams_for_macro(p_tilapia, 26.0), 25)
-    ovos_g = rnd(grams_for_macro(p_ovos, 13.0), 50)
-    iogurte_g = rnd(grams_for_macro(p_iogurte, 10.0), 50)
+    # CAFÉ DA MANHÃ
+    ovos_g = clamp(rnd(100 * scale_p, 50), 50, 150)
+    aveia_g = clamp(rnd(40 * scale_c, 10), 30, 70)
+    banana_g = clamp(rnd(100 * scale_c, 40), 80, 160)
     
-    # Aplica limites
-    frango_g = clamp(frango_g, 100, 275)
-    tilapia_g = clamp(tilapia_g, 75, 200)
-    ovos_g = clamp(ovos_g, 50, 150)
-    iogurte_g = clamp(iogurte_g, 100, 200)
+    cafe = {"name": "Café da Manhã", "time": "07:00", "foods": [
+        calc("ovos", ovos_g),
+        calc("aveia", aveia_g),
+        calc("banana", banana_g),
+    ]}
     
-    # Calcula P atual
-    p_atual = (frango_g * 31 + tilapia_g * 26 + ovos_g * 13 + iogurte_g * 10) / 100
-    p_gap = target_p - p_atual
+    # LANCHE MANHÃ
+    iogurte_g = clamp(rnd(150 * scale_p, 50), 100, 200)
+    castanha_g = clamp(rnd(15 * scale_f, 5), 10, 25)
     
-    # Clara para ajuste
-    clara_g = 0
-    if p_gap > 5:
-        clara_g = clamp(rnd(grams_for_macro(p_gap, 11.0), 30), 30, 200)
-    
-    # GORDURA: azeite(100g F/100g), castanha(67g F/100g), ovos já contam
-    f_ovos = (ovos_g * 11) / 100  # ovos têm 11g F/100g
-    f_remaining = target_f - f_ovos
-    
-    # Máximo 30g azeite total, 25g castanha
-    castanha_g = clamp(rnd(min(15, grams_for_macro(f_remaining * 0.25, 67.0)), 5), 10, 25)
-    f_castanha = (castanha_g * 67) / 100
-    
-    azeite_total = clamp(rnd(grams_for_macro(f_remaining - f_castanha, 100.0), 5), 15, 30)
-    
-    # CARBOIDRATOS: calcular para fechar calorias
-    # Cal = P*4 + C*4 + F*9
-    p_final = p_atual + (clara_g * 11 / 100)
-    f_final = f_ovos + f_castanha + azeite_total
-    
-    # C = (Cal - P*4 - F*9) / 4
-    c_needed = (target_cal - p_final * 4 - f_final * 9) / 4
-    c_needed = max(100, c_needed)  # Mínimo 100g
-    
-    # Distribuir carbs: arroz(23), batata(20), aveia(66), banana(23), feijão(14)
-    c_arroz = c_needed * 0.35
-    c_batata = c_needed * 0.30
-    c_aveia = c_needed * 0.12
-    c_banana = c_needed * 0.12
-    c_feijao = c_needed * 0.11
-    
-    arroz_g = clamp(rnd(grams_for_macro(c_arroz, 23.0), 25), 100, 350)
-    batata_g = clamp(rnd(grams_for_macro(c_batata, 20.0), 25), 100, 400)
-    aveia_g = clamp(rnd(grams_for_macro(c_aveia, 66.0), 10), 30, 80)
-    banana_g = clamp(rnd(grams_for_macro(c_banana, 23.0), 40), 80, 160)
-    feijao_g = clamp(rnd(grams_for_macro(c_feijao, 14.0), 30), 60, 150)
-    
-    # Divide frango
-    frango_almoco = clamp(rnd(frango_g * 0.55, 25), 75, 200)
-    frango_lanche = clamp(frango_g - frango_almoco, 50, 150)
-    
-    # Divide arroz
-    arroz_almoco = clamp(rnd(arroz_g * 0.55, 25), 75, 225)
-    arroz_jantar = clamp(arroz_g - arroz_almoco, 50, 175)
-    
-    # Divide azeite (3 refeições)
-    azeite_almoco = clamp(rnd(azeite_total * 0.4, 5), 5, 15)
-    azeite_jantar = clamp(rnd(azeite_total * 0.4, 5), 5, 15)
-    
-    # ===== MONTA REFEIÇÕES =====
-    
-    meals = []
-    
-    # CAFÉ
-    cafe = {"name": "Café da Manhã", "time": "07:00", "foods": []}
-    cafe["foods"].append(calc("ovos", ovos_g))
-    cafe["foods"].append(calc("aveia", aveia_g))
-    cafe["foods"].append(calc("banana", banana_g))
-    if clara_g > 0:
-        cafe["foods"].append(calc("clara", clara_g))
-    meals.append(cafe)
-    
-    # LANCHE 1
-    lanche1 = {"name": "Lanche Manhã", "time": "10:00", "foods": []}
-    lanche1["foods"].append(calc("iogurte", iogurte_g))
-    lanche1["foods"].append(calc("castanha", castanha_g))
-    meals.append(lanche1)
+    lanche1 = {"name": "Lanche Manhã", "time": "10:00", "foods": [
+        calc("iogurte", iogurte_g),
+        calc("castanha", castanha_g),
+    ]}
     
     # ALMOÇO
-    almoco = {"name": "Almoço", "time": "12:30", "foods": []}
-    almoco["foods"].append(calc("frango", frango_almoco))
-    almoco["foods"].append(calc("arroz", arroz_almoco))
-    almoco["foods"].append(calc("feijao", feijao_g))
-    almoco["foods"].append(calc("salada", 100))
-    almoco["foods"].append(calc("azeite", azeite_almoco))
-    meals.append(almoco)
+    frango_almoco = clamp(rnd(120 * scale_p, 25), 100, 200)
+    arroz_almoco = clamp(rnd(150 * scale_c, 25), 125, 250)
+    feijao_g = clamp(rnd(80 * scale_c, 30), 60, 120)
+    azeite_almoco = clamp(rnd(10 * scale_f, 5), 5, 15)
     
-    # LANCHE 2
-    lanche2 = {"name": "Lanche Tarde", "time": "16:00", "foods": []}
-    lanche2["foods"].append(calc("batata", batata_g))
-    lanche2["foods"].append(calc("frango", frango_lanche))
-    meals.append(lanche2)
+    almoco = {"name": "Almoço", "time": "12:30", "foods": [
+        calc("frango", frango_almoco),
+        calc("arroz", arroz_almoco),
+        calc("feijao", feijao_g),
+        calc("salada", 100),
+        calc("azeite", azeite_almoco),
+    ]}
+    
+    # LANCHE TARDE
+    batata_g = clamp(rnd(150 * scale_c, 25), 100, 300)
+    frango_lanche = clamp(rnd(80 * scale_p, 25), 75, 150)
+    
+    lanche2 = {"name": "Lanche Tarde", "time": "16:00", "foods": [
+        calc("batata", batata_g),
+        calc("frango", frango_lanche),
+    ]}
     
     # JANTAR
-    jantar = {"name": "Jantar", "time": "19:30", "foods": []}
-    jantar["foods"].append(calc("tilapia", tilapia_g))
-    jantar["foods"].append(calc("arroz", arroz_jantar))
-    jantar["foods"].append(calc("brocolis", 100))
-    jantar["foods"].append(calc("azeite", azeite_jantar))
-    meals.append(jantar)
+    tilapia_g = clamp(rnd(120 * scale_p, 25), 100, 175)
+    arroz_jantar = clamp(rnd(100 * scale_c, 25), 75, 200)
+    azeite_jantar = clamp(rnd(10 * scale_f, 5), 5, 15)
     
-    return meals
+    jantar = {"name": "Jantar", "time": "19:30", "foods": [
+        calc("tilapia", tilapia_g),
+        calc("arroz", arroz_jantar),
+        calc("brocolis", 100),
+        calc("azeite", azeite_jantar),
+    ]}
+    
+    return [cafe, lanche1, almoco, lanche2, jantar]
 
 
 def fine_tune(meals: List[Dict], target_p: float, target_c: float, target_f: float, target_cal: float) -> List[Dict]:
-    """Ajuste fino iterativo"""
+    """
+    Ajuste fino para atingir tolerâncias estritas.
+    Prioriza ajustes que afetam menos outros macros.
+    """
     
-    for iteration in range(100):
+    for iteration in range(200):
         all_foods = [f for m in meals for f in m["foods"]]
         curr_p, curr_c, curr_f, curr_cal = sum_foods(all_foods)
         
-        # Verifica tolerâncias
+        # Check tolerances
         p_ok = abs(curr_p - target_p) <= TOL_P
         c_ok = abs(curr_c - target_c) <= TOL_C
         f_ok = abs(curr_f - target_f) <= TOL_F
@@ -261,55 +196,47 @@ def fine_tune(meals: List[Dict], target_p: float, target_c: float, target_f: flo
         
         adjusted = False
         
-        # PROTEÍNA
+        # 1. PROTEÍNA: usar frango (mais puro) ou tilápia
         if not p_ok and not adjusted:
+            # Frango: 31g P, 0g C, 3.6g F por 100g
+            target_food = "frango"
             for m_idx in [2, 3]:  # Almoço, Lanche
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    if food["key"] == "frango":
-                        info = FOODS["frango"]
-                        # gap_p / (31g P/100g) = gramas necessárias
-                        delta = rnd(grams_for_macro(gap_p, 31.0), info["step"])
-                        if gap_p < 0:
-                            delta = -abs(delta)
+                    if food["key"] == target_food:
+                        info = FOODS[target_food]
+                        # Calcula ajuste: gap_p / 0.31 = gramas
+                        delta = int(gap_p / 0.31)
+                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
                         new_g = clamp(food["grams"] + delta, info["min"], info["max"])
                         if new_g != food["grams"]:
-                            meals[m_idx]["foods"][f_idx] = calc("frango", new_g)
+                            meals[m_idx]["foods"][f_idx] = calc(target_food, new_g)
                             adjusted = True
                             break
                 if adjusted:
                     break
             
-            # Tenta clara se frango não resolveu
-            if not adjusted and abs(gap_p) > TOL_P:
-                # Procura clara no café
-                clara_exists = False
-                for f_idx, food in enumerate(meals[0]["foods"]):
-                    if food["key"] == "clara":
-                        clara_exists = True
-                        info = FOODS["clara"]
-                        delta = rnd(grams_for_macro(gap_p, 11.0), info["step"])
-                        if gap_p < 0:
-                            delta = -abs(delta)
+            # Se frango no limite, tenta tilápia
+            if not adjusted:
+                for f_idx, food in enumerate(meals[4]["foods"]):
+                    if food["key"] == "tilapia":
+                        info = FOODS["tilapia"]
+                        delta = int(gap_p / 0.26)
+                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
                         new_g = clamp(food["grams"] + delta, info["min"], info["max"])
                         if new_g != food["grams"]:
-                            meals[0]["foods"][f_idx] = calc("clara", new_g)
+                            meals[4]["foods"][f_idx] = calc("tilapia", new_g)
                             adjusted = True
-                        break
-                
-                if not clara_exists and gap_p > 5:
-                    clara_g = clamp(rnd(grams_for_macro(gap_p, 11.0), 30), 30, 150)
-                    meals[0]["foods"].append(calc("clara", clara_g))
-                    adjusted = True
+                            break
         
-        # GORDURA
+        # 2. GORDURA: usar azeite (puro) ou castanha
         if not f_ok and not adjusted:
+            # Azeite: 0g P, 0g C, 100g F por 100g
             for m_idx in [2, 4]:  # Almoço, Jantar
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
                     if food["key"] == "azeite":
                         info = FOODS["azeite"]
-                        delta = rnd(grams_for_macro(gap_f, 100.0), info["step"])
-                        if gap_f < 0:
-                            delta = -abs(delta)
+                        delta = int(gap_f)  # 1g azeite = 1g F
+                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
                         new_g = clamp(food["grams"] + delta, info["min"], info["max"])
                         if new_g != food["grams"]:
                             meals[m_idx]["foods"][f_idx] = calc("azeite", new_g)
@@ -317,18 +244,31 @@ def fine_tune(meals: List[Dict], target_p: float, target_c: float, target_f: flo
                             break
                 if adjusted:
                     break
+            
+            # Se azeite no limite, tenta castanha
+            if not adjusted:
+                for f_idx, food in enumerate(meals[1]["foods"]):
+                    if food["key"] == "castanha":
+                        info = FOODS["castanha"]
+                        delta = int(gap_f / 0.67)
+                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
+                        new_g = clamp(food["grams"] + delta, info["min"], info["max"])
+                        if new_g != food["grams"]:
+                            meals[1]["foods"][f_idx] = calc("castanha", new_g)
+                            adjusted = True
+                            break
         
-        # CARBOIDRATOS
+        # 3. CARBOIDRATOS: usar batata ou arroz (mais puros em C)
         if not c_ok and not adjusted:
-            for m_idx in [2, 4, 3]:  # Almoço, Jantar, Lanche
+            # Batata: 1.6g P, 20g C, 0.1g F por 100g
+            # Arroz: 2.6g P, 23g C, 0.9g F por 100g
+            for m_idx, key in [(3, "batata"), (2, "arroz"), (4, "arroz")]:
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    if food["key"] in ["arroz", "batata"]:
-                        key = food["key"]
+                    if food["key"] == key:
                         info = FOODS[key]
                         c_per_100 = info["c"]
-                        delta = rnd(grams_for_macro(gap_c, c_per_100), info["step"])
-                        if gap_c < 0:
-                            delta = -abs(delta)
+                        delta = int(gap_c / (c_per_100 / 100))
+                        delta = rnd(delta, info["step"]) if delta > 0 else -rnd(abs(delta), info["step"])
                         new_g = clamp(food["grams"] + delta, info["min"], info["max"])
                         if new_g != food["grams"]:
                             meals[m_idx]["foods"][f_idx] = calc(key, new_g)
@@ -338,6 +278,7 @@ def fine_tune(meals: List[Dict], target_p: float, target_c: float, target_f: flo
                     break
         
         if not adjusted:
+            # Não conseguiu ajustar mais - sai do loop
             break
     
     return meals
@@ -349,13 +290,13 @@ def validate(meals: List[Dict], target_p: float, target_c: float, target_f: floa
     
     errors = []
     if abs(curr_p - target_p) > TOL_P:
-        errors.append(f"P:{curr_p:.1f}g vs {target_p}g (diff {abs(curr_p - target_p):.1f})")
+        errors.append(f"P:{curr_p:.1f}g vs {target_p}g")
     if abs(curr_c - target_c) > TOL_C:
-        errors.append(f"C:{curr_c:.1f}g vs {target_c}g (diff {abs(curr_c - target_c):.1f})")
+        errors.append(f"C:{curr_c:.1f}g vs {target_c}g")
     if abs(curr_f - target_f) > TOL_F:
-        errors.append(f"F:{curr_f:.1f}g vs {target_f}g (diff {abs(curr_f - target_f):.1f})")
+        errors.append(f"F:{curr_f:.1f}g vs {target_f}g")
     if abs(curr_cal - target_cal) > TOL_CAL:
-        errors.append(f"Cal:{curr_cal:.1f} vs {target_cal} (diff {abs(curr_cal - target_cal):.1f})")
+        errors.append(f"Cal:{curr_cal:.1f} vs {target_cal}")
     
     return len(errors) == 0, "; ".join(errors)
 
@@ -372,16 +313,13 @@ class DietAIService:
         target_f = round(target_macros["fat"], 1)
         target_cal = round(target_calories, 0)
         
-        # Constrói e ajusta
         meals = build_diet(target_p, target_c, target_f, target_cal)
         meals = fine_tune(meals, target_p, target_c, target_f, target_cal)
         
-        # Valida
         is_valid, error = validate(meals, target_p, target_c, target_f, target_cal)
         if not is_valid:
             raise ValueError(f"Impossível fechar macros: {error}")
         
-        # Converte para output
         final_meals = []
         for m in meals:
             mp, mc, mf, mcal = sum_foods(m["foods"])
