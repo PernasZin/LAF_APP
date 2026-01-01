@@ -13,12 +13,26 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSettingsStore, ThemePreference } from '../../stores/settingsStore';
 import { useTheme } from '../../theme/ThemeContext';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+// Safe fetch with timeout - prevents blocking UI
+const safeFetch = async (url: string, options?: RequestInit) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
 
 export default function SettingsScreen() {
   const router = useRouter();
