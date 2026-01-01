@@ -171,6 +171,18 @@ backend:
         agent: "main"
         comment: "Macros calculation based on goal (cutting/bulking/manutenção/atleta) working correctly with proper protein/carbs/fat ratios."
 
+  - task: "Athlete Domain Model - 5 Competition Phases"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ATHLETE MODEL COMPLETE - All 5 competition phases (off_season, pre_prep, prep, peak_week, post_show) implemented with correct calorie adjustments and macro ratios. Validation working: rejects missing competition_phase, missing weeks_to_competition, and invalid phases. Phase-specific calculations: off_season (+7.5%, P=2.0g/kg, F=0.9g/kg), pre_prep (-5%, P=2.2g/kg, F=0.8g/kg), prep (-22.5%, P=2.6g/kg, F=0.7g/kg), peak_week (-25%, P=2.8g/kg, F=0.5g/kg). Diet generation for athletes working with strict tolerances (P±3g, C±3g, F±2g). Athlete prep has lower calories than regular cutting as expected. All 9 tests passed (100% success rate)."
+
   - task: "Emergent LLM Key Integration"
     implemented: true
     working: "NA"
