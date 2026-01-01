@@ -372,7 +372,7 @@ async def create_user_profile(profile_data: UserProfileCreate):
         if profile_data.competition_date:
             try:
                 profile_dict["competition_date"] = datetime.fromisoformat(profile_data.competition_date.replace('Z', '+00:00'))
-            except:
+            except (ValueError, TypeError):
                 profile_dict["competition_date"] = None
         
         # Define phase_start_date
