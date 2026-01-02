@@ -7,93 +7,104 @@ interface Props {
   updateData: (data: any) => void;
 }
 
-// Food Database with Macro Categories
+// Food Database with SEPARATE Categories
 interface FoodItem {
   id: string;
   name: string;
-  macro_type: 'carb' | 'protein' | 'fat' | 'other';
 }
 
 const FOOD_DATABASE: Record<string, FoodItem[]> = {
   carbs: [
-    { id: 'rice', name: 'Arroz', macro_type: 'carb' },
-    { id: 'brown_rice', name: 'Arroz Integral', macro_type: 'carb' },
-    { id: 'sweet_potato', name: 'Batata Doce', macro_type: 'carb' },
-    { id: 'potato', name: 'Batata Inglesa', macro_type: 'carb' },
-    { id: 'oats', name: 'Aveia', macro_type: 'carb' },
-    { id: 'pasta', name: 'Macarrão', macro_type: 'carb' },
-    { id: 'integral_pasta', name: 'Macarrão Integral', macro_type: 'carb' },
-    { id: 'bread', name: 'Pão', macro_type: 'carb' },
-    { id: 'integral_bread', name: 'Pão Integral', macro_type: 'carb' },
-    { id: 'tapioca', name: 'Tapioca', macro_type: 'carb' },
-    { id: 'cassava', name: 'Mandioca', macro_type: 'carb' },
-    { id: 'corn', name: 'Milho', macro_type: 'carb' },
-    { id: 'beans', name: 'Feijão', macro_type: 'carb' },
-    { id: 'lentils', name: 'Lentilha', macro_type: 'carb' },
-    { id: 'chickpeas', name: 'Grão de Bico', macro_type: 'carb' },
-    { id: 'banana', name: 'Banana', macro_type: 'carb' },
-    { id: 'apple', name: 'Maçã', macro_type: 'carb' },
-    { id: 'orange', name: 'Laranja', macro_type: 'carb' },
-    { id: 'berries', name: 'Frutas Vermelhas', macro_type: 'carb' },
-    { id: 'mango', name: 'Manga', macro_type: 'carb' },
-    { id: 'papaya', name: 'Mamão', macro_type: 'carb' },
-    { id: 'watermelon', name: 'Melancia', macro_type: 'carb' },
-    { id: 'grapes', name: 'Uva', macro_type: 'carb' },
+    { id: 'rice', name: 'Arroz' },
+    { id: 'brown_rice', name: 'Arroz Integral' },
+    { id: 'sweet_potato', name: 'Batata Doce' },
+    { id: 'potato', name: 'Batata Inglesa' },
+    { id: 'oats', name: 'Aveia' },
+    { id: 'pasta', name: 'Macarrão' },
+    { id: 'integral_pasta', name: 'Macarrão Integral' },
+    { id: 'bread', name: 'Pão' },
+    { id: 'integral_bread', name: 'Pão Integral' },
+    { id: 'tapioca', name: 'Tapioca' },
+    { id: 'cassava', name: 'Mandioca' },
+    { id: 'corn', name: 'Milho' },
+    { id: 'beans', name: 'Feijão' },
+    { id: 'lentils', name: 'Lentilha' },
+    { id: 'chickpeas', name: 'Grão de Bico' },
   ],
   proteins: [
-    { id: 'chicken', name: 'Frango', macro_type: 'protein' },
-    { id: 'chicken_breast', name: 'Peito de Frango', macro_type: 'protein' },
-    { id: 'beef', name: 'Carne Bovina', macro_type: 'protein' },
-    { id: 'ground_beef', name: 'Carne Moída', macro_type: 'protein' },
-    { id: 'steak', name: 'Filé Mignon', macro_type: 'protein' },
-    { id: 'pork', name: 'Carne Suína', macro_type: 'protein' },
-    { id: 'fish', name: 'Peixe', macro_type: 'protein' },
-    { id: 'tilapia', name: 'Tilápia', macro_type: 'protein' },
-    { id: 'salmon', name: 'Salmão', macro_type: 'protein' },
-    { id: 'tuna', name: 'Atum', macro_type: 'protein' },
-    { id: 'shrimp', name: 'Camarão', macro_type: 'protein' },
-    { id: 'eggs', name: 'Ovos', macro_type: 'protein' },
-    { id: 'egg_whites', name: 'Clara de Ovo', macro_type: 'protein' },
-    { id: 'whey', name: 'Whey Protein', macro_type: 'protein' },
-    { id: 'greek_yogurt', name: 'Iogurte Grego', macro_type: 'protein' },
-    { id: 'cottage', name: 'Queijo Cottage', macro_type: 'protein' },
-    { id: 'turkey', name: 'Peru', macro_type: 'protein' },
-    { id: 'ham', name: 'Presunto', macro_type: 'protein' },
+    { id: 'chicken', name: 'Frango' },
+    { id: 'beef', name: 'Carne Bovina' },
+    { id: 'pork', name: 'Carne Suína' },
+    { id: 'fish', name: 'Peixe' },
+    { id: 'tilapia', name: 'Tilápia' },
+    { id: 'salmon', name: 'Salmão' },
+    { id: 'tuna', name: 'Atum' },
+    { id: 'shrimp', name: 'Camarão' },
+    { id: 'eggs', name: 'Ovos' },
+    { id: 'egg_whites', name: 'Clara de Ovo' },
+    { id: 'greek_yogurt', name: 'Iogurte Grego' },
+    { id: 'cottage', name: 'Queijo Cottage' },
+    { id: 'turkey', name: 'Peru' },
+    { id: 'ham', name: 'Presunto' },
   ],
   fats: [
-    { id: 'olive_oil', name: 'Azeite de Oliva', macro_type: 'fat' },
-    { id: 'coconut_oil', name: 'Óleo de Coco', macro_type: 'fat' },
-    { id: 'avocado', name: 'Abacate', macro_type: 'fat' },
-    { id: 'nuts', name: 'Castanhas', macro_type: 'fat' },
-    { id: 'almonds', name: 'Amêndoas', macro_type: 'fat' },
-    { id: 'walnuts', name: 'Nozes', macro_type: 'fat' },
-    { id: 'brazil_nuts', name: 'Castanha do Pará', macro_type: 'fat' },
-    { id: 'peanuts', name: 'Amendoim', macro_type: 'fat' },
-    { id: 'peanut_butter', name: 'Pasta de Amendoim', macro_type: 'fat' },
-    { id: 'seeds', name: 'Sementes (chia, linhaça)', macro_type: 'fat' },
-    { id: 'butter', name: 'Manteiga', macro_type: 'fat' },
-    { id: 'cheese', name: 'Queijo', macro_type: 'fat' },
-    { id: 'cream_cheese', name: 'Cream Cheese', macro_type: 'fat' },
-    { id: 'heavy_cream', name: 'Creme de Leite', macro_type: 'fat' },
+    { id: 'olive_oil', name: 'Azeite de Oliva' },
+    { id: 'coconut_oil', name: 'Óleo de Coco' },
+    { id: 'avocado', name: 'Abacate' },
+    { id: 'nuts', name: 'Castanhas' },
+    { id: 'almonds', name: 'Amêndoas' },
+    { id: 'walnuts', name: 'Nozes' },
+    { id: 'brazil_nuts', name: 'Castanha do Pará' },
+    { id: 'peanuts', name: 'Amendoim' },
+    { id: 'peanut_butter', name: 'Pasta de Amendoim' },
+    { id: 'seeds', name: 'Sementes (chia, linhaça)' },
+    { id: 'butter', name: 'Manteiga' },
+    { id: 'cheese', name: 'Queijo' },
+    { id: 'cream_cheese', name: 'Cream Cheese' },
+    { id: 'heavy_cream', name: 'Creme de Leite' },
   ],
-  other: [
-    { id: 'broccoli', name: 'Brócolis', macro_type: 'other' },
-    { id: 'spinach', name: 'Espinafre', macro_type: 'other' },
-    { id: 'lettuce', name: 'Alface', macro_type: 'other' },
-    { id: 'tomato', name: 'Tomate', macro_type: 'other' },
-    { id: 'carrot', name: 'Cenoura', macro_type: 'other' },
-    { id: 'cucumber', name: 'Pepino', macro_type: 'other' },
-    { id: 'zucchini', name: 'Abobrinha', macro_type: 'other' },
-    { id: 'onion', name: 'Cebola', macro_type: 'other' },
-    { id: 'garlic', name: 'Alho', macro_type: 'other' },
-    { id: 'bell_pepper', name: 'Pimentão', macro_type: 'other' },
-    { id: 'mushroom', name: 'Cogumelo', macro_type: 'other' },
-    { id: 'cabbage', name: 'Repolho', macro_type: 'other' },
-    { id: 'green_beans', name: 'Vagem', macro_type: 'other' },
-    { id: 'asparagus', name: 'Aspargo', macro_type: 'other' },
-    { id: 'creatine', name: 'Creatina', macro_type: 'other' },
-    { id: 'bcaa', name: 'BCAA', macro_type: 'other' },
-    { id: 'multivitamin', name: 'Multivitamínico', macro_type: 'other' },
+  // ========== FRUTAS - CATEGORIA SEPARADA ==========
+  fruits: [
+    { id: 'banana', name: 'Banana' },
+    { id: 'apple', name: 'Maçã' },
+    { id: 'orange', name: 'Laranja' },
+    { id: 'berries', name: 'Frutas Vermelhas' },
+    { id: 'mango', name: 'Manga' },
+    { id: 'papaya', name: 'Mamão' },
+    { id: 'watermelon', name: 'Melancia' },
+    { id: 'grapes', name: 'Uva' },
+    { id: 'pineapple', name: 'Abacaxi' },
+    { id: 'melon', name: 'Melão' },
+    { id: 'strawberry', name: 'Morango' },
+    { id: 'kiwi', name: 'Kiwi' },
+  ],
+  vegetables: [
+    { id: 'broccoli', name: 'Brócolis' },
+    { id: 'spinach', name: 'Espinafre' },
+    { id: 'lettuce', name: 'Alface' },
+    { id: 'tomato', name: 'Tomate' },
+    { id: 'carrot', name: 'Cenoura' },
+    { id: 'cucumber', name: 'Pepino' },
+    { id: 'zucchini', name: 'Abobrinha' },
+    { id: 'onion', name: 'Cebola' },
+    { id: 'bell_pepper', name: 'Pimentão' },
+    { id: 'mushroom', name: 'Cogumelo' },
+    { id: 'cabbage', name: 'Repolho' },
+    { id: 'green_beans', name: 'Vagem' },
+    { id: 'asparagus', name: 'Aspargo' },
+  ],
+  // ========== SUPLEMENTOS - CATEGORIA SEPARADA ==========
+  supplements: [
+    { id: 'whey', name: 'Whey Protein' },
+    { id: 'creatine', name: 'Creatina' },
+    { id: 'bcaa', name: 'BCAA' },
+    { id: 'multivitamin', name: 'Multivitamínico' },
+    { id: 'caffeine', name: 'Cafeína' },
+    { id: 'pre_workout', name: 'Pré-Treino' },
+    { id: 'glutamine', name: 'Glutamina' },
+    { id: 'omega3', name: 'Ômega 3' },
+    { id: 'vitamin_d', name: 'Vitamina D' },
+    { id: 'collagen', name: 'Colágeno' },
   ],
 };
 
@@ -101,7 +112,9 @@ const CATEGORIES = [
   { key: 'carbs', label: 'Carboidratos', icon: 'leaf-outline', color: '#F59E0B' },
   { key: 'proteins', label: 'Proteínas', icon: 'fitness-outline', color: '#EF4444' },
   { key: 'fats', label: 'Gorduras', icon: 'water-outline', color: '#3B82F6' },
-  { key: 'other', label: 'Vegetais e Suplementos', icon: 'nutrition-outline', color: '#10B981' },
+  { key: 'fruits', label: '🍎 Frutas', icon: 'nutrition-outline', color: '#EC4899' },
+  { key: 'vegetables', label: 'Vegetais', icon: 'leaf-outline', color: '#10B981' },
+  { key: 'supplements', label: '💊 Suplementação', icon: 'flask-outline', color: '#8B5CF6' },
 ];
 
 const dietaryOptions = [
@@ -198,6 +211,11 @@ export default function RestrictionsStep({ data, updateData }: Props) {
               <Text style={[styles.categoryTitle, { color: category.color }]}>
                 {category.label}
               </Text>
+              {(category.key === 'fruits' || category.key === 'supplements') && (
+                <View style={[styles.separateBadge, { backgroundColor: category.color }]}>
+                  <Text style={styles.separateBadgeText}>SEPARADO</Text>
+                </View>
+              )}
             </View>
             <View style={styles.foodGrid}>
               {FOOD_DATABASE[category.key].map((food) => (
@@ -330,6 +348,18 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 14,
     fontWeight: '700',
+    flex: 1,
+  },
+  separateBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  separateBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   foodGrid: {
     flexDirection: 'row',
