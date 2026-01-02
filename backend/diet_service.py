@@ -237,8 +237,8 @@ FOODS = {
 
 # ==================== FUNÇÕES AUXILIARES ====================
 
-def round_to_multiple(value: float, multiple: int = 5) -> int:
-    """Arredonda para múltiplo de N (default 5)"""
+def round_to_multiple(value: float, multiple: int = 10) -> int:
+    """Arredonda para múltiplo de N (default 10)"""
     return int(round(value / multiple) * multiple)
 
 
