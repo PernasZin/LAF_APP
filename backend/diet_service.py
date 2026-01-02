@@ -244,8 +244,8 @@ def round_to_multiple(value: float, multiple: int = 10) -> int:
 
 def calc_food(key: str, grams: float) -> Dict:
     """Calcula macros de um alimento com valores ARREDONDADOS"""
-    # Arredonda gramas para múltiplo de 5
-    g = max(5, round_to_multiple(grams, 5))
+    # Arredonda gramas para múltiplo de 10
+    g = max(10, round_to_multiple(grams, 10))
     
     if key not in FOODS:
         raise ValueError(f"Alimento '{key}' não encontrado no banco de dados")
