@@ -16,11 +16,15 @@ export interface PrivacySettings {
   notifications: boolean;
 }
 
+export type LanguagePreference = 'pt-BR' | 'en-US' | 'es-ES';
+
 export interface UserSettings {
   theme_preference: ThemePreference;
   privacy_analytics: boolean;
   privacy_personalization: boolean;
   privacy_notifications: boolean;
+  notifications_enabled: boolean;
+  language: LanguagePreference;
 }
 
 interface SettingsState {
