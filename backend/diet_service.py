@@ -43,10 +43,10 @@ class DietGenerateRequest(BaseModel):
 
 # ==================== TOLERANCES ====================
 
-TOL_P = 15.0  # Tolerância de proteína em g (aumentada para múltiplos de 10)
-TOL_C = 20.0  # Tolerância de carbs em g
-TOL_F = 10.0  # Tolerância de gordura em g
-TOL_CAL = 100.0  # Tolerância de calorias
+TOL_P = 15.0  # Tolerância de proteína em g
+TOL_C = 25.0  # Tolerância de carbs em g
+TOL_F = 18.0  # Tolerância de gordura em g
+TOL_CAL = 150.0  # Tolerância de calorias
 
 
 # ==================== NORMALIZAÇÃO DE ALIMENTOS ====================
