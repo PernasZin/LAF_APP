@@ -90,6 +90,8 @@ class UserProfileCreate(BaseModel):
     injury_history: List[str] = Field(default_factory=list)
 
 class UserProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
     weight: Optional[float] = None
     target_weight: Optional[float] = None
     body_fat_percentage: Optional[float] = None
