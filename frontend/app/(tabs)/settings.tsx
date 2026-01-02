@@ -191,19 +191,12 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              // 1. Clear AsyncStorage completely
-              await AsyncStorage.multiRemove([
-                'userId', 
-                'userProfile', 
-                'hasCompletedOnboarding',
-                'laf-settings', // Zustand settings store
-                'dietPlan',
-                'workoutPlan',
-                'profileImage',
-                'notificationsEnabled',
-              ]);
+              console.log('🔐 LOGOUT: Iniciando...');
               
-              // 2. Reset Zustand stores to defaults
+              // 1. Usa AuthStore para logout completo
+              await useAuthStore.getState().logout();
+              
+              // 2. Reset Zustand settings store
               useSettingsStore.setState({
                 themePreference: 'system',
                 effectiveTheme: 'light',
@@ -215,17 +208,18 @@ export default function SettingsScreen() {
                 isHydrated: false,
               });
               
-              // 3. Clear all AsyncStorage keys (belt and suspenders)
-              const allKeys = await AsyncStorage.getAllKeys();
-              await AsyncStorage.multiRemove(allKeys);
+              console.log('✅ LOGOUT: Stores resetados');
               
-              console.log('✅ Logout complete - all data cleared');
-              
-              // 4. Navigate to welcome/onboarding
+              // 3. Navega IMEDIATAMENTE para tela inicial
+              // Usa replace para impedir voltar
               router.replace('/');
+              
+              console.log('✅ LOGOUT: Navegação executada');
             } catch (error) {
-              console.error('Error during logout:', error);
-              Alert.alert('Erro', 'Não foi possível sair. Tente novamente.');
+              console.error('❌ Erro durante logout:', error);
+              // Mesmo com erro, tenta navegar
+              router.replace('/');
+              Alert.alert('Aviso', 'Logout realizado, mas alguns dados podem ter persistido.');
             }
           },
         },
