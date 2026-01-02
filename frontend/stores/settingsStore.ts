@@ -76,6 +76,8 @@ export const useSettingsStore = create<SettingsState>()(
       privacyAnalytics: true,
       privacyPersonalization: true,
       privacyNotifications: true,
+      notificationsEnabled: true,
+      language: 'pt-BR' as LanguagePreference,
       isLoading: false,
       isHydrated: false,
       
@@ -101,6 +103,14 @@ export const useSettingsStore = create<SettingsState>()(
         set({ privacyNotifications: enabled });
       },
       
+      setNotificationsEnabled: (enabled: boolean) => {
+        set({ notificationsEnabled: enabled });
+      },
+      
+      setLanguage: (language: LanguagePreference) => {
+        set({ language });
+      },
+      
       loadSettings: (settings: UserSettings) => {
         let effective: 'light' | 'dark';
         if (settings.theme_preference === 'system') {
@@ -115,6 +125,8 @@ export const useSettingsStore = create<SettingsState>()(
           privacyAnalytics: settings.privacy_analytics,
           privacyPersonalization: settings.privacy_personalization,
           privacyNotifications: settings.privacy_notifications,
+          notificationsEnabled: settings.notifications_enabled ?? true,
+          language: settings.language ?? 'pt-BR',
         });
       },
       
@@ -138,6 +150,8 @@ export const useSettingsStore = create<SettingsState>()(
         privacyAnalytics: state.privacyAnalytics,
         privacyPersonalization: state.privacyPersonalization,
         privacyNotifications: state.privacyNotifications,
+        notificationsEnabled: state.notificationsEnabled,
+        language: state.language,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
