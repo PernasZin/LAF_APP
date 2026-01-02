@@ -383,7 +383,7 @@ export default function SettingsScreen() {
               label="Analytics"
               description="Permite coleta anônima de dados de uso para melhorar o app"
               value={privacyAnalytics}
-              onToggle={(v) => handlePrivacyToggle('analytics', v)}
+              onToggle={(v: boolean) => handlePrivacyToggle('analytics', v)}
               colors={colors}
             />
             
@@ -394,7 +394,7 @@ export default function SettingsScreen() {
               label="Personalização com IA"
               description="Usa IA para gerar dietas e treinos personalizados"
               value={privacyPersonalization}
-              onToggle={(v) => handlePrivacyToggle('personalization', v)}
+              onToggle={(v: boolean) => handlePrivacyToggle('personalization', v)}
               colors={colors}
             />
             
@@ -405,7 +405,7 @@ export default function SettingsScreen() {
               label="Comunicações"
               description="Receba emails com dicas e novidades"
               value={privacyNotifications}
-              onToggle={(v) => handlePrivacyToggle('notifications', v)}
+              onToggle={(v: boolean) => handlePrivacyToggle('notifications', v)}
               colors={colors}
             />
           </View>
