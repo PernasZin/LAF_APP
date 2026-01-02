@@ -110,6 +110,8 @@ class UserSettings(BaseModel):
     privacy_analytics: bool = True
     privacy_personalization: bool = True
     privacy_notifications: bool = True
+    notifications_enabled: bool = True
+    language: str = "pt-BR"  # "pt-BR", "en-US", "es-ES"
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserSettingsUpdate(BaseModel):
@@ -118,6 +120,8 @@ class UserSettingsUpdate(BaseModel):
     privacy_analytics: Optional[bool] = None
     privacy_personalization: Optional[bool] = None
     privacy_notifications: Optional[bool] = None
+    notifications_enabled: Optional[bool] = None
+    language: Optional[str] = None
 
 # ==================== CÁLCULOS TDEE ====================
 
