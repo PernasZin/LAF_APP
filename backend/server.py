@@ -483,6 +483,63 @@ async def root():
 async def health_check():
     return {"status": "healthy", "service": "LAF Backend"}
 
+# ==================== AUTH ENDPOINTS ====================
+
+@api_router.post("/auth/signup")
+async def signup(request: SignUpRequest):
+    """
+    Cadastra novo usuário com email e senha.
+    Retorna token JWT para autenticação.
+    """
+    try:
+        result = await auth_service.signup(request.email, request.password)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/auth/login")
+async def login(request: LoginRequest):
+    """
+    Autentica usuário existente.
+    Retorna token JWT.
+    """
+    try:
+        result = await auth_service.login(request.email, request.password)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+
+@api_router.get("/auth/validate")
+async def validate_token(authorization: Optional[str] = Header(None)):
+    """
+    Valida token JWT.
+    Retorna dados do usuário se válido.
+    """
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Token não fornecido")
+    
+    # Remove "Bearer " prefix if present
+    token = authorization.replace("Bearer ", "")
+    
+    result = await auth_service.validate_token(token)
+    if not result:
+        raise HTTPException(status_code=401, detail="Token inválido ou expirado")
+    
+    return result
+
+@api_router.post("/auth/logout")
+async def logout(authorization: Optional[str] = Header(None)):
+    """
+    Marca logout do usuário (para tracking).
+    """
+    if authorization:
+        token = authorization.replace("Bearer ", "")
+        payload = decode_token(token)
+        if payload:
+            await auth_service.logout(payload.sub)
+    
+    return {"message": "Logout realizado com sucesso"}
+
 # ==================== DIET ENDPOINTS ====================
 
 @api_router.post("/diet/generate")
