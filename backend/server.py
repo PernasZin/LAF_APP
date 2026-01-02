@@ -29,6 +29,7 @@ class UserProfile(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     # Dados Básicos
     name: str
+    email: Optional[str] = None
     age: int
     sex: str  # "masculino" ou "feminino"
     
