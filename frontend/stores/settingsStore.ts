@@ -37,6 +37,12 @@ interface SettingsState {
   privacyPersonalization: boolean;
   privacyNotifications: boolean;
   
+  // Notifications
+  notificationsEnabled: boolean;
+  
+  // Language
+  language: LanguagePreference;
+  
   // Loading state
   isLoading: boolean;
   isHydrated: boolean;
@@ -46,6 +52,8 @@ interface SettingsState {
   setPrivacyAnalytics: (enabled: boolean) => void;
   setPrivacyPersonalization: (enabled: boolean) => void;
   setPrivacyNotifications: (enabled: boolean) => void;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  setLanguage: (language: LanguagePreference) => void;
   loadSettings: (settings: UserSettings) => void;
   getEffectiveTheme: () => 'light' | 'dark';
   setHydrated: (hydrated: boolean) => void;
