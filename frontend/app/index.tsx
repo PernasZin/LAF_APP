@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Platform, BackHandler } from 'react-native';
 import { useRouter, Redirect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthStore } from '../stores/authStore';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -11,6 +12,9 @@ export default function WelcomeScreen() {
   const [isChecking, setIsChecking] = useState(true);
   const [shouldRedirectToTabs, setShouldRedirectToTabs] = useState(false);
   const checkDone = useRef(false);
+  
+  // Auth store
+  const { isAuthenticated, validateSession } = useAuthStore();
 
   useEffect(() => {
     // Prevent double execution
@@ -30,24 +34,38 @@ export default function WelcomeScreen() {
     return () => clearTimeout(safetyTimeout);
   }, []);
 
+  // Bloqueia botão voltar na tela de welcome
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      // Se não está autenticado, bloqueia voltar
+      if (!isAuthenticated) {
+        return true; // Bloqueia
+      }
+      return false; // Permite
+    });
+
+    return () => backHandler.remove();
+  }, [isAuthenticated]);
+
   const checkAndNavigate = async () => {
     try {
       console.log('🏠 Starting welcome check...');
       
-      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
-      const userId = await AsyncStorage.getItem('userId');
+      // Usa AuthStore para validar sessão
+      const isValid = await validateSession();
       
-      console.log('🏠 Welcome check result:', { hasCompleted, userId, platform: Platform.OS });
+      console.log('🏠 Session validation result:', { isValid, platform: Platform.OS });
       
-      if (hasCompleted === 'true' && userId) {
-        console.log('✅ User completed onboarding, setting redirect flag...');
-        // Use state to trigger redirect - works better on web
+      if (isValid) {
+        console.log('✅ User has valid session, setting redirect flag...');
         setShouldRedirectToTabs(true);
+      } else {
+        console.log('❌ No valid session, showing welcome screen');
       }
     } catch (error) {
       console.error('❌ Check error:', error);
+      // Se erro, não redireciona - mostra tela de boas-vindas
     } finally {
-      // Always finish checking
       console.log('✅ Check complete, hiding loading...');
       setIsChecking(false);
     }
