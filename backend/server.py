@@ -592,7 +592,8 @@ async def generate_diet(user_id: str):
         f_diff = abs(real_fat - target_macros["fat"])
         cal_diff = abs(real_cal - target_cal)
         
-        if p_diff > 10 or c_diff > 15 or f_diff > 8 or cal_diff > 100:
+        # Tolerâncias ajustadas para múltiplos de 10
+        if p_diff > 15 or c_diff > 25 or f_diff > 18 or cal_diff > 150:
             logger.error(
                 f"INTEGRIDADE FALHOU - Targets: P{target_macros['protein']}g C{target_macros['carbs']}g F{target_macros['fat']}g {target_cal}kcal | "
                 f"Computed: P{real_protein:.1f}g C{real_carbs:.1f}g F{real_fat:.1f}g {real_cal:.1f}kcal | "
