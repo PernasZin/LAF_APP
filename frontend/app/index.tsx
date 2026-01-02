@@ -6,11 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../stores/authStore';
 
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
 export default function WelcomeScreen() {
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
-  const [shouldRedirectToTabs, setShouldRedirectToTabs] = useState(false);
+  const [destination, setDestination] = useState<'login' | 'tabs' | 'onboarding' | null>(null);
   const checkDone = useRef(false);
   
   // Auth store
@@ -37,131 +39,163 @@ export default function WelcomeScreen() {
   // Bloqueia botão voltar na tela de welcome
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      // Se não está autenticado, bloqueia voltar
-      if (!isAuthenticated) {
-        return true; // Bloqueia
-      }
-      return false; // Permite
+      // Sempre bloqueia voltar na tela inicial
+      return true;
     });
 
     return () => backHandler.remove();
-  }, [isAuthenticated]);
+  }, []);
 
   const checkAndNavigate = async () => {
     try {
-      console.log('🏠 Starting welcome check...');
+      console.log('🏠 Starting auth check...');
       
-      // Usa AuthStore para validar sessão
-      const isValid = await validateSession();
+      // 1. Verifica se tem token
+      const token = await AsyncStorage.getItem('accessToken');
+      const userId = await AsyncStorage.getItem('userId');
+      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
       
-      console.log('🏠 Session validation result:', { isValid, platform: Platform.OS });
+      console.log('🏠 Auth check:', { hasToken: !!token, userId: !!userId, hasCompleted });
       
-      if (isValid) {
-        console.log('✅ User has valid session, setting redirect flag...');
-        setShouldRedirectToTabs(true);
-      } else {
-        console.log('❌ No valid session, showing welcome screen');
+      if (!token) {
+        // Sem token = vai para login
+        console.log('❌ Sem token, indo para login');
+        setDestination('login');
+        return;
       }
+      
+      // 2. Valida token no backend
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/auth/validate`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!response.ok) {
+          // Token inválido = limpa tudo e vai para login
+          console.log('❌ Token inválido, limpando e indo para login');
+          await AsyncStorage.multiRemove(['accessToken', 'userId', 'userEmail', 'hasCompletedOnboarding']);
+          useAuthStore.setState({ isAuthenticated: false, userId: null });
+          setDestination('login');
+          return;
+        }
+        
+        const data = await response.json();
+        console.log('✅ Token válido:', data);
+        
+        // Atualiza auth store
+        useAuthStore.setState({ isAuthenticated: true, userId: data.user_id });
+        
+        // 3. Decide destino baseado no estado do perfil
+        if (data.has_profile && hasCompleted === 'true') {
+          console.log('✅ Usuário com perfil, indo para tabs');
+          setDestination('tabs');
+        } else {
+          console.log('⚠️ Usuário sem perfil, indo para onboarding');
+          setDestination('onboarding');
+        }
+        
+      } catch (error) {
+        console.error('❌ Erro ao validar token:', error);
+        // Erro de rede = assume token válido se tem perfil local
+        if (hasCompleted === 'true' && userId) {
+          setDestination('tabs');
+        } else if (userId) {
+          setDestination('onboarding');
+        } else {
+          setDestination('login');
+        }
+      }
+      
     } catch (error) {
       console.error('❌ Check error:', error);
-      // Se erro, não redireciona - mostra tela de boas-vindas
+      setDestination('login');
     } finally {
-      console.log('✅ Check complete, hiding loading...');
+      console.log('✅ Check complete');
       setIsChecking(false);
     }
   };
 
-  // Handle redirect using Redirect component (works better on web)
-  if (shouldRedirectToTabs && !isChecking) {
-    console.log('🚀 Redirecting to tabs via Redirect component...');
+  // Redirect based on destination
+  if (destination === 'tabs') {
     return <Redirect href="/(tabs)" />;
   }
+  
+  if (destination === 'onboarding') {
+    return <Redirect href="/onboarding" />;
+  }
+  
+  if (destination === 'login') {
+    return <Redirect href="/auth/login" />;
+  }
 
-  const handleStartPress = () => {
-    if (isNavigating) return;
-    
-    console.log('🚀 Starting onboarding...');
-    setIsNavigating(true);
-    
-    router.push('/onboarding');
-  };
-
-  // Brief loading state
+  // Loading state
   if (isChecking) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingLogo}>LAF</Text>
-          <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 20 }} />
+          <View style={styles.logoContainer}>
+            <Ionicons name="fitness" size={60} color="#10B981" />
+          </View>
+          <Text style={styles.loadingTitle}>LAF</Text>
+          <ActivityIndicator size="large" color="#10B981" style={{ marginTop: 24 }} />
         </View>
       </SafeAreaView>
     );
   }
 
+  // Fallback: Welcome screen (não deveria chegar aqui normalmente)
+  const handleGetStarted = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    router.push('/auth/login');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Logo/Icon */}
-        <View style={styles.iconContainer}>
-          <Ionicons name="fitness" size={100} color="#10B981" />
+        {/* Logo */}
+        <View style={styles.logoSection}>
+          <View style={styles.logoContainer}>
+            <Ionicons name="fitness" size={80} color="#10B981" />
+          </View>
+          <Text style={styles.title}>LAF</Text>
+          <Text style={styles.subtitle}>Dieta • Treino • Resultados</Text>
         </View>
-
-        {/* Title */}
-        <Text style={styles.title}>LAF</Text>
-        <Text style={styles.subtitle}>Seu Treinador Pessoal Inteligente</Text>
 
         {/* Features */}
-        <View style={styles.featuresContainer}>
-          <FeatureItem 
-            icon="nutrition" 
-            text="Dieta personalizada com IA"
-          />
-          <FeatureItem 
-            icon="barbell" 
-            text="Treinos sob medida para você"
-          />
-          <FeatureItem 
-            icon="trending-up" 
-            text="Acompanhe seu progresso"
-          />
+        <View style={styles.features}>
+          <View style={styles.featureItem}>
+            <Ionicons name="restaurant" size={24} color="#10B981" />
+            <Text style={styles.featureText}>Dieta personalizada com IA</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Ionicons name="barbell" size={24} color="#10B981" />
+            <Text style={styles.featureText}>Treinos sob medida</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Ionicons name="analytics" size={24} color="#10B981" />
+            <Text style={styles.featureText}>Acompanhe seu progresso</Text>
+          </View>
         </View>
 
-        {/* CTA Button - Using Pressable for better cross-platform support */}
-        <Pressable 
+        {/* CTA */}
+        <Pressable
           style={({ pressed }) => [
             styles.button,
             pressed && styles.buttonPressed,
             isNavigating && styles.buttonDisabled,
           ]}
-          onPress={handleStartPress}
+          onPress={handleGetStarted}
           disabled={isNavigating}
         >
           {isNavigating ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator color="#fff" />
           ) : (
-            <>
-              <Text style={styles.buttonText}>Começar Agora</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </>
+            <Text style={styles.buttonText}>Começar</Text>
           )}
         </Pressable>
-
-        <Text style={styles.footerText}>
-          Planos personalizados para seus objetivos
-        </Text>
       </View>
     </SafeAreaView>
-  );
-}
-
-function FeatureItem({ icon, text }: { icon: any; text: string }) {
-  return (
-    <View style={styles.featureItem}>
-      <View style={styles.featureIcon}>
-        <Ionicons name={icon} size={24} color="#10B981" />
-      </View>
-      <Text style={styles.featureText}>{text}</Text>
-    </View>
   );
 }
 
@@ -175,19 +209,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingLogo: {
-    fontSize: 48,
+  loadingTitle: {
+    fontSize: 32,
     fontWeight: '700',
     color: '#10B981',
+    marginTop: 16,
+    letterSpacing: 2,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-    paddingBottom: 40,
+    padding: 24,
     justifyContent: 'space-between',
   },
-  iconContainer: {
+  logoSection: {
+    alignItems: 'center',
+    marginTop: 60,
+  },
+  logoContainer: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#F0FDF4',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
   },
@@ -195,53 +238,38 @@ const styles = StyleSheet.create({
     fontSize: 48,
     fontWeight: '700',
     color: '#10B981',
-    textAlign: 'center',
-    letterSpacing: 2,
+    letterSpacing: 4,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 16,
     color: '#6B7280',
-    textAlign: 'center',
     marginTop: 8,
-    marginBottom: 48,
+    letterSpacing: 1,
   },
-  featuresContainer: {
-    gap: 24,
+  features: {
+    marginVertical: 40,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-  },
-  featureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
     backgroundColor: '#F0FDF4',
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   featureText: {
-    flex: 1,
     fontSize: 16,
     color: '#374151',
+    marginLeft: 16,
     fontWeight: '500',
   },
   button: {
     backgroundColor: '#10B981',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
-    gap: 8,
-    marginTop: 32,
-    shadowColor: '#10B981',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
+    alignItems: 'center',
+    marginBottom: 24,
   },
   buttonPressed: {
     backgroundColor: '#059669',
@@ -253,12 +281,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    fontWeight: '600',
-  },
-  footerText: {
-    textAlign: 'center',
-    color: '#9CA3AF',
-    fontSize: 14,
-    marginTop: 16,
+    fontWeight: '700',
   },
 });
