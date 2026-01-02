@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Header, Depends
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -19,9 +19,15 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# Import auth service
+from auth_service import AuthService, SignUpRequest, LoginRequest, decode_token
+
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
+
+# Initialize auth service
+auth_service = AuthService(db)
 
 # ==================== MODELS ====================
 
