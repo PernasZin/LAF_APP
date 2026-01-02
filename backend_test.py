@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any
 
 # Backend URL from environment
-BACKEND_URL = "https://fit-buddy-81.preview.emergentagent.com/api"
+BACKEND_URL = "https://nutrition-app-11.preview.emergentagent.com/api"
 
 class AthleteModelTester:
     def __init__(self):
