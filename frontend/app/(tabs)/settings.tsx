@@ -191,12 +191,12 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              console.log('🔐 LOGOUT: Iniciando...');
+              console.log('🔐 LOGOUT: Iniciando processo...');
               
-              // 1. Usa AuthStore para logout completo
+              // 1. Chama logout do AuthStore (limpa tudo)
               await useAuthStore.getState().logout();
               
-              // 2. Reset Zustand settings store
+              // 2. Reset Zustand settings store manualmente
               useSettingsStore.setState({
                 themePreference: 'system',
                 effectiveTheme: 'light',
@@ -208,18 +208,20 @@ export default function SettingsScreen() {
                 isHydrated: false,
               });
               
-              console.log('✅ LOGOUT: Stores resetados');
+              // 3. Força limpeza do AsyncStorage novamente (belt and suspenders)
+              await AsyncStorage.clear();
               
-              // 3. Navega IMEDIATAMENTE para tela inicial
-              // Usa replace para impedir voltar
-              router.replace('/');
+              console.log('✅ LOGOUT: Dados limpos');
+              
+              // 4. Navega para login COM replace (impede voltar)
+              router.replace('/auth/login');
               
               console.log('✅ LOGOUT: Navegação executada');
             } catch (error) {
               console.error('❌ Erro durante logout:', error);
               // Mesmo com erro, tenta navegar
-              router.replace('/');
-              Alert.alert('Aviso', 'Logout realizado, mas alguns dados podem ter persistido.');
+              await AsyncStorage.clear();
+              router.replace('/auth/login');
             }
           },
         },
