@@ -7,14 +7,14 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
-  Linking,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useSettingsStore, ThemePreference } from '../../stores/settingsStore';
+import { useSettingsStore, ThemePreference, LanguagePreference } from '../../stores/settingsStore';
 import { useTheme } from '../../theme/ThemeContext';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -34,10 +34,18 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
+// Language options
+const LANGUAGES: { value: LanguagePreference; label: string; flag: string }[] = [
+  { value: 'pt-BR', label: 'Português (Brasil)', flag: '🇧🇷' },
+  { value: 'en-US', label: 'English (US)', flag: '🇺🇸' },
+  { value: 'es-ES', label: 'Español', flag: '🇪🇸' },
+];
+
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
   const [profile, setProfile] = useState<any>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -48,10 +56,14 @@ export default function SettingsScreen() {
     privacyAnalytics,
     privacyPersonalization,
     privacyNotifications,
+    notificationsEnabled,
+    language,
     setThemePreference,
     setPrivacyAnalytics,
     setPrivacyPersonalization,
     setPrivacyNotifications,
+    setNotificationsEnabled,
+    setLanguage,
   } = useSettingsStore();
 
   useFocusEffect(
@@ -65,6 +77,12 @@ export default function SettingsScreen() {
       setLoading(true);
       const id = await AsyncStorage.getItem('userId');
       setUserId(id);
+      
+      // Load profile image
+      const savedImage = await AsyncStorage.getItem('profileImage');
+      if (savedImage) {
+        setProfileImage(savedImage);
+      }
       
       if (id && BACKEND_URL) {
         // Load profile - non-blocking
@@ -142,6 +160,24 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleNotificationsToggle = async (value: boolean) => {
+    setNotificationsEnabled(value);
+    // Save to local storage (estrutura para futura integração push)
+    await AsyncStorage.setItem('notificationsEnabled', JSON.stringify(value));
+  };
+
+  const handleLanguageChange = (lang: LanguagePreference) => {
+    setLanguage(lang);
+    // Mensagem informativa que a tradução não está implementada
+    if (lang !== 'pt-BR') {
+      Alert.alert(
+        'Idioma',
+        'A tradução para outros idiomas será implementada em breve. O aplicativo continuará em Português.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
   const handleLogout = () => {
     Alert.alert(
       'Sair da Conta',
@@ -161,6 +197,8 @@ export default function SettingsScreen() {
                 'laf-settings', // Zustand settings store
                 'dietPlan',
                 'workoutPlan',
+                'profileImage',
+                'notificationsEnabled',
               ]);
               
               // 2. Reset Zustand stores to defaults
@@ -170,6 +208,8 @@ export default function SettingsScreen() {
                 privacyAnalytics: true,
                 privacyPersonalization: true,
                 privacyNotifications: true,
+                notificationsEnabled: true,
+                language: 'pt-BR',
                 isHydrated: false,
               });
               
@@ -191,12 +231,16 @@ export default function SettingsScreen() {
     );
   };
 
-  const openPrivacyPolicy = () => {
-    Linking.openURL('https://lafapp.com/privacy');
+  const navigateToEditProfile = () => {
+    router.push('/settings/edit-profile');
   };
 
-  const openTermsOfUse = () => {
-    Linking.openURL('https://lafapp.com/terms');
+  const navigateToTerms = () => {
+    router.push('/settings/terms');
+  };
+
+  const navigateToPrivacyPolicy = () => {
+    router.push('/settings/privacy-policy');
   };
 
   const styles = createStyles(colors);
@@ -224,28 +268,55 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>CONTA</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <View style={styles.profileInfo}>
-              <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
-                <Text style={styles.avatarText}>
-                  {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
-                </Text>
+            <TouchableOpacity style={styles.profileRow} onPress={navigateToEditProfile}>
+              <View style={styles.profileInfo}>
+                {profileImage ? (
+                  <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+                ) : (
+                  <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
+                    <Text style={styles.avatarText}>
+                      {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.profileDetails}>
+                  <Text style={[styles.profileName, { color: colors.text }]}>
+                    {profile?.name || 'Usuário'}
+                  </Text>
+                  <Text style={[styles.profileMeta, { color: colors.textSecondary }]}>
+                    {profile?.goal === 'bulking' ? 'Ganho de Massa' :
+                     profile?.goal === 'cutting' ? 'Perda de Gordura' :
+                     profile?.goal === 'atleta' ? 'Atleta/Competição' : 'Manutenção'}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.profileDetails}>
-                <Text style={[styles.profileName, { color: colors.text }]}>
-                  {profile?.name || 'Usuário'}
-                </Text>
-                <Text style={[styles.profileMeta, { color: colors.textSecondary }]}>
-                  {profile?.goal === 'bulking' ? 'Ganho de Massa' :
-                   profile?.goal === 'cutting' ? 'Perda de Gordura' :
-                   profile?.goal === 'atleta' ? 'Atleta/Competição' : 'Manutenção'}
-                </Text>
+              <View style={styles.editProfileArrow}>
+                <Text style={[styles.editText, { color: colors.primary }]}>Editar</Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.primary} />
               </View>
-            </View>
+            </TouchableOpacity>
+            
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={20} color={colors.error} />
               <Text style={[styles.logoutText, { color: colors.error }]}>Sair da Conta</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Notifications Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>NOTIFICAÇÕES</Text>
+          <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+            <SettingToggle
+              icon="notifications-outline"
+              label="Ativar Notificações"
+              description="Receba lembretes de refeições e treinos"
+              value={notificationsEnabled}
+              onToggle={handleNotificationsToggle}
+              colors={colors}
+            />
           </View>
         </View>
 
@@ -284,11 +355,31 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Language Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>IDIOMA</Text>
+          <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+            {LANGUAGES.map((lang, index) => (
+              <React.Fragment key={lang.value}>
+                {index > 0 && <View style={[styles.divider, { backgroundColor: colors.border }]} />}
+                <LanguageOption
+                  flag={lang.flag}
+                  label={lang.label}
+                  selected={language === lang.value}
+                  onPress={() => handleLanguageChange(lang.value)}
+                  colors={colors}
+                />
+              </React.Fragment>
+            ))}
+          </View>
+        </View>
+
         {/* Privacy Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>PRIVACIDADE E DADOS</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <PrivacyToggle
+            <SettingToggle
+              icon="analytics-outline"
               label="Analytics"
               description="Permite coleta anônima de dados de uso para melhorar o app"
               value={privacyAnalytics}
@@ -298,7 +389,8 @@ export default function SettingsScreen() {
             
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
-            <PrivacyToggle
+            <SettingToggle
+              icon="sparkles-outline"
               label="Personalização com IA"
               description="Usa IA para gerar dietas e treinos personalizados"
               value={privacyPersonalization}
@@ -308,9 +400,10 @@ export default function SettingsScreen() {
             
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
-            <PrivacyToggle
-              label="Notificações"
-              description="Receba lembretes de refeições e treinos"
+            <SettingToggle
+              icon="mail-outline"
+              label="Comunicações"
+              description="Receba emails com dicas e novidades"
               value={privacyNotifications}
               onToggle={(v) => handlePrivacyToggle('notifications', v)}
               colors={colors}
@@ -322,7 +415,7 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>LEGAL</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <TouchableOpacity style={styles.legalItem} onPress={openPrivacyPolicy}>
+            <TouchableOpacity style={styles.legalItem} onPress={navigateToPrivacyPolicy}>
               <View style={styles.legalItemContent}>
                 <Ionicons name="shield-checkmark-outline" size={20} color={colors.primary} />
                 <Text style={[styles.legalText, { color: colors.text }]}>Política de Privacidade</Text>
@@ -332,7 +425,7 @@ export default function SettingsScreen() {
             
             <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
-            <TouchableOpacity style={styles.legalItem} onPress={openTermsOfUse}>
+            <TouchableOpacity style={styles.legalItem} onPress={navigateToTerms}>
               <View style={styles.legalItemContent}>
                 <Ionicons name="document-text-outline" size={20} color={colors.primary} />
                 <Text style={[styles.legalText, { color: colors.text }]}>Termos de Uso</Text>
@@ -403,13 +496,52 @@ const themeOptionStyles = StyleSheet.create({
   },
 });
 
-// Privacy Toggle Component
-function PrivacyToggle({ label, description, value, onToggle, colors }: any) {
+// Language Option Component
+function LanguageOption({ flag, label, selected, onPress, colors }: any) {
   return (
-    <View style={privacyStyles.container}>
-      <View style={privacyStyles.textContainer}>
-        <Text style={[privacyStyles.label, { color: colors.text }]}>{label}</Text>
-        <Text style={[privacyStyles.description, { color: colors.textSecondary }]}>
+    <TouchableOpacity style={languageStyles.container} onPress={onPress}>
+      <View style={languageStyles.content}>
+        <Text style={languageStyles.flag}>{flag}</Text>
+        <Text style={[languageStyles.label, { color: colors.text }]}>{label}</Text>
+      </View>
+      {selected && (
+        <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
+      )}
+    </TouchableOpacity>
+  );
+}
+
+const languageStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  flag: {
+    fontSize: 24,
+    marginRight: 12,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+});
+
+// Setting Toggle Component
+function SettingToggle({ icon, label, description, value, onToggle, colors }: any) {
+  return (
+    <View style={settingToggleStyles.container}>
+      <View style={settingToggleStyles.iconContainer}>
+        <Ionicons name={icon} size={22} color={colors.primary} />
+      </View>
+      <View style={settingToggleStyles.textContainer}>
+        <Text style={[settingToggleStyles.label, { color: colors.text }]}>{label}</Text>
+        <Text style={[settingToggleStyles.description, { color: colors.textSecondary }]}>
           {description}
         </Text>
       </View>
@@ -423,12 +555,16 @@ function PrivacyToggle({ label, description, value, onToggle, colors }: any) {
   );
 }
 
-const privacyStyles = StyleSheet.create({
+const settingToggleStyles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingVertical: 12,
+  },
+  iconContainer: {
+    width: 36,
+    alignItems: 'center',
+    marginRight: 8,
   },
   textContainer: {
     flex: 1,
@@ -486,10 +622,16 @@ const createStyles = (colors: any) => StyleSheet.create({
     padding: 16,
     borderWidth: 1,
   },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 16,
+  },
   profileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    flex: 1,
   },
   avatar: {
     width: 56,
@@ -497,6 +639,11 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  avatarImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   avatarText: {
     fontSize: 24,
@@ -515,6 +662,15 @@ const createStyles = (colors: any) => StyleSheet.create({
     fontSize: 14,
     marginTop: 2,
   },
+  editProfileArrow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginRight: 4,
+  },
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -522,6 +678,7 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    marginTop: 8,
   },
   logoutText: {
     fontSize: 16,
