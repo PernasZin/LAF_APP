@@ -131,6 +131,14 @@ export default function SignUpScreen() {
 
           {/* Form */}
           <View style={styles.form}>
+            {/* Error Message */}
+            {submitError && (
+              <View style={styles.errorBanner}>
+                <Ionicons name="alert-circle" size={20} color="#EF4444" />
+                <Text style={styles.errorBannerText}>{submitError}</Text>
+              </View>
+            )}
+
             {/* Email */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Email</Text>
