@@ -111,11 +111,11 @@ export default function WorkoutScreen() {
     
     if (workoutPlan) {
       Alert.alert(
-        'Treino Existente',
-        'Deseja gerar um novo treino? O progresso atual será perdido.',
+        'Regenerar Treino',
+        'Isso irá substituir seu treino atual e corrigir as instruções. Deseja continuar?',
         [
           { text: 'Cancelar', style: 'cancel' },
-          { text: 'Gerar Novo', style: 'destructive', onPress: doGenerateWorkout }
+          { text: 'Regenerar', style: 'destructive', onPress: doGenerateWorkout }
         ]
       );
       return;
