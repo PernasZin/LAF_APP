@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { 
   View, Text, StyleSheet, ScrollView, TouchableOpacity, 
-  ActivityIndicator, RefreshControl, Modal, Image, Alert,
-  Dimensions
+  ActivityIndicator, RefreshControl, Modal, Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,7 +10,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const safeFetch = async (url: string, options?: RequestInit) => {
   const controller = new AbortController();
@@ -56,7 +54,6 @@ export default function WorkoutScreen() {
     }, [])
   );
 
-  // Timer effect
   useEffect(() => {
     if (timerActive && timerSeconds > 0) {
       timerRef.current = setInterval(() => {
@@ -85,13 +82,9 @@ export default function WorkoutScreen() {
           if (profileResponse.ok) {
             const data = await profileResponse.json();
             setUserProfile(data);
-            await AsyncStorage.setItem('userProfile', JSON.stringify(data));
           }
         } catch (err) {
-          const profileData = await AsyncStorage.getItem('userProfile');
-          if (profileData) {
-            setUserProfile(JSON.parse(profileData));
-          }
+          console.log('Profile load error');
         }
         loadWorkout(id);
       }
@@ -109,7 +102,7 @@ export default function WorkoutScreen() {
         setWorkoutPlan(data);
       }
     } catch (error: any) {
-      console.log('Workout not loaded (may not exist yet)');
+      console.log('Workout not loaded');
     }
   };
 
@@ -119,7 +112,7 @@ export default function WorkoutScreen() {
     if (workoutPlan) {
       Alert.alert(
         'Treino Existente',
-        'Deseja realmente gerar um novo treino? O progresso atual será perdido.',
+        'Deseja gerar um novo treino? O progresso atual será perdido.',
         [
           { text: 'Cancelar', style: 'cancel' },
           { text: 'Gerar Novo', style: 'destructive', onPress: doGenerateWorkout }
@@ -139,12 +132,10 @@ export default function WorkoutScreen() {
         const data = await response.json();
         setWorkoutPlan(data);
       } else {
-        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        Alert.alert('Erro', `Erro ao gerar treino: ${errorData.detail || 'Tente novamente'}`);
+        Alert.alert('Erro', 'Erro ao gerar treino. Tente novamente.');
       }
     } catch (error) {
-      console.error('Erro ao gerar treino:', error);
-      Alert.alert('Erro', 'Erro de conexão. Verifique sua internet e tente novamente.');
+      Alert.alert('Erro', 'Erro de conexão.');
     } finally {
       setLoading(false);
     }
@@ -183,12 +174,8 @@ export default function WorkoutScreen() {
         const updatedWorkout = await response.json();
         setWorkoutPlan(updatedWorkout);
         
-        // Update selected exercise if modal is open
         if (selectedExercise && selectedDayIndex === dayIndex && selectedExerciseIndex === exerciseIndex) {
-          setSelectedExercise({
-            ...selectedExercise,
-            completed: completed
-          });
+          setSelectedExercise({ ...selectedExercise, completed: completed });
         }
       }
     } catch (error) {
@@ -196,10 +183,8 @@ export default function WorkoutScreen() {
     }
   };
 
-  const startRestTimer = () => {
-    setTimerActive(true);
-  };
-
+  const startRestTimer = () => setTimerActive(true);
+  
   const resetTimer = () => {
     setTimerActive(false);
     setTimerSeconds(selectedExercise?.rest_seconds || 60);
@@ -211,10 +196,6 @@ export default function WorkoutScreen() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const configuredFrequency = userProfile?.weekly_training_frequency || workoutPlan?.weekly_frequency || 0;
-  const actualWorkouts = workoutPlan?.workout_days?.length || 0;
-  
-  // Calculate progress
   const totalExercises = workoutPlan?.workout_days?.reduce((sum: number, day: any) => sum + (day.exercises?.length || 0), 0) || 0;
   const completedExercises = workoutPlan?.workout_days?.reduce((sum: number, day: any) => 
     sum + (day.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0) || 0;
@@ -225,8 +206,7 @@ export default function WorkoutScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Gerando seu plano de treino...</Text>
-          <Text style={[styles.loadingSubtext, { color: colors.textSecondary }]}>Isso pode levar alguns segundos</Text>
+          <Text style={[styles.loadingText, { color: colors.text }]}>Gerando treino...</Text>
         </View>
       </SafeAreaView>
     );
@@ -237,12 +217,12 @@ export default function WorkoutScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <ScrollView
           contentContainerStyle={styles.emptyContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         >
           <Ionicons name="barbell-outline" size={80} color={colors.textTertiary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>Nenhum treino gerado</Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Gere seu plano de treino personalizado com divisão A/B/C
+            Gere seu plano de treino personalizado
           </Text>
           <TouchableOpacity
             style={[styles.generateButton, { backgroundColor: colors.primary }]}
@@ -262,16 +242,14 @@ export default function WorkoutScreen() {
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Treino</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-              {workoutPlan.notes?.split(' - ')[0] || `${actualWorkouts}x por semana`}
-            </Text>
-          </View>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Treino</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+            {workoutPlan.notes || `${workoutPlan.weekly_frequency}x por semana`}
+          </Text>
         </View>
 
         {/* Progress Card */}
@@ -293,14 +271,6 @@ export default function WorkoutScreen() {
           </View>
         </View>
 
-        {/* Info Box */}
-        <View style={[styles.infoBox, { backgroundColor: colors.primary + '15' }]}>
-          <Ionicons name="play-circle-outline" size={18} color={colors.primary} />
-          <Text style={[styles.infoBoxText, { color: colors.text }]}>
-            Toque no exercício para ver a execução e iniciar o timer
-          </Text>
-        </View>
-
         {/* Workout Days */}
         {workoutPlan.workout_days.map((day: any, dayIndex: number) => (
           <WorkoutDayCard 
@@ -314,7 +284,7 @@ export default function WorkoutScreen() {
         ))}
       </ScrollView>
 
-      {/* Exercise Detail Modal */}
+      {/* Exercise Detail Modal - TEXT ONLY */}
       <Modal
         visible={showExerciseModal}
         animationType="slide"
@@ -323,7 +293,6 @@ export default function WorkoutScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-            {/* Modal Header */}
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]} numberOfLines={2}>
                 {selectedExercise?.name}
@@ -334,44 +303,37 @@ export default function WorkoutScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* GIF Preview */}
-              {selectedExercise?.gif_url && (
-                <View style={[styles.gifContainer, { backgroundColor: colors.backgroundCard }]}>
-                  <Image
-                    source={{ uri: selectedExercise.gif_url }}
-                    style={styles.exerciseGif}
-                    resizeMode="contain"
-                  />
-                </View>
-              )}
-
               {/* Exercise Info */}
               <View style={[styles.exerciseInfo, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
                 <View style={styles.exerciseInfoRow}>
                   <View style={styles.exerciseInfoItem}>
-                    <Ionicons name="repeat-outline" size={20} color={colors.primary} />
+                    <Ionicons name="repeat-outline" size={24} color={colors.primary} />
                     <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Séries</Text>
                     <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.sets}</Text>
                   </View>
                   <View style={styles.exerciseInfoItem}>
-                    <Ionicons name="fitness-outline" size={20} color={colors.primary} />
+                    <Ionicons name="fitness-outline" size={24} color={colors.primary} />
                     <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Repetições</Text>
                     <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.reps}</Text>
                   </View>
                   <View style={styles.exerciseInfoItem}>
-                    <Ionicons name="time-outline" size={20} color={colors.primary} />
+                    <Ionicons name="time-outline" size={24} color={colors.primary} />
                     <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Descanso</Text>
                     <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.rest}</Text>
                   </View>
                 </View>
-                
-                {selectedExercise?.notes && (
-                  <View style={[styles.notesBox, { backgroundColor: colors.warning + '15' }]}>
-                    <Ionicons name="bulb-outline" size={16} color={colors.warning} />
-                    <Text style={[styles.notesText, { color: colors.text }]}>{selectedExercise.notes}</Text>
-                  </View>
-                )}
               </View>
+
+              {/* Execution Notes - TEXT GUIDANCE */}
+              {selectedExercise?.notes && (
+                <View style={[styles.notesCard, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }]}>
+                  <View style={styles.notesHeader}>
+                    <Ionicons name="bulb-outline" size={20} color={colors.primary} />
+                    <Text style={[styles.notesTitle, { color: colors.primary }]}>Como executar</Text>
+                  </View>
+                  <Text style={[styles.notesText, { color: colors.text }]}>{selectedExercise.notes}</Text>
+                </View>
+              )}
 
               {/* Rest Timer */}
               <View style={[styles.timerCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
@@ -494,12 +456,7 @@ function WorkoutDayCard({ day, dayIndex, colors, onExercisePress, onToggleComple
                   </Text>
                 </View>
               </View>
-              <View style={cardStyles.exerciseRight}>
-                {exercise.gif_url && (
-                  <Ionicons name="videocam-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
-                )}
-                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           ))}
         </View>
@@ -523,22 +480,20 @@ const cardStyles = StyleSheet.create({
   exerciseTextContainer: { flex: 1 },
   exerciseName: { fontSize: 15, fontWeight: '500' },
   exerciseDetails: { fontSize: 12, marginTop: 2 },
-  exerciseRight: { flexDirection: 'row', alignItems: 'center' },
 });
 
 const createStyles = (colors: any) => StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   loadingText: { fontSize: 18, fontWeight: '600', marginTop: 16 },
-  loadingSubtext: { fontSize: 14, marginTop: 8 },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
   emptyTitle: { fontSize: 20, fontWeight: '600', marginTop: 16 },
-  emptyText: { fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
+  emptyText: { fontSize: 14, textAlign: 'center', marginTop: 8 },
   generateButton: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, marginTop: 24 },
   generateButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
   scrollView: { flex: 1 },
   content: { padding: 16 },
-  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  header: { marginBottom: 16 },
   headerTitle: { fontSize: 28, fontWeight: '700' },
   headerSubtitle: { fontSize: 14, marginTop: 4 },
   progressCard: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
@@ -550,22 +505,20 @@ const createStyles = (colors: any) => StyleSheet.create({
   progressBarBg: { height: 8, borderRadius: 4 },
   progressBarFill: { height: '100%', borderRadius: 4 },
   progressText: { fontSize: 12, marginTop: 4 },
-  infoBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 8, marginBottom: 16 },
-  infoBoxText: { fontSize: 13, flex: 1 },
-  // Modal styles
+  // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '90%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
+  modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '85%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 },
   modalTitle: { fontSize: 22, fontWeight: '700', flex: 1, marginRight: 16 },
-  gifContainer: { borderRadius: 16, overflow: 'hidden', marginBottom: 16, alignItems: 'center', justifyContent: 'center', height: 200 },
-  exerciseGif: { width: '100%', height: '100%' },
-  exerciseInfo: { borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1 },
+  exerciseInfo: { borderRadius: 16, padding: 20, marginBottom: 16, borderWidth: 1 },
   exerciseInfoRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  exerciseInfoItem: { alignItems: 'center', gap: 4 },
-  exerciseInfoLabel: { fontSize: 11 },
-  exerciseInfoValue: { fontSize: 18, fontWeight: '700' },
-  notesBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 8, marginTop: 12 },
-  notesText: { flex: 1, fontSize: 13 },
+  exerciseInfoItem: { alignItems: 'center', gap: 6 },
+  exerciseInfoLabel: { fontSize: 12 },
+  exerciseInfoValue: { fontSize: 20, fontWeight: '700' },
+  notesCard: { borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1 },
+  notesHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  notesTitle: { fontSize: 14, fontWeight: '600' },
+  notesText: { fontSize: 15, lineHeight: 22 },
   timerCard: { borderRadius: 16, padding: 20, marginBottom: 16, alignItems: 'center', borderWidth: 1 },
   timerTitle: { fontSize: 14, marginBottom: 8 },
   timerDisplay: { fontSize: 48, fontWeight: '700', fontVariant: ['tabular-nums'] },
