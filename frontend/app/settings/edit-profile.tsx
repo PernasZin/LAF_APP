@@ -21,11 +21,16 @@ import * as ImagePicker from 'expo-image-picker';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-// Safe fetch with timeout
+// Objetivos disponíveis
+const GOALS = [
+  { value: 'cutting', label: 'Cutting', description: 'Perda de gordura' },
+  { value: 'manutencao', label: 'Manutenção', description: 'Manter peso atual' },
+  { value: 'bulking', label: 'Bulking', description: 'Ganho de massa' },
+];
+
 const safeFetch = async (url: string, options?: RequestInit) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 10000);
-  
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
@@ -45,12 +50,10 @@ export default function EditProfileScreen() {
   
   // Form state
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [weight, setWeight] = useState('');
+  const [goal, setGoal] = useState('bulking');
+  const [originalGoal, setOriginalGoal] = useState('bulking');
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  
-  // Validation state
-  const [nameError, setNameError] = useState('');
-  const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     loadProfile();
@@ -62,11 +65,8 @@ export default function EditProfileScreen() {
       const id = await AsyncStorage.getItem('userId');
       setUserId(id);
       
-      // Load saved profile image
       const savedImage = await AsyncStorage.getItem('profileImage');
-      if (savedImage) {
-        setProfileImage(savedImage);
-      }
+      if (savedImage) setProfileImage(savedImage);
       
       if (id && BACKEND_URL) {
         try {
@@ -74,15 +74,18 @@ export default function EditProfileScreen() {
           if (response.ok) {
             const data = await response.json();
             setName(data.name || '');
-            setEmail(data.email || '');
+            setWeight(data.weight?.toString() || '');
+            setGoal(data.goal || 'bulking');
+            setOriginalGoal(data.goal || 'bulking');
           }
         } catch (err) {
-          // Fallback to local storage
           const profileData = await AsyncStorage.getItem('userProfile');
           if (profileData) {
             const profile = JSON.parse(profileData);
             setName(profile.name || '');
-            setEmail(profile.email || '');
+            setWeight(profile.weight?.toString() || '');
+            setGoal(profile.goal || 'bulking');
+            setOriginalGoal(profile.goal || 'bulking');
           }
         }
       }
@@ -93,46 +96,14 @@ export default function EditProfileScreen() {
     }
   };
 
-  const validateName = (value: string): boolean => {
-    if (!value.trim()) {
-      setNameError('Nome é obrigatório');
-      return false;
-    }
-    if (value.trim().length < 2) {
-      setNameError('Nome deve ter pelo menos 2 caracteres');
-      return false;
-    }
-    setNameError('');
-    return true;
-  };
-
-  const validateEmail = (value: string): boolean => {
-    if (!value.trim()) {
-      setEmailError('');
-      return true; // Email is optional
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      setEmailError('Email inválido');
-      return false;
-    }
-    setEmailError('');
-    return true;
-  };
-
   const pickImage = async () => {
     try {
-      // Request permission
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
-          'Permissão Necessária',
-          'Precisamos de permissão para acessar suas fotos.'
-        );
+        Alert.alert('Permissão Necessária', 'Precisamos de permissão para acessar suas fotos.');
         return;
       }
 
-      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -144,56 +115,80 @@ export default function EditProfileScreen() {
       if (!result.canceled && result.assets[0]) {
         const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
         setProfileImage(base64Image);
-        // Save locally immediately
         await AsyncStorage.setItem('profileImage', base64Image);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
       Alert.alert('Erro', 'Não foi possível selecionar a imagem.');
     }
   };
 
   const handleSave = async () => {
-    // Validate
-    const isNameValid = validateName(name);
-    const isEmailValid = validateEmail(email);
+    // Validação
+    if (!name.trim()) {
+      Alert.alert('Erro', 'Nome é obrigatório');
+      return;
+    }
     
-    if (!isNameValid || !isEmailValid) {
+    const weightNum = parseFloat(weight);
+    if (isNaN(weightNum) || weightNum < 30 || weightNum > 300) {
+      Alert.alert('Erro', 'Peso deve estar entre 30kg e 300kg');
       return;
     }
 
     setSaving(true);
     try {
-      // Update backend
-      if (userId && BACKEND_URL) {
-        const response = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name.trim(), email: email.trim() }),
+      if (!userId || !BACKEND_URL) throw new Error('Usuário não encontrado');
+
+      // 1. Atualiza perfil
+      const profileResponse = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          weight: weightNum,
+          goal: goal,
+        }),
+      });
+
+      if (!profileResponse.ok) {
+        throw new Error('Falha ao atualizar perfil');
+      }
+
+      // 2. Se objetivo mudou, recalcula a dieta (overwrite)
+      if (goal !== originalGoal) {
+        console.log('🔄 Objetivo mudou, recalculando dieta...');
+        
+        const dietResponse = await safeFetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
+          method: 'POST',
         });
 
-        if (!response.ok) {
-          throw new Error('Falha ao atualizar perfil');
+        if (!dietResponse.ok) {
+          console.warn('Aviso: Não foi possível recalcular a dieta');
+        } else {
+          console.log('✅ Dieta recalculada com sucesso');
         }
       }
 
-      // Update local storage
+      // 3. Atualiza localStorage
       const profileData = await AsyncStorage.getItem('userProfile');
       if (profileData) {
         const profile = JSON.parse(profileData);
         profile.name = name.trim();
-        profile.email = email.trim();
+        profile.weight = weightNum;
+        profile.goal = goal;
         await AsyncStorage.setItem('userProfile', JSON.stringify(profile));
       }
 
       Alert.alert(
         'Sucesso',
-        'Perfil atualizado com sucesso!',
+        goal !== originalGoal 
+          ? 'Perfil atualizado e dieta recalculada!' 
+          : 'Perfil atualizado com sucesso!',
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error) {
-      console.error('Error saving profile:', error);
-      Alert.alert('Erro', 'Não foi possível salvar as alterações. Tente novamente.');
+      console.error('Error saving:', error);
+      Alert.alert('Erro', 'Não foi possível salvar. Tente novamente.');
     } finally {
       setSaving(false);
     }
@@ -222,7 +217,7 @@ export default function EditProfileScreen() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Profile Image Section */}
+          {/* Profile Image */}
           <View style={styles.imageSection}>
             <TouchableOpacity style={styles.imageContainer} onPress={pickImage}>
               {profileImage ? (
@@ -238,75 +233,78 @@ export default function EditProfileScreen() {
                 <Ionicons name="camera" size={16} color="#FFFFFF" />
               </View>
             </TouchableOpacity>
-            <Text style={[styles.changePhotoText, { color: colors.primary }]}>Alterar Foto</Text>
           </View>
 
-          {/* Form Fields */}
+          {/* Form */}
           <View style={styles.formSection}>
-            {/* Name Field */}
+            {/* Nome */}
             <View style={styles.fieldContainer}>
               <Text style={[styles.label, { color: colors.text }]}>Nome</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.inputBackground,
-                    borderColor: nameError ? colors.error : colors.inputBorder,
-                    color: colors.inputText,
-                  },
-                ]}
+                style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.inputText }]}
                 value={name}
-                onChangeText={(text) => {
-                  setName(text);
-                  if (nameError) validateName(text);
-                }}
-                onBlur={() => validateName(name)}
+                onChangeText={setName}
                 placeholder="Seu nome"
                 placeholderTextColor={colors.inputPlaceholder}
-                autoCapitalize="words"
               />
-              {nameError ? (
-                <Text style={[styles.errorText, { color: colors.error }]}>{nameError}</Text>
-              ) : null}
             </View>
 
-            {/* Email Field */}
+            {/* Peso */}
             <View style={styles.fieldContainer}>
-              <Text style={[styles.label, { color: colors.text }]}>Email (opcional)</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Peso Atual (kg)</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  {
-                    backgroundColor: colors.inputBackground,
-                    borderColor: emailError ? colors.error : colors.inputBorder,
-                    color: colors.inputText,
-                  },
-                ]}
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  if (emailError) validateEmail(text);
-                }}
-                onBlur={() => validateEmail(email)}
-                placeholder="seu@email.com"
+                style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.inputText }]}
+                value={weight}
+                onChangeText={setWeight}
+                placeholder="80"
                 placeholderTextColor={colors.inputPlaceholder}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
+                keyboardType="decimal-pad"
               />
-              {emailError ? (
-                <Text style={[styles.errorText, { color: colors.error }]}>{emailError}</Text>
-              ) : null}
+            </View>
+
+            {/* Objetivo */}
+            <View style={styles.fieldContainer}>
+              <Text style={[styles.label, { color: colors.text }]}>Objetivo</Text>
+              <Text style={[styles.sublabel, { color: colors.textSecondary }]}>
+                Alterar o objetivo irá recalcular sua dieta
+              </Text>
+              <View style={styles.goalOptions}>
+                {GOALS.map((g) => (
+                  <TouchableOpacity
+                    key={g.value}
+                    style={[
+                      styles.goalOption,
+                      { 
+                        backgroundColor: goal === g.value ? colors.primary + '15' : colors.backgroundCard,
+                        borderColor: goal === g.value ? colors.primary : colors.border,
+                      }
+                    ]}
+                    onPress={() => setGoal(g.value)}
+                  >
+                    <Text style={[
+                      styles.goalLabel, 
+                      { color: goal === g.value ? colors.primary : colors.text }
+                    ]}>
+                      {g.label}
+                    </Text>
+                    <Text style={[
+                      styles.goalDescription, 
+                      { color: goal === g.value ? colors.primary : colors.textSecondary }
+                    ]}>
+                      {g.description}
+                    </Text>
+                    {goal === g.value && (
+                      <Ionicons name="checkmark-circle" size={20} color={colors.primary} style={styles.goalCheck} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
 
           {/* Save Button */}
           <TouchableOpacity
-            style={[
-              styles.saveButton,
-              { backgroundColor: colors.primary },
-              saving && styles.saveButtonDisabled,
-            ]}
+            style={[styles.saveButton, { backgroundColor: colors.primary }, saving && styles.saveButtonDisabled]}
             onPress={handleSave}
             disabled={saving}
           >
@@ -316,6 +314,16 @@ export default function EditProfileScreen() {
               <Text style={styles.saveButtonText}>Salvar Alterações</Text>
             )}
           </TouchableOpacity>
+
+          {/* Warning if goal changed */}
+          {goal !== originalGoal && (
+            <View style={[styles.warningBox, { backgroundColor: colors.warning + '15' }]}>
+              <Ionicons name="information-circle" size={20} color={colors.warning} />
+              <Text style={[styles.warningText, { color: colors.warning }]}>
+                Sua dieta será recalculada ao salvar
+              </Text>
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -323,98 +331,29 @@ export default function EditProfileScreen() {
 }
 
 const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: 24,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageSection: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  imageContainer: {
-    position: 'relative',
-    marginBottom: 12,
-  },
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-  },
-  placeholderImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 4,
-    right: 4,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: colors.background,
-  },
-  changePhotoText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  formSection: {
-    marginBottom: 24,
-  },
-  fieldContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  input: {
-    height: 52,
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingHorizontal: 16,
-    fontSize: 16,
-  },
-  errorText: {
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  saveButton: {
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  saveButtonDisabled: {
-    opacity: 0.7,
-  },
-  saveButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  scrollView: { flex: 1 },
+  content: { padding: 24 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  imageSection: { alignItems: 'center', marginBottom: 32 },
+  imageContainer: { position: 'relative', marginBottom: 12 },
+  profileImage: { width: 100, height: 100, borderRadius: 50 },
+  placeholderImage: { width: 100, height: 100, borderRadius: 50, justifyContent: 'center', alignItems: 'center' },
+  placeholderText: { fontSize: 40, fontWeight: '700', color: '#FFFFFF' },
+  editBadge: { position: 'absolute', bottom: 0, right: 0, width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: colors.background },
+  formSection: { marginBottom: 24 },
+  fieldContainer: { marginBottom: 20 },
+  label: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  sublabel: { fontSize: 12, marginBottom: 12, marginTop: -4 },
+  input: { height: 52, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, fontSize: 16 },
+  goalOptions: { gap: 10 },
+  goalOption: { padding: 16, borderRadius: 12, borderWidth: 2, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
+  goalLabel: { fontSize: 16, fontWeight: '600', marginRight: 8 },
+  goalDescription: { fontSize: 13 },
+  goalCheck: { position: 'absolute', right: 16 },
+  saveButton: { height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+  saveButtonDisabled: { opacity: 0.7 },
+  saveButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
+  warningBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 8, marginTop: 16 },
+  warningText: { fontSize: 13, flex: 1 },
 });
