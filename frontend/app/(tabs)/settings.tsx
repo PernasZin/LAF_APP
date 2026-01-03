@@ -180,37 +180,45 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Sair da Conta',
-      'Tem certeza que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            // 1. Logout do AuthStore
-            await useAuthStore.getState().logout();
-            
-            // 2. Reset SettingsStore
-            useSettingsStore.setState({
-              themePreference: 'system',
-              effectiveTheme: 'light',
-              privacyAnalytics: true,
-              privacyPersonalization: true,
-              privacyNotifications: true,
-              notificationsEnabled: true,
-              language: 'pt-BR',
-              isHydrated: false,
-            });
-            
-            // 3. Navegar para login
-            router.replace('/auth/login');
-          },
-        },
-      ]
-    );
+  const handleLogout = async () => {
+    console.log('🔐 LOGOUT: Botão clicado');
+    
+    try {
+      // 1. Limpa AsyncStorage PRIMEIRO
+      await AsyncStorage.clear();
+      console.log('🔐 LOGOUT: AsyncStorage limpo');
+      
+      // 2. Reset AuthStore
+      useAuthStore.setState({
+        isAuthenticated: false,
+        userId: null,
+        accessToken: null,
+        isInitialized: true,
+      });
+      console.log('🔐 LOGOUT: AuthStore resetado');
+      
+      // 3. Reset SettingsStore
+      useSettingsStore.setState({
+        themePreference: 'system',
+        effectiveTheme: 'light',
+        privacyAnalytics: true,
+        privacyPersonalization: true,
+        privacyNotifications: true,
+        notificationsEnabled: true,
+        language: 'pt-BR',
+        isHydrated: false,
+      });
+      console.log('🔐 LOGOUT: SettingsStore resetado');
+      
+      // 4. Navega para login
+      router.replace('/auth/login');
+      console.log('🔐 LOGOUT: Navegação executada');
+      
+    } catch (error) {
+      console.error('🔐 LOGOUT: Erro:', error);
+      // Mesmo com erro, força navegação
+      router.replace('/auth/login');
+    }
   };
 
   const navigateToEditProfile = () => {
