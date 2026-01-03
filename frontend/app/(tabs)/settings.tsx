@@ -183,46 +183,30 @@ export default function SettingsScreen() {
   const handleLogout = () => {
     Alert.alert(
       'Sair da Conta',
-      'Tem certeza que deseja sair? Seus dados locais serão removidos.',
+      'Tem certeza que deseja sair?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Sair',
           style: 'destructive',
           onPress: async () => {
-            try {
-              console.log('🔐 LOGOUT: Iniciando processo...');
-              
-              // 1. Chama logout do AuthStore (limpa tudo)
-              await useAuthStore.getState().logout();
-              
-              // 2. Reset Zustand settings store manualmente
-              useSettingsStore.setState({
-                themePreference: 'system',
-                effectiveTheme: 'light',
-                privacyAnalytics: true,
-                privacyPersonalization: true,
-                privacyNotifications: true,
-                notificationsEnabled: true,
-                language: 'pt-BR',
-                isHydrated: false,
-              });
-              
-              // 3. Força limpeza do AsyncStorage novamente (belt and suspenders)
-              await AsyncStorage.clear();
-              
-              console.log('✅ LOGOUT: Dados limpos');
-              
-              // 4. Navega para login COM replace (impede voltar)
-              router.replace('/auth/login');
-              
-              console.log('✅ LOGOUT: Navegação executada');
-            } catch (error) {
-              console.error('❌ Erro durante logout:', error);
-              // Mesmo com erro, tenta navegar
-              await AsyncStorage.clear();
-              router.replace('/auth/login');
-            }
+            // 1. Logout do AuthStore
+            await useAuthStore.getState().logout();
+            
+            // 2. Reset SettingsStore
+            useSettingsStore.setState({
+              themePreference: 'system',
+              effectiveTheme: 'light',
+              privacyAnalytics: true,
+              privacyPersonalization: true,
+              privacyNotifications: true,
+              notificationsEnabled: true,
+              language: 'pt-BR',
+              isHydrated: false,
+            });
+            
+            // 3. Navegar para login
+            router.replace('/auth/login');
           },
         },
       ]
