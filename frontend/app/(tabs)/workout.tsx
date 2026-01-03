@@ -209,6 +209,15 @@ export default function WorkoutScreen() {
     sum + (day.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0) || 0;
   const progressPercent = totalExercises > 0 ? Math.round((completedExercises / totalExercises) * 100) : 0;
 
+  // Show skeleton while loading initially
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <WorkoutSkeleton />
+      </SafeAreaView>
+    );
+  }
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
