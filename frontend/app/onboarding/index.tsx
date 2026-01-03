@@ -294,6 +294,10 @@ export default function OnboardingScreen() {
     setLoading(true);
     
     try {
+      // Obtém userId do auth (se existir)
+      const authUserId = await AsyncStorage.getItem('userId');
+      console.log('🔐 Auth userId:', authUserId);
+      
       // Prepara dados para API
       const profileData: any = {
         name: formData.name.trim(),
@@ -311,6 +315,11 @@ export default function OnboardingScreen() {
         food_preferences: formData.food_preferences,
         injury_history: formData.injury_history,
       };
+
+      // Se tem userId do auth, usa ele para o perfil
+      if (authUserId) {
+        profileData.id = authUserId;
+      }
 
       // Add athlete-specific fields
       if (formData.goal === 'atleta') {
@@ -357,7 +366,7 @@ export default function OnboardingScreen() {
         throw new Error('Dados incompletos retornados pelo servidor');
       }
 
-      // Salva perfil localmente
+      // Salva perfil localmente - USA O ID DO PROFILE (que deve ser igual ao auth userId)
       await AsyncStorage.setItem('userId', data.id);
       await AsyncStorage.setItem('userProfile', JSON.stringify(data));
       await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
