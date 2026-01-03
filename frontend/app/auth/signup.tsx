@@ -278,6 +278,21 @@ const styles = StyleSheet.create({
   form: {
     marginBottom: 32,
   },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  errorBannerText: {
+    flex: 1,
+    color: '#EF4444',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   inputContainer: {
     marginBottom: 20,
   },
