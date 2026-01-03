@@ -29,8 +29,10 @@ const safeFetch = async (url: string, options?: RequestInit) => {
 export default function WorkoutScreen() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { toast, showSuccess, showError, hideToast } = useToast();
   
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [workoutPlan, setWorkoutPlan] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
