@@ -657,10 +657,16 @@ async def generate_diet(user_id: str):
                        f"G:{real_fat:.0f}g vs {target_macros['fat']}g"
             )
         
-        # Salva no banco
+        # Salva no banco (IDEMPOTENT - sobrescreve dieta existente)
         diet_dict = diet_plan.dict()
         diet_dict["_id"] = diet_dict["id"]
-        await db.diet_plans.insert_one(diet_dict)
+        
+        # Usa replace_one com upsert para garantir uma única dieta por usuário
+        await db.diet_plans.replace_one(
+            {"user_id": user_id},
+            diet_dict,
+            upsert=True
+        )
         
         logger.info(
             f"DIETA GERADA COM SUCESSO - User: {user_id} | "
