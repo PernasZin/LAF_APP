@@ -90,7 +90,7 @@ export default function ProgressScreen() {
     
     const weight = parseFloat(newWeight.replace(',', '.'));
     if (isNaN(weight) || weight < 30 || weight > 300) {
-      Alert.alert('Peso Inválido', 'Digite um peso entre 30kg e 300kg.');
+      showError('Digite um peso entre 30kg e 300kg.');
       return;
     }
     
@@ -106,15 +106,15 @@ export default function ProgressScreen() {
       if (response.ok) {
         setShowModal(false);
         setNewWeight('');
-        Alert.alert('Sucesso', 'Peso registrado com sucesso!');
+        showSuccess('Peso registrado com sucesso!');
         await loadProgress(userId);
       } else {
         const error = await response.json().catch(() => ({}));
-        Alert.alert('Erro', error.detail || 'Não foi possível registrar o peso.');
+        showError(error.detail || 'Não foi possível registrar o peso.');
       }
     } catch (error) {
       console.error('Erro ao registrar peso:', error);
-      Alert.alert('Erro', 'Erro de conexão ao registrar peso.');
+      showError('Erro de conexão ao registrar peso.');
     } finally {
       setSaving(false);
     }
@@ -123,9 +123,7 @@ export default function ProgressScreen() {
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
+        <ProgressSkeleton />
       </SafeAreaView>
     );
   }
