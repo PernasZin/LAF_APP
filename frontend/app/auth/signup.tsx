@@ -99,7 +99,7 @@ export default function SignUpScreen() {
       
     } catch (error: any) {
       console.error('❌ SIGNUP: Erro:', error);
-      Alert.alert('Erro', error.message || 'Não foi possível criar conta');
+      setSubmitError(error.message || 'Não foi possível criar conta');
     } finally {
       setLoading(false);
     }
