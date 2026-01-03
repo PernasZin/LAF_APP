@@ -7,125 +7,82 @@ interface Props {
   updateData: (data: any) => void;
 }
 
-// Food Database with SEPARATE Categories
 interface FoodItem {
   id: string;
   name: string;
 }
 
+// ============================================
+// ATHLETE DIET-SAFE BASE FOODS ONLY
+// Rules:
+// - Remove processed foods
+// - Remove hard-to-measure items
+// - All quantities: multiples of 10g
+// ============================================
+
 const FOOD_DATABASE: Record<string, FoodItem[]> = {
+  // PROTEÍNAS - Only clean protein sources
+  proteins: [
+    { id: 'chicken_breast', name: 'Peito de Frango' },
+    { id: 'lean_beef', name: 'Carne Bovina (Patinho)' },
+    { id: 'eggs', name: 'Ovos Inteiros' },
+    { id: 'tilapia', name: 'Tilápia' },
+    { id: 'tuna', name: 'Atum' },
+    { id: 'salmon', name: 'Salmão' },
+  ],
+  
+  // CARBOIDRATOS - Clean carb sources
   carbs: [
-    { id: 'rice', name: 'Arroz' },
+    { id: 'white_rice', name: 'Arroz Branco' },
     { id: 'brown_rice', name: 'Arroz Integral' },
     { id: 'sweet_potato', name: 'Batata Doce' },
     { id: 'potato', name: 'Batata Inglesa' },
     { id: 'oats', name: 'Aveia' },
     { id: 'pasta', name: 'Macarrão' },
-    { id: 'integral_pasta', name: 'Macarrão Integral' },
     { id: 'bread', name: 'Pão' },
-    { id: 'integral_bread', name: 'Pão Integral' },
-    { id: 'tapioca', name: 'Tapioca' },
-    { id: 'cassava', name: 'Mandioca' },
-    { id: 'corn', name: 'Milho' },
-    { id: 'beans', name: 'Feijão' },
-    { id: 'lentils', name: 'Lentilha' },
-    { id: 'chickpeas', name: 'Grão de Bico' },
   ],
-  proteins: [
-    { id: 'chicken', name: 'Frango' },
-    { id: 'beef', name: 'Carne Bovina' },
-    { id: 'pork', name: 'Carne Suína' },
-    { id: 'fish', name: 'Peixe' },
-    { id: 'tilapia', name: 'Tilápia' },
-    { id: 'salmon', name: 'Salmão' },
-    { id: 'tuna', name: 'Atum' },
-    { id: 'shrimp', name: 'Camarão' },
-    { id: 'eggs', name: 'Ovos' },
-    { id: 'egg_whites', name: 'Clara de Ovo' },
-    { id: 'greek_yogurt', name: 'Iogurte Grego' },
-    { id: 'cottage', name: 'Queijo Cottage' },
-    { id: 'turkey', name: 'Peru' },
-    { id: 'ham', name: 'Presunto' },
-  ],
+  
+  // GORDURAS - Limited to essentials
   fats: [
     { id: 'olive_oil', name: 'Azeite de Oliva' },
-    { id: 'coconut_oil', name: 'Óleo de Coco' },
-    { id: 'avocado', name: 'Abacate' },
-    { id: 'nuts', name: 'Castanhas' },
-    { id: 'almonds', name: 'Amêndoas' },
-    { id: 'walnuts', name: 'Nozes' },
-    { id: 'brazil_nuts', name: 'Castanha do Pará' },
-    { id: 'peanuts', name: 'Amendoim' },
     { id: 'peanut_butter', name: 'Pasta de Amendoim' },
-    { id: 'seeds', name: 'Sementes (chia, linhaça)' },
-    { id: 'butter', name: 'Manteiga' },
-    { id: 'cheese', name: 'Queijo' },
-    { id: 'cream_cheese', name: 'Cream Cheese' },
-    { id: 'heavy_cream', name: 'Creme de Leite' },
   ],
-  // ========== FRUTAS - CATEGORIA SEPARADA ==========
+  
+  // FRUTAS - Separate category (avocado is a fruit!)
   fruits: [
     { id: 'banana', name: 'Banana' },
     { id: 'apple', name: 'Maçã' },
     { id: 'orange', name: 'Laranja' },
-    { id: 'berries', name: 'Frutas Vermelhas' },
-    { id: 'mango', name: 'Manga' },
-    { id: 'papaya', name: 'Mamão' },
-    { id: 'watermelon', name: 'Melancia' },
-    { id: 'grapes', name: 'Uva' },
-    { id: 'pineapple', name: 'Abacaxi' },
-    { id: 'melon', name: 'Melão' },
     { id: 'strawberry', name: 'Morango' },
-    { id: 'kiwi', name: 'Kiwi' },
+    { id: 'papaya', name: 'Mamão' },
+    { id: 'mango', name: 'Manga' },
+    { id: 'watermelon', name: 'Melancia' },
+    { id: 'avocado', name: 'Abacate' },  // FRUIT not fat!
   ],
-  vegetables: [
-    { id: 'broccoli', name: 'Brócolis' },
-    { id: 'spinach', name: 'Espinafre' },
-    { id: 'lettuce', name: 'Alface' },
-    { id: 'tomato', name: 'Tomate' },
-    { id: 'carrot', name: 'Cenoura' },
-    { id: 'cucumber', name: 'Pepino' },
-    { id: 'zucchini', name: 'Abobrinha' },
-    { id: 'onion', name: 'Cebola' },
-    { id: 'bell_pepper', name: 'Pimentão' },
-    { id: 'mushroom', name: 'Cogumelo' },
-    { id: 'cabbage', name: 'Repolho' },
-    { id: 'green_beans', name: 'Vagem' },
-    { id: 'asparagus', name: 'Aspargo' },
-  ],
-  // ========== SUPLEMENTOS - CATEGORIA SEPARADA ==========
+  
+  // SUPLEMENTOS - Separate, NOT in meals
+  // Never count as protein or replace meals
   supplements: [
-    { id: 'whey', name: 'Whey Protein' },
     { id: 'creatine', name: 'Creatina' },
-    { id: 'bcaa', name: 'BCAA' },
     { id: 'multivitamin', name: 'Multivitamínico' },
-    { id: 'caffeine', name: 'Cafeína' },
-    { id: 'pre_workout', name: 'Pré-Treino' },
-    { id: 'glutamine', name: 'Glutamina' },
     { id: 'omega3', name: 'Ômega 3' },
-    { id: 'vitamin_d', name: 'Vitamina D' },
-    { id: 'collagen', name: 'Colágeno' },
+    { id: 'caffeine', name: 'Cafeína' },
   ],
 };
 
 const CATEGORIES = [
-  { key: 'carbs', label: 'Carboidratos', icon: 'leaf-outline', color: '#F59E0B' },
-  { key: 'proteins', label: 'Proteínas', icon: 'fitness-outline', color: '#EF4444' },
-  { key: 'fats', label: 'Gorduras', icon: 'water-outline', color: '#3B82F6' },
-  { key: 'fruits', label: '🍎 Frutas', icon: 'nutrition-outline', color: '#EC4899' },
-  { key: 'vegetables', label: 'Vegetais', icon: 'leaf-outline', color: '#10B981' },
-  { key: 'supplements', label: '💊 Suplementação', icon: 'flask-outline', color: '#8B5CF6' },
+  { key: 'proteins', label: 'Proteínas', icon: 'fitness-outline', color: '#EF4444', description: 'Fontes limpas de proteína' },
+  { key: 'carbs', label: 'Carboidratos', icon: 'leaf-outline', color: '#F59E0B', description: 'Fontes de energia' },
+  { key: 'fats', label: 'Gorduras', icon: 'water-outline', color: '#3B82F6', description: 'Gorduras essenciais' },
+  { key: 'fruits', label: 'Frutas', icon: 'nutrition-outline', color: '#EC4899', description: 'Micronutrientes e fibras' },
+  { key: 'supplements', label: 'Suplementação', icon: 'flask-outline', color: '#8B5CF6', description: 'Não substitui refeições' },
 ];
 
 const dietaryOptions = [
   'Vegetariano',
-  'Vegano',
   'Sem Lactose',
   'Sem Glúten',
-  'Sem Açúcar',
   'Low Carb',
-  'Keto',
-  'Pescetariano',
 ];
 
 export default function RestrictionsStep({ data, updateData }: Props) {
@@ -154,7 +111,7 @@ export default function RestrictionsStep({ data, updateData }: Props) {
     <View style={styles.container}>
       <Text style={styles.title}>Preferências Alimentares</Text>
       <Text style={styles.description}>
-        Selecione os alimentos que você gosta para personalizar sua dieta.
+        Selecione os alimentos que você gosta. Usamos apenas alimentos base de dieta de atleta.
       </Text>
 
       {/* Restrições Dietéticas */}
@@ -200,7 +157,7 @@ export default function RestrictionsStep({ data, updateData }: Props) {
       {/* Food Preferences by Category */}
       <View style={styles.foodSection}>
         <View style={styles.foodHeader}>
-          <Text style={styles.foodTitle}>Alimentos que Você Gosta</Text>
+          <Text style={styles.foodTitle}>Alimentos Disponíveis</Text>
           <Text style={styles.selectedCount}>{selectedCount} selecionados</Text>
         </View>
 
@@ -208,10 +165,13 @@ export default function RestrictionsStep({ data, updateData }: Props) {
           <View key={category.key} style={styles.category}>
             <View style={[styles.categoryHeader, { backgroundColor: category.color + '15' }]}>
               <Ionicons name={category.icon as any} size={18} color={category.color} />
-              <Text style={[styles.categoryTitle, { color: category.color }]}>
-                {category.label}
-              </Text>
-              {(category.key === 'fruits' || category.key === 'supplements') && (
+              <View style={styles.categoryTitleContainer}>
+                <Text style={[styles.categoryTitle, { color: category.color }]}>
+                  {category.label}
+                </Text>
+                <Text style={styles.categoryDescription}>{category.description}</Text>
+              </View>
+              {category.key === 'supplements' && (
                 <View style={[styles.separateBadge, { backgroundColor: category.color }]}>
                   <Text style={styles.separateBadgeText}>SEPARADO</Text>
                 </View>
@@ -246,6 +206,13 @@ export default function RestrictionsStep({ data, updateData }: Props) {
             </View>
           </View>
         ))}
+      </View>
+
+      <View style={styles.infoBox}>
+        <Ionicons name="information-circle-outline" size={18} color="#6B7280" />
+        <Text style={styles.infoText}>
+          Todas as quantidades serão em múltiplos de 10g para facilitar a medição.
+        </Text>
       </View>
 
       <Text style={styles.hint}>
@@ -340,15 +307,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 8,
     marginBottom: 10,
   },
+  categoryTitleContainer: {
+    flex: 1,
+  },
   categoryTitle: {
     fontSize: 14,
     fontWeight: '700',
-    flex: 1,
+  },
+  categoryDescription: {
+    fontSize: 11,
+    color: '#6B7280',
+    marginTop: 2,
   },
   separateBadge: {
     paddingHorizontal: 8,
@@ -388,11 +362,25 @@ const styles = StyleSheet.create({
   foodChipTextActive: {
     fontWeight: '600',
   },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F3F4F6',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 12,
+    color: '#6B7280',
+  },
   hint: {
     fontSize: 13,
     color: '#9CA3AF',
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: 16,
     marginBottom: 16,
   },
 });
