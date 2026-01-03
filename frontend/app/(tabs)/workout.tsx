@@ -77,6 +77,7 @@ export default function WorkoutScreen() {
 
   const loadUserData = async () => {
     try {
+      setInitialLoading(true);
       const id = await AsyncStorage.getItem('userId');
       setUserId(id);
       
@@ -90,10 +91,12 @@ export default function WorkoutScreen() {
         } catch (err) {
           console.log('Profile load error');
         }
-        loadWorkout(id);
+        await loadWorkout(id);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+    } finally {
+      setInitialLoading(false);
     }
   };
 
