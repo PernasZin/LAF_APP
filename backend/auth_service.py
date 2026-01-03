@@ -183,7 +183,7 @@ class AuthService:
     
     async def login(self, email: str, password: str) -> Dict:
         """Autentica usuário existente"""
-        # Busca usuário
+        # Busca usuário auth
         user = await self.users_collection.find_one({"email": email.lower()})
         if not user:
             raise ValueError("Email ou senha incorretos")
@@ -202,6 +202,18 @@ class AuthService:
             {"$set": {"last_login": datetime.utcnow()}}
         )
         
+        # Verifica se tem perfil (busca na collection users pelo mesmo ID)
+        users_collection = self.db.users
+        profile = await users_collection.find_one({"_id": user["_id"]})
+        has_profile = profile is not None
+        
+        # Se tem profile mas profile_id não está setado, atualiza
+        if has_profile and not user.get("profile_id"):
+            await self.users_collection.update_one(
+                {"_id": user["_id"]},
+                {"$set": {"profile_id": user["_id"]}}
+            )
+        
         # Gera token
         access_token = create_access_token(user["_id"], user["email"])
         
@@ -211,8 +223,8 @@ class AuthService:
             "expires_in": JWT_EXPIRATION_HOURS * 3600,
             "user_id": user["_id"],
             "email": user["email"],
-            "has_profile": user.get("profile_id") is not None,
-            "profile_id": user.get("profile_id")
+            "has_profile": has_profile,
+            "profile_id": user["_id"] if has_profile else None
         }
     
     async def validate_token(self, token: str) -> Optional[Dict]:
