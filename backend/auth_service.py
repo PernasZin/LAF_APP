@@ -177,8 +177,7 @@ class AuthService:
             "expires_in": JWT_EXPIRATION_HOURS * 3600,
             "user_id": user.id,
             "email": user.email,
-            "has_profile": False,
-            "profile_id": None
+            "profile_completed": False
         }
     
     async def login(self, email: str, password: str) -> Dict:
