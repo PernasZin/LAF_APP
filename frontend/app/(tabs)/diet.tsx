@@ -74,6 +74,7 @@ export default function DietScreen() {
 
   const loadUserData = async () => {
     try {
+      setInitialLoading(true);
       const id = await AsyncStorage.getItem('userId');
       setUserId(id);
       
@@ -91,10 +92,12 @@ export default function DietScreen() {
             setUserProfile(JSON.parse(profileData));
           }
         }
-        loadDiet(id);
+        await loadDiet(id);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
+    } finally {
+      setInitialLoading(false);
     }
   };
 
