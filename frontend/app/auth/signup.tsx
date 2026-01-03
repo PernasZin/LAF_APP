@@ -21,7 +21,7 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { setAuthenticated, setUserId } = useAuthStore();
+  const { login } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,7 +57,11 @@ export default function SignUpScreen() {
     if (!validateForm()) return;
     
     setLoading(true);
+    console.log('🔐 SIGNUP: Iniciando...');
+    
     try {
+      console.log('🔐 SIGNUP: Chamando API:', `${BACKEND_URL}/api/auth/signup`);
+      
       const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,27 +69,27 @@ export default function SignUpScreen() {
       });
       
       const data = await response.json();
+      console.log('🔐 SIGNUP: Resposta:', { ok: response.ok, data });
       
       if (!response.ok) {
         throw new Error(data.detail || 'Erro ao criar conta');
       }
       
-      // Salva dados de autenticação
-      await AsyncStorage.setItem('accessToken', data.access_token);
-      await AsyncStorage.setItem('userId', data.user_id);
+      // 1. Usa o método login do AuthStore
+      console.log('🔐 SIGNUP: Salvando no AuthStore...');
+      await login(data.user_id, data.access_token);
+      
+      // 2. Salva email também
       await AsyncStorage.setItem('userEmail', data.email);
       
-      // Atualiza store
-      setUserId(data.user_id);
-      setAuthenticated(true, data.user_id);
+      console.log('🔐 SIGNUP: AuthStore atualizado, isAuthenticated:', useAuthStore.getState().isAuthenticated);
       
-      console.log('✅ Cadastro bem sucedido:', { userId: data.user_id });
-      
-      // Vai para onboarding para criar perfil
+      // 3. Vai para onboarding para criar perfil
+      console.log('🔐 SIGNUP: Indo para onboarding');
       router.replace('/onboarding');
       
     } catch (error: any) {
-      console.error('❌ Erro no cadastro:', error);
+      console.error('❌ SIGNUP: Erro:', error);
       Alert.alert('Erro', error.message || 'Não foi possível criar conta');
     } finally {
       setLoading(false);
