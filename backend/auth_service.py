@@ -227,8 +227,7 @@ class AuthService:
             "expires_in": JWT_EXPIRATION_HOURS * 3600,
             "user_id": user["_id"],
             "email": user["email"],
-            "has_profile": has_profile,
-            "profile_id": str(profile_id) if profile_id else None
+            "profile_completed": has_profile
         }
     
     async def validate_token(self, token: str) -> Optional[Dict]:
