@@ -1,0 +1,199 @@
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
+import { useTheme } from '../theme/ThemeContext';
+
+interface SkeletonProps {
+  width?: number | string;
+  height?: number;
+  borderRadius?: number;
+  style?: ViewStyle;
+}
+
+export const Skeleton: React.FC<SkeletonProps> = ({
+  width = '100%',
+  height = 20,
+  borderRadius = 8,
+  style,
+}) => {
+  const { colors } = useTheme();
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.7,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, []);
+
+  return (
+    <Animated.View
+      style={[
+        {
+          width,
+          height,
+          borderRadius,
+          backgroundColor: colors.border,
+          opacity,
+        },
+        style,
+      ]}
+    />
+  );
+};
+
+// Card skeleton para listas
+export const CardSkeleton: React.FC<{ style?: ViewStyle }> = ({ style }) => {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }, style]}>
+      <View style={styles.cardHeader}>
+        <Skeleton width={120} height={18} />
+        <Skeleton width={60} height={14} />
+      </View>
+      <View style={styles.cardBody}>
+        <Skeleton width="80%" height={14} style={{ marginBottom: 8 }} />
+        <Skeleton width="60%" height={14} />
+      </View>
+    </View>
+  );
+};
+
+// Skeleton para tela de dieta
+export const DietSkeleton: React.FC = () => {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={styles.container}>
+      {/* Header skeleton */}
+      <View style={[styles.headerSkeleton, { backgroundColor: colors.backgroundCard }]}>
+        <Skeleton width={180} height={24} style={{ marginBottom: 12 }} />
+        <View style={styles.macrosRow}>
+          <Skeleton width={70} height={40} borderRadius={12} />
+          <Skeleton width={70} height={40} borderRadius={12} />
+          <Skeleton width={70} height={40} borderRadius={12} />
+        </View>
+      </View>
+      
+      {/* Meal cards skeleton */}
+      {[1, 2, 3].map((i) => (
+        <CardSkeleton key={i} style={{ marginBottom: 12 }} />
+      ))}
+    </View>
+  );
+};
+
+// Skeleton para tela de treino
+export const WorkoutSkeleton: React.FC = () => {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={styles.container}>
+      {/* Tabs skeleton */}
+      <View style={styles.tabsRow}>
+        <Skeleton width={80} height={36} borderRadius={18} />
+        <Skeleton width={80} height={36} borderRadius={18} />
+        <Skeleton width={80} height={36} borderRadius={18} />
+      </View>
+      
+      {/* Exercise cards skeleton */}
+      {[1, 2, 3, 4].map((i) => (
+        <CardSkeleton key={i} style={{ marginBottom: 12 }} />
+      ))}
+    </View>
+  );
+};
+
+// Skeleton para tela de progresso
+export const ProgressSkeleton: React.FC = () => {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={styles.container}>
+      {/* Stats card skeleton */}
+      <View style={[styles.statsCard, { backgroundColor: colors.backgroundCard }]}>
+        <Skeleton width={100} height={16} style={{ marginBottom: 8 }} />
+        <Skeleton width={80} height={32} />
+      </View>
+      
+      {/* Chart skeleton */}
+      <View style={[styles.chartSkeleton, { backgroundColor: colors.backgroundCard }]}>
+        <Skeleton width="100%" height={180} borderRadius={12} />
+      </View>
+      
+      {/* History skeleton */}
+      <Skeleton width={120} height={18} style={{ marginBottom: 12, marginTop: 16 }} />
+      {[1, 2, 3].map((i) => (
+        <View key={i} style={[styles.historyItem, { backgroundColor: colors.backgroundCard }]}>
+          <Skeleton width={60} height={14} />
+          <Skeleton width={50} height={18} />
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+  card: {
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardBody: {},
+  headerSkeleton: {
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  macrosRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 20,
+  },
+  statsCard: {
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  chartSkeleton: {
+    padding: 16,
+    borderRadius: 16,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+});
+
+export default Skeleton;
