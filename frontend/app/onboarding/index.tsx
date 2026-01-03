@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingV
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import BasicInfoStep from './steps/BasicInfoStep';
 import PhysicalDataStep from './steps/PhysicalDataStep';
@@ -12,95 +11,18 @@ import GoalStep from './steps/GoalStep';
 import AthleteStep from './steps/AthleteStep';
 import RestrictionsStep from './steps/RestrictionsStep';
 
+import { useAuthStore } from '../../stores/authStore';
+
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-
-// Safe fetch with configurable timeout for onboarding
-const safeFetch = async (url: string, options?: RequestInit, timeout = 15000) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    const response = await fetch(url, { ...options, signal: controller.signal });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error: any) {
-    clearTimeout(timeoutId);
-    // Defensive check for error properties
-    const errorName = typeof error?.name === 'string' ? error.name : '';
-    if (errorName === 'AbortError') {
-      throw new Error('A requisição demorou muito tempo. Verifique sua conexão.');
-    }
-    throw error;
-  }
-};
-
-// Utility to safely extract error message
-const getErrorMessage = (error: unknown): string => {
-  if (error === null || error === undefined) {
-    return 'Erro desconhecido';
-  }
-  
-  if (typeof error === 'string') {
-    return error;
-  }
-  
-  if (error instanceof Error) {
-    return error.message || 'Erro desconhecido';
-  }
-  
-  if (typeof error === 'object') {
-    const err = error as any;
-    if (typeof err.message === 'string') {
-      return err.message;
-    }
-    if (typeof err.detail === 'string') {
-      return err.detail;
-    }
-  }
-  
-  return 'Erro desconhecido';
-};
-
-// Utility to safely check if error is timeout-related
-const isTimeoutError = (error: unknown): boolean => {
-  if (error === null || error === undefined) {
-    return false;
-  }
-  
-  const message = getErrorMessage(error);
-  const code = typeof (error as any)?.code === 'string' ? (error as any).code : '';
-  const name = typeof (error as any)?.name === 'string' ? (error as any).name : '';
-  
-  return (
-    code === 'ECONNABORTED' ||
-    name === 'AbortError' ||
-    message.toLowerCase().includes('timeout') ||
-    message.toLowerCase().includes('demorou')
-  );
-};
-
-// Utility to safely check if error is network-related
-const isNetworkError = (error: unknown): boolean => {
-  if (error === null || error === undefined) {
-    return false;
-  }
-  
-  const message = getErrorMessage(error);
-  const hasResponse = typeof (error as any)?.response === 'object' && (error as any).response !== null;
-  
-  return (
-    message === 'Network Error' ||
-    message.toLowerCase().includes('network') ||
-    message.toLowerCase().includes('conexão') ||
-    (!hasResponse && message.toLowerCase().includes('fetch'))
-  );
-};
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [isChecking, setIsChecking] = useState(true);
+  
+  // Auth store - SINGLE SOURCE OF TRUTH
+  const userId = useAuthStore((s) => s.userId);
+  const setProfileCompleted = useAuthStore((s) => s.setProfileCompleted);
   
   // Form data state
   const [formData, setFormData] = useState({
@@ -130,42 +52,7 @@ export default function OnboardingScreen() {
     injury_history: [] as string[],
   });
   
-  console.log('🎯 OnboardingScreen mounted. Backend URL:', BACKEND_URL);
-
-  // Verifica se já completou onboarding
-  React.useEffect(() => {
-    checkOnboardingStatus();
-  }, []);
-
-  const checkOnboardingStatus = async () => {
-    try {
-      const hasCompleted = await AsyncStorage.getItem('hasCompletedOnboarding');
-      const userId = await AsyncStorage.getItem('userId');
-      
-      console.log('📋 Checking onboarding status:', { hasCompleted, userId });
-      
-      if (hasCompleted === 'true' && userId) {
-        console.log('✅ Onboarding already completed, redirecting to home');
-        router.replace('/(tabs)');
-        return;
-      }
-    } catch (error) {
-      console.error('Error checking onboarding status:', error);
-    } finally {
-      setIsChecking(false);
-    }
-  };
-
-  // Mostra loading enquanto verifica status
-  if (isChecking) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 16, color: '#6B7280' }}>Carregando...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  console.log('🎯 OnboardingScreen - userId:', userId);
 
   // Dynamic steps based on goal selection
   const getSteps = () => {
@@ -195,7 +82,6 @@ export default function OnboardingScreen() {
   const validateCurrentStep = () => {
     console.log('Validating step:', currentStep, 'Data:', formData);
     
-    // Find which step we're validating based on current position
     const currentStepTitle = steps[currentStep]?.title;
     
     switch (currentStepTitle) {
@@ -244,7 +130,6 @@ export default function OnboardingScreen() {
         break;
       
       case 'Competição':
-        // Athlete-specific validation
         if (formData.goal === 'atleta') {
           if (!formData.competition_phase) {
             Alert.alert('Fase Obrigatória', 'Selecione sua fase de competição atual.');
@@ -258,7 +143,7 @@ export default function OnboardingScreen() {
         break;
       
       case 'Preferências':
-        // Este step é opcional
+        // Optional step
         break;
     }
     
@@ -282,24 +167,25 @@ export default function OnboardingScreen() {
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-    } else {
-      router.back();
     }
   };
 
   const handleSubmit = async () => {
     console.log('🚀 handleSubmit called');
-    console.log('📦 Form data:', JSON.stringify(formData, null, 2));
+    
+    // CRITICAL: userId must exist from auth
+    if (!userId) {
+      Alert.alert('Erro', 'Sessão expirada. Faça login novamente.');
+      router.replace('/auth/login');
+      return;
+    }
     
     setLoading(true);
     
     try {
-      // Obtém userId do auth (se existir)
-      const authUserId = await AsyncStorage.getItem('userId');
-      console.log('🔐 Auth userId:', authUserId);
-      
-      // Prepara dados para API
+      // Prepare profile data - MUST include userId
       const profileData: any = {
+        id: userId,  // REQUIRED: links profile to auth user
         name: formData.name.trim(),
         age: parseInt(formData.age),
         sex: formData.sex,
@@ -316,16 +202,10 @@ export default function OnboardingScreen() {
         injury_history: formData.injury_history,
       };
 
-      // Se tem userId do auth, usa ele para o perfil
-      if (authUserId) {
-        profileData.id = authUserId;
-      }
-
       // Add athlete-specific fields
       if (formData.goal === 'atleta') {
         profileData.competition_phase = formData.competition_phase;
         profileData.weeks_to_competition = parseInt(formData.weeks_to_competition);
-        // Calculate competition date for timeline tracking
         if (formData.weeks_to_competition) {
           const competitionDate = new Date();
           competitionDate.setDate(competitionDate.getDate() + (parseInt(formData.weeks_to_competition) * 7));
@@ -336,105 +216,42 @@ export default function OnboardingScreen() {
       console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
       console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
 
-      // Cria perfil no backend com safeFetch (timeout + abort signal)
-      const response = await safeFetch(
-        `${BACKEND_URL}/api/user/profile`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(profileData),
-        },
-        15000 // 15 segundos timeout
-      );
+      // Call backend - uses UPSERT (idempotent)
+      const response = await fetch(`${BACKEND_URL}/api/user/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+
+      console.log('📡 Response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw { response: { status: response.status, data: errorData } };
+        console.error('❌ Backend error:', errorData);
+        throw new Error(errorData.detail || 'Erro ao salvar perfil');
       }
 
       const data = await response.json();
-      console.log('✅ Response received:', response.status, data);
+      console.log('✅ Profile saved:', data.id);
 
-      // Valida resposta
-      if (!data || !data.id) {
-        throw new Error('Resposta inválida do servidor - ID não encontrado');
-      }
+      // SUCCESS: Update auth store - profileCompleted = true
+      await setProfileCompleted(true);
+      console.log('✅ profileCompleted set to true in authStore');
 
-      if (!data.tdee || !data.target_calories || !data.macros) {
-        throw new Error('Dados incompletos retornados pelo servidor');
-      }
-
-      // Salva perfil localmente - USA O ID DO PROFILE (que deve ser igual ao auth userId)
-      await AsyncStorage.setItem('userId', data.id);
-      await AsyncStorage.setItem('userProfile', JSON.stringify(data));
-      await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-
-      console.log('💾 Profile saved to AsyncStorage');
-      console.log('🏠 Navigating to home immediately');
-
-      // Navegação imediata sem Alert
+      // Navigate to tabs - AuthGuard will handle routing
       setLoading(false);
       router.replace('/(tabs)');
       
-    } catch (error: unknown) {
-      console.error('❌ Erro ao criar perfil:', error);
+    } catch (error: any) {
+      console.error('❌ Error saving profile:', error);
       
-      // DEFENSIVE ERROR HANDLING - Never crash on malformed errors
-      let errorMessage = 'Não foi possível criar seu perfil. ';
-      
-      try {
-        // Safe extraction of error details
-        const errorObj = error as any;
-        const responseStatus = errorObj?.response?.status;
-        const responseData = errorObj?.response?.data;
-        const responseDetail = typeof responseData?.detail === 'string' ? responseData.detail : '';
-        
-        console.error('❌ Error details:', {
-          message: getErrorMessage(error),
-          status: responseStatus,
-          detail: responseDetail,
-        });
-        
-        if (isTimeoutError(error)) {
-          errorMessage += 'A requisição demorou muito tempo. Verifique sua conexão e tente novamente.';
-        } else if (isNetworkError(error)) {
-          errorMessage += 'Sem conexão com o servidor. Verifique sua internet.';
-        } else if (responseStatus === 400) {
-          errorMessage += responseDetail || 'Dados inválidos. Verifique os campos preenchidos.';
-        } else if (responseStatus === 500) {
-          errorMessage += 'Erro no servidor. Tente novamente em alguns instantes.';
-        } else if (responseDetail) {
-          errorMessage += responseDetail;
-        } else {
-          const msg = getErrorMessage(error);
-          errorMessage += msg !== 'Erro desconhecido' ? msg : 'Tente novamente.';
-        }
-      } catch (extractionError) {
-        // Even error extraction failed - use safest fallback
-        console.error('❌ Error extraction failed:', extractionError);
-        errorMessage += 'Tente novamente.';
+      let errorMessage = 'Não foi possível salvar seu perfil.';
+      if (error.message) {
+        errorMessage = error.message;
       }
       
-      Alert.alert(
-        'Erro ao Criar Perfil',
-        `${errorMessage}\n\nDeseja tentar novamente?`,
-        [
-          {
-            text: 'Cancelar',
-            style: 'cancel',
-          },
-          {
-            text: 'Tentar Novamente',
-            onPress: () => handleSubmit(),
-            style: 'default',
-          }
-        ]
-      );
-    } finally {
+      Alert.alert('Erro', errorMessage);
       setLoading(false);
-      console.log('🏁 handleSubmit completed');
     }
   };
 
@@ -449,8 +266,14 @@ export default function OnboardingScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#374151" />
+          <TouchableOpacity 
+            onPress={handleBack} 
+            style={styles.backButton}
+            disabled={currentStep === 0}
+          >
+            {currentStep > 0 && (
+              <Ionicons name="arrow-back" size={24} color="#374151" />
+            )}
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{steps[currentStep].title}</Text>
           <View style={styles.stepIndicator}>
@@ -485,7 +308,7 @@ export default function OnboardingScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.nextButtonText}>
-              {loading ? 'Criando perfil...' : currentStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
+              {loading ? 'Salvando...' : currentStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
             </Text>
             {!loading && <Ionicons name="arrow-forward" size={20} color="#fff" />}
           </TouchableOpacity>
