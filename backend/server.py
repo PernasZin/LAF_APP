@@ -77,6 +77,7 @@ class UserProfile(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserProfileCreate(BaseModel):
+    id: Optional[str] = None  # Se fornecido, usa este ID (para vincular ao auth)
     name: str
     age: int
     sex: str
