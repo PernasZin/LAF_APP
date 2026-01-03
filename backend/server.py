@@ -317,15 +317,28 @@ def derive_phase_from_weeks(weeks: int) -> str:
 # ==================== ROUTES ====================
 
 @api_router.post("/user/profile", response_model=UserProfile)
-async def create_user_profile(profile_data: UserProfileCreate):
+async def create_or_update_user_profile(profile_data: UserProfileCreate):
     """
-    Cria perfil de usuário e calcula TDEE e macros automaticamente.
+    Cria ou atualiza perfil de usuário (IDEMPOTENT - usa upsert).
+    Calcula TDEE e macros automaticamente.
+    
+    REGRAS:
+    - Se profile_data.id fornecido: usa upsert (cria ou atualiza)
+    - Nunca cria duplicatas
+    - Backend é fonte de verdade para has_profile
     
     REGRAS PARA ATLETA:
     - competition_phase é OBRIGATÓRIO
     - weeks_to_competition é OBRIGATÓRIO
     - Fases válidas: off_season, pre_prep, prep, peak_week, post_show
     """
+    # OBRIGATÓRIO: ID do usuário autenticado
+    if not profile_data.id:
+        raise HTTPException(
+            status_code=400,
+            detail="Campo 'id' é obrigatório (ID do usuário autenticado)"
+        )
+    
     # Validação: atleta requer fase de competição e semanas
     if profile_data.goal == "atleta":
         if not profile_data.competition_phase:
@@ -379,13 +392,7 @@ async def create_user_profile(profile_data: UserProfileCreate):
     
     # Cria perfil completo
     profile_dict = profile_data.dict()
-    
-    # Se o client forneceu um ID (vinculado ao auth), usa ele
-    # Senão, deixa o model gerar um novo
-    if profile_data.id:
-        profile_dict["id"] = profile_data.id
-    else:
-        profile_dict.pop("id", None)  # Remove se None para deixar o default funcionar
+    profile_dict["id"] = profile_data.id
     
     # Processa campos de atleta
     if profile_data.goal == "atleta":
@@ -399,19 +406,31 @@ async def create_user_profile(profile_data: UserProfileCreate):
         # Define phase_start_date
         profile_dict["phase_start_date"] = datetime.utcnow()
     
-    profile = UserProfile(
-        **profile_dict,
-        tdee=round(tdee, 0),
-        target_calories=round(target_calories, 0),
-        macros=macros
+    # Adiciona campos calculados
+    profile_dict["tdee"] = round(tdee, 0)
+    profile_dict["target_calories"] = round(target_calories, 0)
+    profile_dict["macros"] = macros
+    profile_dict["updated_at"] = datetime.utcnow()
+    
+    # UPSERT: Atualiza se existe, cria se não existe (IDEMPOTENT)
+    profile_dict["_id"] = profile_data.id
+    
+    await db.user_profiles.update_one(
+        {"_id": profile_data.id},
+        {"$set": profile_dict, "$setOnInsert": {"created_at": datetime.utcnow()}},
+        upsert=True
     )
     
-    # Salva no banco
-    profile_save = profile.dict()
-    profile_save["_id"] = profile_save["id"]
-    await db.user_profiles.insert_one(profile_save)
+    # Vincula profile ao users_auth
+    await db.users_auth.update_one(
+        {"_id": profile_data.id},
+        {"$set": {"profile_id": profile_data.id, "updated_at": datetime.utcnow()}}
+    )
     
-    return profile
+    logger.info(f"Profile upserted for user {profile_data.id}")
+    
+    # Retorna perfil
+    return UserProfile(**profile_dict)
 
 @api_router.get("/user/profile/{user_id}", response_model=UserProfile)
 async def get_user_profile(user_id: str):
