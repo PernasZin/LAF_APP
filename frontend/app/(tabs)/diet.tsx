@@ -48,8 +48,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function DietScreen() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const { toast, showSuccess, showError, hideToast } = useToast();
   
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [dietPlan, setDietPlan] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
