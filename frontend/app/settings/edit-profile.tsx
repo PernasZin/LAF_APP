@@ -128,13 +128,13 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     // Validação
     if (!name.trim()) {
-      Alert.alert('Erro', 'Nome é obrigatório');
+      showError('Nome é obrigatório');
       return;
     }
     
     const weightNum = parseFloat(weight);
     if (isNaN(weightNum) || weightNum < 30 || weightNum > 300) {
-      Alert.alert('Erro', 'Peso deve estar entre 30kg e 300kg');
+      showError('Peso deve estar entre 30kg e 300kg');
       return;
     }
 
@@ -182,16 +182,17 @@ export default function EditProfileScreen() {
         await AsyncStorage.setItem('userProfile', JSON.stringify(profile));
       }
 
-      Alert.alert(
-        'Sucesso',
+      showSuccess(
         goal !== originalGoal 
           ? 'Perfil atualizado e dieta recalculada!' 
-          : 'Perfil atualizado com sucesso!',
-        [{ text: 'OK', onPress: () => router.back() }]
+          : 'Perfil atualizado com sucesso!'
       );
+      
+      // Delay before navigating back
+      setTimeout(() => router.back(), 1500);
     } catch (error) {
       console.error('Error saving:', error);
-      Alert.alert('Erro', 'Não foi possível salvar. Tente novamente.');
+      showError('Não foi possível salvar. Tente novamente.');
     } finally {
       setSaving(false);
     }
