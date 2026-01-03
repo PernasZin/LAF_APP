@@ -202,16 +202,20 @@ class AuthService:
             {"$set": {"last_login": datetime.utcnow()}}
         )
         
-        # Verifica se tem perfil (busca na collection users pelo mesmo ID)
-        users_collection = self.db.users
-        profile = await users_collection.find_one({"_id": user["_id"]})
+        # Verifica se tem perfil (busca na collection user_profiles pelo ID ou _id)
+        profiles_collection = self.db.user_profiles
+        profile = await profiles_collection.find_one({"$or": [
+            {"_id": user["_id"]},
+            {"id": user["_id"]}
+        ]})
         has_profile = profile is not None
+        profile_id = profile["_id"] if profile else None
         
-        # Se tem profile mas profile_id não está setado, atualiza
+        # Se tem profile mas profile_id não está setado no auth, atualiza
         if has_profile and not user.get("profile_id"):
             await self.users_collection.update_one(
                 {"_id": user["_id"]},
-                {"$set": {"profile_id": user["_id"]}}
+                {"$set": {"profile_id": profile_id}}
             )
         
         # Gera token
@@ -224,7 +228,7 @@ class AuthService:
             "user_id": user["_id"],
             "email": user["email"],
             "has_profile": has_profile,
-            "profile_id": user["_id"] if has_profile else None
+            "profile_id": str(profile_id) if profile_id else None
         }
     
     async def validate_token(self, token: str) -> Optional[Dict]:
