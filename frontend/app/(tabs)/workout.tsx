@@ -1,5 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { 
+  View, Text, StyleSheet, ScrollView, TouchableOpacity, 
+  ActivityIndicator, RefreshControl, Modal, Image, Alert,
+  Dimensions
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,10 +11,11 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const safeFetch = async (url: string, options?: RequestInit) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
@@ -30,12 +35,44 @@ export default function WorkoutScreen() {
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  
+  // Exercise detail modal
+  const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(-1);
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(-1);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
+  
+  // Timer state
+  const [timerActive, setTimerActive] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       loadUserData();
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
     }, [])
   );
+
+  // Timer effect
+  useEffect(() => {
+    if (timerActive && timerSeconds > 0) {
+      timerRef.current = setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (prev <= 1) {
+            setTimerActive(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timerActive]);
 
   const loadUserData = async () => {
     try {
@@ -78,6 +115,23 @@ export default function WorkoutScreen() {
 
   const generateWorkout = async () => {
     if (!userId || !BACKEND_URL) return;
+    
+    if (workoutPlan) {
+      Alert.alert(
+        'Treino Existente',
+        'Deseja realmente gerar um novo treino? O progresso atual será perdido.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Gerar Novo', style: 'destructive', onPress: doGenerateWorkout }
+        ]
+      );
+      return;
+    }
+    
+    doGenerateWorkout();
+  };
+
+  const doGenerateWorkout = async () => {
     setLoading(true);
     try {
       const response = await safeFetch(`${BACKEND_URL}/api/workout/generate?user_id=${userId}`, { method: 'POST' });
@@ -86,11 +140,11 @@ export default function WorkoutScreen() {
         setWorkoutPlan(data);
       } else {
         const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
-        alert(`Erro ao gerar treino: ${errorData.detail || 'Tente novamente'}`);
+        Alert.alert('Erro', `Erro ao gerar treino: ${errorData.detail || 'Tente novamente'}`);
       }
     } catch (error) {
       console.error('Erro ao gerar treino:', error);
-      alert('Erro de conexão. Verifique sua internet e tente novamente.');
+      Alert.alert('Erro', 'Erro de conexão. Verifique sua internet e tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -102,9 +156,69 @@ export default function WorkoutScreen() {
     setRefreshing(false);
   };
 
+  const openExerciseDetail = (exercise: any, dayIndex: number, exerciseIndex: number) => {
+    setSelectedExercise(exercise);
+    setSelectedDayIndex(dayIndex);
+    setSelectedExerciseIndex(exerciseIndex);
+    setShowExerciseModal(true);
+    setTimerSeconds(exercise.rest_seconds || 60);
+    setTimerActive(false);
+  };
+
+  const toggleExerciseComplete = async (dayIndex: number, exerciseIndex: number, completed: boolean) => {
+    if (!workoutPlan) return;
+    
+    try {
+      const response = await safeFetch(`${BACKEND_URL}/api/workout/${workoutPlan.id}/exercise/complete`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workout_day_index: dayIndex,
+          exercise_index: exerciseIndex,
+          completed: completed
+        })
+      });
+      
+      if (response.ok) {
+        const updatedWorkout = await response.json();
+        setWorkoutPlan(updatedWorkout);
+        
+        // Update selected exercise if modal is open
+        if (selectedExercise && selectedDayIndex === dayIndex && selectedExerciseIndex === exerciseIndex) {
+          setSelectedExercise({
+            ...selectedExercise,
+            completed: completed
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar exercício:', error);
+    }
+  };
+
+  const startRestTimer = () => {
+    setTimerActive(true);
+  };
+
+  const resetTimer = () => {
+    setTimerActive(false);
+    setTimerSeconds(selectedExercise?.rest_seconds || 60);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   const configuredFrequency = userProfile?.weekly_training_frequency || workoutPlan?.weekly_frequency || 0;
   const actualWorkouts = workoutPlan?.workout_days?.length || 0;
-  const frequencyMatch = actualWorkouts === configuredFrequency;
+  
+  // Calculate progress
+  const totalExercises = workoutPlan?.workout_days?.reduce((sum: number, day: any) => sum + (day.exercises?.length || 0), 0) || 0;
+  const completedExercises = workoutPlan?.workout_days?.reduce((sum: number, day: any) => 
+    sum + (day.exercises?.filter((ex: any) => ex.completed)?.length || 0), 0) || 0;
+  const progressPercent = totalExercises > 0 ? Math.round((completedExercises / totalExercises) * 100) : 0;
 
   if (loading) {
     return (
@@ -128,15 +242,15 @@ export default function WorkoutScreen() {
           <Ionicons name="barbell-outline" size={80} color={colors.textTertiary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>Nenhum treino gerado</Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Gere seu plano de treino personalizado baseado em seus objetivos
+            Gere seu plano de treino personalizado com divisão A/B/C
           </Text>
           <TouchableOpacity
             style={[styles.generateButton, { backgroundColor: colors.primary }]}
             onPress={generateWorkout}
             activeOpacity={0.8}
           >
-            <Ionicons name="sparkles" size={20} color={colors.textInverse} />
-            <Text style={[styles.generateButtonText, { color: colors.textInverse }]}>Gerar Treino com IA</Text>
+            <Ionicons name="sparkles" size={20} color="#fff" />
+            <Text style={styles.generateButtonText}>Gerar Meu Treino</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -150,80 +264,243 @@ export default function WorkoutScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />}
       >
+        {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Plano de Treino</Text>
-            <View style={styles.frequencyRow}>
-              <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>{actualWorkouts} treinos</Text>
-              <Ionicons name={frequencyMatch ? "checkmark-circle" : "alert-circle"} size={16} color={frequencyMatch ? colors.success : colors.warning} style={{marginLeft: 6}} />
-            </View>
-            <Text style={[styles.headerMeta, { color: colors.textTertiary }]}>Meta: {configuredFrequency}x por semana</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Treino</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              {workoutPlan.notes?.split(' - ')[0] || `${actualWorkouts}x por semana`}
+            </Text>
           </View>
-          <TouchableOpacity style={[styles.regenerateButton, { backgroundColor: colors.primary + '20' }]} onPress={generateWorkout}>
-            <Ionicons name="refresh" size={20} color={colors.primary} />
-          </TouchableOpacity>
         </View>
 
-        {workoutPlan.workout_days.map((day: any, index: number) => (
-          <WorkoutDayCard key={day.id || index} day={day} colors={colors} />
-        ))}
-
-        {workoutPlan.notes && (
-          <View style={[styles.notesCard, { backgroundColor: colors.warning + '20' }]}>
-            <Ionicons name="information-circle-outline" size={20} color={colors.warning} />
-            <Text style={[styles.notesText, { color: colors.text }]}>{workoutPlan.notes}</Text>
+        {/* Progress Card */}
+        <View style={[styles.progressCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+          <View style={styles.progressHeader}>
+            <Ionicons name="trophy-outline" size={24} color={colors.primary} />
+            <Text style={[styles.progressTitle, { color: colors.text }]}>Progresso da Semana</Text>
           </View>
-        )}
+          <View style={styles.progressContent}>
+            <Text style={[styles.progressPercent, { color: colors.primary }]}>{progressPercent}%</Text>
+            <View style={styles.progressBarContainer}>
+              <View style={[styles.progressBarBg, { backgroundColor: colors.border }]}>
+                <View style={[styles.progressBarFill, { width: `${progressPercent}%`, backgroundColor: colors.primary }]} />
+              </View>
+              <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+                {completedExercises}/{totalExercises} exercícios
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Info Box */}
+        <View style={[styles.infoBox, { backgroundColor: colors.primary + '15' }]}>
+          <Ionicons name="play-circle-outline" size={18} color={colors.primary} />
+          <Text style={[styles.infoBoxText, { color: colors.text }]}>
+            Toque no exercício para ver a execução e iniciar o timer
+          </Text>
+        </View>
+
+        {/* Workout Days */}
+        {workoutPlan.workout_days.map((day: any, dayIndex: number) => (
+          <WorkoutDayCard 
+            key={day.id || dayIndex} 
+            day={day}
+            dayIndex={dayIndex}
+            colors={colors}
+            onExercisePress={openExerciseDetail}
+            onToggleComplete={toggleExerciseComplete}
+          />
+        ))}
       </ScrollView>
+
+      {/* Exercise Detail Modal */}
+      <Modal
+        visible={showExerciseModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowExerciseModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]} numberOfLines={2}>
+                {selectedExercise?.name}
+              </Text>
+              <TouchableOpacity onPress={() => setShowExerciseModal(false)}>
+                <Ionicons name="close" size={24} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* GIF Preview */}
+              {selectedExercise?.gif_url && (
+                <View style={[styles.gifContainer, { backgroundColor: colors.backgroundCard }]}>
+                  <Image
+                    source={{ uri: selectedExercise.gif_url }}
+                    style={styles.exerciseGif}
+                    resizeMode="contain"
+                  />
+                </View>
+              )}
+
+              {/* Exercise Info */}
+              <View style={[styles.exerciseInfo, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+                <View style={styles.exerciseInfoRow}>
+                  <View style={styles.exerciseInfoItem}>
+                    <Ionicons name="repeat-outline" size={20} color={colors.primary} />
+                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Séries</Text>
+                    <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.sets}</Text>
+                  </View>
+                  <View style={styles.exerciseInfoItem}>
+                    <Ionicons name="fitness-outline" size={20} color={colors.primary} />
+                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Repetições</Text>
+                    <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.reps}</Text>
+                  </View>
+                  <View style={styles.exerciseInfoItem}>
+                    <Ionicons name="time-outline" size={20} color={colors.primary} />
+                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Descanso</Text>
+                    <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.rest}</Text>
+                  </View>
+                </View>
+                
+                {selectedExercise?.notes && (
+                  <View style={[styles.notesBox, { backgroundColor: colors.warning + '15' }]}>
+                    <Ionicons name="bulb-outline" size={16} color={colors.warning} />
+                    <Text style={[styles.notesText, { color: colors.text }]}>{selectedExercise.notes}</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Rest Timer */}
+              <View style={[styles.timerCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+                <Text style={[styles.timerTitle, { color: colors.textSecondary }]}>Timer de Descanso</Text>
+                <Text style={[
+                  styles.timerDisplay, 
+                  { color: timerActive && timerSeconds <= 10 ? colors.error : colors.text }
+                ]}>
+                  {formatTime(timerSeconds)}
+                </Text>
+                <View style={styles.timerButtons}>
+                  {!timerActive ? (
+                    <TouchableOpacity
+                      style={[styles.timerButton, { backgroundColor: colors.primary }]}
+                      onPress={startRestTimer}
+                    >
+                      <Ionicons name="play" size={20} color="#fff" />
+                      <Text style={styles.timerButtonText}>Iniciar</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.timerButton, { backgroundColor: colors.error }]}
+                      onPress={resetTimer}
+                    >
+                      <Ionicons name="refresh" size={20} color="#fff" />
+                      <Text style={styles.timerButtonText}>Reiniciar</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Complete Button */}
+              <TouchableOpacity
+                style={[
+                  styles.completeButton,
+                  { backgroundColor: selectedExercise?.completed ? colors.success : colors.primary }
+                ]}
+                onPress={() => {
+                  toggleExerciseComplete(selectedDayIndex, selectedExerciseIndex, !selectedExercise?.completed);
+                }}
+              >
+                <Ionicons 
+                  name={selectedExercise?.completed ? 'checkmark-circle' : 'checkmark-circle-outline'} 
+                  size={24} 
+                  color="#fff" 
+                />
+                <Text style={styles.completeButtonText}>
+                  {selectedExercise?.completed ? 'Concluído!' : 'Marcar como Concluído'}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
-function WorkoutDayCard({ day, colors }: any) {
-  const [expanded, setExpanded] = useState(false);
+function WorkoutDayCard({ day, dayIndex, colors, onExercisePress, onToggleComplete }: any) {
+  const [expanded, setExpanded] = useState(dayIndex === 0);
+  const completedCount = day.exercises?.filter((ex: any) => ex.completed)?.length || 0;
+  const totalCount = day.exercises?.length || 0;
+  const dayComplete = completedCount === totalCount && totalCount > 0;
 
   return (
-    <View style={[cardStyles.dayCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+    <View style={[cardStyles.dayCard, { backgroundColor: colors.backgroundCard, borderColor: dayComplete ? colors.success : colors.border }]}>
       <TouchableOpacity style={cardStyles.dayHeader} onPress={() => setExpanded(!expanded)} activeOpacity={0.7}>
         <View style={cardStyles.dayHeaderLeft}>
-          <Ionicons name="calendar-outline" size={24} color={colors.primary} />
+          <View style={[cardStyles.dayIcon, { backgroundColor: dayComplete ? colors.success + '20' : colors.primary + '20' }]}>
+            <Ionicons 
+              name={dayComplete ? 'checkmark-circle' : 'barbell-outline'} 
+              size={24} 
+              color={dayComplete ? colors.success : colors.primary} 
+            />
+          </View>
           <View style={cardStyles.dayInfo}>
             <Text style={[cardStyles.dayName, { color: colors.text }]}>{day.name}</Text>
-            <Text style={[cardStyles.dayDay, { color: colors.textSecondary }]}>{day.day} • {day.duration} min</Text>
+            <Text style={[cardStyles.dayMeta, { color: colors.textSecondary }]}>
+              {day.day} • {day.duration} min • {completedCount}/{totalCount}
+            </Text>
           </View>
         </View>
-        <View style={cardStyles.dayHeaderRight}>
-          <Text style={[cardStyles.exerciseCount, { color: colors.primary }]}>{day.exercises.length} exercícios</Text>
-          <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
-        </View>
+        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
       </TouchableOpacity>
 
       {expanded && (
         <View style={[cardStyles.exercisesList, { borderTopColor: colors.border }]}>
           {day.exercises.map((exercise: any, idx: number) => (
-            <View key={exercise.id || idx} style={[cardStyles.exerciseItem, { borderBottomColor: colors.border }]}>
-              <View style={cardStyles.exerciseHeader}>
-                <Text style={[cardStyles.exerciseName, { color: colors.text }]}>{exercise.name}</Text>
-                <Text style={[cardStyles.muscleGroup, { color: colors.primary }]}>{exercise.muscle_group}</Text>
+            <TouchableOpacity 
+              key={exercise.id || idx} 
+              style={[
+                cardStyles.exerciseItem, 
+                { borderBottomColor: colors.border },
+                exercise.completed && { backgroundColor: colors.success + '10' }
+              ]}
+              onPress={() => onExercisePress(exercise, dayIndex, idx)}
+              activeOpacity={0.7}
+            >
+              <View style={cardStyles.exerciseLeft}>
+                <TouchableOpacity
+                  style={[
+                    cardStyles.checkbox,
+                    { borderColor: exercise.completed ? colors.success : colors.border },
+                    exercise.completed && { backgroundColor: colors.success }
+                  ]}
+                  onPress={() => onToggleComplete(dayIndex, idx, !exercise.completed)}
+                >
+                  {exercise.completed && <Ionicons name="checkmark" size={14} color="#fff" />}
+                </TouchableOpacity>
+                <View style={cardStyles.exerciseTextContainer}>
+                  <Text style={[
+                    cardStyles.exerciseName, 
+                    { color: colors.text },
+                    exercise.completed && { textDecorationLine: 'line-through', color: colors.textSecondary }
+                  ]}>
+                    {exercise.name}
+                  </Text>
+                  <Text style={[cardStyles.exerciseDetails, { color: colors.textSecondary }]}>
+                    {exercise.sets}x{exercise.reps} • {exercise.rest}
+                  </Text>
+                </View>
               </View>
-              <View style={cardStyles.exerciseDetails}>
-                <View style={cardStyles.detailItem}>
-                  <Ionicons name="repeat" size={14} color={colors.textSecondary} />
-                  <Text style={[cardStyles.detailText, { color: colors.textSecondary }]}>{exercise.sets} séries</Text>
-                </View>
-                <View style={cardStyles.detailItem}>
-                  <Ionicons name="fitness" size={14} color={colors.textSecondary} />
-                  <Text style={[cardStyles.detailText, { color: colors.textSecondary }]}>{exercise.reps} reps</Text>
-                </View>
-                <View style={cardStyles.detailItem}>
-                  <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-                  <Text style={[cardStyles.detailText, { color: colors.textSecondary }]}>{exercise.rest}</Text>
-                </View>
+              <View style={cardStyles.exerciseRight}>
+                {exercise.gif_url && (
+                  <Ionicons name="videocam-outline" size={16} color={colors.primary} style={{ marginRight: 8 }} />
+                )}
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
               </View>
-              {exercise.notes && (
-                <Text style={[cardStyles.exerciseNotes, { color: colors.textSecondary }]}>💡 {exercise.notes}</Text>
-              )}
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       )}
@@ -232,23 +509,21 @@ function WorkoutDayCard({ day, colors }: any) {
 }
 
 const cardStyles = StyleSheet.create({
-  dayCard: { borderRadius: 12, marginBottom: 12, borderWidth: 1 },
+  dayCard: { borderRadius: 16, marginBottom: 16, borderWidth: 1 },
   dayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
-  dayHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  dayHeaderLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  dayIcon: { width: 48, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
   dayInfo: { flex: 1 },
-  dayName: { fontSize: 16, fontWeight: '600' },
-  dayDay: { fontSize: 14, marginTop: 2 },
-  dayHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  exerciseCount: { fontSize: 14, fontWeight: '600' },
-  exercisesList: { borderTopWidth: 1, padding: 16, gap: 16 },
-  exerciseItem: { paddingBottom: 16, borderBottomWidth: 1 },
-  exerciseHeader: { marginBottom: 8 },
-  exerciseName: { fontSize: 15, fontWeight: '600' },
-  muscleGroup: { fontSize: 13, marginTop: 2 },
-  exerciseDetails: { flexDirection: 'row', gap: 16 },
-  detailItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  detailText: { fontSize: 13 },
-  exerciseNotes: { fontSize: 12, marginTop: 8, fontStyle: 'italic' },
+  dayName: { fontSize: 17, fontWeight: '700' },
+  dayMeta: { fontSize: 13, marginTop: 4 },
+  exercisesList: { borderTopWidth: 1 },
+  exerciseItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, borderBottomWidth: 1 },
+  exerciseLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  checkbox: { width: 24, height: 24, borderRadius: 6, borderWidth: 2, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  exerciseTextContainer: { flex: 1 },
+  exerciseName: { fontSize: 15, fontWeight: '500' },
+  exerciseDetails: { fontSize: 12, marginTop: 2 },
+  exerciseRight: { flexDirection: 'row', alignItems: 'center' },
 });
 
 const createStyles = (colors: any) => StyleSheet.create({
@@ -260,15 +535,43 @@ const createStyles = (colors: any) => StyleSheet.create({
   emptyTitle: { fontSize: 20, fontWeight: '600', marginTop: 16 },
   emptyText: { fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 },
   generateButton: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 24, borderRadius: 12, marginTop: 24 },
-  generateButtonText: { fontSize: 16, fontWeight: '600' },
+  generateButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
   scrollView: { flex: 1 },
   content: { padding: 16 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  headerTitle: { fontSize: 24, fontWeight: '700' },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  headerTitle: { fontSize: 28, fontWeight: '700' },
   headerSubtitle: { fontSize: 14, marginTop: 4 },
-  headerMeta: { fontSize: 12, marginTop: 2 },
-  frequencyRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  regenerateButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  notesCard: { flexDirection: 'row', gap: 12, padding: 12, borderRadius: 8, marginTop: 8 },
-  notesText: { flex: 1, fontSize: 12, lineHeight: 18 },
+  progressCard: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
+  progressHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  progressTitle: { fontSize: 16, fontWeight: '600' },
+  progressContent: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  progressPercent: { fontSize: 32, fontWeight: '700' },
+  progressBarContainer: { flex: 1 },
+  progressBarBg: { height: 8, borderRadius: 4 },
+  progressBarFill: { height: '100%', borderRadius: 4 },
+  progressText: { fontSize: 12, marginTop: 4 },
+  infoBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 8, marginBottom: 16 },
+  infoBoxText: { fontSize: 13, flex: 1 },
+  // Modal styles
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '90%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 },
+  modalTitle: { fontSize: 22, fontWeight: '700', flex: 1, marginRight: 16 },
+  gifContainer: { borderRadius: 16, overflow: 'hidden', marginBottom: 16, alignItems: 'center', justifyContent: 'center', height: 200 },
+  exerciseGif: { width: '100%', height: '100%' },
+  exerciseInfo: { borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1 },
+  exerciseInfoRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  exerciseInfoItem: { alignItems: 'center', gap: 4 },
+  exerciseInfoLabel: { fontSize: 11 },
+  exerciseInfoValue: { fontSize: 18, fontWeight: '700' },
+  notesBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 8, marginTop: 12 },
+  notesText: { flex: 1, fontSize: 13 },
+  timerCard: { borderRadius: 16, padding: 20, marginBottom: 16, alignItems: 'center', borderWidth: 1 },
+  timerTitle: { fontSize: 14, marginBottom: 8 },
+  timerDisplay: { fontSize: 48, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  timerButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
+  timerButton: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 12 },
+  timerButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  completeButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 16, borderRadius: 12, marginBottom: 20 },
+  completeButtonText: { color: '#fff', fontSize: 18, fontWeight: '700' },
 });
