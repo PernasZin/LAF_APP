@@ -111,6 +111,23 @@ class UserProfileUpdate(BaseModel):
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
 
+# ==================== PROGRESS MODELS ====================
+
+class WeightRecord(BaseModel):
+    """Registro de peso do usuário"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    weight: float  # em kg
+    recorded_at: datetime = Field(default_factory=datetime.utcnow)
+    notes: Optional[str] = None
+
+
+class WeightRecordCreate(BaseModel):
+    """Request para criar registro de peso"""
+    weight: float  # em kg
+    notes: Optional[str] = None
+
+
 # ==================== SETTINGS MODELS ====================
 
 class UserSettings(BaseModel):
