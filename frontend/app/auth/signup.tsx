@@ -83,18 +83,15 @@ export default function SignUpScreen() {
         throw new Error(data.detail || 'Erro ao criar conta');
       }
       
-      // 1. Usa o método login do AuthStore
+      // 1. Usa o método login do AuthStore - profile_completed = false (novo usuário)
       console.log('🔐 SIGNUP: Salvando no AuthStore...');
-      await login(data.user_id, data.access_token);
-      
-      // 2. Salva email também
-      await AsyncStorage.setItem('userEmail', data.email);
+      await login(data.user_id, data.access_token, false);
       
       console.log('🔐 SIGNUP: AuthStore atualizado, isAuthenticated:', useAuthStore.getState().isAuthenticated);
       
-      // 3. Vai para onboarding para criar perfil
-      console.log('🔐 SIGNUP: Indo para onboarding');
-      router.replace('/onboarding');
+      // 2. AuthGuard vai redirecionar para /onboarding automaticamente
+      // (porque profileCompleted = false)
+      console.log('🔐 SIGNUP: Navegando - AuthGuard vai redirecionar para onboarding');
       
     } catch (error: any) {
       console.error('❌ SIGNUP: Erro:', error);
