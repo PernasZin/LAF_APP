@@ -1104,6 +1104,92 @@ async def get_user_workout(user_id: str):
     workout_plan["id"] = workout_plan["_id"]
     return workout_plan
 
+
+class ExerciseCompletionRequest(BaseModel):
+    """Request para marcar exercício como concluído"""
+    workout_day_index: int
+    exercise_index: int
+    completed: bool
+
+
+@api_router.put("/workout/{workout_id}/exercise/complete")
+async def toggle_exercise_completion(workout_id: str, request: ExerciseCompletionRequest):
+    """
+    Marca/desmarca um exercício como concluído.
+    """
+    # Busca treino
+    workout = await db.workout_plans.find_one({"_id": workout_id})
+    if not workout:
+        raise HTTPException(status_code=404, detail="Treino não encontrado")
+    
+    workout_days = workout.get("workout_days", [])
+    
+    # Valida índices
+    if request.workout_day_index < 0 or request.workout_day_index >= len(workout_days):
+        raise HTTPException(status_code=400, detail="Índice de dia inválido")
+    
+    exercises = workout_days[request.workout_day_index].get("exercises", [])
+    
+    if request.exercise_index < 0 or request.exercise_index >= len(exercises):
+        raise HTTPException(status_code=400, detail="Índice de exercício inválido")
+    
+    # Atualiza status do exercício
+    exercises[request.exercise_index]["completed"] = request.completed
+    workout_days[request.workout_day_index]["exercises"] = exercises
+    
+    # Verifica se todos exercícios do dia foram concluídos
+    all_completed = all(ex.get("completed", False) for ex in exercises)
+    workout_days[request.workout_day_index]["completed"] = all_completed
+    
+    # Atualiza no banco
+    await db.workout_plans.update_one(
+        {"_id": workout_id},
+        {"$set": {
+            "workout_days": workout_days,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    # Retorna treino atualizado
+    updated_workout = await db.workout_plans.find_one({"_id": workout_id})
+    updated_workout["id"] = updated_workout["_id"]
+    
+    return updated_workout
+
+
+@api_router.put("/workout/{workout_id}/reset")
+async def reset_workout_progress(workout_id: str):
+    """
+    Reseta o progresso de todos os exercícios do treino.
+    """
+    # Busca treino
+    workout = await db.workout_plans.find_one({"_id": workout_id})
+    if not workout:
+        raise HTTPException(status_code=404, detail="Treino não encontrado")
+    
+    workout_days = workout.get("workout_days", [])
+    
+    # Reseta todos os exercícios
+    for day in workout_days:
+        day["completed"] = False
+        for ex in day.get("exercises", []):
+            ex["completed"] = False
+    
+    # Atualiza no banco
+    await db.workout_plans.update_one(
+        {"_id": workout_id},
+        {"$set": {
+            "workout_days": workout_days,
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    # Retorna treino atualizado
+    updated_workout = await db.workout_plans.find_one({"_id": workout_id})
+    updated_workout["id"] = updated_workout["_id"]
+    
+    return updated_workout
+
 # ==================== SETTINGS ENDPOINTS ====================
 
 @api_router.get("/user/settings/{user_id}", response_model=UserSettings)
