@@ -679,6 +679,224 @@ async def get_user_diet(user_id: str):
     diet_plan["id"] = diet_plan["_id"]
     return diet_plan
 
+
+class FoodSubstitutionRequest(BaseModel):
+    """Request para substituir alimento na dieta"""
+    meal_index: int  # Índice da refeição (0-4)
+    food_index: int  # Índice do alimento na refeição
+    new_food_key: str  # Chave do novo alimento
+
+
+@api_router.get("/diet/{diet_id}/substitutes/{food_key}")
+async def get_food_substitutes(diet_id: str, food_key: str):
+    """
+    Retorna lista de alimentos substitutos da mesma categoria.
+    Calcula automaticamente a quantidade para manter os macros.
+    """
+    from diet_service import FOODS
+    
+    # Busca dieta
+    diet_plan = await db.diet_plans.find_one({"_id": diet_id})
+    if not diet_plan:
+        raise HTTPException(status_code=404, detail="Dieta não encontrada")
+    
+    # Encontra o alimento original
+    original_food = None
+    for meal in diet_plan.get("meals", []):
+        for food in meal.get("foods", []):
+            if food.get("key") == food_key:
+                original_food = food
+                break
+        if original_food:
+            break
+    
+    if not original_food:
+        raise HTTPException(status_code=404, detail="Alimento não encontrado na dieta")
+    
+    # Obtém categoria do alimento
+    category = original_food.get("category", "")
+    if not category or category not in ["protein", "carb", "fat", "fruit"]:
+        raise HTTPException(status_code=400, detail="Categoria do alimento não suporta substituição")
+    
+    # Busca alimentos da mesma categoria
+    substitutes = []
+    for key, food_data in FOODS.items():
+        if food_data.get("category") == category and key != food_key:
+            # Calcula quantidade para manter o macro principal
+            if category == "protein":
+                # Mantém proteína
+                target_macro = original_food.get("protein", 0)
+                macro_per_100 = food_data.get("p", 1)
+            elif category == "carb":
+                # Mantém carboidrato
+                target_macro = original_food.get("carbs", 0)
+                macro_per_100 = food_data.get("c", 1)
+            elif category == "fat":
+                # Mantém gordura
+                target_macro = original_food.get("fat", 0)
+                macro_per_100 = food_data.get("f", 1)
+            elif category == "fruit":
+                # Mantém carboidrato (frutas são fonte de carb)
+                target_macro = original_food.get("carbs", 0)
+                macro_per_100 = food_data.get("c", 1)
+            else:
+                continue
+            
+            if macro_per_100 <= 0:
+                continue
+            
+            # Calcula nova quantidade (múltiplo de 10)
+            new_grams = round((target_macro / macro_per_100) * 100 / 10) * 10
+            new_grams = max(10, min(500, new_grams))  # Limita entre 10g e 500g
+            
+            # Calcula novos macros
+            ratio = new_grams / 100
+            new_protein = round(food_data.get("p", 0) * ratio)
+            new_carbs = round(food_data.get("c", 0) * ratio)
+            new_fat = round(food_data.get("f", 0) * ratio)
+            new_calories = round((food_data.get("p", 0) * 4 + food_data.get("c", 0) * 4 + food_data.get("f", 0) * 9) * ratio)
+            
+            substitutes.append({
+                "key": key,
+                "name": food_data.get("name", key),
+                "quantity": f"{new_grams}g",
+                "grams": new_grams,
+                "protein": new_protein,
+                "carbs": new_carbs,
+                "fat": new_fat,
+                "calories": new_calories,
+                "category": category
+            })
+    
+    return {
+        "original": original_food,
+        "substitutes": substitutes,
+        "category": category
+    }
+
+
+@api_router.put("/diet/{diet_id}/substitute")
+async def substitute_food(diet_id: str, request: FoodSubstitutionRequest):
+    """
+    Substitui um alimento na dieta mantendo os macros.
+    A substituição é permanente.
+    """
+    from diet_service import FOODS
+    
+    # Busca dieta
+    diet_plan = await db.diet_plans.find_one({"_id": diet_id})
+    if not diet_plan:
+        raise HTTPException(status_code=404, detail="Dieta não encontrada")
+    
+    meals = diet_plan.get("meals", [])
+    
+    # Valida índices
+    if request.meal_index < 0 or request.meal_index >= len(meals):
+        raise HTTPException(status_code=400, detail="Índice de refeição inválido")
+    
+    meal = meals[request.meal_index]
+    foods = meal.get("foods", [])
+    
+    if request.food_index < 0 or request.food_index >= len(foods):
+        raise HTTPException(status_code=400, detail="Índice de alimento inválido")
+    
+    # Verifica se novo alimento existe
+    if request.new_food_key not in FOODS:
+        raise HTTPException(status_code=400, detail="Alimento substituto não encontrado")
+    
+    original_food = foods[request.food_index]
+    new_food_data = FOODS[request.new_food_key]
+    
+    # Verifica mesma categoria
+    if original_food.get("category") != new_food_data.get("category"):
+        raise HTTPException(status_code=400, detail="Alimento deve ser da mesma categoria")
+    
+    category = original_food.get("category")
+    
+    # Calcula quantidade para manter macro principal
+    if category == "protein":
+        target_macro = original_food.get("protein", 0)
+        macro_per_100 = new_food_data.get("p", 1)
+    elif category == "carb":
+        target_macro = original_food.get("carbs", 0)
+        macro_per_100 = new_food_data.get("c", 1)
+    elif category == "fat":
+        target_macro = original_food.get("fat", 0)
+        macro_per_100 = new_food_data.get("f", 1)
+    elif category == "fruit":
+        target_macro = original_food.get("carbs", 0)
+        macro_per_100 = new_food_data.get("c", 1)
+    else:
+        raise HTTPException(status_code=400, detail="Categoria não suporta substituição")
+    
+    if macro_per_100 <= 0:
+        raise HTTPException(status_code=400, detail="Alimento substituto inválido para esta categoria")
+    
+    # Calcula nova quantidade (múltiplo de 10)
+    new_grams = round((target_macro / macro_per_100) * 100 / 10) * 10
+    new_grams = max(10, min(500, new_grams))
+    
+    # Calcula novos macros
+    ratio = new_grams / 100
+    new_protein = round(new_food_data.get("p", 0) * ratio)
+    new_carbs = round(new_food_data.get("c", 0) * ratio)
+    new_fat = round(new_food_data.get("f", 0) * ratio)
+    new_calories = round((new_food_data.get("p", 0) * 4 + new_food_data.get("c", 0) * 4 + new_food_data.get("f", 0) * 9) * ratio)
+    
+    # Cria novo objeto de alimento
+    new_food = {
+        "key": request.new_food_key,
+        "name": new_food_data.get("name", request.new_food_key),
+        "quantity": f"{new_grams}g",
+        "grams": new_grams,
+        "protein": new_protein,
+        "carbs": new_carbs,
+        "fat": new_fat,
+        "calories": new_calories,
+        "category": category
+    }
+    
+    # Atualiza alimento na lista
+    foods[request.food_index] = new_food
+    
+    # Recalcula totais da refeição
+    meal_protein = sum(f.get("protein", 0) for f in foods)
+    meal_carbs = sum(f.get("carbs", 0) for f in foods)
+    meal_fat = sum(f.get("fat", 0) for f in foods)
+    meal_calories = sum(f.get("calories", 0) for f in foods)
+    
+    meal["foods"] = foods
+    meal["total_calories"] = meal_calories
+    meal["macros"] = {"protein": meal_protein, "carbs": meal_carbs, "fat": meal_fat}
+    
+    # Atualiza refeição na lista
+    meals[request.meal_index] = meal
+    
+    # Recalcula totais da dieta
+    total_protein = sum(m.get("macros", {}).get("protein", 0) for m in meals)
+    total_carbs = sum(m.get("macros", {}).get("carbs", 0) for m in meals)
+    total_fat = sum(m.get("macros", {}).get("fat", 0) for m in meals)
+    total_calories = sum(m.get("total_calories", 0) for m in meals)
+    
+    # Atualiza no banco
+    await db.diet_plans.update_one(
+        {"_id": diet_id},
+        {"$set": {
+            "meals": meals,
+            "computed_calories": total_calories,
+            "computed_macros": {"protein": total_protein, "carbs": total_carbs, "fat": total_fat},
+            "updated_at": datetime.utcnow()
+        }}
+    )
+    
+    # Retorna dieta atualizada
+    updated_diet = await db.diet_plans.find_one({"_id": diet_id})
+    updated_diet["id"] = updated_diet["_id"]
+    
+    logger.info(f"Food substituted in diet {diet_id}: {original_food.get('name')} -> {new_food['name']}")
+    
+    return updated_diet
+
 # ==================== WORKOUT ENDPOINTS ====================
 
 @api_router.post("/workout/generate")
