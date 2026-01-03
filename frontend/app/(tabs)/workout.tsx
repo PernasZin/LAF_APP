@@ -138,11 +138,12 @@ export default function WorkoutScreen() {
       if (response.ok) {
         const data = await response.json();
         setWorkoutPlan(data);
+        showSuccess('Treino gerado com sucesso!');
       } else {
-        Alert.alert('Erro', 'Erro ao gerar treino. Tente novamente.');
+        showError('Erro ao gerar treino. Tente novamente.');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Erro de conexão.');
+      showError('Erro de conexão.');
     } finally {
       setLoading(false);
     }
