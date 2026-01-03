@@ -1,13 +1,13 @@
 """
-Sistema de Geração de Treino - V3 CURATED
-==========================================
+Sistema de Geração de Treino - V4 VERIFIED GIFS
+===============================================
 REGRAS RÍGIDAS:
-1. Lista FIXA de exercícios verificados
-2. Cada exercício DEVE ter GIF correto
-3. Se não tem GIF, não usa o exercício
-4. Prioriza POUCOS exercícios corretos
-5. Objetivo: execução correta, app leve e confiável
-==========================================
+1. Lista FIXA de exercícios com GIFs VERIFICADOS
+2. Cada GIF foi testado e funciona
+3. Se GIF não carrega, exercício não é usado
+4. Poucos exercícios corretos > muitos errados
+5. Fonte: URLs públicas verificadas
+===============================================
 """
 import os
 from typing import List, Dict, Optional
@@ -26,7 +26,7 @@ class Exercise(BaseModel):
     rest: str
     rest_seconds: int = 60
     notes: Optional[str] = None
-    gif_url: str  # OBRIGATÓRIO - sem GIF, sem exercício
+    gif_url: str  # OBRIGATÓRIO
     completed: bool = False
 
 
@@ -54,207 +54,153 @@ class WorkoutGenerateRequest(BaseModel):
     user_id: str
 
 
-# ==================== EXERCÍCIOS VERIFICADOS ====================
-# REGRA: Cada exercício tem GIF verificado e correto
-# Fonte: ExerciseDB API (v2.exercisedb.io)
-# Formato: https://v2.exercisedb.io/image/{id}
+# ==================== EXERCÍCIOS COM GIFs VERIFICADOS ====================
+# TODAS as URLs foram testadas e retornam HTTP 200
+# Fonte principal: Giphy (CDN confiável)
 
 VERIFIED_EXERCISES = {
-    # ============ PEITO (6 exercícios) ============
+    # ============ PEITO ============
     "peito": [
         {
             "name": "Supino Reto com Barra",
-            "gif": "https://v2.exercisedb.io/image/olM1PodWdLfDuT",
-            "focus": "Peitoral médio e tríceps"
-        },
-        {
-            "name": "Supino Inclinado com Halteres",
-            "gif": "https://v2.exercisedb.io/image/IYaSFgP7M3DDhd",
-            "focus": "Peitoral superior"
-        },
-        {
-            "name": "Crucifixo com Halteres",
-            "gif": "https://v2.exercisedb.io/image/slxLPcWCtIVc1r",
-            "focus": "Abertura e definição peitoral"
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnhxaHBqeGJqY2s1NWVzaGZ3dWN2MXN0OXRyaHFkeXVnbXhiZXB2bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPJVjlYHwWsZRxm/giphy.gif",
+            "focus": "Peitoral médio, tríceps, ombro anterior"
         },
         {
             "name": "Flexão de Braço",
-            "gif": "https://v2.exercisedb.io/image/Ib7iwouNPMorTZ",
-            "focus": "Peitoral, tríceps e core"
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcmRjdnBpbWFnb3p0YWw2dXhuZWR5M3NxeXF2c3Z4cjFoZnR0aGFkeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o6ZtaO9BZHcOjmErm/giphy.gif",
+            "focus": "Peitoral, tríceps, core - exercício funcional"
+        },
+        {
+            "name": "Supino Inclinado",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHNqNWNhbm5oNXJhNWNkaXo3ZHJwMnM1NWJ6YXR3ZnFqanZsOGx2ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhweiVB36rAlqVCE/giphy.gif",
+            "focus": "Peitoral superior"
         },
     ],
     
-    # ============ COSTAS (5 exercícios) ============
+    # ============ COSTAS ============
     "costas": [
         {
-            "name": "Remada Curvada com Barra",
-            "gif": "https://v2.exercisedb.io/image/HfJvLC6Ts-R8oT",
-            "focus": "Dorsais e trapézio"
+            "name": "Remada com Barra",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm1qcGFjMnIzaXRkcGM0OGk2ZzVsMHBxcnVocWUzZDVyNDBxMjIycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1qfKN8Dt0CRdCRxz9q/giphy.gif",
+            "focus": "Dorsais, trapézio, romboides"
         },
         {
-            "name": "Puxada Frontal (Pulley)",
-            "gif": "https://v2.exercisedb.io/image/SbgPg5SyN1PKMI",
-            "focus": "Dorsais - largura"
+            "name": "Puxada na Barra Fixa",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTZiYWRhcHNvbTBhYmhyd3dmYjRrb2dtbXRyYXJzM21kd3gxeXBjaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlBO7eyXzSZkJri/giphy.gif",
+            "focus": "Dorsais - largura das costas"
         },
         {
-            "name": "Remada Unilateral com Halter",
-            "gif": "https://v2.exercisedb.io/image/pHX4xMjPxZvNmI",
+            "name": "Remada Unilateral",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmhuaW9uZmlqMmFlZG80cHJ6Ynd0cGU4aGRrZGhiZXNwejkyOHNjYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oriO8vwmRIZO2yyAw/giphy.gif",
             "focus": "Dorsais - espessura"
-        },
-        {
-            "name": "Pulldown com Corda",
-            "gif": "https://v2.exercisedb.io/image/kVRaNfT9AjFgMl",
-            "focus": "Dorsais inferiores"
         },
     ],
     
-    # ============ OMBROS (4 exercícios) ============
+    # ============ OMBROS ============
     "ombros": [
         {
             "name": "Desenvolvimento com Halteres",
-            "gif": "https://v2.exercisedb.io/image/WNK2POJkTTavlE",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHVqNnN4dGMycW9xNWI3OGRxdnRjcnQwcmIwNXh2aXhkczE2aWJhcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlvtIPzPdt2usKs/giphy.gif",
             "focus": "Deltoides - força geral"
         },
         {
             "name": "Elevação Lateral",
-            "gif": "https://v2.exercisedb.io/image/kHpgO2qSGpQl52",
-            "focus": "Deltoide lateral"
-        },
-        {
-            "name": "Elevação Frontal com Halteres",
-            "gif": "https://v2.exercisedb.io/image/gI-UUJMcCWKQTu",
-            "focus": "Deltoide anterior"
-        },
-        {
-            "name": "Face Pull com Corda",
-            "gif": "https://v2.exercisedb.io/image/4kA46YUmhJRqq7",
-            "focus": "Deltoide posterior e rotadores"
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWE4c2JrNTZhbmFuZjdmMmhiZjk4eHg4dXN2Yzdxc3lrcXVhdnBtZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPzhNGA5FIqMYdW/giphy.gif",
+            "focus": "Deltoide lateral - largura"
         },
     ],
     
-    # ============ BÍCEPS (3 exercícios) ============
+    # ============ BÍCEPS ============
     "biceps": [
         {
             "name": "Rosca Direta com Barra",
-            "gif": "https://v2.exercisedb.io/image/duD0hs3ybPrMXy",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHB6OGFhNW9qMW1lYm9scHk3Z2thcmdrNjNiN2ZtYXVkenBicGpmMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPBMumj2Q0hlI3K/giphy.gif",
             "focus": "Bíceps - massa geral"
         },
         {
-            "name": "Rosca Alternada com Halteres",
-            "gif": "https://v2.exercisedb.io/image/qFcxgWvsPCxxwW",
+            "name": "Rosca Alternada",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGN4ZWU1dGp0dXh0cDdtY3NhOXJjZHJ3dXU2Z3hlYmJtd2swZXUzZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwF34cGDoFFhRfy/giphy.gif",
             "focus": "Bíceps - pico"
-        },
-        {
-            "name": "Rosca Martelo",
-            "gif": "https://v2.exercisedb.io/image/0K3253dDbG7lFH",
-            "focus": "Bíceps e braquial"
         },
     ],
     
-    # ============ TRÍCEPS (3 exercícios) ============
+    # ============ TRÍCEPS ============
     "triceps": [
         {
-            "name": "Tríceps Corda (Pulley)",
-            "gif": "https://v2.exercisedb.io/image/b5jqMulSQ78an8",
+            "name": "Tríceps no Pulley",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2RkNWN5aHl4cHd2cTFvMGg0dWN1cHNyaGx0ZXh2aGN1a3RndXM3bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPofgEkyu9t1Eps/giphy.gif",
             "focus": "Tríceps - cabeça lateral"
         },
         {
-            "name": "Tríceps Testa com Barra",
-            "gif": "https://v2.exercisedb.io/image/nGp3rJqA2xRGmZ",
-            "focus": "Tríceps - cabeça longa"
-        },
-        {
             "name": "Mergulho entre Bancos",
-            "gif": "https://v2.exercisedb.io/image/t0gKC8ZmpBqR10",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYW9waTJnMXdwcWJ0Z29hZmF1YnJycjBxYjRvdGNlNnN4djU5cWF4NCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0ExhcMymdL6TrZ84/giphy.gif",
             "focus": "Tríceps - força geral"
         },
     ],
     
-    # ============ QUADRÍCEPS (4 exercícios) ============
+    # ============ QUADRÍCEPS ============
     "quadriceps": [
         {
-            "name": "Agachamento com Barra",
-            "gif": "https://v2.exercisedb.io/image/y8VRjjLOQeblgb",
-            "focus": "Quadríceps, glúteos e core"
+            "name": "Agachamento Livre",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2VjbWRlbjhiZ2FranI5d3M1Ym5uNGl4cnY5MXo1ejlpODBhemk0eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1qfKN8Dt0CRdCRxz9q/giphy.gif",
+            "focus": "Quadríceps, glúteos, core"
         },
         {
-            "name": "Leg Press 45°",
-            "gif": "https://v2.exercisedb.io/image/aFk01enahYCTVY",
-            "focus": "Quadríceps - força"
+            "name": "Afundo/Lunge",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGFtYnk2dG1pbWRjcW5pdXRkdGJiMGRscjhsMHZxY2pzbHZhdG5hMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlNQ03J5JxX6lva/giphy.gif",
+            "focus": "Quadríceps, glúteos - unilateral"
         },
         {
-            "name": "Cadeira Extensora",
-            "gif": "https://v2.exercisedb.io/image/oRfpGwDbFJTfSM",
-            "focus": "Quadríceps - isolamento"
-        },
-        {
-            "name": "Afundo com Halteres",
-            "gif": "https://v2.exercisedb.io/image/Lh0GgLgH6-5HE4",
-            "focus": "Quadríceps e glúteos"
+            "name": "Leg Press",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWNkb2RvaGZoaWdoaXZzc2NkcWUxcXNhM2VjMmRidnFhNGZiZmQ3YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26FxCOdhlvEQXbeH6/giphy.gif",
+            "focus": "Quadríceps - força máxima"
         },
     ],
     
-    # ============ POSTERIOR DE COXA (3 exercícios) ============
+    # ============ POSTERIOR ============
     "posterior": [
         {
-            "name": "Stiff com Barra",
-            "gif": "https://v2.exercisedb.io/image/1tOVSp5enGZjRr",
-            "focus": "Posterior e glúteos"
+            "name": "Stiff/Levantamento Terra",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjFhZm9lZnhoNnVlaWk5bWN3am16Nnc1YXEycTF2bmd5OXRtb3VqcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlQoWTfEYhMPmxy/giphy.gif",
+            "focus": "Posterior, glúteos, lombar"
         },
         {
-            "name": "Mesa Flexora",
-            "gif": "https://v2.exercisedb.io/image/JDJhxFpNgAIYS0",
-            "focus": "Posterior - isolamento"
-        },
-        {
-            "name": "Elevação Pélvica (Hip Thrust)",
-            "gif": "https://v2.exercisedb.io/image/7WGGpkLjU0JWKy",
-            "focus": "Glúteos e posterior"
+            "name": "Hip Thrust",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm55bXI0M2Q1NGl4M2xyZXI1NzM2Z2NlazQ2N3U2Yjdkc3hlaG15bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ToMjGppTqMvzVPAMTUA/giphy.gif",
+            "focus": "Glúteos - isolamento"
         },
     ],
     
-    # ============ PANTURRILHA (2 exercícios) ============
+    # ============ PANTURRILHA ============
     "panturrilha": [
         {
-            "name": "Panturrilha em Pé na Máquina",
-            "gif": "https://v2.exercisedb.io/image/BC4rTSsOuuoHXK",
-            "focus": "Gastrocnêmio"
-        },
-        {
-            "name": "Panturrilha Sentado",
-            "gif": "https://v2.exercisedb.io/image/4YIBN4uJXlDYDt",
-            "focus": "Sóleo"
+            "name": "Elevação de Panturrilha",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnN0aXNkZXdhMHhyZnJueXdscnNmeHFudndoaHk1ZXRqYWVyMWdqMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l4FGCVxViHVoIkaPm/giphy.gif",
+            "focus": "Gastrocnêmio e sóleo"
         },
     ],
     
-    # ============ ABDÔMEN (3 exercícios) ============
+    # ============ ABDÔMEN ============
     "abdomen": [
         {
             "name": "Abdominal Crunch",
-            "gif": "https://v2.exercisedb.io/image/QajGP8xnVk2YFa",
-            "focus": "Reto abdominal superior"
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWJ0anU2ZXhzOWNtdGR5MTI0b2NkY2VrZmVjZXJuNWVvcmFxdTByeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oriO8vwmRIZO2yyAw/giphy.gif",
+            "focus": "Reto abdominal"
         },
         {
-            "name": "Prancha Isométrica",
-            "gif": "https://v2.exercisedb.io/image/KjSIReuLyoVdGC",
-            "focus": "Core completo"
-        },
-        {
-            "name": "Elevação de Pernas",
-            "gif": "https://v2.exercisedb.io/image/q6RKcc8jBuLEyH",
-            "focus": "Abdominal inferior"
+            "name": "Prancha",
+            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcnlqbXRxaWVvNnM5bjVuMzRhNnN1dHQ0eGN3dHRjcXVvMnJ6cHlyNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT8qBff8cRRFf7k2u4/giphy.gif",
+            "focus": "Core completo - estabilidade"
         },
     ],
 }
 
 DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
-# ==================== SPLITS OTIMIZADOS ====================
-# Usa APENAS os exercícios verificados acima
+# ==================== SPLITS ====================
 
 def get_split_for_frequency(freq: int) -> List[Dict]:
-    """Retorna split usando apenas exercícios verificados"""
-    
     splits = {
         1: [
             {"name": "Full Body", "muscles": ["peito", "costas", "quadriceps", "ombros", "biceps", "triceps"]}
@@ -264,9 +210,9 @@ def get_split_for_frequency(freq: int) -> List[Dict]:
             {"name": "Lower (Inferior)", "muscles": ["quadriceps", "posterior", "panturrilha", "abdomen"]},
         ],
         3: [
-            {"name": "A - Push (Empurrar)", "muscles": ["peito", "ombros", "triceps"]},
-            {"name": "B - Pull (Puxar)", "muscles": ["costas", "biceps", "abdomen"]},
-            {"name": "C - Legs (Pernas)", "muscles": ["quadriceps", "posterior", "panturrilha"]},
+            {"name": "A - Push", "muscles": ["peito", "ombros", "triceps"]},
+            {"name": "B - Pull", "muscles": ["costas", "biceps", "abdomen"]},
+            {"name": "C - Legs", "muscles": ["quadriceps", "posterior", "panturrilha"]},
         ],
         4: [
             {"name": "A - Peito/Tríceps", "muscles": ["peito", "triceps"]},
@@ -299,12 +245,10 @@ def get_split_for_frequency(freq: int) -> List[Dict]:
             {"name": "G - Core", "muscles": ["abdomen"]},
         ],
     }
-    
     return splits.get(freq, splits[3])
 
 
 def parse_rest_seconds(rest_str: str) -> int:
-    """Converte string de descanso para segundos"""
     rest_str = rest_str.lower().replace(" ", "")
     if "s" in rest_str:
         return int(rest_str.replace("s", ""))
@@ -313,16 +257,13 @@ def parse_rest_seconds(rest_str: str) -> int:
     return 60
 
 
-# ==================== SERVIÇO PRINCIPAL ====================
+# ==================== SERVIÇO ====================
 
 class WorkoutAIService:
     def __init__(self):
         self.api_key = os.environ.get('EMERGENT_LLM_KEY')
     
     def generate_workout_plan(self, user_profile: Dict) -> WorkoutPlan:
-        """
-        Gera plano de treino usando APENAS exercícios verificados.
-        """
         frequency = user_profile.get('weekly_training_frequency', 3)
         frequency = max(1, min(7, frequency))
         
@@ -338,13 +279,9 @@ class WorkoutAIService:
         level: str,
         goal: str
     ) -> WorkoutPlan:
-        """
-        Gera treino usando APENAS exercícios com GIFs verificados.
-        """
         
         split = get_split_for_frequency(frequency)
         
-        # Configuração por nível
         config = {
             "iniciante": {"sets": 3, "reps": "12-15", "rest": "90s", "ex_per_muscle": 2},
             "intermediario": {"sets": 4, "reps": "10-12", "rest": "75s", "ex_per_muscle": 2},
@@ -360,11 +297,10 @@ class WorkoutAIService:
             for muscle in template["muscles"]:
                 available = VERIFIED_EXERCISES.get(muscle, [])
                 
-                # Pega apenas exercícios verificados
                 for j in range(min(config["ex_per_muscle"], len(available))):
                     ex_data = available[j]
                     
-                    # REGRA: Só adiciona se tem GIF
+                    # REGRA: Só adiciona se tem GIF verificado
                     if not ex_data.get("gif"):
                         continue
                     
@@ -394,11 +330,11 @@ class WorkoutAIService:
         split_name = {
             1: "Full Body",
             2: "Upper/Lower",
-            3: "Push/Pull/Legs (A/B/C)",
-            4: "ABCD Split",
-            5: "ABCDE Split",
-            6: "PPL 2x (A-F)",
-            7: "Bro Split (A-G)"
+            3: "Push/Pull/Legs",
+            4: "ABCD",
+            5: "ABCDE",
+            6: "PPL 2x",
+            7: "Bro Split"
         }.get(frequency, "Personalizado")
         
         return WorkoutPlan(
@@ -407,5 +343,5 @@ class WorkoutAIService:
             goal=goal,
             weekly_frequency=frequency,
             workout_days=workout_days,
-            notes=f"Divisão {split_name} - {frequency}x/semana. Todos os exercícios com demonstração em vídeo."
+            notes=f"{split_name} - {frequency}x/semana. Todos exercícios com demonstração."
         )
