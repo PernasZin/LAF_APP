@@ -414,6 +414,14 @@ export default function WorkoutScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Toast notification */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 }
