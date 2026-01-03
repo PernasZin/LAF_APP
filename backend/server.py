@@ -914,6 +914,144 @@ async def substitute_food(diet_id: str, request: FoodSubstitutionRequest):
     
     return updated_diet
 
+# ==================== PROGRESS ENDPOINTS ====================
+
+@api_router.post("/progress/weight/{user_id}")
+async def record_weight(user_id: str, record: WeightRecordCreate):
+    """
+    Registra peso do usuário.
+    Restrição: mínimo 14 dias entre registros.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verifica último registro (mínimo 14 dias)
+    last_record = await db.weight_records.find_one(
+        {"user_id": user_id},
+        sort=[("recorded_at", -1)]
+    )
+    
+    if last_record:
+        days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
+        if days_since_last < 14:
+            days_remaining = 14 - days_since_last
+            raise HTTPException(
+                status_code=400,
+                detail=f"Aguarde mais {days_remaining} dias para o próximo registro. Registro a cada 2 semanas."
+            )
+    
+    # Valida peso
+    if record.weight < 30 or record.weight > 300:
+        raise HTTPException(status_code=400, detail="Peso deve estar entre 30kg e 300kg")
+    
+    # Cria registro
+    weight_record = WeightRecord(
+        user_id=user_id,
+        weight=round(record.weight, 1),
+        notes=record.notes
+    )
+    
+    # Salva no banco
+    record_dict = weight_record.dict()
+    record_dict["_id"] = record_dict["id"]
+    await db.weight_records.insert_one(record_dict)
+    
+    # Atualiza peso no perfil do usuário
+    await db.user_profiles.update_one(
+        {"_id": user_id},
+        {"$set": {"weight": round(record.weight, 1), "updated_at": datetime.utcnow()}}
+    )
+    
+    logger.info(f"Weight recorded for user {user_id}: {record.weight}kg")
+    
+    return weight_record
+
+
+@api_router.get("/progress/weight/{user_id}")
+async def get_weight_history(user_id: str, days: int = 30):
+    """
+    Retorna histórico de peso do usuário.
+    Default: últimos 30 dias.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca registros dos últimos N dias
+    from_date = datetime.utcnow() - timedelta(days=days)
+    
+    records = await db.weight_records.find(
+        {"user_id": user_id, "recorded_at": {"$gte": from_date}}
+    ).sort("recorded_at", 1).to_list(length=100)
+    
+    # Formata resposta
+    history = []
+    for r in records:
+        history.append({
+            "id": r["_id"],
+            "weight": r["weight"],
+            "recorded_at": r["recorded_at"].isoformat(),
+            "notes": r.get("notes")
+        })
+    
+    # Calcula estatísticas
+    current_weight = user.get("weight", 0)
+    initial_weight = user.get("weight", current_weight)  # Peso do onboarding
+    
+    if history:
+        first_weight = history[0]["weight"]
+        last_weight = history[-1]["weight"]
+        total_change = round(last_weight - first_weight, 1)
+    else:
+        first_weight = current_weight
+        last_weight = current_weight
+        total_change = 0
+    
+    # Verifica se pode registrar novo peso
+    last_record = await db.weight_records.find_one(
+        {"user_id": user_id},
+        sort=[("recorded_at", -1)]
+    )
+    
+    can_record = True
+    days_until_next = 0
+    if last_record:
+        days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
+        if days_since_last < 14:
+            can_record = False
+            days_until_next = 14 - days_since_last
+    
+    return {
+        "user_id": user_id,
+        "current_weight": current_weight,
+        "target_weight": user.get("target_weight"),
+        "history": history,
+        "stats": {
+            "total_records": len(history),
+            "first_weight": first_weight,
+            "last_weight": last_weight,
+            "total_change": total_change,
+        },
+        "can_record": can_record,
+        "days_until_next_record": days_until_next
+    }
+
+
+@api_router.delete("/progress/weight/{record_id}")
+async def delete_weight_record(record_id: str):
+    """
+    Deleta um registro de peso específico.
+    """
+    result = await db.weight_records.delete_one({"_id": record_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Registro não encontrado")
+    
+    return {"message": "Registro deletado com sucesso"}
+
 # ==================== WORKOUT ENDPOINTS ====================
 
 @api_router.post("/workout/generate")
