@@ -246,10 +246,19 @@ export default function WorkoutScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Treino</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {workoutPlan.notes || `${workoutPlan.weekly_frequency}x por semana`}
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Treino</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              {workoutPlan.notes || `${workoutPlan.weekly_frequency}x por semana`}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.regenerateButton, { backgroundColor: colors.primary + '15' }]}
+            onPress={generateWorkout}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="refresh-outline" size={20} color={colors.primary} />
+          </TouchableOpacity>
         </View>
 
         {/* Progress Card */}
