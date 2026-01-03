@@ -2,50 +2,30 @@
  * Auth Store - Gerenciamento de Autenticação
  * CRÍTICO: Controla estado de sessão e logout completo
  * 
- * IMPORTANTE: NÃO usa persist para evitar reidratação após logout
+ * SOLUÇÃO: Estado em memória SEM persistência automática
+ * O logout limpa TUDO e força estado false
  */
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Lista COMPLETA de chaves a limpar no logout
-const ALL_STORAGE_KEYS = [
-  'userId',
-  'user',
-  'userProfile',
-  'authToken',
-  'accessToken',
-  'refreshToken',
-  'userEmail',
-  'hasCompletedOnboarding',
-  'dietPlan',
-  'workoutPlan',
-  'profileImage',
-  'notificationsEnabled',
-  'laf-settings',
-  'laf-auth',
-  'profile',
-  'settings',
-  'onboardingCompleted',
-  'dietData',
-];
+// Flag global para bloquear re-autenticação após logout
+let LOGOUT_IN_PROGRESS = false;
+let LOGOUT_COMPLETED = false;
 
 interface AuthState {
-  // Estado
   isAuthenticated: boolean;
   userId: string | null;
   accessToken: string | null;
   isLoading: boolean;
   isInitialized: boolean;
   
-  // Actions
   initialize: () => Promise<void>;
-  setAuthenticated: (authenticated: boolean, userId?: string | null, token?: string | null) => void;
+  setAuth: (userId: string, token: string) => Promise<void>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<boolean>;
+  forceLogout: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  // Estado inicial: NÃO autenticado
   isAuthenticated: false,
   userId: null,
   accessToken: null,
@@ -53,18 +33,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isInitialized: false,
   
   /**
-   * INICIALIZAÇÃO
-   * Chamado UMA VEZ no app root para verificar auth
+   * INICIALIZAÇÃO - Chamada UMA VEZ ao abrir app
    */
   initialize: async () => {
+    // Se logout foi completado, não re-autentica
+    if (LOGOUT_COMPLETED) {
+      console.log('🔐 AUTH: Logout recente, mantendo deslogado');
+      set({ 
+        isAuthenticated: false, 
+        userId: null, 
+        accessToken: null,
+        isLoading: false,
+        isInitialized: true 
+      });
+      return;
+    }
+
     console.log('🔐 AUTH: Inicializando...');
     
     try {
       const token = await AsyncStorage.getItem('accessToken');
       const userId = await AsyncStorage.getItem('userId');
       
+      console.log('🔐 AUTH: Dados encontrados:', { hasToken: !!token, hasUserId: !!userId });
+      
       if (!token || !userId) {
-        console.log('🔐 AUTH: Sem token/userId, não autenticado');
         set({ 
           isAuthenticated: false, 
           userId: null, 
@@ -75,45 +68,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         return;
       }
       
-      // Valida token no backend
-      const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/auth/validate`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (response.ok) {
-          console.log('🔐 AUTH: Token válido, usuário autenticado');
-          set({ 
-            isAuthenticated: true, 
-            userId, 
-            accessToken: token,
-            isLoading: false,
-            isInitialized: true 
-          });
-        } else {
-          console.log('🔐 AUTH: Token inválido, limpando...');
-          // Token inválido - limpa tudo
-          await AsyncStorage.multiRemove(ALL_STORAGE_KEYS);
-          set({ 
-            isAuthenticated: false, 
-            userId: null, 
-            accessToken: null,
-            isLoading: false,
-            isInitialized: true 
-          });
-        }
-      } catch (networkError) {
-        // Erro de rede - considera autenticado se tem token local
-        console.log('🔐 AUTH: Erro de rede, usando token local');
-        set({ 
-          isAuthenticated: true, 
-          userId, 
-          accessToken: token,
-          isLoading: false,
-          isInitialized: true 
-        });
-      }
+      // Token existe - considera autenticado
+      set({ 
+        isAuthenticated: true, 
+        userId, 
+        accessToken: token,
+        isLoading: false,
+        isInitialized: true 
+      });
+      
     } catch (error) {
       console.error('🔐 AUTH: Erro na inicialização:', error);
       set({ 
@@ -127,86 +90,100 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   
   /**
-   * SET AUTHENTICATED
-   * Usado após login/signup
+   * SET AUTH - Após login/signup bem sucedido
    */
-  setAuthenticated: (authenticated: boolean, userId?: string | null, token?: string | null) => {
+  setAuth: async (userId: string, token: string) => {
+    LOGOUT_COMPLETED = false; // Reset flag de logout
+    
+    await AsyncStorage.setItem('accessToken', token);
+    await AsyncStorage.setItem('userId', userId);
+    
     set({ 
-      isAuthenticated: authenticated, 
-      userId: userId ?? null,
-      accessToken: token ?? null,
+      isAuthenticated: true, 
+      userId, 
+      accessToken: token,
     });
+    
+    console.log('🔐 AUTH: Autenticado:', userId);
   },
   
   /**
-   * LOGOUT COMPLETO - HARD RESET
-   * Remove TODOS os dados de sessão
+   * LOGOUT - HARD RESET COMPLETO
    */
   logout: async () => {
-    console.log('🔐 LOGOUT: Iniciando HARD RESET...');
+    if (LOGOUT_IN_PROGRESS) {
+      console.log('🔐 LOGOUT: Já em progresso, ignorando...');
+      return;
+    }
     
-    // 1. PRIMEIRO: Reset estado Zustand IMEDIATAMENTE
+    LOGOUT_IN_PROGRESS = true;
+    console.log('🔐 LOGOUT: ========== INICIANDO HARD RESET ==========');
+    
+    // 1. PRIMEIRO: Reset estado IMEDIATO
     set({
       isAuthenticated: false,
       userId: null,
       accessToken: null,
       isLoading: false,
     });
-    console.log('✅ Estado Zustand resetado');
+    console.log('🔐 LOGOUT: Estado Zustand resetado');
     
     try {
-      // 2. Remove chaves específicas
-      await AsyncStorage.multiRemove(ALL_STORAGE_KEYS);
-      console.log('✅ Chaves específicas removidas');
-      
-      // 3. Remove TODAS as chaves restantes
+      // 2. Lista todas as chaves
       const allKeys = await AsyncStorage.getAllKeys();
+      console.log('🔐 LOGOUT: Chaves encontradas:', allKeys.length, allKeys);
+      
+      // 3. Remove todas as chaves
       if (allKeys.length > 0) {
         await AsyncStorage.multiRemove(allKeys);
-        console.log(`✅ ${allKeys.length} chaves adicionais removidas`);
+        console.log('🔐 LOGOUT: multiRemove executado');
       }
       
-      // 4. Limpa completamente o AsyncStorage
+      // 4. Clear completo
       await AsyncStorage.clear();
-      console.log('✅ AsyncStorage.clear() executado');
+      console.log('🔐 LOGOUT: clear() executado');
       
-      // 5. Verifica se realmente limpou
-      const remainingKeys = await AsyncStorage.getAllKeys();
-      console.log('🔐 LOGOUT: Chaves restantes:', remainingKeys.length);
+      // 5. Verifica se limpou
+      const remaining = await AsyncStorage.getAllKeys();
+      console.log('🔐 LOGOUT: Chaves restantes:', remaining.length);
       
-      if (remainingKeys.length > 0) {
-        console.warn('⚠️ Ainda há chaves:', remainingKeys);
-        // Força remoção individual
-        for (const key of remainingKeys) {
-          await AsyncStorage.removeItem(key);
+      // 6. Se ainda tem chaves, remove uma a uma
+      if (remaining.length > 0) {
+        for (const key of remaining) {
+          try {
+            await AsyncStorage.removeItem(key);
+          } catch (e) {
+            console.warn('🔐 LOGOUT: Erro ao remover', key);
+          }
         }
       }
       
-      console.log('🔐 LOGOUT: COMPLETO!');
+      // 7. Marca logout como completo
+      LOGOUT_COMPLETED = true;
+      
+      console.log('🔐 LOGOUT: ========== COMPLETO ==========');
+      
     } catch (error) {
-      console.error('❌ Erro no logout:', error);
-      // Mesmo com erro, estado já foi resetado
+      console.error('🔐 LOGOUT: Erro:', error);
+      LOGOUT_COMPLETED = true; // Mesmo com erro, marca como completo
+    } finally {
+      LOGOUT_IN_PROGRESS = false;
     }
   },
   
   /**
-   * CHECK AUTH
-   * Verifica se ainda está autenticado
+   * FORCE LOGOUT - Logout síncrono imediato
    */
-  checkAuth: async () => {
-    const token = await AsyncStorage.getItem('accessToken');
-    const userId = await AsyncStorage.getItem('userId');
-    
-    const isAuth = !!(token && userId);
-    
-    if (!isAuth) {
-      set({
-        isAuthenticated: false,
-        userId: null,
-        accessToken: null,
-      });
-    }
-    
-    return isAuth;
+  forceLogout: () => {
+    LOGOUT_COMPLETED = true;
+    set({
+      isAuthenticated: false,
+      userId: null,
+      accessToken: null,
+      isLoading: false,
+    });
   },
 }));
+
+// Reset flag quando módulo é carregado
+LOGOUT_COMPLETED = false;
