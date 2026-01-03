@@ -1,11 +1,13 @@
 """
-Sistema de Geração de Treino - V5 TEXT ONLY
-===========================================
-DECISÃO DE PRODUTO FINAL:
-- Sem GIFs, sem vídeos, sem mídia
-- Orientação de execução apenas por TEXTO
-- Simplicidade e correção > visuais
-===========================================
+Sistema de Geração de Treino - V6 SAFE MACHINES
+===============================================
+REGRAS DE SEGURANÇA:
+- Apenas MÁQUINAS e CABOS (polias)
+- Halteres apenas quando estritamente necessário
+- SEM barras, levantamentos olímpicos ou movimentos instáveis
+- Prioridade: segurança, estabilidade, execução controlada
+- Instruções claras em texto para cada exercício
+===============================================
 """
 import os
 from typing import List, Dict, Optional
@@ -24,7 +26,7 @@ class Exercise(BaseModel):
     reps: str
     rest: str
     rest_seconds: int = 60
-    notes: Optional[str] = None  # Dicas de execução em texto
+    notes: Optional[str] = None
     completed: bool = False
 
 
@@ -52,56 +54,185 @@ class WorkoutGenerateRequest(BaseModel):
     user_id: str
 
 
-# ==================== BANCO DE EXERCÍCIOS (TEXT ONLY) ====================
+# ==================== EXERCÍCIOS SEGUROS (MÁQUINAS + CABOS + HALTERES) ====================
+# REGRA: Priorizar máquinas e cabos. Halteres apenas quando necessário.
+# SEM: Barras, levantamentos olímpicos, movimentos instáveis
 
 EXERCISES = {
+    # ============ PEITO ============
     "peito": [
-        {"name": "Supino Reto com Barra", "notes": "Deite no banco, desça a barra até o peito, empurre até extensão completa"},
-        {"name": "Supino Inclinado com Halteres", "notes": "Banco a 30-45°, desça controlado, suba sem bater os halteres"},
-        {"name": "Crucifixo com Halteres", "notes": "Braços levemente flexionados, desça em arco até sentir alongamento"},
-        {"name": "Flexão de Braço", "notes": "Corpo reto, desça até o peito quase tocar o chão, suba explosivo"},
+        {
+            "name": "Supino na Máquina",
+            "notes": "Sente com costas apoiadas. Empurre as manoplas para frente até extensão quase completa. Retorne controlado sem bater os pesos."
+        },
+        {
+            "name": "Crucifixo na Máquina (Peck Deck)",
+            "notes": "Cotovelos na altura dos ombros. Junte os braços à frente contraindo o peitoral. Abra controlado até sentir leve alongamento."
+        },
+        {
+            "name": "Cross Over (Polia Alta)",
+            "notes": "Cabos na posição alta. Dê um passo à frente. Puxe os cabos para baixo e para frente, cruzando na frente do corpo. Volte controlado."
+        },
+        {
+            "name": "Supino Inclinado com Halteres",
+            "notes": "Banco a 30°. Halteres ao lado do peito. Empurre para cima sem bater os halteres no topo. Desça controlado até cotovelos a 90°."
+        },
     ],
+    
+    # ============ COSTAS ============
     "costas": [
-        {"name": "Remada Curvada com Barra", "notes": "Costas retas a 45°, puxe a barra até o abdômen, contraia as escápulas"},
-        {"name": "Puxada Frontal", "notes": "Pegada um pouco mais larga que ombros, puxe até o queixo, controle a descida"},
-        {"name": "Remada Unilateral", "notes": "Apoie um joelho no banco, costas retas, puxe o cotovelo para trás"},
-        {"name": "Pulldown com Corda", "notes": "Braços estendidos, puxe até as coxas, aperte no final"},
+        {
+            "name": "Puxada Frontal (Pulley)",
+            "notes": "Pegada um pouco mais larga que os ombros. Puxe a barra até a altura do queixo, levando os cotovelos para baixo e para trás. Retorne controlado."
+        },
+        {
+            "name": "Remada na Máquina (Sentado)",
+            "notes": "Peito apoiado no suporte. Puxe as manoplas em direção ao abdômen, contraindo as escápulas. Retorne estendendo completamente os braços."
+        },
+        {
+            "name": "Remada Baixa (Polia)",
+            "notes": "Sente com pernas levemente flexionadas. Puxe o triângulo até o abdômen, mantendo costas retas. Estenda os braços completamente na volta."
+        },
+        {
+            "name": "Pulldown com Corda (Polia Alta)",
+            "notes": "Braços estendidos acima. Puxe a corda até a altura das coxas, mantendo cotovelos próximos ao corpo. Retorne controlado."
+        },
     ],
+    
+    # ============ OMBROS ============
     "ombros": [
-        {"name": "Desenvolvimento com Halteres", "notes": "Sentado ou em pé, empurre acima da cabeça, desça até orelhas"},
-        {"name": "Elevação Lateral", "notes": "Cotovelos levemente flexionados, eleve até altura dos ombros"},
-        {"name": "Elevação Frontal", "notes": "Braços estendidos, eleve até altura dos olhos, desça controlado"},
-        {"name": "Face Pull", "notes": "Puxe a corda em direção ao rosto, cotovelos altos, aperte escápulas"},
+        {
+            "name": "Desenvolvimento na Máquina",
+            "notes": "Sente com costas totalmente apoiadas. Empurre as manoplas para cima até quase estender os cotovelos. Desça até a altura das orelhas."
+        },
+        {
+            "name": "Elevação Lateral na Máquina",
+            "notes": "Cotovelos apoiados nas almofadas. Eleve os braços até a altura dos ombros. Desça controlado sem deixar os pesos baterem."
+        },
+        {
+            "name": "Elevação Lateral com Halteres (Sentado)",
+            "notes": "Sente no banco para mais estabilidade. Cotovelos levemente flexionados. Eleve até a altura dos ombros. Desça controlado."
+        },
+        {
+            "name": "Face Pull (Polia)",
+            "notes": "Polia na altura do rosto. Puxe a corda em direção ao rosto, abrindo os cotovelos para os lados. Aperte as escápulas no final."
+        },
     ],
+    
+    # ============ BÍCEPS ============
     "biceps": [
-        {"name": "Rosca Direta com Barra", "notes": "Cotovelos fixos ao lado do corpo, suba contraindo, desça controlado"},
-        {"name": "Rosca Alternada", "notes": "Alterne os braços, supine o punho no topo, controle a descida"},
-        {"name": "Rosca Martelo", "notes": "Pegada neutra, cotovelos fixos, suba até contrair o bíceps"},
+        {
+            "name": "Rosca na Máquina",
+            "notes": "Braços apoiados no suporte. Flexione os cotovelos trazendo as manoplas em direção aos ombros. Desça controlado sem estender completamente."
+        },
+        {
+            "name": "Rosca na Polia Baixa",
+            "notes": "De frente para a polia baixa. Cotovelos fixos ao lado do corpo. Flexione puxando a barra até os ombros. Desça controlado."
+        },
+        {
+            "name": "Rosca Alternada com Halteres (Sentado)",
+            "notes": "Sente no banco com costas apoiadas. Alterne os braços. Gire o punho (supinação) durante a subida. Desça controlado."
+        },
+        {
+            "name": "Rosca Martelo com Halteres (Sentado)",
+            "notes": "Pegada neutra (palmas voltadas para dentro). Cotovelos fixos. Flexione até contrair o bíceps. Desça controlado."
+        },
     ],
+    
+    # ============ TRÍCEPS ============
     "triceps": [
-        {"name": "Tríceps Corda", "notes": "Cotovelos fixos, estenda completamente, abra a corda no final"},
-        {"name": "Tríceps Testa", "notes": "Deite no banco, desça a barra até a testa, estenda sem mover cotovelos"},
-        {"name": "Mergulho entre Bancos", "notes": "Mãos no banco atrás, desça até 90° nos cotovelos, empurre"},
+        {
+            "name": "Tríceps na Polia (Corda)",
+            "notes": "Cotovelos fixos ao lado do corpo. Estenda os braços completamente, abrindo a corda no final. Retorne até 90° nos cotovelos."
+        },
+        {
+            "name": "Tríceps na Polia (Barra Reta)",
+            "notes": "Pegada pronada na barra. Cotovelos fixos. Empurre a barra para baixo até extensão completa. Retorne controlado até 90°."
+        },
+        {
+            "name": "Tríceps na Máquina",
+            "notes": "Sente com costas apoiadas. Empurre as manoplas para baixo estendendo os cotovelos. Retorne controlado sem deixar pesos baterem."
+        },
+        {
+            "name": "Tríceps Francês com Halter (Sentado)",
+            "notes": "Sente no banco. Segure um halter acima da cabeça com as duas mãos. Desça atrás da cabeça. Estenda sem mover os cotovelos."
+        },
     ],
+    
+    # ============ QUADRÍCEPS ============
     "quadriceps": [
-        {"name": "Agachamento Livre", "notes": "Pés na largura dos ombros, desça até coxas paralelas, joelhos alinhados"},
-        {"name": "Leg Press 45°", "notes": "Pés no meio da plataforma, desça até 90°, empurre sem travar joelhos"},
-        {"name": "Cadeira Extensora", "notes": "Estenda as pernas completamente, contraia no topo, desça controlado"},
-        {"name": "Afundo com Halteres", "notes": "Passo largo à frente, desça até joelho quase tocar o chão"},
+        {
+            "name": "Leg Press 45°",
+            "notes": "Pés no centro da plataforma na largura dos ombros. Desça até 90° nos joelhos. Empurre sem travar os joelhos no topo."
+        },
+        {
+            "name": "Cadeira Extensora",
+            "notes": "Ajuste o encosto para joelhos alinhados com o eixo. Estenda as pernas completamente, contraindo no topo. Desça controlado."
+        },
+        {
+            "name": "Agachamento no Smith Machine",
+            "notes": "Pés ligeiramente à frente da barra. Desça até coxas paralelas ao chão. Suba empurrando pelos calcanhares. Joelhos alinhados com os pés."
+        },
+        {
+            "name": "Leg Press Horizontal",
+            "notes": "Costas totalmente apoiadas. Pés na largura dos ombros. Empurre a plataforma sem travar joelhos. Desça controlado até 90°."
+        },
     ],
+    
+    # ============ POSTERIOR DE COXA ============
     "posterior": [
-        {"name": "Stiff com Barra", "notes": "Pernas semi-estendidas, desça a barra deslizando nas coxas, sinta alongar"},
-        {"name": "Mesa Flexora", "notes": "Deite de bruços, flexione até contrair posterior, desça controlado"},
-        {"name": "Elevação Pélvica", "notes": "Costas no banco, pés no chão, eleve o quadril contraindo glúteos"},
+        {
+            "name": "Mesa Flexora",
+            "notes": "Deite de bruços com joelhos alinhados ao eixo da máquina. Flexione as pernas trazendo os calcanhares em direção aos glúteos. Desça controlado."
+        },
+        {
+            "name": "Cadeira Flexora (Sentado)",
+            "notes": "Sente com coxas apoiadas. Flexione as pernas para baixo e para trás. Contraia no final do movimento. Retorne controlado."
+        },
+        {
+            "name": "Stiff na Máquina Smith",
+            "notes": "Pernas semi-estendidas, pés na largura do quadril. Desça a barra deslizando próximo às coxas até sentir alongamento. Suba contraindo glúteos."
+        },
+        {
+            "name": "Glúteo na Máquina (Kick Back)",
+            "notes": "Apoie o pé na plataforma. Empurre para trás estendendo o quadril. Contraia o glúteo no topo. Retorne controlado sem deixar peso bater."
+        },
     ],
+    
+    # ============ PANTURRILHA ============
     "panturrilha": [
-        {"name": "Panturrilha em Pé", "notes": "Eleve nos dedos o máximo possível, desça alongando bem"},
-        {"name": "Panturrilha Sentado", "notes": "Joelhos a 90°, eleve os calcanhares, contraia no topo"},
+        {
+            "name": "Panturrilha no Leg Press",
+            "notes": "Apoie apenas a ponta dos pés na plataforma. Empurre estendendo os tornozelos o máximo possível. Desça alongando bem a panturrilha."
+        },
+        {
+            "name": "Panturrilha Sentado na Máquina",
+            "notes": "Joelhos a 90° sob as almofadas. Eleve os calcanhares o máximo possível. Desça controlado até sentir alongamento completo."
+        },
+        {
+            "name": "Panturrilha em Pé na Máquina",
+            "notes": "Ombros sob as almofadas. Eleve nos dedos o máximo possível, contraindo no topo. Desça alongando completamente."
+        },
     ],
+    
+    # ============ ABDÔMEN ============
     "abdomen": [
-        {"name": "Abdominal Crunch", "notes": "Mãos atrás da cabeça, eleve ombros do chão, não puxe o pescoço"},
-        {"name": "Prancha Isométrica", "notes": "Corpo reto da cabeça aos pés, não deixe o quadril subir ou descer"},
-        {"name": "Elevação de Pernas", "notes": "Costas no chão, eleve pernas estendidas até 90°, desça sem tocar"},
+        {
+            "name": "Abdominal na Máquina",
+            "notes": "Sente e segure as manoplas. Flexione o tronco para frente contraindo o abdômen. Retorne controlado sem soltar a tensão."
+        },
+        {
+            "name": "Abdominal na Polia Alta (Corda)",
+            "notes": "Ajoelhe de costas para a polia. Segure a corda atrás da cabeça. Flexione o tronco em direção ao chão. Retorne controlado."
+        },
+        {
+            "name": "Prancha Isométrica",
+            "notes": "Apoie antebraços e pontas dos pés no chão. Corpo reto da cabeça aos calcanhares. Mantenha o abdômen contraído. Não deixe o quadril subir ou descer."
+        },
+        {
+            "name": "Elevação de Pernas no Apoio",
+            "notes": "Costas apoiadas no suporte, braços nos apoios. Eleve as pernas estendidas até 90°. Desça controlado sem balançar o corpo."
+        },
     ],
 }
 
@@ -233,5 +364,5 @@ class WorkoutAIService:
             goal=goal,
             weekly_frequency=frequency,
             workout_days=workout_days,
-            notes=f"{split_name} - {frequency}x/semana"
+            notes=f"{split_name} - {frequency}x/semana | Máquinas e Cabos"
         )
