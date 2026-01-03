@@ -54,22 +54,30 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
-    if (!validateForm()) return;
+    console.log('🔐 SIGNUP: Botão clicado!');
+    console.log('🔐 SIGNUP: Estado atual:', { email, password, confirmPassword, loading });
+    console.log('🔐 SIGNUP: BACKEND_URL:', BACKEND_URL);
     
+    if (!validateForm()) {
+      console.log('🔐 SIGNUP: Validação falhou:', errors);
+      return;
+    }
+    
+    console.log('🔐 SIGNUP: Validação OK, iniciando request...');
     setLoading(true);
-    console.log('🔐 SIGNUP: Iniciando...');
     
     try {
-      console.log('🔐 SIGNUP: Chamando API:', `${BACKEND_URL}/api/auth/signup`);
+      const url = `${BACKEND_URL}/api/auth/signup`;
+      console.log('🔐 SIGNUP: Chamando API:', url);
       
-      const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
       
       const data = await response.json();
-      console.log('🔐 SIGNUP: Resposta:', { ok: response.ok, data });
+      console.log('🔐 SIGNUP: Resposta:', { ok: response.ok, status: response.status, data });
       
       if (!response.ok) {
         throw new Error(data.detail || 'Erro ao criar conta');
