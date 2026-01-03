@@ -1,13 +1,11 @@
 """
-Sistema de Geração de Treino - V4 VERIFIED GIFS
-===============================================
-REGRAS RÍGIDAS:
-1. Lista FIXA de exercícios com GIFs VERIFICADOS
-2. Cada GIF foi testado e funciona
-3. Se GIF não carrega, exercício não é usado
-4. Poucos exercícios corretos > muitos errados
-5. Fonte: URLs públicas verificadas
-===============================================
+Sistema de Geração de Treino - V5 TEXT ONLY
+===========================================
+DECISÃO DE PRODUTO FINAL:
+- Sem GIFs, sem vídeos, sem mídia
+- Orientação de execução apenas por TEXTO
+- Simplicidade e correção > visuais
+===========================================
 """
 import os
 from typing import List, Dict, Optional
@@ -18,6 +16,7 @@ import uuid
 # ==================== MODELS ====================
 
 class Exercise(BaseModel):
+    """Exercício - TEXT ONLY, sem mídia"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     muscle_group: str
@@ -25,8 +24,7 @@ class Exercise(BaseModel):
     reps: str
     rest: str
     rest_seconds: int = 60
-    notes: Optional[str] = None
-    gif_url: str  # OBRIGATÓRIO
+    notes: Optional[str] = None  # Dicas de execução em texto
     completed: bool = False
 
 
@@ -54,145 +52,56 @@ class WorkoutGenerateRequest(BaseModel):
     user_id: str
 
 
-# ==================== EXERCÍCIOS COM GIFs VERIFICADOS ====================
-# TODAS as URLs foram testadas e retornam HTTP 200
-# Fonte principal: Giphy (CDN confiável)
+# ==================== BANCO DE EXERCÍCIOS (TEXT ONLY) ====================
 
-VERIFIED_EXERCISES = {
-    # ============ PEITO ============
+EXERCISES = {
     "peito": [
-        {
-            "name": "Supino Reto com Barra",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNnhxaHBqeGJqY2s1NWVzaGZ3dWN2MXN0OXRyaHFkeXVnbXhiZXB2bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPJVjlYHwWsZRxm/giphy.gif",
-            "focus": "Peitoral médio, tríceps, ombro anterior"
-        },
-        {
-            "name": "Flexão de Braço",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcmRjdnBpbWFnb3p0YWw2dXhuZWR5M3NxeXF2c3Z4cjFoZnR0aGFkeiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o6ZtaO9BZHcOjmErm/giphy.gif",
-            "focus": "Peitoral, tríceps, core - exercício funcional"
-        },
-        {
-            "name": "Supino Inclinado",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHNqNWNhbm5oNXJhNWNkaXo3ZHJwMnM1NWJ6YXR3ZnFqanZsOGx2ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhweiVB36rAlqVCE/giphy.gif",
-            "focus": "Peitoral superior"
-        },
+        {"name": "Supino Reto com Barra", "notes": "Deite no banco, desça a barra até o peito, empurre até extensão completa"},
+        {"name": "Supino Inclinado com Halteres", "notes": "Banco a 30-45°, desça controlado, suba sem bater os halteres"},
+        {"name": "Crucifixo com Halteres", "notes": "Braços levemente flexionados, desça em arco até sentir alongamento"},
+        {"name": "Flexão de Braço", "notes": "Corpo reto, desça até o peito quase tocar o chão, suba explosivo"},
     ],
-    
-    # ============ COSTAS ============
     "costas": [
-        {
-            "name": "Remada com Barra",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm1qcGFjMnIzaXRkcGM0OGk2ZzVsMHBxcnVocWUzZDVyNDBxMjIycyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1qfKN8Dt0CRdCRxz9q/giphy.gif",
-            "focus": "Dorsais, trapézio, romboides"
-        },
-        {
-            "name": "Puxada na Barra Fixa",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNTZiYWRhcHNvbTBhYmhyd3dmYjRrb2dtbXRyYXJzM21kd3gxeXBjaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlBO7eyXzSZkJri/giphy.gif",
-            "focus": "Dorsais - largura das costas"
-        },
-        {
-            "name": "Remada Unilateral",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYmhuaW9uZmlqMmFlZG80cHJ6Ynd0cGU4aGRrZGhiZXNwejkyOHNjYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oriO8vwmRIZO2yyAw/giphy.gif",
-            "focus": "Dorsais - espessura"
-        },
+        {"name": "Remada Curvada com Barra", "notes": "Costas retas a 45°, puxe a barra até o abdômen, contraia as escápulas"},
+        {"name": "Puxada Frontal", "notes": "Pegada um pouco mais larga que ombros, puxe até o queixo, controle a descida"},
+        {"name": "Remada Unilateral", "notes": "Apoie um joelho no banco, costas retas, puxe o cotovelo para trás"},
+        {"name": "Pulldown com Corda", "notes": "Braços estendidos, puxe até as coxas, aperte no final"},
     ],
-    
-    # ============ OMBROS ============
     "ombros": [
-        {
-            "name": "Desenvolvimento com Halteres",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZHVqNnN4dGMycW9xNWI3OGRxdnRjcnQwcmIwNXh2aXhkczE2aWJhcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlvtIPzPdt2usKs/giphy.gif",
-            "focus": "Deltoides - força geral"
-        },
-        {
-            "name": "Elevação Lateral",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWE4c2JrNTZhbmFuZjdmMmhiZjk4eHg4dXN2Yzdxc3lrcXVhdnBtZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPzhNGA5FIqMYdW/giphy.gif",
-            "focus": "Deltoide lateral - largura"
-        },
+        {"name": "Desenvolvimento com Halteres", "notes": "Sentado ou em pé, empurre acima da cabeça, desça até orelhas"},
+        {"name": "Elevação Lateral", "notes": "Cotovelos levemente flexionados, eleve até altura dos ombros"},
+        {"name": "Elevação Frontal", "notes": "Braços estendidos, eleve até altura dos olhos, desça controlado"},
+        {"name": "Face Pull", "notes": "Puxe a corda em direção ao rosto, cotovelos altos, aperte escápulas"},
     ],
-    
-    # ============ BÍCEPS ============
     "biceps": [
-        {
-            "name": "Rosca Direta com Barra",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHB6OGFhNW9qMW1lYm9scHk3Z2thcmdrNjNiN2ZtYXVkenBicGpmMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPBMumj2Q0hlI3K/giphy.gif",
-            "focus": "Bíceps - massa geral"
-        },
-        {
-            "name": "Rosca Alternada",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGN4ZWU1dGp0dXh0cDdtY3NhOXJjZHJ3dXU2Z3hlYmJtd2swZXUzZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3ohhwF34cGDoFFhRfy/giphy.gif",
-            "focus": "Bíceps - pico"
-        },
+        {"name": "Rosca Direta com Barra", "notes": "Cotovelos fixos ao lado do corpo, suba contraindo, desça controlado"},
+        {"name": "Rosca Alternada", "notes": "Alterne os braços, supine o punho no topo, controle a descida"},
+        {"name": "Rosca Martelo", "notes": "Pegada neutra, cotovelos fixos, suba até contrair o bíceps"},
     ],
-    
-    # ============ TRÍCEPS ============
     "triceps": [
-        {
-            "name": "Tríceps no Pulley",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2RkNWN5aHl4cHd2cTFvMGg0dWN1cHNyaGx0ZXh2aGN1a3RndXM3bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT9DPofgEkyu9t1Eps/giphy.gif",
-            "focus": "Tríceps - cabeça lateral"
-        },
-        {
-            "name": "Mergulho entre Bancos",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExYW9waTJnMXdwcWJ0Z29hZmF1YnJycjBxYjRvdGNlNnN4djU5cWF4NCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0ExhcMymdL6TrZ84/giphy.gif",
-            "focus": "Tríceps - força geral"
-        },
+        {"name": "Tríceps Corda", "notes": "Cotovelos fixos, estenda completamente, abra a corda no final"},
+        {"name": "Tríceps Testa", "notes": "Deite no banco, desça a barra até a testa, estenda sem mover cotovelos"},
+        {"name": "Mergulho entre Bancos", "notes": "Mãos no banco atrás, desça até 90° nos cotovelos, empurre"},
     ],
-    
-    # ============ QUADRÍCEPS ============
     "quadriceps": [
-        {
-            "name": "Agachamento Livre",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ2VjbWRlbjhiZ2FranI5d3M1Ym5uNGl4cnY5MXo1ejlpODBhemk0eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1qfKN8Dt0CRdCRxz9q/giphy.gif",
-            "focus": "Quadríceps, glúteos, core"
-        },
-        {
-            "name": "Afundo/Lunge",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGFtYnk2dG1pbWRjcW5pdXRkdGJiMGRscjhsMHZxY2pzbHZhdG5hMSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlNQ03J5JxX6lva/giphy.gif",
-            "focus": "Quadríceps, glúteos - unilateral"
-        },
-        {
-            "name": "Leg Press",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWNkb2RvaGZoaWdoaXZzc2NkcWUxcXNhM2VjMmRidnFhNGZiZmQ3YSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26FxCOdhlvEQXbeH6/giphy.gif",
-            "focus": "Quadríceps - força máxima"
-        },
+        {"name": "Agachamento Livre", "notes": "Pés na largura dos ombros, desça até coxas paralelas, joelhos alinhados"},
+        {"name": "Leg Press 45°", "notes": "Pés no meio da plataforma, desça até 90°, empurre sem travar joelhos"},
+        {"name": "Cadeira Extensora", "notes": "Estenda as pernas completamente, contraia no topo, desça controlado"},
+        {"name": "Afundo com Halteres", "notes": "Passo largo à frente, desça até joelho quase tocar o chão"},
     ],
-    
-    # ============ POSTERIOR ============
     "posterior": [
-        {
-            "name": "Stiff/Levantamento Terra",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMjFhZm9lZnhoNnVlaWk5bWN3am16Nnc1YXEycTF2bmd5OXRtb3VqcSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlQoWTfEYhMPmxy/giphy.gif",
-            "focus": "Posterior, glúteos, lombar"
-        },
-        {
-            "name": "Hip Thrust",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm55bXI0M2Q1NGl4M2xyZXI1NzM2Z2NlazQ2N3U2Yjdkc3hlaG15bSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ToMjGppTqMvzVPAMTUA/giphy.gif",
-            "focus": "Glúteos - isolamento"
-        },
+        {"name": "Stiff com Barra", "notes": "Pernas semi-estendidas, desça a barra deslizando nas coxas, sinta alongar"},
+        {"name": "Mesa Flexora", "notes": "Deite de bruços, flexione até contrair posterior, desça controlado"},
+        {"name": "Elevação Pélvica", "notes": "Costas no banco, pés no chão, eleve o quadril contraindo glúteos"},
     ],
-    
-    # ============ PANTURRILHA ============
     "panturrilha": [
-        {
-            "name": "Elevação de Panturrilha",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdnN0aXNkZXdhMHhyZnJueXdscnNmeHFudndoaHk1ZXRqYWVyMWdqMyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l4FGCVxViHVoIkaPm/giphy.gif",
-            "focus": "Gastrocnêmio e sóleo"
-        },
+        {"name": "Panturrilha em Pé", "notes": "Eleve nos dedos o máximo possível, desça alongando bem"},
+        {"name": "Panturrilha Sentado", "notes": "Joelhos a 90°, eleve os calcanhares, contraia no topo"},
     ],
-    
-    # ============ ABDÔMEN ============
     "abdomen": [
-        {
-            "name": "Abdominal Crunch",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMWJ0anU2ZXhzOWNtdGR5MTI0b2NkY2VrZmVjZXJuNWVvcmFxdTByeCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oriO8vwmRIZO2yyAw/giphy.gif",
-            "focus": "Reto abdominal"
-        },
-        {
-            "name": "Prancha",
-            "gif": "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcnlqbXRxaWVvNnM5bjVuMzRhNnN1dHQ0eGN3dHRjcXVvMnJ6cHlyNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xT8qBff8cRRFf7k2u4/giphy.gif",
-            "focus": "Core completo - estabilidade"
-        },
+        {"name": "Abdominal Crunch", "notes": "Mãos atrás da cabeça, eleve ombros do chão, não puxe o pescoço"},
+        {"name": "Prancha Isométrica", "notes": "Corpo reto da cabeça aos pés, não deixe o quadril subir ou descer"},
+        {"name": "Elevação de Pernas", "notes": "Costas no chão, eleve pernas estendidas até 90°, desça sem tocar"},
     ],
 }
 
@@ -202,12 +111,10 @@ DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
 def get_split_for_frequency(freq: int) -> List[Dict]:
     splits = {
-        1: [
-            {"name": "Full Body", "muscles": ["peito", "costas", "quadriceps", "ombros", "biceps", "triceps"]}
-        ],
+        1: [{"name": "Full Body", "muscles": ["peito", "costas", "quadriceps", "ombros", "biceps", "triceps"]}],
         2: [
-            {"name": "Upper (Superior)", "muscles": ["peito", "costas", "ombros", "biceps", "triceps"]},
-            {"name": "Lower (Inferior)", "muscles": ["quadriceps", "posterior", "panturrilha", "abdomen"]},
+            {"name": "Upper", "muscles": ["peito", "costas", "ombros", "biceps", "triceps"]},
+            {"name": "Lower", "muscles": ["quadriceps", "posterior", "panturrilha", "abdomen"]},
         ],
         3: [
             {"name": "A - Push", "muscles": ["peito", "ombros", "triceps"]},
@@ -261,7 +168,7 @@ def parse_rest_seconds(rest_str: str) -> int:
 
 class WorkoutAIService:
     def __init__(self):
-        self.api_key = os.environ.get('EMERGENT_LLM_KEY')
+        pass
     
     def generate_workout_plan(self, user_profile: Dict) -> WorkoutPlan:
         frequency = user_profile.get('weekly_training_frequency', 3)
@@ -270,16 +177,9 @@ class WorkoutAIService:
         level = user_profile.get('training_level', 'intermediario')
         goal = user_profile.get('goal', 'bulking')
         
-        return self._generate_verified_workout(user_profile['id'], frequency, level, goal)
+        return self._generate_workout(user_profile['id'], frequency, level, goal)
     
-    def _generate_verified_workout(
-        self,
-        user_id: str,
-        frequency: int,
-        level: str,
-        goal: str
-    ) -> WorkoutPlan:
-        
+    def _generate_workout(self, user_id: str, frequency: int, level: str, goal: str) -> WorkoutPlan:
         split = get_split_for_frequency(frequency)
         
         config = {
@@ -295,16 +195,12 @@ class WorkoutAIService:
             exercises = []
             
             for muscle in template["muscles"]:
-                available = VERIFIED_EXERCISES.get(muscle, [])
+                available = EXERCISES.get(muscle, [])
                 
                 for j in range(min(config["ex_per_muscle"], len(available))):
                     ex_data = available[j]
-                    
-                    # REGRA: Só adiciona se tem GIF verificado
-                    if not ex_data.get("gif"):
-                        continue
-                    
                     rest_str = config["rest"]
+                    
                     exercises.append(Exercise(
                         name=ex_data["name"],
                         muscle_group=muscle.capitalize(),
@@ -312,8 +208,7 @@ class WorkoutAIService:
                         reps=config["reps"],
                         rest=rest_str,
                         rest_seconds=parse_rest_seconds(rest_str),
-                        notes=ex_data.get("focus"),
-                        gif_url=ex_data["gif"],
+                        notes=ex_data.get("notes"),
                         completed=False
                     ))
             
@@ -328,13 +223,8 @@ class WorkoutAIService:
             ))
         
         split_name = {
-            1: "Full Body",
-            2: "Upper/Lower",
-            3: "Push/Pull/Legs",
-            4: "ABCD",
-            5: "ABCDE",
-            6: "PPL 2x",
-            7: "Bro Split"
+            1: "Full Body", 2: "Upper/Lower", 3: "Push/Pull/Legs",
+            4: "ABCD", 5: "ABCDE", 6: "PPL 2x", 7: "Bro Split"
         }.get(frequency, "Personalizado")
         
         return WorkoutPlan(
@@ -343,5 +233,5 @@ class WorkoutAIService:
             goal=goal,
             weekly_frequency=frequency,
             workout_days=workout_days,
-            notes=f"{split_name} - {frequency}x/semana. Todos exercícios com demonstração."
+            notes=f"{split_name} - {frequency}x/semana"
         )
