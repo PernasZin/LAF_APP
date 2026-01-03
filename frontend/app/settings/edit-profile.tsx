@@ -330,6 +330,14 @@ export default function EditProfileScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Toast notification */}
+      <Toast
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        onHide={hideToast}
+      />
     </SafeAreaView>
   );
 }
