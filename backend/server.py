@@ -1055,15 +1055,22 @@ async def delete_weight_record(record_id: str):
 # ==================== WORKOUT ENDPOINTS ====================
 
 @api_router.post("/workout/generate")
-async def generate_workout(user_id: str):
+async def generate_workout(user_id: str, force: bool = False):
     """
-    Gera um plano de treino personalizado com IA
+    Gera um plano de treino personalizado.
+    Se force=true, substitui o treino existente.
     """
     try:
         # Busca perfil do usuário
         user_profile = await db.user_profiles.find_one({"_id": user_id})
         if not user_profile:
             raise HTTPException(status_code=404, detail="Perfil não encontrado")
+        
+        # Verifica se já existe treino (e não é force)
+        existing = await db.workout_plans.find_one({"user_id": user_id})
+        if existing and not force:
+            # Delete o treino antigo para criar um novo
+            await db.workout_plans.delete_many({"user_id": user_id})
         
         # Importa serviço de treino
         from workout_service import WorkoutAIService
@@ -1075,10 +1082,15 @@ async def generate_workout(user_id: str):
             user_profile=dict(user_profile)
         )
         
-        # Salva no banco
+        # Salva no banco (substituindo qualquer existente)
         workout_dict = workout_plan.dict()
         workout_dict["_id"] = workout_dict["id"]
+        
+        # Delete todos os treinos antigos do usuário e insere o novo
+        await db.workout_plans.delete_many({"user_id": user_id})
         await db.workout_plans.insert_one(workout_dict)
+        
+        logger.info(f"Workout generated for user {user_id}")
         
         return workout_plan
         
