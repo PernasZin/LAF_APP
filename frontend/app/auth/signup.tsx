@@ -29,6 +29,7 @@ export default function SignUpScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{email?: string; password?: string; confirmPassword?: string}>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: {email?: string; password?: string; confirmPassword?: string} = {};
