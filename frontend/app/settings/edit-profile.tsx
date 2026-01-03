@@ -46,6 +46,7 @@ const safeFetch = async (url: string, options?: RequestInit) => {
 export default function EditProfileScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { toast, showSuccess, showError, hideToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
