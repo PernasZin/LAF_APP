@@ -380,6 +380,13 @@ async def create_user_profile(profile_data: UserProfileCreate):
     # Cria perfil completo
     profile_dict = profile_data.dict()
     
+    # Se o client forneceu um ID (vinculado ao auth), usa ele
+    # Senão, deixa o model gerar um novo
+    if profile_data.id:
+        profile_dict["id"] = profile_data.id
+    else:
+        profile_dict.pop("id", None)  # Remove se None para deixar o default funcionar
+    
     # Processa campos de atleta
     if profile_data.goal == "atleta":
         # Parse competition_date se fornecida
