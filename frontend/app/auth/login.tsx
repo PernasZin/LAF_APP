@@ -1,95 +1,51 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-  ScrollView,
+  View, Text, StyleSheet, TextInput, TouchableOpacity,
+  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Link } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../stores/authStore';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { login } = useAuthStore();
+  const login = useAuthStore((s) => s.login);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{email?: string; password?: string}>({});
-
-  const validateForm = (): boolean => {
-    const newErrors: {email?: string; password?: string} = {};
-    
-    if (!email.trim()) {
-      newErrors.email = 'Email é obrigatório';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      newErrors.email = 'Email inválido';
-    }
-    
-    if (!password) {
-      newErrors.password = 'Senha é obrigatória';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    if (!validateForm()) return;
+    if (!email.trim() || !password) {
+      setError('Preencha todos os campos');
+      return;
+    }
     
     setLoading(true);
-    console.log('🔐 LOGIN: Iniciando...');
+    setError(null);
     
     try {
-      console.log('🔐 LOGIN: Chamando API:', `${BACKEND_URL}/api/auth/login`);
-      
-      const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
       
-      const data = await response.json();
-      console.log('🔐 LOGIN: Resposta:', { ok: response.ok, data });
+      const data = await res.json();
       
-      if (!response.ok) {
-        throw new Error(data.detail || 'Erro ao fazer login');
-      }
+      if (!res.ok) throw new Error(data.detail || 'Erro ao fazer login');
       
-      // 1. Usa o método login do AuthStore
-      console.log('🔐 LOGIN: Salvando no AuthStore...');
-      await login(data.user_id, data.access_token);
+      // Save to AuthStore (SINGLE SOURCE OF TRUTH)
+      await login(data.user_id, data.access_token, data.profile_completed);
       
-      // 2. Salva email também
-      await AsyncStorage.setItem('userEmail', data.email);
-      
-      console.log('🔐 LOGIN: AuthStore atualizado, isAuthenticated:', useAuthStore.getState().isAuthenticated);
-      
-      // 3. Redireciona baseado no estado do perfil
-      if (data.has_profile && data.profile_id) {
-        console.log('🔐 LOGIN: Tem perfil, indo para tabs');
-        await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-        router.replace('/(tabs)');
-      } else {
-        console.log('🔐 LOGIN: Sem perfil, indo para onboarding');
-        router.replace('/onboarding');
-      }
-      
-    } catch (error: any) {
-      console.error('❌ LOGIN: Erro:', error);
-      Alert.alert('Erro', error.message || 'Não foi possível fazer login');
+      // AuthGuard will handle redirect
+    } catch (e: any) {
+      setError(e.message);
     } finally {
       setLoading(false);
     }
@@ -97,95 +53,61 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Header */}
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <Ionicons name="fitness" size={60} color="#10B981" />
-            </View>
+            <View style={styles.logo}><Ionicons name="fitness" size={60} color="#10B981" /></View>
             <Text style={styles.title}>LAF</Text>
             <Text style={styles.subtitle}>Entre na sua conta</Text>
           </View>
 
-          {/* Form */}
+          {error && (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle" size={20} color="#EF4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           <View style={styles.form}>
-            {/* Email */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
-              <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
-                <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
-                <TextInput
-                  style={styles.input}
-                  value={email}
-                  onChangeText={(text) => {
-                    setEmail(text);
-                    if (errors.email) setErrors({...errors, email: undefined});
-                  }}
-                  placeholder="seu@email.com"
-                  placeholderTextColor="#9CA3AF"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-              </View>
-              {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            <Text style={styles.label}>Email</Text>
+            <View style={styles.inputBox}>
+              <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                value={email}
+                onChangeText={setEmail}
+                placeholder="seu@email.com"
+                placeholderTextColor="#9CA3AF"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
             </View>
 
-            {/* Password */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Senha</Text>
-              <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
-                <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
-                <TextInput
-                  style={styles.input}
-                  value={password}
-                  onChangeText={(text) => {
-                    setPassword(text);
-                    if (errors.password) setErrors({...errors, password: undefined});
-                  }}
-                  placeholder="Sua senha"
-                  placeholderTextColor="#9CA3AF"
-                  secureTextEntry={!showPassword}
-                />
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons 
-                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                    size={20} 
-                    color="#9CA3AF" 
-                  />
-                </TouchableOpacity>
-              </View>
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+            <Text style={styles.label}>Senha</Text>
+            <View style={styles.inputBox}>
+              <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Sua senha"
+                placeholderTextColor="#9CA3AF"
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#9CA3AF" />
+              </TouchableOpacity>
             </View>
 
-            {/* Login Button */}
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleLogin}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Entrar</Text>
-              )}
+            <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
             </TouchableOpacity>
           </View>
 
-          {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Não tem uma conta?</Text>
+            <Text style={styles.footerText}>Não tem conta?</Text>
             <Link href="/auth/signup" asChild>
-              <TouchableOpacity>
-                <Text style={styles.linkText}>Criar conta</Text>
-              </TouchableOpacity>
+              <TouchableOpacity><Text style={styles.link}>Criar conta</Text></TouchableOpacity>
             </Link>
           </View>
         </ScrollView>
@@ -195,105 +117,22 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 24,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  logoContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#F0FDF4',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: '700',
-    color: '#10B981',
-    letterSpacing: 2,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginTop: 8,
-  },
-  form: {
-    marginBottom: 32,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    paddingHorizontal: 16,
-    height: 52,
-  },
-  inputError: {
-    borderColor: '#EF4444',
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#111827',
-    marginLeft: 12,
-  },
-  errorText: {
-    fontSize: 12,
-    color: '#EF4444',
-    marginTop: 4,
-    marginLeft: 4,
-  },
-  button: {
-    backgroundColor: '#10B981',
-    height: 56,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  buttonDisabled: {
-    backgroundColor: '#9CA3AF',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-  },
-  footerText: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  linkText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#10B981',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { flexGrow: 1, padding: 24, justifyContent: 'center' },
+  header: { alignItems: 'center', marginBottom: 32 },
+  logo: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#F0FDF4', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
+  title: { fontSize: 36, fontWeight: '700', color: '#10B981' },
+  subtitle: { fontSize: 16, color: '#6B7280', marginTop: 8 },
+  errorBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', borderRadius: 12, padding: 12, marginBottom: 16, gap: 8 },
+  errorText: { color: '#EF4444', fontSize: 14, flex: 1 },
+  form: { marginBottom: 32 },
+  label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8, marginTop: 16 },
+  inputBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9FAFB', borderRadius: 12, borderWidth: 1, borderColor: '#E5E7EB', paddingHorizontal: 16, height: 52 },
+  input: { flex: 1, fontSize: 16, color: '#111827', marginLeft: 12 },
+  button: { backgroundColor: '#10B981', height: 56, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 24 },
+  buttonDisabled: { backgroundColor: '#9CA3AF' },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  footer: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
+  footerText: { fontSize: 14, color: '#6B7280' },
+  link: { fontSize: 14, fontWeight: '600', color: '#10B981' },
 });
