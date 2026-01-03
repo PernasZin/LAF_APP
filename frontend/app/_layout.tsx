@@ -1,75 +1,69 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { ThemeProvider, useTheme } from '../theme/ThemeContext';
 import { useAuthStore } from '../stores/authStore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
- * AUTH GUARD - Reage a mudanças no estado de auth
+ * ROOT AUTH GUARD
+ * SINGLE SOURCE OF TRUTH: AuthStore
+ * 
+ * LOGIC:
+ * if (!isAuthenticated) → /auth/login
+ * else if (!profileCompleted) → /onboarding
+ * else → /(tabs)
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
   
-  // Subscreve ao estado do AuthStore
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const isInitialized = useAuthStore((state) => state.isInitialized);
-  const initialize = useAuthStore((state) => state.initialize);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const profileCompleted = useAuthStore((s) => s.profileCompleted);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
+  const initialize = useAuthStore((s) => s.initialize);
 
-  // Inicializa UMA vez
+  // Initialize once
   useEffect(() => {
-    console.log('🛡️ AUTH GUARD: Inicializando...');
     initialize();
   }, []);
 
-  // Redireciona baseado no estado - reage a mudanças em isAuthenticated
+  // Redirect based on auth state
   useEffect(() => {
-    // Espera navegação e auth estarem prontos
-    if (!navigationState?.key || !isInitialized) {
-      console.log('🛡️ AUTH GUARD: Aguardando...', { navReady: !!navigationState?.key, authReady: isInitialized });
-      return;
-    }
+    if (!navigationState?.key || !isInitialized) return;
 
-    const inAuthGroup = segments[0] === 'auth';
-    const inTabs = segments[0] === '(tabs)';
+    const inAuth = segments[0] === 'auth';
     const inOnboarding = segments[0] === 'onboarding';
-    const inIndex = segments.length === 0 || segments[0] === 'index';
+    const inTabs = segments[0] === '(tabs)';
 
-    console.log('🛡️ AUTH GUARD: Verificando', { 
-      isAuthenticated, 
-      segments: segments.join('/'), 
-      inAuthGroup, 
-      inTabs,
-      inOnboarding 
-    });
+    console.log('🛡️ GUARD:', { isAuthenticated, profileCompleted, segments: segments[0] });
 
-    // Não autenticado tentando acessar área protegida
-    if (!isAuthenticated && (inTabs || inOnboarding)) {
-      console.log('🛡️ AUTH GUARD: Bloqueando acesso, redirecionando para login');
-      router.replace('/auth/login');
+    // NOT authenticated → go to login
+    if (!isAuthenticated) {
+      if (!inAuth) {
+        console.log('🛡️ → /auth/login');
+        router.replace('/auth/login');
+      }
       return;
     }
 
-    // Autenticado na área de auth ou index - redireciona para app
-    if (isAuthenticated && (inAuthGroup || inIndex)) {
-      console.log('🛡️ AUTH GUARD: Autenticado, verificando perfil...');
-      AsyncStorage.getItem('hasCompletedOnboarding').then(hasProfile => {
-        console.log('🛡️ AUTH GUARD: hasProfile:', hasProfile);
-        if (hasProfile === 'true') {
-          console.log('🛡️ AUTH GUARD: Redirecionando para tabs');
-          router.replace('/(tabs)');
-        } else {
-          console.log('🛡️ AUTH GUARD: Redirecionando para onboarding');
-          router.replace('/onboarding');
-        }
-      });
+    // Authenticated but NO profile → go to onboarding
+    if (!profileCompleted) {
+      if (!inOnboarding) {
+        console.log('🛡️ → /onboarding');
+        router.replace('/onboarding');
+      }
+      return;
     }
-  }, [isAuthenticated, isInitialized, segments, navigationState?.key]);
 
-  // Loading enquanto não inicializa
+    // Authenticated WITH profile → go to tabs
+    if (inAuth || inOnboarding || segments.length === 0) {
+      console.log('🛡️ → /(tabs)');
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, profileCompleted, isInitialized, segments, navigationState?.key]);
+
   if (!isInitialized) {
     return (
       <View style={styles.loading}>
@@ -81,16 +75,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-function RootStackNavigator() {
+function RootStack() {
   const { colors } = useTheme();
-  
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
-      }}
-    >
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="auth" />
       <Stack.Screen name="onboarding" />
@@ -105,7 +93,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AuthGuard>
-          <RootStackNavigator />
+          <RootStack />
         </AuthGuard>
       </ThemeProvider>
     </SafeAreaProvider>
@@ -113,10 +101,5 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-  },
+  loading: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
 });
