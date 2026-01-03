@@ -207,18 +207,27 @@ export default function DietScreen() {
         const updatedDiet = await response.json();
         setDietPlan(updatedDiet);
         setSubstitutionModal(false);
-        Alert.alert('Sucesso', 'Alimento substituído com sucesso!');
+        showSuccess('Alimento substituído com sucesso!');
       } else {
         const error = await response.json().catch(() => ({}));
-        Alert.alert('Erro', error.detail || 'Não foi possível substituir o alimento.');
+        showError(error.detail || 'Não foi possível substituir o alimento.');
       }
     } catch (error) {
       console.error('Erro ao substituir:', error);
-      Alert.alert('Erro', 'Erro de conexão ao substituir alimento.');
+      showError('Erro de conexão ao substituir alimento.');
     } finally {
       setSubstituting(false);
     }
   };
+
+  // Show skeleton while loading initially
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <DietSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   if (loading) {
     return (
