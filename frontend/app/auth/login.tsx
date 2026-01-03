@@ -21,7 +21,7 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { setAuthenticated, setUserId } = useAuthStore();
+  const { login } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,7 +50,11 @@ export default function LoginScreen() {
     if (!validateForm()) return;
     
     setLoading(true);
+    console.log('🔐 LOGIN: Iniciando...');
+    
     try {
+      console.log('🔐 LOGIN: Chamando API:', `${BACKEND_URL}/api/auth/login`);
+      
       const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,32 +62,33 @@ export default function LoginScreen() {
       });
       
       const data = await response.json();
+      console.log('🔐 LOGIN: Resposta:', { ok: response.ok, data });
       
       if (!response.ok) {
         throw new Error(data.detail || 'Erro ao fazer login');
       }
       
-      // Salva dados de autenticação
-      await AsyncStorage.setItem('accessToken', data.access_token);
-      await AsyncStorage.setItem('userId', data.user_id);
+      // 1. Usa o método login do AuthStore
+      console.log('🔐 LOGIN: Salvando no AuthStore...');
+      await login(data.user_id, data.access_token);
+      
+      // 2. Salva email também
       await AsyncStorage.setItem('userEmail', data.email);
       
-      // Atualiza store
-      setUserId(data.user_id);
-      setAuthenticated(true, data.user_id);
+      console.log('🔐 LOGIN: AuthStore atualizado, isAuthenticated:', useAuthStore.getState().isAuthenticated);
       
-      console.log('✅ Login bem sucedido:', { userId: data.user_id, hasProfile: data.has_profile });
-      
-      // Redireciona baseado no estado
+      // 3. Redireciona baseado no estado do perfil
       if (data.has_profile && data.profile_id) {
+        console.log('🔐 LOGIN: Tem perfil, indo para tabs');
         await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
         router.replace('/(tabs)');
       } else {
+        console.log('🔐 LOGIN: Sem perfil, indo para onboarding');
         router.replace('/onboarding');
       }
       
     } catch (error: any) {
-      console.error('❌ Erro no login:', error);
+      console.error('❌ LOGIN: Erro:', error);
       Alert.alert('Erro', error.message || 'Não foi possível fazer login');
     } finally {
       setLoading(false);
