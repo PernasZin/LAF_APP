@@ -1,6 +1,6 @@
 /**
- * Auth Store - VERSÃO SIMPLIFICADA
- * SEM persistência automática - estado em memória apenas
+ * Auth Store - SINGLE SOURCE OF TRUTH
+ * Controla: isAuthenticated, userId, token, profileCompleted
  */
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -8,50 +8,65 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface AuthState {
   isAuthenticated: boolean;
   userId: string | null;
-  accessToken: string | null;
+  token: string | null;
+  profileCompleted: boolean;
   isInitialized: boolean;
   
   initialize: () => Promise<void>;
-  login: (userId: string, token: string) => Promise<void>;
+  login: (userId: string, token: string, profileCompleted: boolean) => Promise<void>;
+  setProfileCompleted: (completed: boolean) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   userId: null,
-  accessToken: null,
+  token: null,
+  profileCompleted: false,
   isInitialized: false,
   
   initialize: async () => {
     try {
-      const token = await AsyncStorage.getItem('accessToken');
+      const token = await AsyncStorage.getItem('token');
       const userId = await AsyncStorage.getItem('userId');
+      const profileCompleted = await AsyncStorage.getItem('profileCompleted');
       
       if (token && userId) {
-        set({ isAuthenticated: true, userId, accessToken: token, isInitialized: true });
+        set({ 
+          isAuthenticated: true, 
+          userId, 
+          token,
+          profileCompleted: profileCompleted === 'true',
+          isInitialized: true 
+        });
       } else {
-        set({ isAuthenticated: false, userId: null, accessToken: null, isInitialized: true });
+        set({ 
+          isAuthenticated: false, 
+          userId: null, 
+          token: null,
+          profileCompleted: false,
+          isInitialized: true 
+        });
       }
     } catch (error) {
-      set({ isAuthenticated: false, userId: null, accessToken: null, isInitialized: true });
+      set({ isAuthenticated: false, userId: null, token: null, profileCompleted: false, isInitialized: true });
     }
   },
   
-  login: async (userId: string, token: string) => {
-    await AsyncStorage.setItem('accessToken', token);
+  login: async (userId: string, token: string, profileCompleted: boolean) => {
+    await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('userId', userId);
-    set({ isAuthenticated: true, userId, accessToken: token });
+    await AsyncStorage.setItem('profileCompleted', profileCompleted ? 'true' : 'false');
+    set({ isAuthenticated: true, userId, token, profileCompleted });
+  },
+  
+  setProfileCompleted: async (completed: boolean) => {
+    await AsyncStorage.setItem('profileCompleted', completed ? 'true' : 'false');
+    set({ profileCompleted: completed });
   },
   
   logout: async () => {
-    // 1. Reset state FIRST
-    set({ isAuthenticated: false, userId: null, accessToken: null });
-    
-    // 2. Clear ALL storage
-    try {
-      await AsyncStorage.clear();
-    } catch (e) {
-      console.error('Logout storage error:', e);
-    }
+    set({ isAuthenticated: false, userId: null, token: null, profileCompleted: false });
+    await AsyncStorage.clear();
   },
 }));
