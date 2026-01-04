@@ -46,11 +46,12 @@ class DietGenerateRequest(BaseModel):
 
 
 # ==================== TOLERANCES ====================
+# STRICT: ±5% para cada macro conforme regras obrigatórias
 
-TOL_P = 25.0   # Tolerância de proteína em g
-TOL_C = 50.0   # Tolerância de carbs em g
-TOL_F = 25.0   # Tolerância de gordura em g
-TOL_CAL = 200.0  # Tolerância de calorias
+TOL_P = 0.05   # 5% tolerância proteína
+TOL_C = 0.05   # 5% tolerância carbs
+TOL_F = 0.05   # 5% tolerância gordura
+TOL_CAL = 0.05 # 5% tolerância calorias
 
 
 # ==================== NORMALIZAÇÃO ====================
