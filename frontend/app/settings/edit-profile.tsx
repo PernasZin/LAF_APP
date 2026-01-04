@@ -48,6 +48,7 @@ export default function EditProfileScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { toast, showSuccess, showError, hideToast } = useToast();
+  const { lightImpact, mediumImpact, successFeedback, errorFeedback, selectionFeedback } = useHaptics();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
