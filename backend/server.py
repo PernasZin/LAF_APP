@@ -927,7 +927,11 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     """
     Registra peso do usuário.
     Restrição: mínimo 14 dias entre registros.
+    
+    NOVO: Avalia progresso e ajusta dieta automaticamente se necessário.
     """
+    from diet_service import evaluate_progress, adjust_diet_quantities
+    
     # Verifica se usuário existe
     user = await db.user_profiles.find_one({"_id": user_id})
     if not user:
@@ -972,7 +976,59 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     
     logger.info(f"Weight recorded for user {user_id}: {record.weight}kg")
     
-    return weight_record
+    # ==================== AVALIAÇÃO DE PROGRESSO ====================
+    diet_adjusted = False
+    adjustment_message = None
+    
+    # Só avalia se tiver registro anterior para comparar
+    if last_record:
+        previous_weight = last_record.get("weight", record.weight)
+        current_weight = record.weight
+        goal = user.get("goal", "manutencao")
+        
+        # Avalia progresso
+        progress_eval = evaluate_progress(
+            goal=goal,
+            previous_weight=previous_weight,
+            current_weight=current_weight
+        )
+        
+        logger.info(f"Progress evaluation for {user_id}: {progress_eval}")
+        
+        # Se precisa ajustar, atualiza a dieta
+        if progress_eval["needs_adjustment"]:
+            # Busca dieta atual
+            current_diet = await db.diet_plans.find_one({"user_id": user_id})
+            
+            if current_diet:
+                # Ajusta quantidades
+                adjusted_diet = adjust_diet_quantities(
+                    diet_plan=current_diet,
+                    adjustment_type=progress_eval["adjustment_type"],
+                    adjustment_percent=progress_eval["adjustment_percent"]
+                )
+                
+                # Salva dieta ajustada (overwrite)
+                adjusted_diet["adjusted_at"] = datetime.utcnow()
+                adjusted_diet["adjustment_reason"] = progress_eval["reason"]
+                
+                await db.diet_plans.replace_one(
+                    {"_id": current_diet["_id"]},
+                    adjusted_diet,
+                    upsert=True
+                )
+                
+                diet_adjusted = True
+                adjustment_message = progress_eval["reason"]
+                
+                logger.info(f"Diet adjusted for user {user_id}: {progress_eval['adjustment_type']} by {progress_eval['adjustment_percent']}%")
+    
+    # Retorna resultado com informação sobre ajuste
+    return {
+        "record": weight_record,
+        "diet_adjusted": diet_adjusted,
+        "adjustment_message": adjustment_message
+    }
 
 
 @api_router.get("/progress/weight/{user_id}")
