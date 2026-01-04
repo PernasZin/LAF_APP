@@ -60,13 +60,23 @@ FOOD_NORMALIZATION = {
     # PROTEÍNAS (clean sources only)
     "chicken_breast": "frango",
     "chicken": "frango",
+    "chicken_thigh": "coxa_frango",
     "lean_beef": "patinho",
+    "ground_beef": "carne_moida",
     "beef": "patinho",
+    "pork": "suino",
     "eggs": "ovos",
+    "egg_whites": "claras",
     "tilapia": "tilapia",
     "tuna": "atum",
     "salmon": "salmao",
+    "shrimp": "camarao",
+    "sardine": "sardinha",
+    "turkey": "peru",
     "fish": "tilapia",
+    "cottage": "cottage",
+    "greek_yogurt": "iogurte_grego",
+    "tofu": "tofu",
     
     # CARBOIDRATOS
     "white_rice": "arroz_branco",
@@ -77,10 +87,28 @@ FOOD_NORMALIZATION = {
     "oats": "aveia",
     "pasta": "macarrao",
     "bread": "pao",
+    "whole_bread": "pao_integral",
+    "quinoa": "quinoa",
+    "couscous": "cuscuz",
+    "tapioca": "tapioca",
+    "corn": "milho",
+    "beans": "feijao",
+    "lentils": "lentilha",
+    "chickpeas": "grao_de_bico",
     
-    # GORDURAS (limited)
+    # GORDURAS
     "olive_oil": "azeite",
     "peanut_butter": "pasta_amendoim",
+    "almond_butter": "pasta_amendoa",
+    "coconut_oil": "oleo_coco",
+    "butter": "manteiga",
+    "nuts": "castanhas",
+    "almonds": "amendoas",
+    "walnuts": "nozes",
+    "chia": "chia",
+    "flaxseed": "linhaca",
+    "cheese": "queijo",
+    "cream_cheese": "cream_cheese",
     
     # FRUTAS (separate category, avocado is fruit!)
     "banana": "banana",
@@ -91,12 +119,25 @@ FOOD_NORMALIZATION = {
     "mango": "manga",
     "watermelon": "melancia",
     "avocado": "abacate",  # FRUIT not FAT
+    "grape": "uva",
+    "pineapple": "abacaxi",
+    "melon": "melao",
+    "kiwi": "kiwi",
+    "pear": "pera",
+    "peach": "pessego",
+    "blueberry": "mirtilo",
+    "açai": "acai",
     
     # SUPLEMENTOS (never in meals, never count as protein)
     "creatine": "creatina",
     "multivitamin": "multivitaminico",
     "omega3": "omega3",
     "caffeine": "cafeina",
+    "vitamin_d": "vitamina_d",
+    "vitamin_c": "vitamina_c",
+    "zinc": "zinco",
+    "magnesium": "magnesio",
+    "collagen": "colageno",
 }
 
 
