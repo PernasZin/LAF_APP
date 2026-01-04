@@ -155,17 +155,28 @@ def get_user_preferred_foods(food_preferences: List[str]) -> Set[str]:
 
 
 # ==================== FOOD DATABASE ====================
-# ATHLETE DIET-SAFE BASE FOODS ONLY
-# All values per 100g
+# Values per 100g
+# ATHLETE FOODS = Restricted list (clean sources)
+# GENERAL FOODS = Expanded list (more variety)
 
 FOODS = {
-    # === PROTEÍNAS (clean sources) ===
+    # === PROTEÍNAS ===
     "frango": {"name": "Peito de Frango", "p": 31.0, "c": 0.0, "f": 3.6, "category": "protein"},
+    "coxa_frango": {"name": "Coxa de Frango", "p": 26.0, "c": 0.0, "f": 8.0, "category": "protein"},
     "patinho": {"name": "Patinho (Carne Magra)", "p": 28.0, "c": 0.0, "f": 6.0, "category": "protein"},
+    "carne_moida": {"name": "Carne Moída", "p": 26.0, "c": 0.0, "f": 10.0, "category": "protein"},
+    "suino": {"name": "Carne Suína", "p": 27.0, "c": 0.0, "f": 14.0, "category": "protein"},
     "ovos": {"name": "Ovos Inteiros", "p": 13.0, "c": 1.1, "f": 11.0, "category": "protein"},
+    "claras": {"name": "Claras de Ovo", "p": 11.0, "c": 0.7, "f": 0.2, "category": "protein"},
     "tilapia": {"name": "Tilápia", "p": 26.0, "c": 0.0, "f": 2.5, "category": "protein"},
     "atum": {"name": "Atum", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein"},
     "salmao": {"name": "Salmão", "p": 25.0, "c": 0.0, "f": 13.0, "category": "protein"},
+    "camarao": {"name": "Camarão", "p": 24.0, "c": 0.0, "f": 1.0, "category": "protein"},
+    "sardinha": {"name": "Sardinha", "p": 25.0, "c": 0.0, "f": 11.0, "category": "protein"},
+    "peru": {"name": "Peru", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein"},
+    "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein"},
+    "iogurte_grego": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "category": "protein"},
+    "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein"},
     
     # === CARBOIDRATOS ===
     "arroz_branco": {"name": "Arroz Branco", "p": 2.6, "c": 28.0, "f": 0.3, "category": "carb"},
@@ -175,12 +186,30 @@ FOODS = {
     "aveia": {"name": "Aveia", "p": 13.5, "c": 66.0, "f": 7.0, "category": "carb"},
     "macarrao": {"name": "Macarrão", "p": 5.0, "c": 25.0, "f": 1.0, "category": "carb"},
     "pao": {"name": "Pão", "p": 9.0, "c": 49.0, "f": 3.0, "category": "carb"},
+    "pao_integral": {"name": "Pão Integral", "p": 10.0, "c": 42.0, "f": 4.0, "category": "carb"},
+    "quinoa": {"name": "Quinoa", "p": 4.4, "c": 21.0, "f": 1.9, "category": "carb"},
+    "cuscuz": {"name": "Cuscuz", "p": 3.8, "c": 23.0, "f": 0.2, "category": "carb"},
+    "tapioca": {"name": "Tapioca", "p": 0.5, "c": 22.0, "f": 0.0, "category": "carb"},
+    "milho": {"name": "Milho", "p": 3.2, "c": 19.0, "f": 1.2, "category": "carb"},
+    "feijao": {"name": "Feijão", "p": 6.0, "c": 14.0, "f": 0.5, "category": "carb"},
+    "lentilha": {"name": "Lentilha", "p": 9.0, "c": 20.0, "f": 0.4, "category": "carb"},
+    "grao_de_bico": {"name": "Grão de Bico", "p": 9.0, "c": 27.0, "f": 2.6, "category": "carb"},
     
-    # === GORDURAS (limited to essentials) ===
+    # === GORDURAS ===
     "azeite": {"name": "Azeite de Oliva", "p": 0.0, "c": 0.0, "f": 100.0, "category": "fat"},
     "pasta_amendoim": {"name": "Pasta de Amendoim", "p": 25.0, "c": 20.0, "f": 50.0, "category": "fat"},
+    "pasta_amendoa": {"name": "Pasta de Amêndoa", "p": 21.0, "c": 19.0, "f": 56.0, "category": "fat"},
+    "oleo_coco": {"name": "Óleo de Coco", "p": 0.0, "c": 0.0, "f": 100.0, "category": "fat"},
+    "manteiga": {"name": "Manteiga", "p": 0.9, "c": 0.1, "f": 81.0, "category": "fat"},
+    "castanhas": {"name": "Castanhas", "p": 14.0, "c": 30.0, "f": 44.0, "category": "fat"},
+    "amendoas": {"name": "Amêndoas", "p": 21.0, "c": 22.0, "f": 49.0, "category": "fat"},
+    "nozes": {"name": "Nozes", "p": 15.0, "c": 14.0, "f": 65.0, "category": "fat"},
+    "chia": {"name": "Chia", "p": 17.0, "c": 42.0, "f": 31.0, "category": "fat"},
+    "linhaca": {"name": "Linhaça", "p": 18.0, "c": 29.0, "f": 42.0, "category": "fat"},
+    "queijo": {"name": "Queijo", "p": 23.0, "c": 1.3, "f": 33.0, "category": "fat"},
+    "cream_cheese": {"name": "Cream Cheese", "p": 6.0, "c": 4.0, "f": 34.0, "category": "fat"},
     
-    # === FRUTAS (separate category) ===
+    # === FRUTAS ===
     "banana": {"name": "Banana", "p": 1.1, "c": 23.0, "f": 0.3, "category": "fruit"},
     "maca": {"name": "Maçã", "p": 0.3, "c": 14.0, "f": 0.2, "category": "fruit"},
     "laranja": {"name": "Laranja", "p": 0.9, "c": 12.0, "f": 0.1, "category": "fruit"},
@@ -188,7 +217,15 @@ FOODS = {
     "mamao": {"name": "Mamão", "p": 0.5, "c": 11.0, "f": 0.1, "category": "fruit"},
     "manga": {"name": "Manga", "p": 0.8, "c": 15.0, "f": 0.4, "category": "fruit"},
     "melancia": {"name": "Melancia", "p": 0.6, "c": 8.0, "f": 0.2, "category": "fruit"},
-    "abacate": {"name": "Abacate", "p": 2.0, "c": 9.0, "f": 15.0, "category": "fruit"},  # FRUIT!
+    "abacate": {"name": "Abacate", "p": 2.0, "c": 9.0, "f": 15.0, "category": "fruit"},
+    "uva": {"name": "Uva", "p": 0.7, "c": 18.0, "f": 0.2, "category": "fruit"},
+    "abacaxi": {"name": "Abacaxi", "p": 0.5, "c": 13.0, "f": 0.1, "category": "fruit"},
+    "melao": {"name": "Melão", "p": 0.8, "c": 8.0, "f": 0.2, "category": "fruit"},
+    "kiwi": {"name": "Kiwi", "p": 1.1, "c": 15.0, "f": 0.5, "category": "fruit"},
+    "pera": {"name": "Pera", "p": 0.4, "c": 15.0, "f": 0.1, "category": "fruit"},
+    "pessego": {"name": "Pêssego", "p": 0.9, "c": 10.0, "f": 0.3, "category": "fruit"},
+    "mirtilo": {"name": "Mirtilo", "p": 0.7, "c": 14.0, "f": 0.3, "category": "fruit"},
+    "acai": {"name": "Açaí", "p": 1.0, "c": 6.0, "f": 5.0, "category": "fruit"},
     
     # === VEGETAIS (for fiber, low macro impact) ===
     "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "category": "vegetable"},
