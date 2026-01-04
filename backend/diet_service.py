@@ -304,45 +304,148 @@ def ensure_consistency(target_cal: float, target_p: float, target_c: float, targ
     return round_to_10(target_p * ratio), round_to_10(target_c * ratio), round_to_10(target_f * ratio)
 
 
+# ==================== RESTRIÇÕES ALIMENTARES ====================
+
+# Mapeamento de restrições para alimentos excluídos
+RESTRICTION_EXCLUSIONS = {
+    "Vegetariano": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", "tilapia", 
+                   "atum", "salmao", "camarao", "sardinha", "peru"},
+    "Sem Lactose": {"cottage", "iogurte_grego", "queijo", "cream_cheese", "manteiga"},
+    "Sem Glúten": {"aveia", "macarrao", "pao", "pao_integral"},
+    "Low Carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", 
+                 "pao", "pao_integral", "banana", "manga", "uva"},
+}
+
+
+def filter_foods_by_restrictions(foods: Set[str], restrictions: List[str]) -> Set[str]:
+    """Remove alimentos que violam as restrições do usuário"""
+    excluded = set()
+    for restriction in restrictions:
+        if restriction in RESTRICTION_EXCLUSIONS:
+            excluded.update(RESTRICTION_EXCLUSIONS[restriction])
+    return foods - excluded
+
+
+def get_available_foods_by_category(preferred: Set[str], category: str, restrictions: List[str] = None) -> List[str]:
+    """Retorna alimentos disponíveis de uma categoria baseado nas preferências e restrições"""
+    if restrictions is None:
+        restrictions = []
+    
+    # Filtra alimentos da categoria
+    category_foods = [key for key, data in FOODS.items() if data["category"] == category]
+    
+    # Se tem preferências, usa apenas elas
+    if preferred:
+        available = [f for f in category_foods if f in preferred]
+    else:
+        available = category_foods
+    
+    # Aplica restrições
+    available_set = set(available)
+    available_set = filter_foods_by_restrictions(available_set, restrictions)
+    
+    return list(available_set)
+
+
 # ==================== SELEÇÃO DE ALIMENTOS ====================
 
-def get_protein(preferred: Set[str]) -> str:
-    """Retorna proteína preferida ou fallback"""
-    priority = ["frango", "patinho", "tilapia", "salmao", "atum"]
+def get_protein(preferred: Set[str], restrictions: List[str] = None) -> str:
+    """Retorna proteína preferida ou fallback respeitando restrições"""
+    available = get_available_foods_by_category(preferred, "protein", restrictions)
+    
+    # Prioridade padrão
+    priority = ["frango", "patinho", "tilapia", "salmao", "atum", "ovos", "peru", 
+                "camarao", "sardinha", "coxa_frango", "carne_moida", "cottage", 
+                "iogurte_grego", "tofu", "claras"]
+    
     for p in priority:
-        if p in preferred or not preferred:
+        if p in available:
             return p
-    return "frango"
+    
+    # Fallback: primeiro disponível ou ovos
+    return available[0] if available else "ovos"
 
 
-def get_carb(preferred: Set[str]) -> str:
-    """Retorna carb preferido"""
-    priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao"]
+def get_carb(preferred: Set[str], restrictions: List[str] = None) -> str:
+    """Retorna carb preferido respeitando restrições"""
+    available = get_available_foods_by_category(preferred, "carb", restrictions)
+    
+    priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", 
+                "macarrao", "aveia", "quinoa", "cuscuz", "tapioca", "feijao"]
+    
     for c in priority:
-        if c in preferred or not preferred:
+        if c in available:
             return c
-    return "arroz_branco"
+    
+    return available[0] if available else "arroz_branco"
 
 
-def get_fruit(preferred: Set[str]) -> str:
-    """Retorna fruta preferida"""
-    priority = ["banana", "maca", "laranja", "mamao"]
+def get_fat(preferred: Set[str], restrictions: List[str] = None) -> str:
+    """Retorna gordura preferida respeitando restrições"""
+    available = get_available_foods_by_category(preferred, "fat", restrictions)
+    
+    priority = ["azeite", "pasta_amendoim", "castanhas", "amendoas", "nozes"]
+    
     for f in priority:
-        if f in preferred or not preferred:
+        if f in available:
             return f
-    return "banana"
+    
+    return available[0] if available else "azeite"
+
+
+def get_fruit(preferred: Set[str], restrictions: List[str] = None) -> str:
+    """Retorna fruta preferida respeitando restrições"""
+    available = get_available_foods_by_category(preferred, "fruit", restrictions)
+    
+    priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia"]
+    
+    for f in priority:
+        if f in available:
+            return f
+    
+    return available[0] if available else "banana"
 
 
 # ==================== GERAÇÃO DE DIETA ====================
 
-def generate_base_diet(target_p: int, target_c: int, target_f: int, preferred: Set[str] = None) -> List[Dict]:
-    """Gera dieta base usando apenas alimentos limpos de atleta"""
+def generate_base_diet(target_p: int, target_c: int, target_f: int, 
+                       preferred: Set[str] = None, restrictions: List[str] = None,
+                       is_athlete: bool = False) -> List[Dict]:
+    """
+    Gera dieta base usando APENAS alimentos das preferências do usuário.
+    
+    Regras:
+    - Usa apenas alimentos selecionados pelo usuário
+    - Respeita restrições dietéticas
+    - Para atletas: apenas alimentos do banco padrão
+    - Para outros: pode incluir alternativas se faltar variedade
+    """
     if preferred is None:
         preferred = set()
+    if restrictions is None:
+        restrictions = []
     
-    main_protein = get_protein(preferred)
-    main_carb = get_carb(preferred)
-    main_fruit = get_fruit(preferred)
+    # Seleciona alimentos baseado nas preferências e restrições
+    main_protein = get_protein(preferred, restrictions)
+    main_carb = get_carb(preferred, restrictions)
+    main_fat = get_fat(preferred, restrictions)
+    main_fruit = get_fruit(preferred, restrictions)
+    
+    # Proteína alternativa para variar
+    protein_list = get_available_foods_by_category(preferred, "protein", restrictions)
+    alt_protein = main_protein
+    for p in protein_list:
+        if p != main_protein:
+            alt_protein = p
+            break
+    
+    # Carb alternativo
+    carb_list = get_available_foods_by_category(preferred, "carb", restrictions)
+    alt_carb = main_carb
+    for c in carb_list:
+        if c != main_carb:
+            alt_carb = c
+            break
     
     meals = []
     
@@ -351,13 +454,22 @@ def generate_base_diet(target_p: int, target_c: int, target_f: int, preferred: S
     cafe_c = target_c * 0.25
     cafe_f = target_f * 0.30
     
-    ovos_g = clamp(cafe_p / 0.13 * 0.7, 60, 150)
-    aveia_g = clamp(cafe_c * 0.4 / 0.66, 30, 80)
-    fruit_g = clamp((cafe_c * 0.5) / 0.23, 50, 150)
+    # Usa ovos se disponível, senão outra proteína
+    breakfast_protein = "ovos" if "ovos" in preferred or not preferred else main_protein
+    if breakfast_protein not in filter_foods_by_restrictions({breakfast_protein}, restrictions):
+        breakfast_protein = main_protein
+    
+    breakfast_carb = "aveia" if ("aveia" in preferred or not preferred) and "aveia" not in RESTRICTION_EXCLUSIONS.get("Sem Glúten", set()) else alt_carb
+    if "Sem Glúten" in restrictions:
+        breakfast_carb = alt_carb
+    
+    protein_g = clamp(cafe_p / (FOODS[breakfast_protein]["p"] / 100), 60, 200)
+    carb_g = clamp(cafe_c * 0.5 / (FOODS[breakfast_carb]["c"] / 100), 30, 100)
+    fruit_g = clamp((cafe_c * 0.4) / (FOODS[main_fruit]["c"] / 100), 50, 150)
     
     cafe_foods = [
-        calc_food("ovos", ovos_g),
-        calc_food("aveia", aveia_g),
+        calc_food(breakfast_protein, protein_g),
+        calc_food(breakfast_carb, carb_g),
         calc_food(main_fruit, fruit_g),
     ]
     meals.append({"name": "Café da Manhã", "time": "07:00", "foods": cafe_foods})
@@ -366,13 +478,16 @@ def generate_base_diet(target_p: int, target_c: int, target_f: int, preferred: S
     lanche1_c = target_c * 0.10
     lanche1_f = target_f * 0.15
     
-    pao_g = clamp(lanche1_c / 0.49, 20, 60)
-    pasta_g = clamp(lanche1_f * 0.5 / 0.50, 10, 30)
+    snack_carb = "pao" if ("pao" in preferred or not preferred) and "pao" not in RESTRICTION_EXCLUSIONS.get("Sem Glúten", set()) else main_fruit
+    if "Sem Glúten" in restrictions:
+        snack_carb = main_fruit
+    
+    carb1_g = clamp(lanche1_c / (FOODS[snack_carb]["c"] / 100), 30, 80)
+    fat1_g = clamp(lanche1_f * 0.6 / (FOODS[main_fat]["f"] / 100), 10, 40)
     
     lanche1_foods = [
-        calc_food("pao", pao_g),
-        calc_food("pasta_amendoim", pasta_g),
-        calc_food("banana", 100),
+        calc_food(snack_carb, carb1_g),
+        calc_food(main_fat, fat1_g),
     ]
     meals.append({"name": "Lanche Manhã", "time": "10:00", "foods": lanche1_foods})
     
@@ -381,9 +496,9 @@ def generate_base_diet(target_p: int, target_c: int, target_f: int, preferred: S
     almoco_c = target_c * 0.30
     almoco_f = target_f * 0.25
     
-    protein_g = clamp(almoco_p / (FOODS[main_protein]["p"] / 100), 100, 300)
-    carb_g = clamp(almoco_c * 0.8 / (FOODS[main_carb]["c"] / 100), 100, 400)
-    azeite_g = clamp(almoco_f * 0.5 / 1.0, 5, 15)
+    protein_g = clamp(almoco_p / (FOODS[main_protein]["p"] / 100), 100, 350)
+    carb_g = clamp(almoco_c * 0.85 / (FOODS[main_carb]["c"] / 100), 100, 400)
+    azeite_g = clamp(almoco_f * 0.4 / 1.0, 5, 20)
     
     almoco_foods = [
         calc_food(main_protein, protein_g),
@@ -397,11 +512,13 @@ def generate_base_diet(target_p: int, target_c: int, target_f: int, preferred: S
     lanche2_p = target_p * 0.15
     lanche2_c = target_c * 0.20
     
-    batata_g = clamp(lanche2_c / 0.20, 100, 400)
+    pre_carb = "batata_doce" if ("batata_doce" in preferred or not preferred) else alt_carb
+    
+    batata_g = clamp(lanche2_c / (FOODS[pre_carb]["c"] / 100), 100, 400)
     protein2_g = clamp(lanche2_p / (FOODS[main_protein]["p"] / 100), 80, 200)
     
     lanche2_foods = [
-        calc_food("batata_doce", batata_g),
+        calc_food(pre_carb, batata_g),
         calc_food(main_protein, protein2_g),
     ]
     meals.append({"name": "Lanche Tarde", "time": "16:00", "foods": lanche2_foods})
@@ -411,12 +528,9 @@ def generate_base_diet(target_p: int, target_c: int, target_f: int, preferred: S
     jantar_c = target_c * 0.15
     jantar_f = target_f * 0.20
     
-    # Alterna proteína se possível
-    alt_protein = "tilapia" if main_protein != "tilapia" and ("tilapia" in preferred or not preferred) else main_protein
-    
     protein3_g = clamp(jantar_p / (FOODS[alt_protein]["p"] / 100), 100, 300)
     carb2_g = clamp(jantar_c / (FOODS[main_carb]["c"] / 100), 80, 250)
-    azeite2_g = clamp(jantar_f * 0.4 / 1.0, 5, 15)
+    azeite2_g = clamp(jantar_f * 0.35 / 1.0, 5, 15)
     
     jantar_foods = [
         calc_food(alt_protein, protein3_g),
