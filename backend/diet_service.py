@@ -532,3 +532,138 @@ class DietAIService:
             supplements=supplements,
             notes=f"Dieta: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | Quantidades em múltiplos de 10g"
         )
+
+
+# ==================== AJUSTE AUTOMÁTICO QUINZENAL ====================
+
+def evaluate_progress(
+    goal: str,
+    previous_weight: float,
+    current_weight: float,
+    tolerance_kg: float = 0.3
+) -> Dict:
+    """
+    Avalia progresso com base no objetivo e variação de peso.
+    
+    Retorna:
+    - needs_adjustment: bool
+    - adjustment_type: "increase" | "decrease" | None
+    - adjustment_percent: float (5-8%)
+    - reason: str
+    """
+    weight_diff = current_weight - previous_weight
+    
+    result = {
+        "needs_adjustment": False,
+        "adjustment_type": None,
+        "adjustment_percent": 0.0,
+        "reason": "Progresso adequado"
+    }
+    
+    if goal == "cutting":
+        # CUTTING: Espera perda de peso
+        if weight_diff >= -tolerance_kg:
+            # Peso não caiu (ou subiu) - precisa reduzir calorias
+            result["needs_adjustment"] = True
+            result["adjustment_type"] = "decrease"
+            # Ajuste de 5-8% baseado no quanto ficou longe do objetivo
+            result["adjustment_percent"] = 6.0 if weight_diff >= 0 else 5.0
+            result["reason"] = f"Peso não reduziu ({weight_diff:+.1f}kg). Reduzindo calorias."
+        else:
+            result["reason"] = f"Perda de peso adequada ({weight_diff:.1f}kg)."
+    
+    elif goal == "bulking":
+        # BULKING: Espera ganho de peso
+        if weight_diff <= tolerance_kg:
+            # Peso não subiu (ou caiu) - precisa aumentar calorias
+            result["needs_adjustment"] = True
+            result["adjustment_type"] = "increase"
+            result["adjustment_percent"] = 6.0 if weight_diff <= 0 else 5.0
+            result["reason"] = f"Peso não aumentou ({weight_diff:+.1f}kg). Aumentando calorias."
+        else:
+            result["reason"] = f"Ganho de peso adequado ({weight_diff:+.1f}kg)."
+    
+    elif goal == "manutencao":
+        # MANUTENÇÃO: Espera estabilidade
+        if abs(weight_diff) > 1.0:
+            # Variação muito grande
+            result["needs_adjustment"] = True
+            if weight_diff > 0:
+                result["adjustment_type"] = "decrease"
+                result["adjustment_percent"] = 5.0
+                result["reason"] = f"Peso aumentou demais ({weight_diff:+.1f}kg). Reduzindo calorias."
+            else:
+                result["adjustment_type"] = "increase"
+                result["adjustment_percent"] = 5.0
+                result["reason"] = f"Peso diminuiu demais ({weight_diff:.1f}kg). Aumentando calorias."
+        else:
+            result["reason"] = f"Peso estável ({weight_diff:+.1f}kg)."
+    
+    return result
+
+
+def adjust_diet_quantities(
+    diet_plan: Dict,
+    adjustment_type: str,  # "increase" ou "decrease"
+    adjustment_percent: float  # 5-8%
+) -> Dict:
+    """
+    Ajusta quantidades da dieta existente.
+    Mantém múltiplos de 10g.
+    Não cria novos alimentos, apenas ajusta quantidades.
+    """
+    if adjustment_type not in ["increase", "decrease"]:
+        return diet_plan
+    
+    multiplier = 1 + (adjustment_percent / 100) if adjustment_type == "increase" else 1 - (adjustment_percent / 100)
+    
+    meals = diet_plan.get("meals", [])
+    
+    for meal in meals:
+        foods = meal.get("foods", [])
+        for food in foods:
+            # Obtém quantidade atual em gramas
+            current_grams = food.get("grams", 100)
+            
+            # Calcula nova quantidade
+            new_grams = current_grams * multiplier
+            
+            # Arredonda para múltiplo de 10
+            new_grams = max(10, round_to_10(new_grams))
+            
+            # Atualiza food com novos valores
+            food_key = food.get("key")
+            if food_key and food_key in FOODS:
+                food_data = FOODS[food_key]
+                ratio = new_grams / 100
+                
+                food["grams"] = new_grams
+                food["quantity"] = f"{new_grams}g"
+                food["protein"] = round(food_data["p"] * ratio)
+                food["carbs"] = round(food_data["c"] * ratio)
+                food["fat"] = round(food_data["f"] * ratio)
+                food["calories"] = round((food_data["p"]*4 + food_data["c"]*4 + food_data["f"]*9) * ratio)
+        
+        # Recalcula totais da refeição
+        meal_protein = sum(f.get("protein", 0) for f in foods)
+        meal_carbs = sum(f.get("carbs", 0) for f in foods)
+        meal_fat = sum(f.get("fat", 0) for f in foods)
+        meal_calories = sum(f.get("calories", 0) for f in foods)
+        
+        meal["total_calories"] = meal_calories
+        meal["macros"] = {"protein": meal_protein, "carbs": meal_carbs, "fat": meal_fat}
+    
+    # Recalcula totais da dieta
+    all_foods = [f for m in meals for f in m.get("foods", [])]
+    total_p = sum(f.get("protein", 0) for f in all_foods)
+    total_c = sum(f.get("carbs", 0) for f in all_foods)
+    total_f = sum(f.get("fat", 0) for f in all_foods)
+    total_cal = sum(f.get("calories", 0) for f in all_foods)
+    
+    diet_plan["computed_calories"] = total_cal
+    diet_plan["computed_macros"] = {"protein": total_p, "carbs": total_c, "fat": total_f}
+    diet_plan["target_calories"] = total_cal
+    diet_plan["target_macros"] = {"protein": total_p, "carbs": total_c, "fat": total_f}
+    diet_plan["notes"] = f"Dieta ajustada: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | Múltiplos de 10g"
+    
+    return diet_plan
