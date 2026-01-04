@@ -10,71 +10,141 @@ interface Props {
 interface FoodItem {
   id: string;
   name: string;
+  selectable: boolean; // true = pode selecionar, false = apenas visualização
 }
 
 // ============================================
-// ATHLETE DIET-SAFE BASE FOODS ONLY
-// Rules:
-// - Remove processed foods
-// - Remove hard-to-measure items
-// - All quantities: multiples of 10g
+// BANCO DE DADOS DE ALIMENTOS
 // ============================================
 
-const FOOD_DATABASE: Record<string, FoodItem[]> = {
-  // PROTEÍNAS - Only clean protein sources
+// ATLETA: Lista restrita de alimentos limpos
+const ATHLETE_FOODS: Record<string, FoodItem[]> = {
   proteins: [
-    { id: 'chicken_breast', name: 'Peito de Frango' },
-    { id: 'lean_beef', name: 'Carne Bovina (Patinho)' },
-    { id: 'eggs', name: 'Ovos Inteiros' },
-    { id: 'tilapia', name: 'Tilápia' },
-    { id: 'tuna', name: 'Atum' },
-    { id: 'salmon', name: 'Salmão' },
+    { id: 'chicken_breast', name: 'Peito de Frango', selectable: true },
+    { id: 'lean_beef', name: 'Carne Bovina (Patinho)', selectable: true },
+    { id: 'eggs', name: 'Ovos Inteiros', selectable: true },
+    { id: 'tilapia', name: 'Tilápia', selectable: true },
+    { id: 'tuna', name: 'Atum', selectable: true },
+    { id: 'salmon', name: 'Salmão', selectable: true },
   ],
-  
-  // CARBOIDRATOS - Clean carb sources
   carbs: [
-    { id: 'white_rice', name: 'Arroz Branco' },
-    { id: 'brown_rice', name: 'Arroz Integral' },
-    { id: 'sweet_potato', name: 'Batata Doce' },
-    { id: 'potato', name: 'Batata Inglesa' },
-    { id: 'oats', name: 'Aveia' },
-    { id: 'pasta', name: 'Macarrão' },
-    { id: 'bread', name: 'Pão' },
+    { id: 'white_rice', name: 'Arroz Branco', selectable: true },
+    { id: 'brown_rice', name: 'Arroz Integral', selectable: true },
+    { id: 'sweet_potato', name: 'Batata Doce', selectable: true },
+    { id: 'potato', name: 'Batata Inglesa', selectable: true },
+    { id: 'oats', name: 'Aveia', selectable: true },
+    { id: 'pasta', name: 'Macarrão', selectable: true },
+    { id: 'bread', name: 'Pão', selectable: true },
   ],
-  
-  // GORDURAS - Limited to essentials
   fats: [
-    { id: 'olive_oil', name: 'Azeite de Oliva' },
-    { id: 'peanut_butter', name: 'Pasta de Amendoim' },
+    { id: 'olive_oil', name: 'Azeite de Oliva', selectable: true },
+    { id: 'peanut_butter', name: 'Pasta de Amendoim', selectable: true },
   ],
-  
-  // FRUTAS - Separate category (avocado is a fruit!)
   fruits: [
-    { id: 'banana', name: 'Banana' },
-    { id: 'apple', name: 'Maçã' },
-    { id: 'orange', name: 'Laranja' },
-    { id: 'strawberry', name: 'Morango' },
-    { id: 'papaya', name: 'Mamão' },
-    { id: 'mango', name: 'Manga' },
-    { id: 'watermelon', name: 'Melancia' },
-    { id: 'avocado', name: 'Abacate' },  // FRUIT not fat!
+    { id: 'banana', name: 'Banana', selectable: true },
+    { id: 'apple', name: 'Maçã', selectable: true },
+    { id: 'orange', name: 'Laranja', selectable: true },
+    { id: 'strawberry', name: 'Morango', selectable: true },
+    { id: 'papaya', name: 'Mamão', selectable: true },
+    { id: 'mango', name: 'Manga', selectable: true },
+    { id: 'watermelon', name: 'Melancia', selectable: true },
+    { id: 'avocado', name: 'Abacate', selectable: true },
   ],
-  
-  // SUPLEMENTOS - Separate, NOT in meals
-  // Never count as protein or replace meals
   supplements: [
-    { id: 'creatine', name: 'Creatina' },
-    { id: 'multivitamin', name: 'Multivitamínico' },
-    { id: 'omega3', name: 'Ômega 3' },
-    { id: 'caffeine', name: 'Cafeína' },
+    { id: 'creatine', name: 'Creatina', selectable: true },
+    { id: 'multivitamin', name: 'Multivitamínico', selectable: true },
+    { id: 'omega3', name: 'Ômega 3', selectable: true },
+    { id: 'caffeine', name: 'Cafeína', selectable: true },
+  ],
+};
+
+// GERAL: Lista expandida com mais variedade
+const GENERAL_FOODS: Record<string, FoodItem[]> = {
+  proteins: [
+    { id: 'chicken_breast', name: 'Peito de Frango', selectable: true },
+    { id: 'chicken_thigh', name: 'Coxa de Frango', selectable: true },
+    { id: 'lean_beef', name: 'Carne Bovina Magra', selectable: true },
+    { id: 'ground_beef', name: 'Carne Moída', selectable: true },
+    { id: 'pork', name: 'Carne Suína', selectable: true },
+    { id: 'eggs', name: 'Ovos Inteiros', selectable: true },
+    { id: 'egg_whites', name: 'Claras de Ovo', selectable: true },
+    { id: 'tilapia', name: 'Tilápia', selectable: true },
+    { id: 'tuna', name: 'Atum', selectable: true },
+    { id: 'salmon', name: 'Salmão', selectable: true },
+    { id: 'shrimp', name: 'Camarão', selectable: true },
+    { id: 'sardine', name: 'Sardinha', selectable: true },
+    { id: 'turkey', name: 'Peru', selectable: true },
+    { id: 'cottage', name: 'Queijo Cottage', selectable: true },
+    { id: 'greek_yogurt', name: 'Iogurte Grego', selectable: true },
+    { id: 'tofu', name: 'Tofu', selectable: true },
+  ],
+  carbs: [
+    { id: 'white_rice', name: 'Arroz Branco', selectable: true },
+    { id: 'brown_rice', name: 'Arroz Integral', selectable: true },
+    { id: 'sweet_potato', name: 'Batata Doce', selectable: true },
+    { id: 'potato', name: 'Batata Inglesa', selectable: true },
+    { id: 'oats', name: 'Aveia', selectable: true },
+    { id: 'pasta', name: 'Macarrão', selectable: true },
+    { id: 'bread', name: 'Pão', selectable: true },
+    { id: 'whole_bread', name: 'Pão Integral', selectable: true },
+    { id: 'quinoa', name: 'Quinoa', selectable: true },
+    { id: 'couscous', name: 'Cuscuz', selectable: true },
+    { id: 'tapioca', name: 'Tapioca', selectable: true },
+    { id: 'corn', name: 'Milho', selectable: true },
+    { id: 'beans', name: 'Feijão', selectable: true },
+    { id: 'lentils', name: 'Lentilha', selectable: true },
+    { id: 'chickpeas', name: 'Grão de Bico', selectable: true },
+  ],
+  fats: [
+    { id: 'olive_oil', name: 'Azeite de Oliva', selectable: true },
+    { id: 'peanut_butter', name: 'Pasta de Amendoim', selectable: true },
+    { id: 'almond_butter', name: 'Pasta de Amêndoa', selectable: true },
+    { id: 'coconut_oil', name: 'Óleo de Coco', selectable: true },
+    { id: 'butter', name: 'Manteiga', selectable: true },
+    { id: 'nuts', name: 'Castanhas', selectable: true },
+    { id: 'almonds', name: 'Amêndoas', selectable: true },
+    { id: 'walnuts', name: 'Nozes', selectable: true },
+    { id: 'chia', name: 'Chia', selectable: true },
+    { id: 'flaxseed', name: 'Linhaça', selectable: true },
+    { id: 'cheese', name: 'Queijo', selectable: true },
+    { id: 'cream_cheese', name: 'Cream Cheese', selectable: true },
+  ],
+  fruits: [
+    { id: 'banana', name: 'Banana', selectable: true },
+    { id: 'apple', name: 'Maçã', selectable: true },
+    { id: 'orange', name: 'Laranja', selectable: true },
+    { id: 'strawberry', name: 'Morango', selectable: true },
+    { id: 'papaya', name: 'Mamão', selectable: true },
+    { id: 'mango', name: 'Manga', selectable: true },
+    { id: 'watermelon', name: 'Melancia', selectable: true },
+    { id: 'avocado', name: 'Abacate', selectable: true },
+    { id: 'grape', name: 'Uva', selectable: true },
+    { id: 'pineapple', name: 'Abacaxi', selectable: true },
+    { id: 'melon', name: 'Melão', selectable: true },
+    { id: 'kiwi', name: 'Kiwi', selectable: true },
+    { id: 'pear', name: 'Pera', selectable: true },
+    { id: 'peach', name: 'Pêssego', selectable: true },
+    { id: 'blueberry', name: 'Mirtilo', selectable: true },
+    { id: 'açai', name: 'Açaí', selectable: true },
+  ],
+  supplements: [
+    { id: 'creatine', name: 'Creatina', selectable: true },
+    { id: 'multivitamin', name: 'Multivitamínico', selectable: true },
+    { id: 'omega3', name: 'Ômega 3', selectable: true },
+    { id: 'caffeine', name: 'Cafeína', selectable: true },
+    { id: 'vitamin_d', name: 'Vitamina D', selectable: true },
+    { id: 'vitamin_c', name: 'Vitamina C', selectable: true },
+    { id: 'zinc', name: 'Zinco', selectable: true },
+    { id: 'magnesium', name: 'Magnésio', selectable: true },
+    { id: 'collagen', name: 'Colágeno', selectable: true },
   ],
 };
 
 const CATEGORIES = [
-  { key: 'proteins', label: 'Proteínas', icon: 'fitness-outline', color: '#EF4444', description: 'Fontes limpas de proteína' },
+  { key: 'proteins', label: 'Proteínas', icon: 'fitness-outline', color: '#EF4444', description: 'Fontes de proteína' },
   { key: 'carbs', label: 'Carboidratos', icon: 'leaf-outline', color: '#F59E0B', description: 'Fontes de energia' },
-  { key: 'fats', label: 'Gorduras', icon: 'water-outline', color: '#3B82F6', description: 'Gorduras essenciais' },
-  { key: 'fruits', label: 'Frutas', icon: 'nutrition-outline', color: '#EC4899', description: 'Micronutrientes e fibras' },
+  { key: 'fats', label: 'Gorduras', icon: 'water-outline', color: '#3B82F6', description: 'Gorduras boas' },
+  { key: 'fruits', label: 'Frutas', icon: 'nutrition-outline', color: '#EC4899', description: 'Vitaminas e fibras' },
   { key: 'supplements', label: 'Suplementação', icon: 'flask-outline', color: '#8B5CF6', description: 'Não substitui refeições' },
 ];
 
@@ -86,6 +156,12 @@ const dietaryOptions = [
 ];
 
 export default function RestrictionsStep({ data, updateData }: Props) {
+  // Determina se é atleta
+  const isAthlete = data.goal === 'atleta';
+  
+  // Seleciona o banco de dados baseado no objetivo
+  const FOOD_DATABASE = isAthlete ? ATHLETE_FOODS : GENERAL_FOODS;
+
   const toggleItem = (array: string[], item: string) => {
     if (array.includes(item)) {
       return array.filter((i) => i !== item);
@@ -107,12 +183,27 @@ export default function RestrictionsStep({ data, updateData }: Props) {
 
   const selectedCount = data.food_preferences?.length || 0;
 
+  // Descrição dinâmica baseada no objetivo
+  const description = isAthlete
+    ? 'Lista restrita de alimentos base para dieta de atleta. Apenas alimentos limpos e de fácil medição.'
+    : 'Selecione os alimentos que você gosta. Maior variedade para uma dieta flexível.';
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Preferências Alimentares</Text>
-      <Text style={styles.description}>
-        Selecione os alimentos que você gosta. Usamos apenas alimentos base de dieta de atleta.
-      </Text>
+      <Text style={styles.description}>{description}</Text>
+
+      {/* Badge do modo */}
+      <View style={[styles.modeBadge, isAthlete ? styles.modeBadgeAthlete : styles.modeBadgeGeneral]}>
+        <Ionicons 
+          name={isAthlete ? 'trophy' : 'restaurant'} 
+          size={16} 
+          color={isAthlete ? '#F59E0B' : '#10B981'} 
+        />
+        <Text style={[styles.modeBadgeText, { color: isAthlete ? '#F59E0B' : '#10B981' }]}>
+          {isAthlete ? 'Modo Atleta: Lista Restrita' : 'Modo Flexível: Lista Expandida'}
+        </Text>
+      </View>
 
       {/* Restrições Dietéticas */}
       <View style={styles.section}>
@@ -211,7 +302,10 @@ export default function RestrictionsStep({ data, updateData }: Props) {
       <View style={styles.infoBox}>
         <Ionicons name="information-circle-outline" size={18} color="#6B7280" />
         <Text style={styles.infoText}>
-          Todas as quantidades serão em múltiplos de 10g para facilitar a medição.
+          {isAthlete 
+            ? 'Dieta de atleta: quantidades em múltiplos de 10g para medição precisa.'
+            : 'Você pode ajustar suas preferências depois nas configurações.'
+          }
         </Text>
       </View>
 
@@ -235,8 +329,28 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     color: '#6B7280',
-    marginBottom: 24,
+    marginBottom: 12,
     lineHeight: 24,
+  },
+  modeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 20,
+  },
+  modeBadgeAthlete: {
+    backgroundColor: '#FEF3C7',
+  },
+  modeBadgeGeneral: {
+    backgroundColor: '#D1FAE5',
+  },
+  modeBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   section: {
     marginBottom: 24,
