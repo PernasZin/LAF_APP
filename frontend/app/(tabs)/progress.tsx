@@ -35,7 +35,7 @@ const safeFetch = async (url: string, options?: RequestInit) => {
 export default function ProgressScreen() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const { toast, showSuccess, showError, hideToast } = useToast();
+  const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
   const { lightImpact, successFeedback, errorFeedback } = useHaptics();
   
   const [loading, setLoading] = useState(true);
