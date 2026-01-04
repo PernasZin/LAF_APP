@@ -31,6 +31,7 @@ export default function WorkoutScreen() {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const { toast, showSuccess, showError, hideToast } = useToast();
+  const { lightImpact, mediumImpact, successFeedback, errorFeedback, selectionFeedback } = useHaptics();
   
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
