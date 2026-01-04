@@ -193,6 +193,7 @@ export default function DietScreen() {
     if (!dietPlan || selectedMealIndex < 0 || selectedFoodIndex < 0) return;
     
     setSubstituting(true);
+    selectionFeedback(); // Haptic ao iniciar
     
     try {
       const response = await safeFetch(`${BACKEND_URL}/api/diet/${dietPlan.id}/substitute`, {
@@ -209,17 +210,30 @@ export default function DietScreen() {
         const updatedDiet = await response.json();
         setDietPlan(updatedDiet);
         setSubstitutionModal(false);
+        successFeedback(); // Haptic de sucesso
         showSuccess('Alimento substituído com sucesso!');
       } else {
         const error = await response.json().catch(() => ({}));
+        errorFeedback(); // Haptic de erro
         showError(error.detail || 'Não foi possível substituir o alimento.');
       }
     } catch (error) {
       console.error('Erro ao substituir:', error);
+      errorFeedback(); // Haptic de erro
       showError('Erro de conexão ao substituir alimento.');
     } finally {
       setSubstituting(false);
     }
+  };
+
+  // Open substitution modal
+  const openSubstitutionModal = (food: any, mealIndex: number, foodIndex: number) => {
+    lightImpact(); // Haptic ao abrir modal
+    setSelectedFood(food);
+    setSelectedMealIndex(mealIndex);
+    setSelectedFoodIndex(foodIndex);
+    setSubstitutionModal(true);
+    loadSubstitutes(food.category);
   };
 
   // Show skeleton while loading initially
