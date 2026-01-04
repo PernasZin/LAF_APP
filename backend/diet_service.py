@@ -670,8 +670,12 @@ class DietAIService:
         self.api_key = os.environ.get('EMERGENT_LLM_KEY')
     
     def generate_diet_plan(self, user_profile: Dict, target_calories: float, target_macros: Dict[str, float]) -> DietPlan:
-        # Obtém preferências
+        # Obtém preferências e restrições
         food_preferences = user_profile.get('food_preferences', [])
+        dietary_restrictions = user_profile.get('dietary_restrictions', [])
+        goal = user_profile.get('goal', 'bulking')
+        is_athlete = goal == 'atleta'
+        
         preferred_foods = get_user_preferred_foods(food_preferences)
         
         # Obtém suplementos separadamente
@@ -687,8 +691,13 @@ class DietAIService:
         
         target_cal_int = int(round(target_calories))
         
-        # Gera dieta
-        meals = generate_base_diet(adjusted_p, adjusted_c, adjusted_f, preferred_foods)
+        # Gera dieta usando preferências e restrições
+        meals = generate_base_diet(
+            adjusted_p, adjusted_c, adjusted_f, 
+            preferred=preferred_foods,
+            restrictions=dietary_restrictions,
+            is_athlete=is_athlete
+        )
         
         # Fine-tune
         meals = fine_tune_diet(meals, adjusted_p, adjusted_c, adjusted_f, max_iter=500)
