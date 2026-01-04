@@ -92,11 +92,13 @@ export default function ProgressScreen() {
     
     const weight = parseFloat(newWeight.replace(',', '.'));
     if (isNaN(weight) || weight < 30 || weight > 300) {
+      errorFeedback(); // Haptic de erro
       showError('Digite um peso entre 30kg e 300kg.');
       return;
     }
     
     setSaving(true);
+    lightImpact(); // Haptic ao iniciar
     
     try {
       const response = await safeFetch(`${BACKEND_URL}/api/progress/weight/${userId}`, {
@@ -108,14 +110,17 @@ export default function ProgressScreen() {
       if (response.ok) {
         setShowModal(false);
         setNewWeight('');
+        successFeedback(); // Haptic de sucesso
         showSuccess('Peso registrado com sucesso!');
         await loadProgress(userId);
       } else {
         const error = await response.json().catch(() => ({}));
+        errorFeedback(); // Haptic de erro
         showError(error.detail || 'Não foi possível registrar o peso.');
       }
     } catch (error) {
       console.error('Erro ao registrar peso:', error);
+      errorFeedback();
       showError('Erro de conexão ao registrar peso.');
     } finally {
       setSaving(false);
