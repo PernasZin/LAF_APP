@@ -130,17 +130,20 @@ export default function EditProfileScreen() {
   const handleSave = async () => {
     // Validação
     if (!name.trim()) {
+      errorFeedback();
       showError('Nome é obrigatório');
       return;
     }
     
     const weightNum = parseFloat(weight);
     if (isNaN(weightNum) || weightNum < 30 || weightNum > 300) {
+      errorFeedback();
       showError('Peso deve estar entre 30kg e 300kg');
       return;
     }
 
     setSaving(true);
+    mediumImpact(); // Haptic ao iniciar
     try {
       if (!userId || !BACKEND_URL) throw new Error('Usuário não encontrado');
 
@@ -184,6 +187,7 @@ export default function EditProfileScreen() {
         await AsyncStorage.setItem('userProfile', JSON.stringify(profile));
       }
 
+      successFeedback(); // Haptic de sucesso
       showSuccess(
         goal !== originalGoal 
           ? 'Perfil atualizado e dieta recalculada!' 
@@ -194,10 +198,17 @@ export default function EditProfileScreen() {
       setTimeout(() => router.back(), 1500);
     } catch (error) {
       console.error('Error saving:', error);
+      errorFeedback();
       showError('Não foi possível salvar. Tente novamente.');
     } finally {
       setSaving(false);
     }
+  };
+  
+  // Handle goal selection with haptic
+  const handleGoalSelect = (newGoal: string) => {
+    selectionFeedback();
+    setGoal(newGoal);
   };
 
   const styles = createStyles(colors);
