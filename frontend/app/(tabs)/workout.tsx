@@ -135,16 +135,20 @@ export default function WorkoutScreen() {
 
   const doGenerateWorkout = async () => {
     setLoading(true);
+    mediumImpact(); // Haptic ao iniciar
     try {
       const response = await safeFetch(`${BACKEND_URL}/api/workout/generate?user_id=${userId}`, { method: 'POST' });
       if (response.ok) {
         const data = await response.json();
         setWorkoutPlan(data);
+        successFeedback(); // Haptic de sucesso
         showSuccess('Treino gerado com sucesso!');
       } else {
+        errorFeedback(); // Haptic de erro
         showError('Erro ao gerar treino. Tente novamente.');
       }
     } catch (error) {
+      errorFeedback();
       showError('Erro de conexão.');
     } finally {
       setLoading(false);
