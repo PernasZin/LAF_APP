@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import { Toast, WorkoutSkeleton } from '../../components';
 import { useToast } from '../../hooks/useToast';
+import { useHaptics } from '../../hooks/useHaptics';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
