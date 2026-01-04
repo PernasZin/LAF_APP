@@ -108,10 +108,19 @@ export default function ProgressScreen() {
       });
       
       if (response.ok) {
+        const result = await response.json();
         setShowModal(false);
         setNewWeight('');
         successFeedback(); // Haptic de sucesso
-        showSuccess('Peso registrado com sucesso!');
+        
+        // Verifica se a dieta foi ajustada
+        if (result.diet_adjusted) {
+          // Mostra mensagem de ajuste de dieta (discreto)
+          showInfo('Dieta ajustada com base no seu progresso');
+        } else {
+          showSuccess('Peso registrado com sucesso!');
+        }
+        
         await loadProgress(userId);
       } else {
         const error = await response.json().catch(() => ({}));
