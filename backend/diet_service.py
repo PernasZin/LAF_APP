@@ -733,6 +733,89 @@ class DietAIService:
             supplements=supplements,
             notes=f"Dieta: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | Quantidades em múltiplos de 10g"
         )
+    
+    def to_strict_json(self, diet_plan: DietPlan) -> Dict:
+        """
+        Converte DietPlan para o formato JSON estrito especificado.
+        
+        REGRAS OBRIGATÓRIAS:
+        1. Use SOMENTE alimentos presentes na lista selecionada
+        2. Calorias totais entre 95% e 105% do alvo
+        3. Cada macro dentro de ±5% do alvo
+        4. JSON COMPLETO e VÁLIDO
+        """
+        refeicoes = []
+        
+        for meal in diet_plan.meals:
+            alimentos = []
+            for food in meal.foods:
+                alimentos.append({
+                    "nome": food["name"],
+                    "quantidade_g": food["grams"],
+                    "calorias": food["calories"],
+                    "proteina": food["protein"],
+                    "carboidrato": food["carbs"],
+                    "gordura": food["fat"]
+                })
+            
+            refeicoes.append({
+                "nome": meal.name,
+                "alimentos": alimentos
+            })
+        
+        return {
+            "refeicoes": refeicoes,
+            "totais": {
+                "calorias": diet_plan.computed_calories,
+                "proteina": diet_plan.computed_macros["protein"],
+                "carboidrato": diet_plan.computed_macros["carbs"],
+                "gordura": diet_plan.computed_macros["fat"]
+            },
+            "metas": {
+                "calorias": diet_plan.target_calories,
+                "proteina": diet_plan.target_macros["protein"],
+                "carboidrato": diet_plan.target_macros["carbs"],
+                "gordura": diet_plan.target_macros["fat"]
+            },
+            "suplementos": diet_plan.supplements,
+            "observacoes": diet_plan.notes
+        }
+
+
+def validate_strict_diet(diet_json: Dict, target_cal: int, target_p: int, target_c: int, target_f: int) -> Tuple[bool, List[str]]:
+    """
+    Valida dieta contra regras estritas:
+    - Calorias: 95% a 105% do alvo
+    - Macros: ±5% do alvo
+    """
+    errors = []
+    totais = diet_json.get("totais", {})
+    
+    cal = totais.get("calorias", 0)
+    p = totais.get("proteina", 0)
+    c = totais.get("carboidrato", 0)
+    f = totais.get("gordura", 0)
+    
+    # Validação de calorias (95% - 105%)
+    cal_min = target_cal * 0.95
+    cal_max = target_cal * 1.05
+    if not (cal_min <= cal <= cal_max):
+        errors.append(f"Calorias {cal} fora do intervalo [{cal_min:.0f}-{cal_max:.0f}]")
+    
+    # Validação de macros (±5%)
+    p_min, p_max = target_p * 0.95, target_p * 1.05
+    if not (p_min <= p <= p_max):
+        errors.append(f"Proteína {p}g fora do intervalo [{p_min:.0f}-{p_max:.0f}]g")
+    
+    c_min, c_max = target_c * 0.95, target_c * 1.05
+    if not (c_min <= c <= c_max):
+        errors.append(f"Carboidrato {c}g fora do intervalo [{c_min:.0f}-{c_max:.0f}]g")
+    
+    f_min, f_max = target_f * 0.95, target_f * 1.05
+    if not (f_min <= f <= f_max):
+        errors.append(f"Gordura {f}g fora do intervalo [{f_min:.0f}-{f_max:.0f}]g")
+    
+    return len(errors) == 0, errors
 
 
 # ==================== AJUSTE AUTOMÁTICO QUINZENAL ====================
