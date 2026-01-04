@@ -27,6 +27,7 @@ const safeFetch = async (url: string, options?: RequestInit) => {
 
 export default function HomeScreen() {
   const { colors, isDark } = useTheme();
+  const { lightImpact, successFeedback } = useHaptics();
   const [profile, setProfile] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
