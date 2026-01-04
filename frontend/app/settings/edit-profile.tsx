@@ -296,7 +296,7 @@ export default function EditProfileScreen() {
                         borderColor: goal === g.value ? colors.primary : colors.border,
                       }
                     ]}
-                    onPress={() => setGoal(g.value)}
+                    onPress={() => handleGoalSelect(g.value)}
                   >
                     <Text style={[
                       styles.goalLabel, 
