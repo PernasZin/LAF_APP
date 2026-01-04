@@ -72,20 +72,19 @@ export default function HomeScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    lightImpact(); // Haptic feedback ao iniciar refresh
     await loadProfile();
+    successFeedback(); // Haptic feedback ao completar
     setRefreshing(false);
   };
 
   const styles = createStyles(colors);
 
-  // Show loading state
+  // Show skeleton loading state
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <Ionicons name="fitness" size={60} color={colors.primary} />
-          <Text style={[styles.loading, { color: colors.textSecondary }]}>Carregando...</Text>
-        </View>
+        <HomeSkeleton />
       </SafeAreaView>
     );
   }
