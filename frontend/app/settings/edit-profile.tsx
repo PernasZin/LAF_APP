@@ -20,6 +20,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import * as ImagePicker from 'expo-image-picker';
 import { Toast } from '../../components';
 import { useToast } from '../../hooks/useToast';
+import { useHaptics } from '../../hooks/useHaptics';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
