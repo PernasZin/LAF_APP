@@ -145,6 +145,62 @@ export const ProgressSkeleton: React.FC = () => {
   );
 };
 
+// Skeleton para tela Home
+export const HomeSkeleton: React.FC = () => {
+  const { colors } = useTheme();
+  
+  return (
+    <View style={styles.container}>
+      {/* Header skeleton */}
+      <View style={styles.homeHeader}>
+        <View>
+          <Skeleton width={180} height={28} style={{ marginBottom: 8 }} />
+          <Skeleton width={220} height={16} />
+        </View>
+        <Skeleton width={40} height={40} borderRadius={20} />
+      </View>
+      
+      {/* Stats cards skeleton */}
+      <View style={styles.homeStatsRow}>
+        <View style={[styles.homeStatsCard, { backgroundColor: colors.backgroundCard }]}>
+          <Skeleton width={28} height={28} borderRadius={14} style={{ marginBottom: 8 }} />
+          <Skeleton width={60} height={24} style={{ marginBottom: 4 }} />
+          <Skeleton width={40} height={14} />
+        </View>
+        <View style={[styles.homeStatsCard, { backgroundColor: colors.backgroundCard }]}>
+          <Skeleton width={28} height={28} borderRadius={14} style={{ marginBottom: 8 }} />
+          <Skeleton width={40} height={24} style={{ marginBottom: 4 }} />
+          <Skeleton width={50} height={14} />
+        </View>
+      </View>
+      
+      {/* Macros card skeleton */}
+      <View style={[styles.homeCard, { backgroundColor: colors.backgroundCard }]}>
+        <Skeleton width={160} height={18} style={{ marginBottom: 16 }} />
+        {[1, 2, 3].map((i) => (
+          <View key={i} style={styles.homeMacroRow}>
+            <Skeleton width={4} height={40} borderRadius={2} />
+            <Skeleton width={100} height={16} />
+            <Skeleton width={50} height={18} />
+          </View>
+        ))}
+      </View>
+      
+      {/* Goal card skeleton */}
+      <View style={[styles.homeCard, { backgroundColor: colors.backgroundCard }]}>
+        <Skeleton width={120} height={18} style={{ marginBottom: 16 }} />
+        <View style={styles.homeGoalRow}>
+          <Skeleton width={56} height={56} borderRadius={28} />
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Skeleton width={180} height={16} style={{ marginBottom: 8 }} />
+            <Skeleton width={140} height={14} />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     padding: 16,
@@ -193,6 +249,39 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 8,
+  },
+  // Home skeleton styles
+  homeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  homeStatsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  homeStatsCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  homeCard: {
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+  homeMacroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 12,
+  },
+  homeGoalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 });
 
