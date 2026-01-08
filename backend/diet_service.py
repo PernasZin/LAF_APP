@@ -1,15 +1,23 @@
 """
-Sistema de Geração de Dieta - V13 SMART AUTO-COMPLETE
-======================================================
-FILOSOFIA: NUNCA TRAVAR, SEMPRE GERAR
+Sistema de Geração de Dieta - V14 BULLETPROOF
+==============================================
+FILOSOFIA: NUNCA TRAVAR, NUNCA FALHAR, SEMPRE GERAR DIETA VÁLIDA
 
-REGRAS:
-1. Se faltar alimentos, AUTO-COMPLETE com opções padrão
-2. NUNCA retorne erro por falta de opções
-3. Seja amigável e explique o que foi adicionado
-4. Calorias 95-105% do alvo, Macros ±5%
+✅ REGRAS OBRIGATÓRIAS (SEM EXCEÇÃO):
+1. Nenhum alimento com grams=0 ou quantity=0
+2. Nenhuma refeição vazia
+3. Dieta nunca incompleta
+4. Todos os campos obrigatórios preenchidos
 5. Quantidades em múltiplos de 10g
-======================================================
+6. Correção automática sempre
+7. NUNCA retornar erro para o usuário
+
+🔁 COMPORTAMENTO:
+- Se validação falhar → ajusta automaticamente
+- Se alimentos insuficientes → auto-completa
+- Se macros não batem → recalcula
+- SEMPRE retorna dieta válida e utilizável
+==============================================
 """
 
 import os
@@ -51,6 +59,12 @@ class DietGenerateRequest(BaseModel):
 
 # ==================== TOLERÂNCIAS ====================
 TOL_PERCENT = 0.05  # ±5%
+
+# ==================== LIMITES DE SEGURANÇA ====================
+MIN_FOOD_GRAMS = 10      # Mínimo 10g por alimento
+MAX_FOOD_GRAMS = 500     # Máximo 500g por alimento
+MIN_MEAL_CALORIES = 50   # Mínimo 50kcal por refeição
+MIN_DAILY_CALORIES = 800 # Mínimo 800kcal por dia (segurança)
 
 
 # ==================== MÍNIMOS NECESSÁRIOS ====================
