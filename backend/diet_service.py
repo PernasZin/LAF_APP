@@ -274,6 +274,85 @@ def filter_by_restrictions(foods: Set[str], restrictions: List[str]) -> Set[str]
     return foods - excluded
 
 
+# ==================== AUTO-COMPLETE INTELIGENTE ====================
+
+def smart_auto_complete(preferred: Set[str], restrictions: List[str], goal: str = "manutencao") -> Tuple[Set[str], bool, str]:
+    """
+    Verifica mínimos e auto-completa se necessário.
+    
+    NUNCA TRAVA - sempre retorna algo funcional.
+    
+    Returns:
+        - Set de alimentos (preferidos + auto-completados)
+        - bool: True se auto-completou
+        - str: Mensagem amigável (ou None)
+    """
+    # Conta por categoria (filtrando restrições)
+    available = filter_by_restrictions(preferred, restrictions)
+    
+    proteins = [f for f in available if f in FOODS and FOODS[f]["category"] == "protein"]
+    carbs = [f for f in available if f in FOODS and FOODS[f]["category"] == "carb"]
+    fats = [f for f in available if f in FOODS and FOODS[f]["category"] == "fat"]
+    fruits = [f for f in available if f in FOODS and FOODS[f]["category"] == "fruit"]
+    
+    auto_added = []
+    final_foods = set(available)
+    
+    # Auto-complete PROTEÍNAS (mínimo 3)
+    if len(proteins) < MIN_PROTEINS:
+        for default_p in DEFAULT_PROTEINS:
+            if default_p not in final_foods and default_p not in filter_by_restrictions({default_p}, restrictions):
+                continue
+            if default_p in FOODS and default_p not in final_foods:
+                final_foods.add(default_p)
+                auto_added.append(FOODS[default_p]["name"])
+                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "protein"]) >= MIN_PROTEINS:
+                    break
+    
+    # Auto-complete CARBOIDRATOS (mínimo 3)
+    if len(carbs) < MIN_CARBS:
+        for default_c in DEFAULT_CARBS:
+            if default_c not in filter_by_restrictions({default_c}, restrictions):
+                continue
+            if default_c in FOODS and default_c not in final_foods:
+                final_foods.add(default_c)
+                auto_added.append(FOODS[default_c]["name"])
+                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "carb"]) >= MIN_CARBS:
+                    break
+    
+    # Auto-complete GORDURAS (mínimo 2)
+    if len(fats) < MIN_FATS:
+        for default_f in DEFAULT_FATS:
+            if default_f not in filter_by_restrictions({default_f}, restrictions):
+                continue
+            if default_f in FOODS and default_f not in final_foods:
+                final_foods.add(default_f)
+                auto_added.append(FOODS[default_f]["name"])
+                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "fat"]) >= MIN_FATS:
+                    break
+    
+    # Auto-complete FRUTAS (mínimo 2)
+    if len(fruits) < MIN_FRUITS:
+        for default_fr in DEFAULT_FRUITS:
+            if default_fr not in filter_by_restrictions({default_fr}, restrictions):
+                continue
+            if default_fr in FOODS and default_fr not in final_foods:
+                final_foods.add(default_fr)
+                auto_added.append(FOODS[default_fr]["name"])
+                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "fruit"]) >= MIN_FRUITS:
+                    break
+    
+    # Gera mensagem amigável se auto-completou
+    if auto_added:
+        message = "Você selecionou poucas opções. Para garantir uma dieta funcional, adicionei automaticamente: " + ", ".join(auto_added[:5])
+        if len(auto_added) > 5:
+            message += f" e mais {len(auto_added)-5} alimentos."
+        message += " Você pode alterar depois nas configurações."
+        return final_foods, True, message
+    
+    return final_foods, False, None
+
+
 def get_user_preferred_foods(food_preferences: List[str]) -> Set[str]:
     """Converte preferências do usuário para chaves normalizadas"""
     preferred = set()
