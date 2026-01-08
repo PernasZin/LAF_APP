@@ -682,7 +682,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     lanche1_f = target_f * 0.15
     
     snack_fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
-    snack_fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority)
+    snack_fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
     
     lanche1_foods = []
     
@@ -734,8 +734,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     meals.append({"name": "Almoço", "time": "12:30", "foods": almoco_foods})
     
     # ==================== 🍎 LANCHE TARDE (5% P, 10% C) ====================
-    # PERMITIDO: frutas + iogurte/cottage + oleaginosas
-    # PROIBIDO: carnes, arroz, batata, azeite
+    # PERMITIDO: frutas + iogurte/cottage + castanhas/amêndoas
+    # PROIBIDO: carnes, arroz, batata, azeite, OVOS, pasta de amendoim, queijo
     
     lanche2_c = target_c * 0.10
     lanche2_p = target_p * 0.05
@@ -746,7 +746,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     if not snack2_fruit:
         snack2_fruit = snack_fruit
     
-    snack_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority)
+    # IMPORTANTE: Usar light_protein_priority_lanche (SEM ovos!)
+    snack_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
     
     lanche2_foods = []
     
