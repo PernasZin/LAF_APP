@@ -231,7 +231,15 @@ def normalize_food(pref: str) -> str:
 
 
 def calc_food(food_key: str, grams: float) -> Dict:
-    """Calcula macros de um alimento em quantidade específica"""
+    """
+    Calcula macros de um alimento em quantidade específica.
+    
+    Formato: "Nome – Xg (≈ Y medida caseira)"
+    Exemplos:
+    - "Ovos: 200g (≈ 4 unidades grandes)"
+    - "Frango: 150g (≈ 1 filé médio)"
+    - "Arroz: 120g (≈ 1 xícara cozida)"
+    """
     if food_key not in FOODS:
         return None
     
@@ -244,11 +252,34 @@ def calc_food(food_key: str, grams: float) -> Dict:
     fat = round(f["f"] * ratio)
     calories = round((f["p"] * 4 + f["c"] * 4 + f["f"] * 9) * ratio)
     
+    # Calcula equivalente em medida caseira
+    unit = f.get("unit", "porção")
+    unit_g = f.get("unit_g", 100)
+    
+    if unit_g > 0:
+        unit_qty = g / unit_g
+        # Formata quantidade de unidades
+        if unit_qty >= 1:
+            if unit_qty == int(unit_qty):
+                unit_str = f"≈ {int(unit_qty)} {unit}"
+            else:
+                unit_str = f"≈ {unit_qty:.1f} {unit}"
+        else:
+            # Menos de 1 unidade
+            unit_str = f"≈ {unit_qty:.1f} {unit}"
+    else:
+        unit_str = "porção"
+    
+    # Formato completo: "150g (≈ 1 filé médio)"
+    quantity_display = f"{g}g ({unit_str})"
+    
     return {
         "key": food_key,
         "name": f["name"],
         "grams": g,
         "quantity": f"{g}g",
+        "quantity_display": quantity_display,  # Novo campo com medida caseira
+        "unit_equivalent": unit_str,
         "protein": protein,
         "carbs": carbs,
         "fat": fat,
