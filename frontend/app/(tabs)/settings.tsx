@@ -400,6 +400,40 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Data & Export Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>DADOS E EXPORTAÇÃO</Text>
+          <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+            <TouchableOpacity style={styles.legalItem} onPress={handleExportData}>
+              <View style={styles.legalItemContent}>
+                <Ionicons name="download-outline" size={20} color={colors.success} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.legalText, { color: colors.text }]}>Exportar Meus Dados</Text>
+                  <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                    Baixe dieta, treino e progresso em JSON
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
+            
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            
+            <TouchableOpacity style={styles.legalItem} onPress={handleClearCache}>
+              <View style={styles.legalItemContent}>
+                <Ionicons name="trash-outline" size={20} color={colors.warning} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.legalText, { color: colors.text }]}>Limpar Cache</Text>
+                  <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                    Remove dados em cache localmente
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Legal Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>LEGAL</Text>
