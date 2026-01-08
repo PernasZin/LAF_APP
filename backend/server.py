@@ -53,14 +53,16 @@ class UserProfile(BaseModel):
     # Objetivo
     goal: str  # "cutting", "bulking", "manutencao", "atleta"
     
-    # ==================== ATHLETE DOMAIN MODEL ====================
-    # OBRIGATÓRIO se goal == "atleta"
-    # Phases: "off_season", "pre_prep", "prep", "peak_week", "post_show"
-    competition_phase: Optional[str] = None
+    # ==================== MODO ATLETA AUTOMÁTICO ====================
+    # Baseado em DATA do campeonato (não semanas manuais)
+    athlete_mode: bool = False  # True se goal == "atleta"
+    athlete_competition_date: Optional[datetime] = None  # Data do campeonato (YYYY-MM-DD)
+    last_competition_phase: Optional[str] = None  # Última fase calculada
     
-    # Timeline tracking
-    weeks_to_competition: Optional[int] = None  # Semanas até próxima competição
-    competition_date: Optional[datetime] = None  # Data alvo da competição
+    # Campos legados (calculados automaticamente, não preenchidos pelo usuário)
+    competition_phase: Optional[str] = None  # Fase atual calculada automaticamente
+    weeks_to_competition: Optional[int] = None  # Calculado automaticamente
+    competition_date: Optional[datetime] = None  # Alias para athlete_competition_date
     phase_start_date: Optional[datetime] = None  # Quando a fase atual começou
     
     # Restrições e Preferências
