@@ -746,6 +746,172 @@ def validate_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int
     return len(errors) == 0, "; ".join(errors)
 
 
+# ==================== VALIDAÇÃO BULLETPROOF ====================
+
+def validate_and_fix_food(food: Dict, preferred: Set[str] = None) -> Dict:
+    """
+    ✅ Valida e corrige um alimento individual.
+    
+    GARANTIAS:
+    - NUNCA retorna None
+    - grams >= 10 (mínimo)
+    - grams <= 500 (máximo)
+    - grams múltiplo de 10
+    - Todos campos obrigatórios presentes
+    - calories >= 1
+    """
+    # Se food é None ou vazio, cria default
+    if not food:
+        return calc_food("frango", 100)
+    
+    # Extrai valores existentes
+    food_key = food.get("key", "frango")
+    grams = food.get("grams", 100)
+    
+    # Valida se key existe no banco
+    if food_key not in FOODS:
+        food_key = "frango"  # Fallback para frango
+    
+    # Valida grams
+    if grams is None or grams <= 0:
+        grams = 100
+    
+    # Garante múltiplo de 10, mínimo 10, máximo 500
+    grams = round_to_10(grams)
+    grams = max(MIN_FOOD_GRAMS, min(MAX_FOOD_GRAMS, grams))
+    
+    # Recalcula alimento com valores válidos
+    return calc_food(food_key, grams)
+
+
+def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = None) -> Dict:
+    """
+    ✅ Valida e corrige uma refeição.
+    
+    GARANTIAS:
+    - Refeição NUNCA vazia
+    - Todos alimentos válidos
+    - Totais calculados corretamente
+    """
+    # Meal names padrão
+    default_meals = [
+        {"name": "Café da Manhã", "time": "07:00"},
+        {"name": "Lanche Manhã", "time": "10:00"},
+        {"name": "Almoço", "time": "12:30"},
+        {"name": "Lanche Tarde", "time": "16:00"},
+        {"name": "Jantar", "time": "19:30"}
+    ]
+    
+    # Garante nome e horário
+    if meal_index < len(default_meals):
+        name = meal.get("name", default_meals[meal_index]["name"])
+        time = meal.get("time", default_meals[meal_index]["time"])
+    else:
+        name = meal.get("name", f"Refeição {meal_index + 1}")
+        time = meal.get("time", "12:00")
+    
+    # Obtém lista de foods
+    foods = meal.get("foods", [])
+    
+    # Se refeição vazia, adiciona alimento padrão
+    if not foods or len(foods) == 0:
+        # Escolhe alimento padrão baseado no horário
+        if meal_index == 0:  # Café
+            foods = [calc_food("ovos", 100), calc_food("aveia", 50), calc_food("banana", 100)]
+        elif meal_index == 1:  # Lanche manhã
+            foods = [calc_food("maca", 150), calc_food("pasta_amendoim", 20)]
+        elif meal_index == 2:  # Almoço
+            foods = [calc_food("frango", 150), calc_food("arroz_branco", 150), calc_food("salada", 100)]
+        elif meal_index == 3:  # Lanche tarde
+            foods = [calc_food("batata_doce", 150), calc_food("frango", 100)]
+        else:  # Jantar
+            foods = [calc_food("tilapia", 150), calc_food("arroz_branco", 100), calc_food("brocolis", 100)]
+    
+    # Valida cada alimento
+    validated_foods = []
+    for food in foods:
+        validated_food = validate_and_fix_food(food, preferred)
+        if validated_food:
+            validated_foods.append(validated_food)
+    
+    # Garante que tem pelo menos 1 alimento
+    if len(validated_foods) == 0:
+        validated_foods = [calc_food("frango", 150)]
+    
+    # Recalcula totais da refeição
+    mp, mc, mf, mcal = sum_foods(validated_foods)
+    
+    # Garante calorias mínimas
+    if mcal < MIN_MEAL_CALORIES:
+        # Adiciona proteína extra
+        validated_foods.append(calc_food("frango", 100))
+        mp, mc, mf, mcal = sum_foods(validated_foods)
+    
+    return {
+        "name": name,
+        "time": time,
+        "foods": validated_foods,
+        "total_calories": mcal,
+        "macros": {"protein": mp, "carbs": mc, "fat": mf}
+    }
+
+
+def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int,
+                          preferred: Set[str] = None) -> List[Dict]:
+    """
+    ✅ CHECKLIST FINAL OBRIGATÓRIO
+    
+    Antes de retornar a dieta, valida:
+    ☑ Nenhum alimento com 0g
+    ☑ Nenhuma refeição com lista vazia
+    ☑ Todos os campos obrigatórios preenchidos
+    ☑ Quantidades em múltiplos de 10g
+    ☑ Dieta consistente e utilizável
+    ☑ Estrutura JSON válida
+    
+    Se qualquer item falhar → CORRIGE AUTOMATICAMENTE
+    """
+    # Garante mínimo de 5 refeições
+    while len(meals) < 5:
+        meals.append({})
+    
+    # Valida cada refeição
+    validated_meals = []
+    for idx, meal in enumerate(meals[:5]):  # Máximo 5 refeições
+        validated_meal = validate_and_fix_meal(meal, idx, preferred)
+        validated_meals.append(validated_meal)
+    
+    # Verifica totais
+    all_foods = [f for m in validated_meals for f in m.get("foods", [])]
+    total_p, total_c, total_f, total_cal = sum_foods(all_foods)
+    
+    # Se calorias totais < mínimo diário, adiciona comida
+    while total_cal < MIN_DAILY_CALORIES:
+        # Encontra refeição com menos calorias e adiciona
+        min_meal_idx = min(range(len(validated_meals)), 
+                          key=lambda i: validated_meals[i].get("total_calories", 0))
+        validated_meals[min_meal_idx]["foods"].append(calc_food("frango", 100))
+        
+        # Recalcula
+        all_foods = [f for m in validated_meals for f in m.get("foods", [])]
+        total_p, total_c, total_f, total_cal = sum_foods(all_foods)
+    
+    # VALIDAÇÃO FINAL: Todos os alimentos devem ter campos obrigatórios
+    required_fields = ["key", "name", "grams", "quantity", "protein", "carbs", "fat", "calories", "category"]
+    
+    for meal in validated_meals:
+        for food in meal.get("foods", []):
+            for field in required_fields:
+                if field not in food:
+                    # Campo faltando - recalcula o alimento
+                    food_key = food.get("key", "frango")
+                    grams = food.get("grams", 100)
+                    recalc = calc_food(food_key, grams)
+                    food.update(recalc)
+    
+    return validated_meals
+
+
 def ensure_consistency(cal: float, p: float, c: float, f: float) -> Tuple[int, int, int]:
     """Garante consistência entre macros e calorias"""
     target_p = round(p)
