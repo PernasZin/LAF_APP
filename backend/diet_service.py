@@ -1042,17 +1042,26 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         if validated_food:
             validated_foods.append(validated_food)
     
-    # Garante que tem pelo menos 1 alimento
+    # Garante que tem pelo menos 1 alimento (RESPEITANDO regras da refeição)
     if len(validated_foods) == 0:
-        validated_foods = [calc_food("frango", 150)]
+        if meal_index in [0, 5]:  # Café ou Ceia - proteína leve
+            validated_foods = [calc_food("ovos", 100)]
+        elif meal_index in [1, 3]:  # Lanches - fruta
+            validated_foods = [calc_food("banana", 150)]
+        else:  # Almoço/Jantar - proteína principal
+            validated_foods = [calc_food("frango", 150)]
     
     # Recalcula totais da refeição
     mp, mc, mf, mcal = sum_foods(validated_foods)
     
-    # Garante calorias mínimas
+    # Garante calorias mínimas (RESPEITANDO regras da refeição)
     if mcal < MIN_MEAL_CALORIES:
-        # Adiciona proteína extra
-        validated_foods.append(calc_food("frango", 100))
+        if meal_index in [0, 5]:  # Café ou Ceia - adicionar aveia ou fruta
+            validated_foods.append(calc_food("aveia", 50) if meal_index == 0 else calc_food("banana", 100))
+        elif meal_index in [1, 3]:  # Lanches - adicionar fruta
+            validated_foods.append(calc_food("maca", 150))
+        else:  # Almoço/Jantar - adicionar proteína
+            validated_foods.append(calc_food("frango", 100))
         mp, mc, mf, mcal = sum_foods(validated_foods)
     
     return {
