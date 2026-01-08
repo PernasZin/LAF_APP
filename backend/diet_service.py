@@ -709,13 +709,25 @@ class DietAIService:
         self.api_key = os.environ.get('EMERGENT_LLM_KEY')
     
     def generate_diet_plan(self, user_profile: Dict, target_calories: float, target_macros: Dict[str, float]) -> DietPlan:
-        """Gera plano de dieta personalizado"""
+        """
+        Gera plano de dieta personalizado.
+        
+        NUNCA TRAVA - usa auto-complete se faltar opções.
+        """
         
         # Obtém preferências e restrições
         food_preferences = user_profile.get('food_preferences', [])
         dietary_restrictions = user_profile.get('dietary_restrictions', [])
+        goal = user_profile.get('goal', 'manutencao')
         
-        preferred_foods = get_user_preferred_foods(food_preferences)
+        # Converte preferências para chaves normalizadas
+        raw_preferred = get_user_preferred_foods(food_preferences)
+        
+        # AUTO-COMPLETE INTELIGENTE: garante mínimos necessários
+        preferred_foods, auto_completed, auto_message = smart_auto_complete(
+            raw_preferred, dietary_restrictions, goal
+        )
+        
         supplements = get_user_supplements(food_preferences)
         
         # Garante consistência
@@ -728,18 +740,15 @@ class DietAIService:
         
         target_cal_int = int(round(target_calories))
         
-        # Gera dieta
+        # Gera dieta com alimentos auto-completados se necessário
         meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions)
         
-        # Fine-tune
-        meals = fine_tune_diet(meals, target_p, target_c, target_f)
-        
-        # Valida
-        is_valid, error = validate_diet(meals, target_p, target_c, target_f)
-        
-        if not is_valid:
-            # Tenta mais uma rodada de ajuste
+        # Fine-tune (múltiplas rodadas se necessário)
+        for _ in range(3):
             meals = fine_tune_diet(meals, target_p, target_c, target_f)
+            is_valid, _ = validate_diet(meals, target_p, target_c, target_f)
+            if is_valid:
+                break
         
         # Formata resultado
         final_meals = []
@@ -756,8 +765,21 @@ class DietAIService:
         all_foods = [f for m in meals for f in m["foods"]]
         total_p, total_c, total_f, total_cal = sum_foods(all_foods)
         
+        # Gera nota com info de auto-complete se aplicável
+        notes = f"Dieta: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | Múltiplos de 10g"
+        
         return DietPlan(
             user_id=user_profile['id'],
+            target_calories=target_cal_int,
+            target_macros={"protein": target_p, "carbs": target_c, "fat": target_f},
+            meals=final_meals,
+            computed_calories=total_cal,
+            computed_macros={"protein": total_p, "carbs": total_c, "fat": total_f},
+            supplements=supplements,
+            notes=notes,
+            auto_completed=auto_completed,
+            auto_complete_message=auto_message
+        )
             target_calories=target_cal_int,
             target_macros={"protein": target_p, "carbs": target_c, "fat": target_f},
             meals=final_meals,
