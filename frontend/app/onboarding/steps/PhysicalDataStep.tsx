@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#111827',
+    color: '#000000',
   },
   hint: {
     fontSize: 14,
