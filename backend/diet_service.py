@@ -1062,16 +1062,17 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     ☑ Quantidades em múltiplos de 10g
     ☑ Dieta consistente e utilizável
     ☑ Estrutura JSON válida
+    ☑ 6 refeições completas
     
     Se qualquer item falhar → CORRIGE AUTOMATICAMENTE
     """
-    # Garante mínimo de 5 refeições
-    while len(meals) < 5:
+    # Garante mínimo de 6 refeições
+    while len(meals) < 6:
         meals.append({})
     
     # Valida cada refeição
     validated_meals = []
-    for idx, meal in enumerate(meals[:5]):  # Máximo 5 refeições
+    for idx, meal in enumerate(meals[:6]):  # Máximo 6 refeições
         validated_meal = validate_and_fix_meal(meal, idx, preferred)
         validated_meals.append(validated_meal)
     
@@ -1079,14 +1080,18 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     all_foods = [f for m in validated_meals for f in m.get("foods", [])]
     total_p, total_c, total_f, total_cal = sum_foods(all_foods)
     
-    # Se calorias totais < mínimo diário, adiciona comida
+    # Se calorias totais < mínimo diário, adiciona comida nas refeições principais
     while total_cal < MIN_DAILY_CALORIES:
-        # Encontra refeição com menos calorias e adiciona
-        min_meal_idx = min(range(len(validated_meals)), 
-                          key=lambda i: validated_meals[i].get("total_calories", 0))
-        validated_meals[min_meal_idx]["foods"].append(calc_food("frango", 100))
+        # Adiciona proteína no almoço ou jantar (índices 2 e 4)
+        target_meal = 2 if validated_meals[2].get("total_calories", 0) < validated_meals[4].get("total_calories", 0) else 4
+        validated_meals[target_meal]["foods"].append(calc_food("frango", 100))
         
-        # Recalcula
+        # Recalcula totais da refeição
+        mp, mc, mf, mcal = sum_foods(validated_meals[target_meal]["foods"])
+        validated_meals[target_meal]["total_calories"] = mcal
+        validated_meals[target_meal]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+        
+        # Recalcula totais gerais
         all_foods = [f for m in validated_meals for f in m.get("foods", [])]
         total_p, total_c, total_f, total_cal = sum_foods(all_foods)
     
