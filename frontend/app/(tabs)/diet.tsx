@@ -348,6 +348,11 @@ export default function DietScreen() {
           </Text>
         </View>
 
+        {/* Athlete Mode - Next Adjustment Card */}
+        {userProfile?.athlete_mode && (
+          <AthleteAdjustmentCard colors={colors} userProfile={userProfile} />
+        )}
+
         {/* Meals */}
         <Text style={[styles.mealsTitle, { color: colors.text }]}>Refeições do Dia</Text>
         {dietPlan.meals.map((meal: any, mealIndex: number) => (
