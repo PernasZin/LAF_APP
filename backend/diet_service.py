@@ -830,6 +830,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
 def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int) -> List[Dict]:
     """
     Ajuste fino iterativo para atingir macros dentro de ±5%.
+    
+    REGRAS DE AJUSTE (6 refeições):
+    - Proteínas: ajustar em Almoço(2), Jantar(4), Ceia(5)
+    - Carboidratos: ajustar em Almoço(2), Jantar(4), Café(0)
+    - Gorduras: ajustar em Almoço(2), Jantar(4), Lanches(1,3)
     """
     tol_p = target_p * TOL_PERCENT
     tol_c = target_c * TOL_PERCENT
@@ -849,9 +854,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         
         adjusted = False
         
-        # Ajusta proteínas
+        # Ajusta proteínas - apenas em Almoço(2), Jantar(4), Ceia(5)
         if abs(gap_p) > tol_p and not adjusted:
-            for m_idx in [2, 3, 4]:  # Almoço, Lanche, Jantar
+            for m_idx in [2, 4, 5, 0]:  # Almoço, Jantar, Ceia, Café
                 if m_idx >= len(meals):
                     continue
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
@@ -867,9 +872,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                 if adjusted:
                     break
         
-        # Ajusta carboidratos
+        # Ajusta carboidratos - apenas em Almoço(2), Jantar(4), Café(0)
         if abs(gap_c) > tol_c and not adjusted:
-            for m_idx in [3, 2, 4, 0]:
+            for m_idx in [2, 4, 0]:  # Almoço, Jantar, Café (onde carbs são permitidos)
                 if m_idx >= len(meals):
                     continue
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
@@ -886,9 +891,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                 if adjusted:
                     break
         
-        # Ajusta gorduras
+        # Ajusta gorduras - Almoço(2), Jantar(4), Lanches(1,3)
         if abs(gap_f) > tol_f and not adjusted:
-            for m_idx in [2, 4, 1]:
+            for m_idx in [2, 4, 1, 3]:  # Almoço, Jantar, Lanches
                 if m_idx >= len(meals):
                     continue
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
