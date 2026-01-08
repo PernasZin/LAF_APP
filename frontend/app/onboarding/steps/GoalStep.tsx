@@ -238,6 +238,8 @@ export default function GoalStep({ data, updateData }: Props) {
                     minimumDate={minDate}
                     maximumDate={maxDate}
                     locale="pt-BR"
+                    themeVariant="light"
+                    textColor="#000000"
                   />
                 </View>
               </View>
