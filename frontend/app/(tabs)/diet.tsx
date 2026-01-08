@@ -614,19 +614,24 @@ function MacroItem({ label, current, target, color, colors }: any) {
 function MealCard({ meal, mealIndex, colors, onFoodPress }: any) {
   const [expanded, setExpanded] = useState(true);
   const cardStyles = createCardStyles(colors);
+  
+  // Get meal config for icon/color
+  const mealConfig = MEAL_CONFIG[meal.name] || { icon: 'restaurant-outline', emoji: '🍽️', color: colors.primary };
 
   return (
-    <View style={[cardStyles.mealCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+    <View style={[cardStyles.mealCard, { backgroundColor: colors.backgroundCard, borderColor: mealConfig.color + '30' }]}>
       <TouchableOpacity style={cardStyles.mealHeader} onPress={() => setExpanded(!expanded)} activeOpacity={0.7}>
         <View style={cardStyles.mealHeaderLeft}>
-          <Ionicons name="restaurant-outline" size={24} color={colors.primary} />
+          <View style={[cardStyles.mealIconContainer, { backgroundColor: mealConfig.color + '20' }]}>
+            <Text style={cardStyles.mealEmoji}>{mealConfig.emoji}</Text>
+          </View>
           <View style={cardStyles.mealInfo}>
             <Text style={[cardStyles.mealName, { color: colors.text }]}>{meal.name}</Text>
-            <Text style={[cardStyles.mealTime, { color: colors.textSecondary }]}>{meal.time}</Text>
+            <Text style={[cardStyles.mealTime, { color: colors.textSecondary }]}>⏰ {meal.time}</Text>
           </View>
         </View>
         <View style={cardStyles.mealHeaderRight}>
-          <Text style={[cardStyles.mealCalories, { color: colors.primary }]}>{Math.round(meal.total_calories)} kcal</Text>
+          <Text style={[cardStyles.mealCalories, { color: mealConfig.color }]}>{Math.round(meal.total_calories)} kcal</Text>
           <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textSecondary} />
         </View>
       </TouchableOpacity>
