@@ -234,6 +234,43 @@ export default function WorkoutScreen() {
     }
   };
 
+  // Carregar histórico de treinos
+  const loadWorkoutHistory = async () => {
+    if (!userId || !BACKEND_URL) return;
+    
+    setLoadingHistory(true);
+    try {
+      const response = await safeFetch(`${BACKEND_URL}/api/workout/history/${userId}?days=90`);
+      if (response.ok) {
+        const data = await response.json();
+        setWorkoutHistory(data.history || []);
+        setHistoryStats(data.stats || null);
+      }
+    } catch (error) {
+      console.log('Could not load workout history');
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const openHistoryModal = () => {
+    selectionFeedback();
+    loadWorkoutHistory();
+    setShowHistoryModal(true);
+  };
+
+  const formatHistoryDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Hoje';
+    if (diffDays === 1) return 'Ontem';
+    if (diffDays < 7) return `${diffDays} dias atrás`;
+    
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+  };
+
   const startRestTimer = () => setTimerActive(true);
   
   const resetTimer = () => {
