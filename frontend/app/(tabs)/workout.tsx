@@ -46,6 +46,12 @@ export default function WorkoutScreen() {
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(-1);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
   
+  // History modal
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [workoutHistory, setWorkoutHistory] = useState<any[]>([]);
+  const [historyStats, setHistoryStats] = useState<any>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  
   // Timer state
   const [timerActive, setTimerActive] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
