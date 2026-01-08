@@ -8,7 +8,6 @@ import BasicInfoStep from './steps/BasicInfoStep';
 import PhysicalDataStep from './steps/PhysicalDataStep';
 import TrainingLevelStep from './steps/TrainingLevelStep';
 import GoalStep from './steps/GoalStep';
-import AthleteStep from './steps/AthleteStep';
 import RestrictionsStep from './steps/RestrictionsStep';
 
 import { useAuthStore } from '../../stores/authStore';
@@ -41,11 +40,8 @@ export default function OnboardingScreen() {
     available_time_per_session: '',
     // Objetivo
     goal: '',
-    // Atleta/Competição (OBRIGATÓRIO se goal === 'atleta')
-    weeks_to_competition: '',
-    competition_phase: '',
-    competition_phase_manual: false,
-    competition_start_date: null as Date | null,
+    // Atleta/Competição - NOVO: apenas data, sistema calcula o resto
+    athlete_competition_date: '', // ISO date string YYYY-MM-DD
     // Restrições
     dietary_restrictions: [] as string[],
     food_preferences: [] as string[],
@@ -54,26 +50,14 @@ export default function OnboardingScreen() {
   
   console.log('🎯 OnboardingScreen - userId:', userId);
 
-  // Dynamic steps based on goal selection
-  const getSteps = () => {
-    const baseSteps = [
-      { title: 'Dados Básicos', component: BasicInfoStep },
-      { title: 'Dados Físicos', component: PhysicalDataStep },
-      { title: 'Nível de Treino', component: TrainingLevelStep },
-      { title: 'Seu Objetivo', component: GoalStep },
-    ];
-    
-    // Add athlete step if goal is 'atleta'
-    if (formData.goal === 'atleta') {
-      baseSteps.push({ title: 'Competição', component: AthleteStep });
-    }
-    
-    baseSteps.push({ title: 'Preferências', component: RestrictionsStep });
-    
-    return baseSteps;
-  };
-
-  const steps = getSteps();
+  // Steps - SIMPLIFICADO (sem etapa separada de Atleta)
+  const steps = [
+    { title: 'Dados Básicos', component: BasicInfoStep },
+    { title: 'Dados Físicos', component: PhysicalDataStep },
+    { title: 'Nível de Treino', component: TrainingLevelStep },
+    { title: 'Seu Objetivo', component: GoalStep },
+    { title: 'Preferências', component: RestrictionsStep },
+  ];
 
   const updateFormData = (data: any) => {
     setFormData({ ...formData, ...data });
@@ -127,18 +111,10 @@ export default function OnboardingScreen() {
           Alert.alert('Objetivo Obrigatório', 'Selecione seu objetivo principal.');
           return false;
         }
-        break;
-      
-      case 'Competição':
-        if (formData.goal === 'atleta') {
-          if (!formData.competition_phase) {
-            Alert.alert('Fase Obrigatória', 'Selecione sua fase de competição atual.');
-            return false;
-          }
-          if (!formData.weeks_to_competition || parseInt(formData.weeks_to_competition) < 0) {
-            Alert.alert('Semanas Obrigatórias', 'Informe as semanas até sua próxima competição.');
-            return false;
-          }
+        // Se for atleta, precisa ter data do campeonato
+        if (formData.goal === 'atleta' && !formData.athlete_competition_date) {
+          Alert.alert('Data Obrigatória', 'Informe a data do seu campeonato.');
+          return false;
         }
         break;
       
@@ -202,15 +178,9 @@ export default function OnboardingScreen() {
         injury_history: formData.injury_history,
       };
 
-      // Add athlete-specific fields
-      if (formData.goal === 'atleta') {
-        profileData.competition_phase = formData.competition_phase;
-        profileData.weeks_to_competition = parseInt(formData.weeks_to_competition);
-        if (formData.weeks_to_competition) {
-          const competitionDate = new Date();
-          competitionDate.setDate(competitionDate.getDate() + (parseInt(formData.weeks_to_competition) * 7));
-          profileData.competition_date = competitionDate.toISOString();
-        }
+      // Add athlete-specific field (APENAS a data - backend calcula tudo)
+      if (formData.goal === 'atleta' && formData.athlete_competition_date) {
+        profileData.athlete_competition_date = formData.athlete_competition_date;
       }
 
       console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
