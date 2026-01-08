@@ -326,8 +326,44 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
 
 VALID_COMPETITION_PHASES = ["off_season", "pre_prep", "prep", "peak_week", "post_show"]
 
+def calculate_weeks_to_competition(competition_date: datetime) -> int:
+    """Calcula semanas até a competição baseado na data"""
+    now = datetime.utcnow()
+    if competition_date <= now:
+        return 0  # Competição já passou
+    
+    delta = competition_date - now
+    weeks = delta.days // 7
+    return max(0, weeks)
+
+def derive_phase_from_date(competition_date: datetime) -> Tuple[str, int]:
+    """
+    LÓGICA DE FASES AUTOMÁTICAS baseada na data do campeonato.
+    
+    Mapeamento:
+    - > 20 semanas → OFF_SEASON
+    - 16 a 20 semanas → PRE_PREP
+    - 8 a 15 semanas → PREP  
+    - 0 a 7 semanas → PEAK_WEEK
+    - data passou → POST_SHOW
+    
+    Returns: (phase, weeks_to_competition)
+    """
+    weeks = calculate_weeks_to_competition(competition_date)
+    
+    if weeks > 20:
+        return "off_season", weeks
+    elif weeks >= 16:
+        return "pre_prep", weeks
+    elif weeks >= 8:
+        return "prep", weeks
+    elif weeks >= 1:
+        return "peak_week", weeks
+    else:
+        return "post_show", weeks
+
 def derive_phase_from_weeks(weeks: int) -> str:
-    """Derives competition phase from weeks to competition"""
+    """Derives competition phase from weeks to competition (legacy)"""
     if weeks > 20:
         return "off_season"
     elif weeks >= 16:
@@ -338,6 +374,9 @@ def derive_phase_from_weeks(weeks: int) -> str:
         return "peak_week"
     else:
         return "post_show"
+
+# Importa Tuple se não estiver disponível
+from typing import Tuple
 
 # ==================== ROUTES ====================
 
