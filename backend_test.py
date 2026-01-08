@@ -222,7 +222,7 @@ def generate_diet(user_id: str) -> Dict:
     print_info(f"Gerando dieta para usuário {user_id}...")
     
     try:
-        response = requests.post(f"{API_BASE}/diet/generate", json={"user_id": user_id}, timeout=60)
+        response = requests.post(f"{API_BASE}/diet/generate?user_id={user_id}", timeout=60)
         
         if response.status_code == 200:
             diet = response.json()
