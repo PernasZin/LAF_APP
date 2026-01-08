@@ -686,14 +686,16 @@ const macroStyles = StyleSheet.create({
 });
 
 const createCardStyles = (colors: any) => StyleSheet.create({
-  mealCard: { borderRadius: 12, marginBottom: 12, borderWidth: 1 },
+  mealCard: { borderRadius: 16, marginBottom: 12, borderWidth: 1.5 },
   mealHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16 },
   mealHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  mealIconContainer: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  mealEmoji: { fontSize: 22 },
   mealInfo: { flex: 1 },
-  mealName: { fontSize: 16, fontWeight: '600' },
-  mealTime: { fontSize: 14, marginTop: 2 },
+  mealName: { fontSize: 16, fontWeight: '700' },
+  mealTime: { fontSize: 13, marginTop: 2 },
   mealHeaderRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  mealCalories: { fontSize: 14, fontWeight: '600' },
+  mealCalories: { fontSize: 15, fontWeight: '700' },
   mealDetails: { borderTopWidth: 1, paddingHorizontal: 16, paddingBottom: 16 },
   foodItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 0.5, borderBottomColor: colors.border },
   foodMain: { flexDirection: 'row', alignItems: 'center', flex: 1 },
