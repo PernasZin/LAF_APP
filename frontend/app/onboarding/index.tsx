@@ -111,11 +111,8 @@ export default function OnboardingScreen() {
           Alert.alert('Objetivo Obrigatório', 'Selecione seu objetivo principal.');
           return false;
         }
-        // Se for atleta, precisa ter data do campeonato
-        if (formData.goal === 'atleta' && !formData.athlete_competition_date) {
-          Alert.alert('Data Obrigatória', 'Informe a data do seu campeonato.');
-          return false;
-        }
+        // Data do campeonato é OPCIONAL para atleta
+        // Se não informar, sistema assume off_season
         break;
       
       case 'Preferências':
