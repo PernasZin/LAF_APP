@@ -355,6 +355,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#92400E',
   },
+  webDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    backgroundColor: '#FFFBEB',
+  },
   // Phase Info
   phaseInfoContainer: {
     flexDirection: 'row',
