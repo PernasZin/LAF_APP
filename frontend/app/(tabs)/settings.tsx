@@ -232,6 +232,82 @@ export default function SettingsScreen() {
     router.push('/settings/privacy-policy');
   };
 
+  const handleExportData = async () => {
+    try {
+      if (!userId || !BACKEND_URL) {
+        Alert.alert('Erro', 'Não foi possível exportar os dados. Usuário não identificado.');
+        return;
+      }
+      
+      setSaving(true);
+      
+      // Busca todos os dados do usuário
+      const [profileRes, dietRes, workoutRes, progressRes] = await Promise.all([
+        safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`),
+        safeFetch(`${BACKEND_URL}/api/diet/${userId}`),
+        safeFetch(`${BACKEND_URL}/api/workout/${userId}`),
+        safeFetch(`${BACKEND_URL}/api/progress/weight/${userId}?days=365`),
+      ]);
+      
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        profile: profileRes.ok ? await profileRes.json() : null,
+        diet: dietRes.ok ? await dietRes.json() : null,
+        workout: workoutRes.ok ? await workoutRes.json() : null,
+        progress: progressRes.ok ? await progressRes.json() : null,
+      };
+      
+      // Salva os dados exportados localmente
+      const exportJson = JSON.stringify(exportData, null, 2);
+      await AsyncStorage.setItem('exportedUserData', exportJson);
+      
+      Alert.alert(
+        '✅ Dados Exportados',
+        `Seus dados foram salvos com sucesso!\n\nPerfil: ${exportData.profile ? '✓' : '✗'}\nDieta: ${exportData.diet ? '✓' : '✗'}\nTreino: ${exportData.workout ? '✓' : '✗'}\nProgresso: ${exportData.progress ? '✓' : '✗'}`,
+        [{ text: 'OK' }]
+      );
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      Alert.alert('Erro', 'Não foi possível exportar os dados. Tente novamente.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClearCache = async () => {
+    Alert.alert(
+      '🗑️ Limpar Cache',
+      'Isso irá remover dados temporários armazenados no dispositivo. Seus dados na nuvem não serão afetados.\n\nDeseja continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Limpar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setSaving(true);
+              
+              // Remove apenas dados de cache (não o userId nem authToken)
+              const keysToKeep = ['userId', 'authToken', 'userProfile'];
+              const allKeys = await AsyncStorage.getAllKeys();
+              const keysToRemove = allKeys.filter(key => !keysToKeep.includes(key));
+              
+              await AsyncStorage.multiRemove(keysToRemove);
+              
+              Alert.alert('✅ Cache Limpo', 'Os dados em cache foram removidos com sucesso.');
+            } catch (error) {
+              console.error('Clear cache error:', error);
+              Alert.alert('Erro', 'Não foi possível limpar o cache.');
+            } finally {
+              setSaving(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const styles = createStyles(colors);
 
   if (loading) {
