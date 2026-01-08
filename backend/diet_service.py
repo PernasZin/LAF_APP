@@ -627,29 +627,30 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     REGRAS OBRIGATÓRIAS:
     ☀️ Café da Manhã: proteínas leves + carbs leves + frutas (SEM carnes, SEM azeite)
-    🍎 Lanches: frutas + iogurte/cottage + oleaginosas (SEM carnes, SEM azeite)
+    🍎 Lanches: frutas + iogurte/cottage + castanhas/amêndoas (SEM carnes, SEM ovos, SEM azeite)
     🍽️ Almoço/Jantar: EXATAMENTE 1 proteína + 1 carboidrato + azeite
-    🌙 Ceia: proteína leve + frutas (SEM carbs complexos)
+    🌙 Ceia: proteína leve (ovos/iogurte/cottage) + frutas
     """
     
-    # Prioridades por categoria
-    protein_priority = ["frango", "patinho", "tilapia", "atum", "salmao", "ovos", "peru"]
-    light_protein_priority = ["ovos", "iogurte_grego", "cottage", "claras"]
+    # Prioridades por categoria (APENAS alimentos ativos)
+    protein_priority = ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos"]
+    light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage"]  # Para café e ceia
+    light_protein_priority_lanche = ["iogurte_grego", "cottage"]  # Para lanches (SEM ovos!)
     carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", "feijao"]
-    light_carb_priority = ["aveia", "pao_integral", "tapioca"]
-    fat_priority = ["castanhas", "amendoas", "pasta_amendoim"]
+    light_carb_priority = ["aveia", "pao_integral"]  # Removido: tapioca
+    fat_priority_lanche = ["castanhas", "amendoas"]  # Removido: pasta_amendoim
     fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia"]
     
     meals = []
     
     # ==================== ☀️ CAFÉ DA MANHÃ (15% P, 20% C, 10% F) ====================
-    # PERMITIDO: ovos/iogurte/cottage + aveia/pão + frutas
+    # PERMITIDO: ovos/iogurte/cottage + aveia/pão integral + frutas
     # PROIBIDO: carnes, arroz, batata, azeite
     
     cafe_p = target_p * 0.15
     cafe_c = target_c * 0.20
     
-    breakfast_protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority)
+    breakfast_protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
     breakfast_carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
     breakfast_fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
     
@@ -674,8 +675,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     meals.append({"name": "Café da Manhã", "time": "07:00", "foods": cafe_foods})
     
     # ==================== 🍎 LANCHE MANHÃ (5% P, 10% C, 15% F) ====================
-    # PERMITIDO: frutas + iogurte/cottage + oleaginosas
-    # PROIBIDO: carnes, arroz, batata, azeite
+    # PERMITIDO: frutas + iogurte/cottage + castanhas/amêndoas
+    # PROIBIDO: carnes, arroz, batata, azeite, OVOS, pasta de amendoim, queijo
     
     lanche1_c = target_c * 0.10
     lanche1_f = target_f * 0.15
