@@ -1,14 +1,15 @@
 """
-Sistema de Geração de Dieta - V12 STRICT
-==========================================
-REGRAS OBRIGATÓRIAS:
-1. Use SOMENTE alimentos da lista selecionada pelo usuário
-2. NÃO invente alimentos
-3. Calorias totais entre 95% e 105% do alvo
-4. Cada macro dentro de ±5% do alvo
+Sistema de Geração de Dieta - V13 SMART AUTO-COMPLETE
+======================================================
+FILOSOFIA: NUNCA TRAVAR, SEMPRE GERAR
+
+REGRAS:
+1. Se faltar alimentos, AUTO-COMPLETE com opções padrão
+2. NUNCA retorne erro por falta de opções
+3. Seja amigável e explique o que foi adicionado
+4. Calorias 95-105% do alvo, Macros ±5%
 5. Quantidades em múltiplos de 10g
-6. JSON COMPLETO e VÁLIDO sempre
-==========================================
+======================================================
 """
 
 import os
@@ -40,15 +41,32 @@ class DietPlan(BaseModel):
     computed_macros: Dict[str, int]
     supplements: List[str] = []
     notes: Optional[str] = None
+    auto_completed: bool = False  # Flag se auto-completou
+    auto_complete_message: Optional[str] = None  # Mensagem amigável
 
 
 class DietGenerateRequest(BaseModel):
     user_id: str
 
 
-# ==================== TOLERÂNCIAS ESTRITAS ====================
-# ±5% para cada macro conforme regras obrigatórias
-TOL_PERCENT = 0.05  # 5%
+# ==================== TOLERÂNCIAS ====================
+TOL_PERCENT = 0.05  # ±5%
+
+
+# ==================== MÍNIMOS NECESSÁRIOS ====================
+MIN_PROTEINS = 3
+MIN_CARBS = 3
+MIN_FATS = 2
+MIN_FRUITS = 2
+
+
+# ==================== AUTO-COMPLETE PADRÕES ====================
+# Ordem de prioridade para auto-complete (alimentos comuns e baratos no Brasil)
+
+DEFAULT_PROTEINS = ["frango", "patinho", "ovos", "atum", "iogurte_grego", "tilapia", "cottage"]
+DEFAULT_CARBS = ["arroz_branco", "arroz_integral", "batata_doce", "aveia", "macarrao", "feijao", "pao_integral", "lentilha"]
+DEFAULT_FATS = ["azeite", "pasta_amendoim", "castanhas", "amendoas", "queijo"]
+DEFAULT_FRUITS = ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
 
 
 # ==================== RESTRIÇÕES ALIMENTARES ====================
