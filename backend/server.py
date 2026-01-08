@@ -91,10 +91,13 @@ class UserProfileCreate(BaseModel):
     weekly_training_frequency: int
     available_time_per_session: int
     goal: str
-    # Athlete-specific fields (REQUIRED if goal == "atleta")
-    competition_phase: Optional[str] = None  # "off_season", "pre_prep", "prep", "peak_week", "post_show"
-    weeks_to_competition: Optional[int] = None
-    competition_date: Optional[str] = None  # ISO date string
+    # ==================== MODO ATLETA ====================
+    # Apenas precisa da DATA do campeonato - sistema calcula tudo automaticamente
+    athlete_competition_date: Optional[str] = None  # ISO date string YYYY-MM-DD
+    # Campos legados (mantidos por compatibilidade, mas não usados)
+    competition_phase: Optional[str] = None  # Calculado automaticamente
+    weeks_to_competition: Optional[int] = None  # Calculado automaticamente
+    competition_date: Optional[str] = None  # Alias para athlete_competition_date
     dietary_restrictions: List[str] = Field(default_factory=list)
     food_preferences: List[str] = Field(default_factory=list)
     injury_history: List[str] = Field(default_factory=list)
