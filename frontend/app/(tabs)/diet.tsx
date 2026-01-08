@@ -461,6 +461,129 @@ export default function DietScreen() {
   );
 }
 
+// ==================== ATHLETE ADJUSTMENT CARD ====================
+function AthleteAdjustmentCard({ colors, userProfile }: any) {
+  const [lastWeightRecord, setLastWeightRecord] = useState<any>(null);
+  
+  useEffect(() => {
+    loadLastWeight();
+  }, [userProfile]);
+  
+  const loadLastWeight = async () => {
+    try {
+      const userId = userProfile?.id;
+      if (!userId) return;
+      
+      const response = await safeFetch(`${BACKEND_URL}/api/progress/weight/${userId}?days=30`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.history && data.history.length > 0) {
+          const lastRecord = data.history[data.history.length - 1];
+          setLastWeightRecord(lastRecord);
+        }
+      }
+    } catch (error) {
+      console.log('Could not load weight history');
+    }
+  };
+  
+  // Calcular próximo ajuste
+  const calculateNextAdjustment = () => {
+    if (!lastWeightRecord?.recorded_at) {
+      return { canRecord: true, daysRemaining: 0, nextDate: 'Agora' };
+    }
+    
+    const lastDate = new Date(lastWeightRecord.recorded_at);
+    const nextDate = new Date(lastDate);
+    nextDate.setDate(nextDate.getDate() + 14);
+    
+    const now = new Date();
+    const diffTime = nextDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 0) {
+      return { canRecord: true, daysRemaining: 0, nextDate: 'Agora' };
+    }
+    
+    return {
+      canRecord: false,
+      daysRemaining: diffDays,
+      nextDate: nextDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+    };
+  };
+  
+  const adjustment = calculateNextAdjustment();
+  const phase = userProfile?.competition_phase || userProfile?.last_competition_phase || 'off_season';
+  
+  const PHASE_INFO: Record<string, { label: string; color: string; icon: string }> = {
+    'off_season': { label: 'Off-Season', color: '#10B981', icon: 'leaf-outline' },
+    'pre_prep': { label: 'Pré-Prep', color: '#F59E0B', icon: 'trending-up-outline' },
+    'prep': { label: 'Preparação', color: '#EF4444', icon: 'flame-outline' },
+    'peak_week': { label: 'Peak Week', color: '#8B5CF6', icon: 'flash-outline' },
+    'post_show': { label: 'Pós-Show', color: '#3B82F6', icon: 'heart-outline' },
+  };
+  
+  const phaseInfo = PHASE_INFO[phase] || PHASE_INFO['off_season'];
+  
+  return (
+    <View style={[athleteCardStyles.container, { backgroundColor: colors.backgroundCard, borderColor: phaseInfo.color + '50' }]}>
+      <View style={athleteCardStyles.header}>
+        <View style={[athleteCardStyles.phaseIcon, { backgroundColor: phaseInfo.color + '20' }]}>
+          <Ionicons name={phaseInfo.icon as any} size={20} color={phaseInfo.color} />
+        </View>
+        <View style={athleteCardStyles.headerText}>
+          <Text style={[athleteCardStyles.title, { color: colors.text }]}>Modo Atleta</Text>
+          <Text style={[athleteCardStyles.phase, { color: phaseInfo.color }]}>{phaseInfo.label}</Text>
+        </View>
+        <View style={[athleteCardStyles.badge, { backgroundColor: phaseInfo.color }]}>
+          <Text style={athleteCardStyles.badgeText}>ATIVO</Text>
+        </View>
+      </View>
+      
+      <View style={[athleteCardStyles.divider, { backgroundColor: colors.border }]} />
+      
+      <View style={athleteCardStyles.adjustmentInfo}>
+        <Ionicons name="calendar-outline" size={18} color={colors.textSecondary} />
+        <View style={athleteCardStyles.adjustmentTextContainer}>
+          <Text style={[athleteCardStyles.adjustmentLabel, { color: colors.textSecondary }]}>
+            Próximo ajuste automático:
+          </Text>
+          {adjustment.canRecord ? (
+            <Text style={[athleteCardStyles.adjustmentValue, { color: colors.success }]}>
+              Disponível agora!
+            </Text>
+          ) : (
+            <Text style={[athleteCardStyles.adjustmentValue, { color: colors.text }]}>
+              Em {adjustment.daysRemaining} dias ({adjustment.nextDate})
+            </Text>
+          )}
+        </View>
+      </View>
+      
+      <Text style={[athleteCardStyles.hint, { color: colors.textTertiary }]}>
+        💡 Registre seu peso na aba Progresso para ajuste automático da dieta
+      </Text>
+    </View>
+  );
+}
+
+const athleteCardStyles = StyleSheet.create({
+  container: { borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1.5 },
+  header: { flexDirection: 'row', alignItems: 'center' },
+  phaseIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  headerText: { flex: 1, marginLeft: 12 },
+  title: { fontSize: 14, fontWeight: '600' },
+  phase: { fontSize: 16, fontWeight: '700', marginTop: 2 },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  divider: { height: 1, marginVertical: 12 },
+  adjustmentInfo: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  adjustmentTextContainer: { flex: 1 },
+  adjustmentLabel: { fontSize: 12 },
+  adjustmentValue: { fontSize: 14, fontWeight: '600', marginTop: 2 },
+  hint: { fontSize: 11, marginTop: 12, lineHeight: 16 },
+});
+
 function MacroItem({ label, current, target, color, colors }: any) {
   const percentage = Math.min(100, (current / target) * 100);
   const isOnTarget = Math.abs(current - target) <= target * 0.1;
