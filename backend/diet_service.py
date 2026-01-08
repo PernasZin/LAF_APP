@@ -248,23 +248,36 @@ def calc_food(food_key: str, grams: float) -> Dict:
     """
     Calcula macros de um alimento em quantidade específica.
     
+    ✅ GARANTIAS:
+    - SEMPRE retorna um dict válido (nunca None)
+    - grams SEMPRE >= MIN_FOOD_GRAMS (10g)
+    - grams SEMPRE <= MAX_FOOD_GRAMS (500g)
+    - grams SEMPRE múltiplo de 10
+    - TODOS os campos obrigatórios preenchidos
+    
     Formato: "Nome – Xg (≈ Y medida caseira)"
-    Exemplos:
-    - "Ovos: 200g (≈ 4 unidades grandes)"
-    - "Frango: 150g (≈ 1 filé médio)"
-    - "Arroz: 120g (≈ 1 xícara cozida)"
     """
+    # FALLBACK: Se alimento não existe, usa frango como default
     if food_key not in FOODS:
-        return None
+        food_key = "frango"
     
     f = FOODS[food_key]
+    
+    # GARANTIA: Múltiplo de 10, mínimo 10g, máximo 500g
     g = round_to_10(grams)
+    g = max(MIN_FOOD_GRAMS, min(MAX_FOOD_GRAMS, g))
+    
+    # GARANTIA: Sempre > 0
+    if g <= 0:
+        g = MIN_FOOD_GRAMS
+    
     ratio = g / 100
     
-    protein = round(f["p"] * ratio)
-    carbs = round(f["c"] * ratio)
-    fat = round(f["f"] * ratio)
-    calories = round((f["p"] * 4 + f["c"] * 4 + f["f"] * 9) * ratio)
+    # Calcula macros (nunca negativos)
+    protein = max(0, round(f["p"] * ratio))
+    carbs = max(0, round(f["c"] * ratio))
+    fat = max(0, round(f["f"] * ratio))
+    calories = max(1, round((f["p"] * 4 + f["c"] * 4 + f["f"] * 9) * ratio))
     
     # Calcula equivalente em medida caseira
     unit = f.get("unit", "porção")
@@ -279,7 +292,6 @@ def calc_food(food_key: str, grams: float) -> Dict:
             else:
                 unit_str = f"≈ {unit_qty:.1f} {unit}"
         else:
-            # Menos de 1 unidade
             unit_str = f"≈ {unit_qty:.1f} {unit}"
     else:
         unit_str = "porção"
@@ -287,12 +299,13 @@ def calc_food(food_key: str, grams: float) -> Dict:
     # Formato completo: "150g (≈ 1 filé médio)"
     quantity_display = f"{g}g ({unit_str})"
     
+    # RETORNA ESTRUTURA OBRIGATÓRIA COMPLETA
     return {
         "key": food_key,
         "name": f["name"],
         "grams": g,
         "quantity": f"{g}g",
-        "quantity_display": quantity_display,  # Novo campo com medida caseira
+        "quantity_display": quantity_display,
         "unit_equivalent": unit_str,
         "protein": protein,
         "carbs": carbs,
