@@ -522,42 +522,46 @@ def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
 
 # ==================== REGRAS POR REFEIÇÃO ====================
 # IMPORTANTE: Usar APENAS alimentos ATIVOS no sistema
-# Removidos: tofu, coxa_frango, carne_moida, suino, claras, camarao, sardinha,
-#            quinoa, cuscuz, tapioca, milho, grao_de_bico, pasta_amendoa, oleo_coco,
-#            manteiga, nozes, chia, linhaca, cream_cheese, abacate, uva, abacaxi,
-#            melao, kiwi, pera, pessego, mirtilo, acai
+# REGRA DE FALHA: Se arroz, frango, peixe ou azeite aparecerem em lanches ou café, 
+#                 a saída é INVÁLIDA e deve ser regenerada.
 
 MEAL_RULES = {
     "cafe_da_manha": {
-        "proteins": {"ovos", "iogurte_grego", "cottage"},  # Removido: claras
-        "carbs": {"aveia", "pao_integral"},  # Removido: pao, tapioca
-        "fats": set(),  # PROIBIDO gorduras adicionadas
-        "fruits": True,  # Frutas ativas permitidas
-        "description": "Refeição leve: proteínas leves + carboidratos leves + frutas"
+        # PERMITIDOS: Ovos, Cottage, Iogurte Grego + Aveia, Pão Integral + Frutas
+        "proteins": {"ovos", "iogurte_grego", "cottage"},
+        "carbs": {"aveia", "pao_integral"},
+        "fats": set(),  # PROIBIDO: azeite, óleos, gorduras
+        "fruits": True,
+        # PROIBIDOS: Arroz, Feijão, Lentilha, Macarrão, Frango, Peixe, Carne, Peru, Azeite
+        "description": "Café da manhã: proteínas leves + aveia/pão + frutas"
     },
     "lanche": {
-        "proteins": {"iogurte_grego", "cottage"},
-        "carbs": set(),  # PROIBIDO carboidratos complexos
-        "fats": {"castanhas", "amendoas"},  # Removido: nozes
+        # PERMITIDOS: Frutas + Cottage, Iogurte Grego + Castanhas, Amêndoas
+        "proteins": {"iogurte_grego", "cottage"},  # OVOS PROIBIDOS em lanches!
+        "carbs": set(),  # PROIBIDO: Arroz, Aveia, Pão, Batatas, Massas
+        "fats": {"castanhas", "amendoas"},  # PROIBIDO: Pasta de Amendoim, Queijo
         "fruits": True,
-        "description": "Lanche leve: frutas + iogurte/cottage + oleaginosas"
+        # PROIBIDOS: Frango, Peixe, Carne, Peru, Ovos, Azeite, Pasta de Amendoim, Queijo
+        "description": "Lanche leve: frutas + iogurte/cottage + castanhas/amêndoas"
     },
     "almoco_jantar": {
-        "proteins": {"frango", "patinho", "ovos", "tilapia", "atum", "salmao", "peru"},
-        # Removidos: coxa_frango, carne_moida, suino, claras, camarao, sardinha, tofu
+        # OBRIGATÓRIO: Exatamente 1 proteína + Exatamente 1 carboidrato
+        "proteins": {"frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos"},
         "carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata",
                   "macarrao", "feijao", "lentilha"},
-        # Removidos: quinoa, cuscuz, milho, grao_de_bico
-        "fats": {"azeite"},  # APENAS azeite permitido
+        "fats": {"azeite"},  # PERMITIDO: apenas azeite
         "fruits": False,
-        "description": "Refeição completa: 1 proteína + 1 carboidrato + legumes"
+        # PROIBIDO: Mais de 1 proteína, Mais de 1 carboidrato
+        "description": "Refeição completa: EXATAMENTE 1 proteína + 1 carboidrato + azeite"
     },
     "ceia": {
-        "proteins": {"ovos", "iogurte_grego", "cottage"},  # Removido: claras
-        "carbs": set(),  # PROIBIDO carboidratos complexos
-        "fats": set(),  # PROIBIDO gorduras adicionadas
+        # PERMITIDOS: Cottage, Iogurte Grego, Ovos + Frutas
+        "proteins": {"ovos", "iogurte_grego", "cottage"},
+        "carbs": set(),  # PROIBIDO: Arroz, Batatas, Massas, Leguminosas
+        "fats": set(),  # PROIBIDO: Azeite, gorduras
         "fruits": True,
-        "description": "Refeição leve noturna: proteína leve + frutas"
+        # PROIBIDOS: Frango, Peixe, Carne
+        "description": "Ceia leve: proteína leve + frutas"
     }
 }
 
