@@ -520,124 +520,309 @@ def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
     }
 
 
+# ==================== REGRAS POR REFEIÇÃO ====================
+
+# Alimentos PERMITIDOS por tipo de refeição
+MEAL_RULES = {
+    "cafe_da_manha": {
+        "proteins": {"ovos", "claras", "iogurte_grego", "cottage"},
+        "carbs": {"aveia", "pao", "pao_integral", "tapioca"},
+        "fats": set(),  # PROIBIDO gorduras adicionadas
+        "fruits": True,  # Todas as frutas permitidas
+        "description": "Refeição leve: proteínas leves + carboidratos leves + frutas"
+    },
+    "lanche": {
+        "proteins": {"iogurte_grego", "cottage"},
+        "carbs": set(),  # PROIBIDO carboidratos complexos
+        "fats": {"castanhas", "amendoas", "nozes"},  # Apenas oleaginosas
+        "fruits": True,
+        "description": "Lanche leve: frutas + iogurte/cottage + oleaginosas"
+    },
+    "almoco_jantar": {
+        "proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino",
+                     "ovos", "claras", "tilapia", "atum", "salmao", "camarao", 
+                     "sardinha", "peru", "tofu"},
+        "carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata",
+                  "macarrao", "quinoa", "cuscuz", "milho", "feijao", "lentilha", 
+                  "grao_de_bico"},
+        "fats": {"azeite"},  # APENAS azeite permitido
+        "fruits": False,
+        "description": "Refeição completa: 1 proteína + 1 carboidrato + legumes"
+    },
+    "ceia": {
+        "proteins": {"ovos", "iogurte_grego", "cottage"},
+        "carbs": set(),  # PROIBIDO carboidratos complexos
+        "fats": set(),  # PROIBIDO gorduras adicionadas
+        "fruits": True,
+        "description": "Refeição leve noturna: proteína leve + frutas"
+    }
+}
+
+
+def get_allowed_foods(meal_type: str, preferred: Set[str], restrictions: List[str], category: str) -> List[str]:
+    """
+    Retorna alimentos PERMITIDOS para uma refeição específica.
+    Respeita: regras da refeição + preferências do usuário + restrições.
+    """
+    rules = MEAL_RULES.get(meal_type, MEAL_RULES["almoco_jantar"])
+    
+    if category == "fruit":
+        # Frutas: se permitido, retorna todas as frutas disponíveis
+        if rules.get("fruits"):
+            all_fruits = [k for k, v in FOODS.items() if v["category"] == "fruit"]
+            available = [f for f in all_fruits if f in preferred] if preferred else all_fruits
+            return list(filter_by_restrictions(set(available), restrictions))
+        return []
+    
+    # Para outras categorias, usa a whitelist da refeição
+    allowed_in_meal = rules.get(f"{category}s", set())
+    
+    if not allowed_in_meal:
+        return []
+    
+    # Intersecção: permitido na refeição + existe no banco + preferência do usuário
+    available = []
+    for food_key in allowed_in_meal:
+        if food_key in FOODS:
+            if not preferred or food_key in preferred:
+                available.append(food_key)
+    
+    return list(filter_by_restrictions(set(available), restrictions))
+
+
+def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str], 
+                     category: str, priority: List[str], exclude: Set[str] = None) -> Optional[str]:
+    """
+    Seleciona o melhor alimento respeitando as regras da refeição.
+    """
+    available = get_allowed_foods(meal_type, preferred, restrictions, category)
+    
+    if exclude:
+        available = [f for f in available if f not in exclude]
+    
+    if not available:
+        return None
+    
+    # Segue prioridade se possível
+    for p in priority:
+        if p in available:
+            return p
+    
+    return available[0]
+
+
 # ==================== GERAÇÃO DE DIETA ====================
 
 def generate_diet(target_p: int, target_c: int, target_f: int,
                   preferred: Set[str], restrictions: List[str]) -> List[Dict]:
     """
-    Gera dieta usando APENAS alimentos selecionados pelo usuário.
-    Distribui em 5 refeições balanceadas.
+    Gera dieta em 6 REFEIÇÕES seguindo regras rígidas por tipo de refeição.
+    
+    REGRAS OBRIGATÓRIAS:
+    ☀️ Café da Manhã: proteínas leves + carbs leves + frutas (SEM carnes, SEM azeite)
+    🍎 Lanches: frutas + iogurte/cottage + oleaginosas (SEM carnes, SEM azeite)
+    🍽️ Almoço/Jantar: EXATAMENTE 1 proteína + 1 carboidrato + azeite
+    🌙 Ceia: proteína leve + frutas (SEM carbs complexos)
     """
-    # Seleciona alimentos principais
+    
+    # Prioridades por categoria
     protein_priority = ["frango", "patinho", "tilapia", "atum", "salmao", "ovos", "peru"]
-    carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "aveia", "macarrao"]
-    fat_priority = ["azeite", "pasta_amendoim", "castanhas", "amendoas"]
-    fruit_priority = ["banana", "maca", "laranja", "mamao", "morango"]
-    
-    main_protein = select_food(preferred, "protein", restrictions, protein_priority)
-    main_carb = select_food(preferred, "carb", restrictions, carb_priority)
-    main_fat = select_food(preferred, "fat", restrictions, fat_priority)
-    main_fruit = select_food(preferred, "fruit", restrictions, fruit_priority)
-    
-    # Proteína alternativa
-    alt_proteins = get_available_by_category(preferred, "protein", restrictions)
-    alt_protein = main_protein
-    for p in alt_proteins:
-        if p != main_protein:
-            alt_protein = p
-            break
-    
-    # Carb alternativo
-    alt_carbs = get_available_by_category(preferred, "carb", restrictions)
-    alt_carb = main_carb
-    for c in alt_carbs:
-        if c != main_carb:
-            alt_carb = c
-            break
+    light_protein_priority = ["ovos", "iogurte_grego", "cottage", "claras"]
+    carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", "feijao"]
+    light_carb_priority = ["aveia", "pao_integral", "tapioca"]
+    fat_priority = ["castanhas", "amendoas", "pasta_amendoim"]
+    fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia"]
     
     meals = []
     
-    # ===== CAFÉ DA MANHÃ (20% P, 25% C, 30% F) =====
-    cafe_p = target_p * 0.20
-    cafe_c = target_c * 0.25
-    cafe_f = target_f * 0.30
+    # ==================== ☀️ CAFÉ DA MANHÃ (15% P, 20% C, 10% F) ====================
+    # PERMITIDO: ovos/iogurte/cottage + aveia/pão + frutas
+    # PROIBIDO: carnes, arroz, batata, azeite
     
-    breakfast_protein = "ovos" if "ovos" in preferred or not preferred else main_protein
-    breakfast_carb = "aveia" if ("aveia" in preferred or not preferred) and "Sem Glúten" not in restrictions else alt_carb
+    cafe_p = target_p * 0.15
+    cafe_c = target_c * 0.20
     
-    p_grams = clamp(cafe_p / (FOODS[breakfast_protein]["p"] / 100), 80, 200)
-    c_grams = clamp(cafe_c * 0.5 / max(FOODS[breakfast_carb]["c"] / 100, 0.1), 30, 100)
-    fruit_grams = clamp(cafe_c * 0.4 / max(FOODS[main_fruit]["c"] / 100, 0.1), 50, 150)
+    breakfast_protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority)
+    breakfast_carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
+    breakfast_fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
     
-    cafe_foods = [
-        calc_food(breakfast_protein, p_grams),
-        calc_food(breakfast_carb, c_grams),
-        calc_food(main_fruit, fruit_grams),
-    ]
-    meals.append({"name": "Café da Manhã", "time": "07:00", "foods": [f for f in cafe_foods if f]})
+    cafe_foods = []
     
-    # ===== LANCHE MANHÃ (10% P, 10% C, 15% F) =====
+    if breakfast_protein and breakfast_protein in FOODS:
+        p_grams = clamp(cafe_p / (FOODS[breakfast_protein]["p"] / 100), 80, 200)
+        cafe_foods.append(calc_food(breakfast_protein, p_grams))
+    
+    if breakfast_carb and breakfast_carb in FOODS:
+        c_grams = clamp(cafe_c * 0.6 / max(FOODS[breakfast_carb]["c"] / 100, 0.1), 30, 80)
+        cafe_foods.append(calc_food(breakfast_carb, c_grams))
+    
+    if breakfast_fruit and breakfast_fruit in FOODS:
+        fruit_grams = clamp(cafe_c * 0.4 / max(FOODS[breakfast_fruit]["c"] / 100, 0.1), 80, 150)
+        cafe_foods.append(calc_food(breakfast_fruit, fruit_grams))
+    
+    # Fallback se vazio
+    if not cafe_foods:
+        cafe_foods = [calc_food("ovos", 100), calc_food("aveia", 40), calc_food("banana", 100)]
+    
+    meals.append({"name": "Café da Manhã", "time": "07:00", "foods": cafe_foods})
+    
+    # ==================== 🍎 LANCHE MANHÃ (5% P, 10% C, 15% F) ====================
+    # PERMITIDO: frutas + iogurte/cottage + oleaginosas
+    # PROIBIDO: carnes, arroz, batata, azeite
+    
     lanche1_c = target_c * 0.10
     lanche1_f = target_f * 0.15
     
-    snack_carb = main_fruit
-    fat_grams = clamp(lanche1_f / max(FOODS[main_fat]["f"] / 100, 0.1), 10, 40)
-    snack_grams = clamp(lanche1_c / max(FOODS[snack_carb]["c"] / 100, 0.1), 50, 150)
+    snack_fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
+    snack_fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority)
     
-    lanche1_foods = [
-        calc_food(snack_carb, snack_grams),
-        calc_food(main_fat, fat_grams),
-    ]
-    meals.append({"name": "Lanche Manhã", "time": "10:00", "foods": [f for f in lanche1_foods if f]})
+    lanche1_foods = []
     
-    # ===== ALMOÇO (30% P, 30% C, 25% F) =====
+    if snack_fruit and snack_fruit in FOODS:
+        fruit_grams = clamp(lanche1_c / max(FOODS[snack_fruit]["c"] / 100, 0.1), 100, 200)
+        lanche1_foods.append(calc_food(snack_fruit, fruit_grams))
+    
+    if snack_fat and snack_fat in FOODS:
+        fat_grams = clamp(lanche1_f / max(FOODS[snack_fat]["f"] / 100, 0.1), 15, 40)
+        lanche1_foods.append(calc_food(snack_fat, fat_grams))
+    
+    if not lanche1_foods:
+        lanche1_foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
+    
+    meals.append({"name": "Lanche Manhã", "time": "10:00", "foods": lanche1_foods})
+    
+    # ==================== 🍽️ ALMOÇO (30% P, 30% C, 30% F) ====================
+    # OBRIGATÓRIO: EXATAMENTE 1 proteína + 1 carboidrato + legumes
+    # PERMITIDO: azeite
+    
     almoco_p = target_p * 0.30
     almoco_c = target_c * 0.30
-    almoco_f = target_f * 0.25
+    almoco_f = target_f * 0.30
     
-    protein_grams = clamp(almoco_p / (FOODS[main_protein]["p"] / 100), 100, 350)
-    carb_grams = clamp(almoco_c * 0.9 / max(FOODS[main_carb]["c"] / 100, 0.1), 100, 400)
-    azeite_grams = clamp(almoco_f * 0.4 / 1.0, 5, 20)
+    lunch_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
+    lunch_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
     
-    almoco_foods = [
-        calc_food(main_protein, protein_grams),
-        calc_food(main_carb, carb_grams),
-        calc_food("salada", 100),
-        calc_food("azeite", azeite_grams),
-    ]
-    meals.append({"name": "Almoço", "time": "12:30", "foods": [f for f in almoco_foods if f]})
+    almoco_foods = []
     
-    # ===== LANCHE TARDE (15% P, 20% C, 10% F) =====
-    lanche2_p = target_p * 0.15
-    lanche2_c = target_c * 0.20
+    if lunch_protein and lunch_protein in FOODS:
+        protein_grams = clamp(almoco_p / (FOODS[lunch_protein]["p"] / 100), 120, 300)
+        almoco_foods.append(calc_food(lunch_protein, protein_grams))
+    else:
+        almoco_foods.append(calc_food("frango", 150))
     
-    pre_carb = "batata_doce" if ("batata_doce" in preferred or not preferred) else alt_carb
+    if lunch_carb and lunch_carb in FOODS:
+        carb_grams = clamp(almoco_c / max(FOODS[lunch_carb]["c"] / 100, 0.1), 100, 300)
+        almoco_foods.append(calc_food(lunch_carb, carb_grams))
+    else:
+        almoco_foods.append(calc_food("arroz_branco", 150))
     
-    batata_grams = clamp(lanche2_c / max(FOODS[pre_carb]["c"] / 100, 0.1), 100, 400)
-    protein2_grams = clamp(lanche2_p / (FOODS[main_protein]["p"] / 100), 80, 200)
+    # Legumes (implícito) + Azeite
+    almoco_foods.append(calc_food("salada", 100))
     
-    lanche2_foods = [
-        calc_food(pre_carb, batata_grams),
-        calc_food(main_protein, protein2_grams),
-    ]
-    meals.append({"name": "Lanche Tarde", "time": "16:00", "foods": [f for f in lanche2_foods if f]})
+    if "azeite" in preferred or not preferred:
+        azeite_grams = clamp(almoco_f * 0.3 / 1.0, 10, 20)
+        almoco_foods.append(calc_food("azeite", azeite_grams))
     
-    # ===== JANTAR (25% P, 15% C, 20% F) =====
-    jantar_p = target_p * 0.25
-    jantar_c = target_c * 0.15
-    jantar_f = target_f * 0.20
+    meals.append({"name": "Almoço", "time": "12:30", "foods": almoco_foods})
     
-    protein3_grams = clamp(jantar_p / (FOODS[alt_protein]["p"] / 100), 100, 300)
-    carb2_grams = clamp(jantar_c / max(FOODS[main_carb]["c"] / 100, 0.1), 80, 250)
-    azeite2_grams = clamp(jantar_f * 0.35 / 1.0, 5, 15)
+    # ==================== 🍎 LANCHE TARDE (5% P, 10% C, 15% F) ====================
+    # PERMITIDO: frutas + iogurte/cottage + oleaginosas
+    # PROIBIDO: carnes, arroz, batata, azeite
     
-    jantar_foods = [
-        calc_food(alt_protein, protein3_grams),
-        calc_food(main_carb, carb2_grams),
-        calc_food("brocolis", 100),
-        calc_food("azeite", azeite2_grams),
-    ]
-    meals.append({"name": "Jantar", "time": "19:30", "foods": [f for f in jantar_foods if f]})
+    lanche2_c = target_c * 0.10
+    lanche2_f = target_f * 0.15
+    lanche2_p = target_p * 0.05
+    
+    # Usar fruta diferente se possível
+    used_fruits = {snack_fruit} if snack_fruit else set()
+    snack2_fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority, exclude=used_fruits)
+    if not snack2_fruit:
+        snack2_fruit = snack_fruit
+    
+    snack_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority)
+    
+    lanche2_foods = []
+    
+    if snack2_fruit and snack2_fruit in FOODS:
+        fruit_grams = clamp(lanche2_c / max(FOODS[snack2_fruit]["c"] / 100, 0.1), 100, 200)
+        lanche2_foods.append(calc_food(snack2_fruit, fruit_grams))
+    
+    if snack_protein and snack_protein in FOODS:
+        protein_grams = clamp(lanche2_p / max(FOODS[snack_protein]["p"] / 100, 0.1), 100, 170)
+        lanche2_foods.append(calc_food(snack_protein, protein_grams))
+    
+    if not lanche2_foods:
+        lanche2_foods = [calc_food("maca", 150), calc_food("iogurte_grego", 170)]
+    
+    meals.append({"name": "Lanche Tarde", "time": "16:00", "foods": lanche2_foods})
+    
+    # ==================== 🍽️ JANTAR (30% P, 25% C, 25% F) ====================
+    # OBRIGATÓRIO: EXATAMENTE 1 proteína + 1 carboidrato + legumes
+    # PERMITIDO: azeite
+    
+    jantar_p = target_p * 0.30
+    jantar_c = target_c * 0.25
+    jantar_f = target_f * 0.25
+    
+    # Usar proteína/carb diferente se possível
+    used_proteins = {lunch_protein} if lunch_protein else set()
+    used_carbs = {lunch_carb} if lunch_carb else set()
+    
+    dinner_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority, exclude=used_proteins)
+    if not dinner_protein:
+        dinner_protein = lunch_protein
+    
+    dinner_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority, exclude=used_carbs)
+    if not dinner_carb:
+        dinner_carb = lunch_carb
+    
+    jantar_foods = []
+    
+    if dinner_protein and dinner_protein in FOODS:
+        protein_grams = clamp(jantar_p / (FOODS[dinner_protein]["p"] / 100), 120, 250)
+        jantar_foods.append(calc_food(dinner_protein, protein_grams))
+    else:
+        jantar_foods.append(calc_food("tilapia", 150))
+    
+    if dinner_carb and dinner_carb in FOODS:
+        carb_grams = clamp(jantar_c / max(FOODS[dinner_carb]["c"] / 100, 0.1), 80, 250)
+        jantar_foods.append(calc_food(dinner_carb, carb_grams))
+    else:
+        jantar_foods.append(calc_food("arroz_integral", 120))
+    
+    # Legumes + Azeite
+    jantar_foods.append(calc_food("brocolis", 100))
+    
+    if "azeite" in preferred or not preferred:
+        azeite_grams = clamp(jantar_f * 0.25 / 1.0, 8, 15)
+        jantar_foods.append(calc_food("azeite", azeite_grams))
+    
+    meals.append({"name": "Jantar", "time": "19:30", "foods": jantar_foods})
+    
+    # ==================== 🌙 CEIA (15% P, 5% C, 5% F) ====================
+    # PERMITIDO: ovos/iogurte/cottage + frutas
+    # PROIBIDO: carnes, carboidratos complexos, gorduras adicionadas
+    
+    ceia_p = target_p * 0.15
+    ceia_c = target_c * 0.05
+    
+    ceia_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority)
+    ceia_fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
+    
+    ceia_foods = []
+    
+    if ceia_protein and ceia_protein in FOODS:
+        protein_grams = clamp(ceia_p / max(FOODS[ceia_protein]["p"] / 100, 0.1), 100, 200)
+        ceia_foods.append(calc_food(ceia_protein, protein_grams))
+    
+    if ceia_fruit and ceia_fruit in FOODS:
+        fruit_grams = clamp(ceia_c / max(FOODS[ceia_fruit]["c"] / 100, 0.1), 80, 150)
+        ceia_foods.append(calc_food(ceia_fruit, fruit_grams))
+    
+    if not ceia_foods:
+        ceia_foods = [calc_food("cottage", 100), calc_food("morango", 100)]
+    
+    meals.append({"name": "Ceia", "time": "21:30", "foods": ceia_foods})
     
     return meals
 
