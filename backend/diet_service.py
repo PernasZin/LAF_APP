@@ -725,12 +725,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     meals.append({"name": "Almoço", "time": "12:30", "foods": almoco_foods})
     
-    # ==================== 🍎 LANCHE TARDE (5% P, 10% C, 15% F) ====================
+    # ==================== 🍎 LANCHE TARDE (5% P, 10% C) ====================
     # PERMITIDO: frutas + iogurte/cottage + oleaginosas
     # PROIBIDO: carnes, arroz, batata, azeite
     
     lanche2_c = target_c * 0.10
-    lanche2_f = target_f * 0.15
     lanche2_p = target_p * 0.05
     
     # Usar fruta diferente se possível
