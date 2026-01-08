@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Modal, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Props {
   data: any;
@@ -8,6 +9,8 @@ interface Props {
 }
 
 export default function GoalStep({ data, updateData }: Props) {
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  
   const goals = [
     {
       value: 'cutting',
@@ -34,10 +37,65 @@ export default function GoalStep({ data, updateData }: Props) {
       value: 'atleta',
       label: 'Atleta/Competição',
       icon: 'trophy' as any,
-      desc: 'Performance máxima',
+      desc: 'Preparação automática até o campeonato',
       color: '#F59E0B',
     },
   ];
+
+  const handleGoalSelect = (goalValue: string) => {
+    updateData({ goal: goalValue });
+    // Se selecionou atleta, não precisa mais de campos extras
+    // A data será selecionada abaixo
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    
+    if (selectedDate) {
+      // Formata para ISO string (YYYY-MM-DD)
+      const isoDate = selectedDate.toISOString().split('T')[0];
+      updateData({ athlete_competition_date: isoDate });
+    }
+  };
+
+  const formatDateDisplay = (dateStr: string) => {
+    if (!dateStr) return 'Selecionar data';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const getWeeksToCompetition = (dateStr: string) => {
+    if (!dateStr) return null;
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = date.getTime() - now.getTime();
+    const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
+    return weeks > 0 ? weeks : 0;
+  };
+
+  const getPhaseFromWeeks = (weeks: number | null) => {
+    if (weeks === null) return null;
+    if (weeks > 20) return { phase: 'OFF-SEASON', color: '#10B981' };
+    if (weeks >= 16) return { phase: 'PRÉ-PREP', color: '#3B82F6' };
+    if (weeks >= 8) return { phase: 'PREP', color: '#F59E0B' };
+    if (weeks >= 1) return { phase: 'PEAK WEEK', color: '#EF4444' };
+    return { phase: 'PÓS-SHOW', color: '#8B5CF6' };
+  };
+
+  const weeks = getWeeksToCompetition(data.athlete_competition_date);
+  const phaseInfo = getPhaseFromWeeks(weeks);
+
+  // Data mínima: hoje
+  const minDate = new Date();
+  // Data máxima: 2 anos no futuro
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 2);
 
   return (
     <View style={styles.container}>
@@ -54,7 +112,7 @@ export default function GoalStep({ data, updateData }: Props) {
               styles.goalCard,
               data.goal === goal.value && styles.goalCardActive,
             ]}
-            onPress={() => updateData({ goal: goal.value })}
+            onPress={() => handleGoalSelect(goal.value)}
             activeOpacity={0.7}
           >
             <View
@@ -86,6 +144,87 @@ export default function GoalStep({ data, updateData }: Props) {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Campo de Data do Campeonato - APENAS para Atleta */}
+      {data.goal === 'atleta' && (
+        <View style={styles.athleteSection}>
+          <View style={styles.divider} />
+          
+          <Text style={styles.athleteTitle}>
+            <Ionicons name="calendar" size={20} color="#F59E0B" /> Data do Campeonato
+          </Text>
+          <Text style={styles.athleteDesc}>
+            Informe a data e o sistema controlará sua preparação automaticamente.
+          </Text>
+
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
+            <Text style={styles.dateButtonText}>
+              {formatDateDisplay(data.athlete_competition_date)}
+            </Text>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </TouchableOpacity>
+
+          {/* Mostra informação de fase calculada */}
+          {data.athlete_competition_date && weeks !== null && phaseInfo && (
+            <View style={styles.phaseInfoContainer}>
+              <View style={[styles.phaseBadge, { backgroundColor: phaseInfo.color + '20' }]}>
+                <Text style={[styles.phaseBadgeText, { color: phaseInfo.color }]}>
+                  {phaseInfo.phase}
+                </Text>
+              </View>
+              <Text style={styles.weeksText}>
+                {weeks > 0 ? `${weeks} semanas até o campeonato` : 'Campeonato passou'}
+              </Text>
+            </View>
+          )}
+
+          {/* Date Picker Modal para iOS */}
+          {Platform.OS === 'ios' && showDatePicker && (
+            <Modal
+              transparent
+              animationType="slide"
+              visible={showDatePicker}
+              onRequestClose={() => setShowDatePicker(false)}
+            >
+              <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Data do Campeonato</Text>
+                    <Pressable onPress={() => setShowDatePicker(false)}>
+                      <Text style={styles.modalDone}>OK</Text>
+                    </Pressable>
+                  </View>
+                  <DateTimePicker
+                    value={data.athlete_competition_date ? new Date(data.athlete_competition_date) : new Date()}
+                    mode="date"
+                    display="spinner"
+                    onChange={handleDateChange}
+                    minimumDate={minDate}
+                    maximumDate={maxDate}
+                    locale="pt-BR"
+                  />
+                </View>
+              </View>
+            </Modal>
+          )}
+
+          {/* Date Picker inline para Android */}
+          {Platform.OS === 'android' && showDatePicker && (
+            <DateTimePicker
+              value={data.athlete_competition_date ? new Date(data.athlete_competition_date) : new Date()}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              minimumDate={minDate}
+              maximumDate={maxDate}
+            />
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -145,5 +284,92 @@ const styles = StyleSheet.create({
   goalDesc: {
     fontSize: 14,
     color: '#9CA3AF',
+  },
+  // Athlete Section
+  athleteSection: {
+    marginTop: 24,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 24,
+  },
+  athleteTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  athleteDesc: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    backgroundColor: '#FFFBEB',
+    gap: 12,
+  },
+  dateButtonText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#92400E',
+  },
+  // Phase Info
+  phaseInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 12,
+  },
+  phaseBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  phaseBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  weeksText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  modalDone: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#F59E0B',
   },
 });
