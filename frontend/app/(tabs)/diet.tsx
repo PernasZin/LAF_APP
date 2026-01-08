@@ -506,7 +506,9 @@ function MealCard({ meal, mealIndex, colors, onFoodPress }: any) {
                 <View style={[cardStyles.foodCategoryDot, { backgroundColor: CATEGORY_COLORS[food.category] || '#9CA3AF' }]} />
                 <View style={cardStyles.foodTextContainer}>
                   <Text style={[cardStyles.foodName, { color: colors.text }]}>{food.name}</Text>
-                  <Text style={[cardStyles.foodQuantity, { color: colors.textSecondary }]}>{food.quantity}</Text>
+                  <Text style={[cardStyles.foodQuantity, { color: colors.textSecondary }]}>
+                    {food.quantity_display || food.quantity}
+                  </Text>
                 </View>
               </View>
               <View style={cardStyles.foodRight}>
