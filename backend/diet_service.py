@@ -521,36 +521,39 @@ def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
 
 
 # ==================== REGRAS POR REFEIÇÃO ====================
+# IMPORTANTE: Usar APENAS alimentos ATIVOS no sistema
+# Removidos: tofu, coxa_frango, carne_moida, suino, claras, camarao, sardinha,
+#            quinoa, cuscuz, tapioca, milho, grao_de_bico, pasta_amendoa, oleo_coco,
+#            manteiga, nozes, chia, linhaca, cream_cheese, abacate, uva, abacaxi,
+#            melao, kiwi, pera, pessego, mirtilo, acai
 
-# Alimentos PERMITIDOS por tipo de refeição
 MEAL_RULES = {
     "cafe_da_manha": {
-        "proteins": {"ovos", "claras", "iogurte_grego", "cottage"},
-        "carbs": {"aveia", "pao", "pao_integral", "tapioca"},
+        "proteins": {"ovos", "iogurte_grego", "cottage"},  # Removido: claras
+        "carbs": {"aveia", "pao_integral"},  # Removido: pao, tapioca
         "fats": set(),  # PROIBIDO gorduras adicionadas
-        "fruits": True,  # Todas as frutas permitidas
+        "fruits": True,  # Frutas ativas permitidas
         "description": "Refeição leve: proteínas leves + carboidratos leves + frutas"
     },
     "lanche": {
         "proteins": {"iogurte_grego", "cottage"},
         "carbs": set(),  # PROIBIDO carboidratos complexos
-        "fats": {"castanhas", "amendoas", "nozes"},  # Apenas oleaginosas
+        "fats": {"castanhas", "amendoas"},  # Removido: nozes
         "fruits": True,
         "description": "Lanche leve: frutas + iogurte/cottage + oleaginosas"
     },
     "almoco_jantar": {
-        "proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino",
-                     "ovos", "claras", "tilapia", "atum", "salmao", "camarao", 
-                     "sardinha", "peru", "tofu"},
+        "proteins": {"frango", "patinho", "ovos", "tilapia", "atum", "salmao", "peru"},
+        # Removidos: coxa_frango, carne_moida, suino, claras, camarao, sardinha, tofu
         "carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata",
-                  "macarrao", "quinoa", "cuscuz", "milho", "feijao", "lentilha", 
-                  "grao_de_bico"},
+                  "macarrao", "feijao", "lentilha"},
+        # Removidos: quinoa, cuscuz, milho, grao_de_bico
         "fats": {"azeite"},  # APENAS azeite permitido
         "fruits": False,
         "description": "Refeição completa: 1 proteína + 1 carboidrato + legumes"
     },
     "ceia": {
-        "proteins": {"ovos", "iogurte_grego", "cottage"},
+        "proteins": {"ovos", "iogurte_grego", "cottage"},  # Removido: claras
         "carbs": set(),  # PROIBIDO carboidratos complexos
         "fats": set(),  # PROIBIDO gorduras adicionadas
         "fruits": True,
