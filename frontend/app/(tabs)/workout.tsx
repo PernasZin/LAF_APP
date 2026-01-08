@@ -191,9 +191,40 @@ export default function WorkoutScreen() {
         if (selectedExercise && selectedDayIndex === dayIndex && selectedExerciseIndex === exerciseIndex) {
           setSelectedExercise({ ...selectedExercise, completed: completed });
         }
+        
+        // Verifica se o dia foi completado para salvar no histórico
+        const day = updatedWorkout.workout_days[dayIndex];
+        const allCompleted = day.exercises?.every((ex: any) => ex.completed);
+        
+        if (allCompleted && completed) {
+          // Salva no histórico automaticamente
+          saveToHistory(day);
+          successFeedback();
+          showSuccess(`${day.name} concluído! 🎉`);
+        }
       }
     } catch (error) {
       console.error('Erro ao atualizar exercício:', error);
+    }
+  };
+
+  // Salvar treino no histórico
+  const saveToHistory = async (day: any) => {
+    if (!userId || !BACKEND_URL) return;
+    
+    try {
+      await safeFetch(`${BACKEND_URL}/api/workout/history/${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workout_day_name: `${day.name} - ${day.day}`,
+          exercises_completed: day.exercises?.length || 0,
+          total_exercises: day.exercises?.length || 0,
+          duration_minutes: day.duration || null
+        })
+      });
+    } catch (error) {
+      console.log('Could not save to history');
     }
   };
 
