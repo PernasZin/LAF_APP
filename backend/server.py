@@ -375,9 +375,6 @@ def derive_phase_from_weeks(weeks: int) -> str:
     else:
         return "post_show"
 
-# Importa Tuple se não estiver disponível
-from typing import Tuple
-
 # ==================== ROUTES ====================
 
 @api_router.post("/user/profile", response_model=UserProfile)
