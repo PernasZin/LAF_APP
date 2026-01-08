@@ -1,513 +1,478 @@
 #!/usr/bin/env python3
 """
-Teste do Endpoint de Geração de Dieta - Validação das Novas Regras por Refeição
-==============================================================================
+Teste Rigoroso do Endpoint POST /api/diet/generate
+=================================================
 
-OBJETIVO: Testar POST /api/diet/generate para verificar se as novas regras por refeição estão funcionando corretamente.
+OBJETIVO: Validar REGRAS RÍGIDAS por tipo de refeição conforme especificação.
 
-REGRAS QUE DEVEM SER VALIDADAS:
+REGRA DE FALHA CRÍTICA:
+Se arroz, frango, peixe ou azeite aparecerem em lanches ou café, a saída é INVÁLIDA!
 
-1. **Café da Manhã (07:00)**:
-   - DEVE conter: ovos/claras/iogurte/cottage + aveia/pão/tapioca + frutas
-   - NÃO PODE conter: carnes (frango, carne, peixe), arroz, batata, azeite
+VALIDAÇÕES OBRIGATÓRIAS:
 
-2. **Lanche Manhã (10:00)**:
-   - DEVE conter: frutas + oleaginosas (castanhas/amêndoas)
-   - NÃO PODE conter: carnes, arroz, batata, azeite
+☀️ CAFÉ DA MANHÃ (índice 0):
+- DEVE conter APENAS: Ovos OU Cottage OU Iogurte Grego
+- DEVE conter: Aveia OU Pão Integral
+- PODE conter: Frutas
+- NÃO PODE conter: Arroz, Feijão, Frango, Peixe, Carne, Peru, Azeite
 
-3. **Almoço (12:30)**:
-   - DEVE conter: EXATAMENTE 1 proteína (carne/frango/peixe) + 1 carboidrato (arroz/batata) + legumes + azeite
-   - NÃO PODE ter mais de 1 proteína ou mais de 1 carboidrato principal
+🍎 LANCHE MANHÃ (índice 1):
+- DEVE conter: Frutas
+- PODE conter: Castanhas, Amêndoas
+- NÃO PODE conter: Arroz, Aveia, Pão, Batatas, Frango, Peixe, Carne, Peru, OVOS, Azeite, Pasta de Amendoim, Queijo
 
-4. **Lanche Tarde (16:00)**:
-   - DEVE conter: frutas + iogurte/cottage
-   - NÃO PODE conter: carnes, arroz, batata, azeite
+🍽️ ALMOÇO (índice 2):
+- DEVE conter: EXATAMENTE 1 proteína (Frango, Patinho, Peixe, Peru)
+- DEVE conter: EXATAMENTE 1 carboidrato (Arroz, Batata, Macarrão, Feijão, Lentilha)
+- PODE conter: Azeite, Legumes
 
-5. **Jantar (19:30)**:
-   - DEVE conter: EXATAMENTE 1 proteína + 1 carboidrato + legumes + azeite
-   - NÃO PODE ter mais de 1 proteína ou mais de 1 carboidrato principal
+🍎 LANCHE TARDE (índice 3):
+- DEVE conter: Frutas
+- PODE conter: Iogurte Grego OU Cottage, Castanhas, Amêndoas
+- NÃO PODE conter: Arroz, Aveia, Pão, Batatas, Frango, Peixe, Carne, Peru, OVOS, Azeite, Pasta de Amendoim
 
-6. **Ceia (21:30)** - NOVA REFEIÇÃO:
-   - DEVE conter: proteína leve (ovos/iogurte/cottage) + frutas
-   - NÃO PODE conter: carnes, carboidratos complexos, gorduras adicionadas
+🍽️ JANTAR (índice 4):
+- DEVE conter: EXATAMENTE 1 proteína
+- DEVE conter: EXATAMENTE 1 carboidrato
+- PODE conter: Azeite, Legumes
 
-TESTE:
-1. Criar usuário com perfil completo
-2. Gerar dieta
-3. Validar cada refeição contra as regras acima
-4. Verificar que existem 6 refeições no total
-5. Verificar que a Ceia existe e tem os alimentos corretos
+🌙 CEIA (índice 5):
+- DEVE conter: Cottage OU Iogurte Grego OU Ovos
+- PODE conter: Frutas
+- NÃO PODE conter: Arroz, Batatas, Massas, Frango, Peixe, Carne, Azeite
 """
 
 import requests
 import json
 import sys
-import os
-from datetime import datetime
-from typing import Dict, List, Set
+from typing import Dict, List, Any, Set
 
-# Configuração da URL do backend
-BACKEND_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://athlete-phase.preview.emergentagent.com')
-API_BASE = f"{BACKEND_URL}/api"
+# Configuração da API
+BASE_URL = "https://athlete-phase.preview.emergentagent.com/api"
 
-# Cores para output
-class Colors:
-    GREEN = '\033[92m'
-    RED = '\033[91m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    BOLD = '\033[1m'
-    END = '\033[0m'
+# Mapeamento de alimentos para categorias e validação
+FOOD_CATEGORIES = {
+    # PROTEÍNAS PRINCIPAIS (permitidas em almoço/jantar)
+    "frango": "main_protein",
+    "patinho": "main_protein", 
+    "tilapia": "main_protein",
+    "atum": "main_protein",
+    "salmao": "main_protein",
+    "peru": "main_protein",
+    "carne_moida": "main_protein",
+    
+    # PROTEÍNAS LEVES (permitidas em café/ceia/lanches)
+    "ovos": "light_protein",
+    "cottage": "light_protein",
+    "iogurte_grego": "light_protein",
+    
+    # CARBOIDRATOS PRINCIPAIS (permitidos em almoço/jantar)
+    "arroz_branco": "main_carb",
+    "arroz_integral": "main_carb",
+    "batata_doce": "main_carb",
+    "batata": "main_carb",
+    "macarrao": "main_carb",
+    "feijao": "main_carb",
+    "lentilha": "main_carb",
+    
+    # CARBOIDRATOS LEVES (permitidos apenas no café)
+    "aveia": "light_carb",
+    "pao_integral": "light_carb",
+    
+    # GORDURAS
+    "azeite": "fat",
+    "pasta_amendoim": "fat",
+    "castanhas": "fat",
+    "amendoas": "fat",
+    "queijo": "fat",
+    
+    # FRUTAS
+    "banana": "fruit",
+    "maca": "fruit",
+    "laranja": "fruit",
+    "morango": "fruit",
+    "mamao": "fruit",
+    "melancia": "fruit",
+    
+    # VEGETAIS
+    "salada": "vegetable",
+    "brocolis": "vegetable"
+}
 
-def print_success(msg):
-    print(f"{Colors.GREEN}✅ {msg}{Colors.END}")
-
-def print_error(msg):
-    print(f"{Colors.RED}❌ {msg}{Colors.END}")
-
-def print_warning(msg):
-    print(f"{Colors.YELLOW}⚠️  {msg}{Colors.END}")
-
-def print_info(msg):
-    print(f"{Colors.BLUE}ℹ️  {msg}{Colors.END}")
-
-def print_header(msg):
-    print(f"\n{Colors.BOLD}{Colors.BLUE}{'='*60}")
-    print(f"{msg}")
-    print(f"{'='*60}{Colors.END}")
-
-# Definições das regras por refeição
-MEAL_RULES = {
-    "Café da Manhã": {
-        "time": "07:00",
-        "allowed_proteins": {"ovos", "claras", "iogurte_grego", "cottage"},
-        "allowed_carbs": {"aveia", "pao", "pao_integral", "tapioca"},
-        "forbidden_proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
-        "forbidden_carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata"},
-        "forbidden_fats": {"azeite"},
-        "must_have_fruits": True,
-        "description": "Proteínas leves + carboidratos leves + frutas"
+# Alimentos PROIBIDOS por tipo de refeição
+FORBIDDEN_FOODS = {
+    "cafe_da_manha": {
+        "arroz_branco", "arroz_integral", "feijao", "lentilha", "macarrao",
+        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
+        "azeite", "batata_doce", "batata"
     },
-    "Lanche Manhã": {
-        "time": "10:00", 
-        "allowed_fats": {"castanhas", "amendoas", "nozes", "pasta_amendoim"},
-        "forbidden_proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
-        "forbidden_carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata"},
-        "forbidden_fats": {"azeite"},
-        "must_have_fruits": True,
-        "description": "Frutas + oleaginosas"
+    "lanche_manha": {
+        "arroz_branco", "arroz_integral", "aveia", "pao_integral", "batata_doce", "batata",
+        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
+        "ovos", "azeite", "pasta_amendoim", "queijo", "feijao", "lentilha", "macarrao"
     },
-    "Almoço": {
-        "time": "12:30",
-        "allowed_proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", "tilapia", "atum", "salmao", "camarao", "sardinha", "peru", "ovos", "claras", "tofu"},
-        "allowed_carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", "quinoa", "cuscuz", "milho", "feijao", "lentilha", "grao_de_bico"},
-        "allowed_fats": {"azeite"},
-        "max_proteins": 1,
-        "max_carbs": 1,
-        "must_have_vegetables": True,
-        "description": "EXATAMENTE 1 proteína + 1 carboidrato + legumes + azeite"
+    "lanche_tarde": {
+        "arroz_branco", "arroz_integral", "aveia", "pao_integral", "batata_doce", "batata",
+        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
+        "ovos", "azeite", "pasta_amendoim", "feijao", "lentilha", "macarrao"
     },
-    "Lanche Tarde": {
-        "time": "16:00",
-        "allowed_proteins": {"iogurte_grego", "cottage"},
-        "forbidden_proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
-        "forbidden_carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata"},
-        "forbidden_fats": {"azeite"},
-        "must_have_fruits": True,
-        "description": "Frutas + iogurte/cottage"
-    },
-    "Jantar": {
-        "time": "19:30",
-        "allowed_proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", "tilapia", "atum", "salmao", "camarao", "sardinha", "peru", "ovos", "claras", "tofu"},
-        "allowed_carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", "quinoa", "cuscuz", "milho", "feijao", "lentilha", "grao_de_bico"},
-        "allowed_fats": {"azeite"},
-        "max_proteins": 1,
-        "max_carbs": 1,
-        "must_have_vegetables": True,
-        "description": "EXATAMENTE 1 proteína + 1 carboidrato + legumes + azeite"
-    },
-    "Ceia": {
-        "time": "21:30",
-        "allowed_proteins": {"ovos", "iogurte_grego", "cottage"},
-        "forbidden_proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
-        "forbidden_carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", "quinoa", "cuscuz", "milho", "feijao", "lentilha", "grao_de_bico"},
-        "forbidden_fats": {"azeite", "castanhas", "amendoas", "nozes", "pasta_amendoim"},
-        "must_have_fruits": True,
-        "description": "Proteína leve + frutas (SEM carbs complexos, SEM gorduras adicionadas)"
+    "ceia": {
+        "arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao",
+        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
+        "azeite", "feijao", "lentilha"
     }
 }
 
-# Categorias de alimentos
-FOOD_CATEGORIES = {
-    # Proteínas
-    "frango": "protein", "coxa_frango": "protein", "patinho": "protein", "carne_moida": "protein", 
-    "suino": "protein", "ovos": "protein", "claras": "protein", "tilapia": "protein", 
-    "atum": "protein", "salmao": "protein", "camarao": "protein", "sardinha": "protein", 
-    "peru": "protein", "cottage": "protein", "iogurte_grego": "protein", "tofu": "protein",
-    
-    # Carboidratos
-    "arroz_branco": "carb", "arroz_integral": "carb", "batata_doce": "carb", "batata": "carb",
-    "aveia": "carb", "macarrao": "carb", "pao": "carb", "pao_integral": "carb", 
-    "quinoa": "carb", "cuscuz": "carb", "tapioca": "carb", "milho": "carb", 
-    "feijao": "carb", "lentilha": "carb", "grao_de_bico": "carb",
-    
-    # Gorduras
-    "azeite": "fat", "pasta_amendoim": "fat", "pasta_amendoa": "fat", "oleo_coco": "fat",
-    "manteiga": "fat", "castanhas": "fat", "amendoas": "fat", "nozes": "fat", 
-    "chia": "fat", "linhaca": "fat", "queijo": "fat", "cream_cheese": "fat",
-    
-    # Frutas
-    "banana": "fruit", "maca": "fruit", "laranja": "fruit", "morango": "fruit",
-    "mamao": "fruit", "manga": "fruit", "melancia": "fruit", "abacate": "fruit",
-    "uva": "fruit", "abacaxi": "fruit", "melao": "fruit", "kiwi": "fruit",
-    "pera": "fruit", "pessego": "fruit", "mirtilo": "fruit", "acai": "fruit",
-    
-    # Vegetais
-    "salada": "vegetable", "brocolis": "vegetable"
+# Alimentos OBRIGATÓRIOS por tipo de refeição
+REQUIRED_FOODS = {
+    "cafe_da_manha": {
+        "proteins": {"ovos", "cottage", "iogurte_grego"},  # APENAS UM destes
+        "carbs": {"aveia", "pao_integral"}  # APENAS UM destes
+    },
+    "lanche_manha": {
+        "fruits": True  # DEVE ter frutas
+    },
+    "almoco": {
+        "main_proteins": 1,  # EXATAMENTE 1 proteína principal
+        "main_carbs": 1      # EXATAMENTE 1 carboidrato principal
+    },
+    "lanche_tarde": {
+        "fruits": True  # DEVE ter frutas
+    },
+    "jantar": {
+        "main_proteins": 1,  # EXATAMENTE 1 proteína principal
+        "main_carbs": 1      # EXATAMENTE 1 carboidrato principal
+    },
+    "ceia": {
+        "proteins": {"ovos", "cottage", "iogurte_grego"}  # APENAS UM destes
+    }
 }
 
-def create_test_user() -> Dict:
-    """Cria um usuário de teste com perfil completo"""
-    print_info("Criando usuário de teste...")
+def normalize_food_name(food_name: str) -> str:
+    """Normaliza nome do alimento para chave padrão"""
+    # Remove acentos e converte para minúsculo
+    name = food_name.lower().strip()
     
-    # Dados do usuário para teste
+    # Mapeamentos comuns
+    mappings = {
+        "peito de frango": "frango",
+        "frango grelhado": "frango",
+        "patinho (carne magra)": "patinho",
+        "carne magra": "patinho",
+        "ovos inteiros": "ovos",
+        "queijo cottage": "cottage",
+        "iogurte grego": "iogurte_grego",
+        "arroz branco": "arroz_branco",
+        "arroz integral": "arroz_integral",
+        "batata doce": "batata_doce",
+        "batata inglesa": "batata",
+        "pão integral": "pao_integral",
+        "azeite de oliva": "azeite",
+        "pasta de amendoim": "pasta_amendoim",
+        "salada verde": "salada",
+        "brócolis": "brocolis",
+        "maçã": "maca"
+    }
+    
+    return mappings.get(name, name.replace(" ", "_").replace("ã", "a").replace("ç", "c"))
+
+def create_test_user() -> str:
+    """Cria usuário de teste com perfil completo"""
+    print("🔧 Criando usuário de teste...")
+    
+    # Dados realistas para teste
     user_data = {
-        "id": f"test_user_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        "name": "João Silva",
-        "age": 30,
+        "id": "test_diet_rules_user_001",
+        "name": "Carlos Silva",
+        "age": 28,
         "sex": "masculino",
         "height": 175.0,
         "weight": 80.0,
         "target_weight": 75.0,
         "body_fat_percentage": 15.0,
         "training_level": "intermediario",
-        "weekly_training_frequency": 4,
+        "weekly_training_frequency": 5,
         "available_time_per_session": 60,
         "goal": "cutting",
         "dietary_restrictions": [],
         "food_preferences": [
-            # Proteínas
-            "frango", "ovos", "iogurte_grego", "cottage", "tilapia", "atum",
-            # Carboidratos
-            "arroz_branco", "arroz_integral", "batata_doce", "aveia", "pao_integral", "tapioca",
-            # Gorduras
-            "azeite", "castanhas", "amendoas",
-            # Frutas
-            "banana", "maca", "laranja", "morango", "mamao",
-            # Vegetais
-            "salada", "brocolis"
-        ],
-        "injury_history": []
+            "frango", "patinho", "tilapia", "ovos", "cottage", "iogurte_grego",
+            "arroz_branco", "arroz_integral", "batata_doce", "aveia", "pao_integral",
+            "azeite", "castanhas", "amendoas", "banana", "maca", "laranja", "morango"
+        ]
     }
     
     try:
-        response = requests.post(f"{API_BASE}/user/profile", json=user_data, timeout=30)
-        
+        response = requests.post(f"{BASE_URL}/user/profile", json=user_data, timeout=30)
         if response.status_code == 200:
-            profile = response.json()
-            print_success(f"Usuário criado: {profile['id']}")
-            print_info(f"TDEE: {profile['tdee']}kcal, Target: {profile['target_calories']}kcal")
-            print_info(f"Macros: P{profile['macros']['protein']}g C{profile['macros']['carbs']}g F{profile['macros']['fat']}g")
-            return profile
+            print(f"✅ Usuário criado: {user_data['id']}")
+            return user_data['id']
         else:
-            print_error(f"Erro ao criar usuário: {response.status_code} - {response.text}")
+            print(f"❌ Erro ao criar usuário: {response.status_code} - {response.text}")
             return None
-            
     except Exception as e:
-        print_error(f"Erro na requisição: {e}")
+        print(f"❌ Erro de conexão ao criar usuário: {e}")
         return None
 
 def generate_diet(user_id: str) -> Dict:
     """Gera dieta para o usuário"""
-    print_info(f"Gerando dieta para usuário {user_id}...")
+    print(f"🍽️ Gerando dieta para usuário {user_id}...")
     
     try:
-        response = requests.post(f"{API_BASE}/diet/generate?user_id={user_id}", timeout=60)
-        
+        response = requests.post(f"{BASE_URL}/diet/generate", params={"user_id": user_id}, timeout=60)
         if response.status_code == 200:
-            diet = response.json()
-            print_success("Dieta gerada com sucesso!")
-            print_info(f"Total de refeições: {len(diet['meals'])}")
-            print_info(f"Calorias computadas: {diet['computed_calories']}kcal")
-            print_info(f"Macros computados: P{diet['computed_macros']['protein']}g C{diet['computed_macros']['carbs']}g F{diet['computed_macros']['fat']}g")
-            return diet
+            diet_data = response.json()
+            print(f"✅ Dieta gerada com sucesso")
+            return diet_data
         else:
-            print_error(f"Erro ao gerar dieta: {response.status_code} - {response.text}")
+            print(f"❌ Erro ao gerar dieta: {response.status_code} - {response.text}")
             return None
-            
     except Exception as e:
-        print_error(f"Erro na requisição: {e}")
+        print(f"❌ Erro de conexão ao gerar dieta: {e}")
         return None
 
-def get_food_category(food_key: str) -> str:
-    """Retorna a categoria de um alimento"""
-    return FOOD_CATEGORIES.get(food_key, "unknown")
-
-def validate_meal_rules(meal: Dict, meal_name: str) -> List[str]:
-    """Valida se uma refeição segue as regras definidas"""
+def validate_meal_structure(diet_data: Dict) -> List[str]:
+    """Valida estrutura básica da dieta"""
     errors = []
     
-    if meal_name not in MEAL_RULES:
-        errors.append(f"Refeição '{meal_name}' não reconhecida")
+    # Verifica se tem campo meals
+    if "meals" not in diet_data:
+        errors.append("❌ CRÍTICO: Campo 'meals' não encontrado na resposta")
         return errors
     
-    rules = MEAL_RULES[meal_name]
-    foods = meal.get("foods", [])
+    meals = diet_data["meals"]
     
-    # Contadores por categoria
-    proteins = []
-    carbs = []
-    fats = []
-    fruits = []
-    vegetables = []
+    # Verifica se tem exatamente 6 refeições
+    if len(meals) != 6:
+        errors.append(f"❌ CRÍTICO: Esperado 6 refeições, encontrado {len(meals)}")
+        return errors
     
-    # Classifica alimentos por categoria
-    for food in foods:
-        food_key = food.get("key", "")
-        category = get_food_category(food_key)
+    # Verifica estrutura de cada refeição
+    expected_meal_names = [
+        "Café da Manhã", "Lanche Manhã", "Almoço", 
+        "Lanche Tarde", "Jantar", "Ceia"
+    ]
+    
+    for i, meal in enumerate(meals):
+        if "name" not in meal:
+            errors.append(f"❌ Refeição {i}: Campo 'name' ausente")
+        elif meal["name"] not in expected_meal_names:
+            errors.append(f"⚠️ Refeição {i}: Nome inesperado '{meal['name']}'")
         
-        if category == "protein":
-            proteins.append(food_key)
-        elif category == "carb":
-            carbs.append(food_key)
-        elif category == "fat":
-            fats.append(food_key)
-        elif category == "fruit":
-            fruits.append(food_key)
-        elif category == "vegetable":
-            vegetables.append(food_key)
-    
-    # Valida proteínas permitidas
-    if "allowed_proteins" in rules:
-        for protein in proteins:
-            if protein not in rules["allowed_proteins"]:
-                errors.append(f"Proteína '{protein}' não permitida em {meal_name}")
-    
-    # Valida proteínas proibidas
-    if "forbidden_proteins" in rules:
-        for protein in proteins:
-            if protein in rules["forbidden_proteins"]:
-                errors.append(f"Proteína '{protein}' PROIBIDA em {meal_name}")
-    
-    # Valida carboidratos permitidos
-    if "allowed_carbs" in rules:
-        for carb in carbs:
-            if carb not in rules["allowed_carbs"]:
-                errors.append(f"Carboidrato '{carb}' não permitido em {meal_name}")
-    
-    # Valida carboidratos proibidos
-    if "forbidden_carbs" in rules:
-        for carb in carbs:
-            if carb in rules["forbidden_carbs"]:
-                errors.append(f"Carboidrato '{carb}' PROIBIDO em {meal_name}")
-    
-    # Valida gorduras permitidas
-    if "allowed_fats" in rules:
-        for fat in fats:
-            if fat not in rules["allowed_fats"]:
-                errors.append(f"Gordura '{fat}' não permitida em {meal_name}")
-    
-    # Valida gorduras proibidas
-    if "forbidden_fats" in rules:
-        for fat in fats:
-            if fat in rules["forbidden_fats"]:
-                errors.append(f"Gordura '{fat}' PROIBIDA em {meal_name}")
-    
-    # Valida máximo de proteínas
-    if "max_proteins" in rules:
-        if len(proteins) > rules["max_proteins"]:
-            errors.append(f"{meal_name} deve ter EXATAMENTE {rules['max_proteins']} proteína(s), encontradas: {len(proteins)} ({', '.join(proteins)})")
-    
-    # Valida máximo de carboidratos
-    if "max_carbs" in rules:
-        if len(carbs) > rules["max_carbs"]:
-            errors.append(f"{meal_name} deve ter EXATAMENTE {rules['max_carbs']} carboidrato(s), encontrados: {len(carbs)} ({', '.join(carbs)})")
-    
-    # Valida presença obrigatória de frutas
-    if rules.get("must_have_fruits", False):
-        if len(fruits) == 0:
-            errors.append(f"{meal_name} DEVE conter frutas")
-    
-    # Valida presença obrigatória de vegetais
-    if rules.get("must_have_vegetables", False):
-        if len(vegetables) == 0:
-            errors.append(f"{meal_name} DEVE conter legumes/vegetais")
+        if "foods" not in meal:
+            errors.append(f"❌ CRÍTICO: Refeição {i} ({meal.get('name', 'N/A')}): Campo 'foods' ausente")
+        elif len(meal["foods"]) == 0:
+            errors.append(f"❌ CRÍTICO: Refeição {i} ({meal.get('name', 'N/A')}): Lista de alimentos vazia")
     
     return errors
 
-def validate_diet_structure(diet: Dict) -> List[str]:
-    """Valida a estrutura geral da dieta"""
+def validate_forbidden_foods(meals: List[Dict]) -> List[str]:
+    """Valida REGRA CRÍTICA: alimentos proibidos por tipo de refeição"""
     errors = []
     
-    # Verifica se tem 6 refeições
-    meals = diet.get("meals", [])
-    if len(meals) != 6:
-        errors.append(f"Dieta deve ter EXATAMENTE 6 refeições, encontradas: {len(meals)}")
+    meal_types = ["cafe_da_manha", "lanche_manha", "almoco", "lanche_tarde", "jantar", "ceia"]
     
-    # Verifica se a Ceia existe
-    meal_names = [meal.get("name", "") for meal in meals]
-    if "Ceia" not in meal_names:
-        errors.append("NOVA REFEIÇÃO 'Ceia' não encontrada na dieta")
-    
-    # Verifica horários esperados
-    expected_times = ["07:00", "10:00", "12:30", "16:00", "19:30", "21:30"]
-    actual_times = [meal.get("time", "") for meal in meals]
-    
-    for i, expected_time in enumerate(expected_times):
-        if i < len(actual_times):
-            if actual_times[i] != expected_time:
-                errors.append(f"Refeição {i+1} deveria ser às {expected_time}, mas é às {actual_times[i]}")
-        else:
-            errors.append(f"Refeição {i+1} faltando (deveria ser às {expected_time})")
+    for i, meal in enumerate(meals):
+        if i >= len(meal_types):
+            continue
+            
+        meal_type = meal_types[i]
+        meal_name = meal.get("name", f"Refeição {i}")
+        foods = meal.get("foods", [])
+        
+        forbidden = FORBIDDEN_FOODS.get(meal_type, set())
+        
+        for food in foods:
+            food_name = food.get("name", "")
+            food_key = normalize_food_name(food_name)
+            
+            if food_key in forbidden:
+                errors.append(f"❌ CRÍTICO: {meal_name} contém alimento PROIBIDO: {food_name} ({food_key})")
+        
+        # REGRA ESPECIAL: Arroz, Frango, Peixe, Azeite em lanches ou café = INVÁLIDO
+        critical_forbidden = {"arroz_branco", "arroz_integral", "frango", "tilapia", "atum", "salmao", "azeite"}
+        
+        if meal_type in ["cafe_da_manha", "lanche_manha", "lanche_tarde"]:
+            for food in foods:
+                food_key = normalize_food_name(food.get("name", ""))
+                if food_key in critical_forbidden:
+                    errors.append(f"🚨 FALHA CRÍTICA: {meal_name} contém {food.get('name')} - SAÍDA INVÁLIDA!")
     
     return errors
 
-def print_meal_details(meal: Dict, meal_index: int):
-    """Imprime detalhes de uma refeição"""
-    meal_name = meal.get("name", f"Refeição {meal_index + 1}")
-    meal_time = meal.get("time", "??:??")
-    foods = meal.get("foods", [])
+def validate_required_foods(meals: List[Dict]) -> List[str]:
+    """Valida alimentos obrigatórios por tipo de refeição"""
+    errors = []
     
-    print(f"\n{Colors.BOLD}{meal_index + 1}. {meal_name} ({meal_time}){Colors.END}")
+    meal_types = ["cafe_da_manha", "lanche_manha", "almoco", "lanche_tarde", "jantar", "ceia"]
     
-    if not foods:
-        print_error("  Refeição VAZIA!")
-        return
-    
-    for food in foods:
-        name = food.get("name", "Alimento desconhecido")
-        quantity = food.get("quantity", "0g")
-        key = food.get("key", "")
-        category = get_food_category(key)
+    for i, meal in enumerate(meals):
+        if i >= len(meal_types):
+            continue
+            
+        meal_type = meal_types[i]
+        meal_name = meal.get("name", f"Refeição {i}")
+        foods = meal.get("foods", [])
         
-        # Cor por categoria
-        if category == "protein":
-            color = Colors.RED
-        elif category == "carb":
-            color = Colors.YELLOW
-        elif category == "fat":
-            color = Colors.BLUE
-        elif category == "fruit":
-            color = Colors.GREEN
-        else:
-            color = ""
+        # Extrai chaves dos alimentos presentes
+        present_foods = set()
+        main_proteins = 0
+        main_carbs = 0
+        has_fruits = False
         
-        print(f"  {color}• {name} - {quantity} [{category}]{Colors.END}")
+        for food in foods:
+            food_key = normalize_food_name(food.get("name", ""))
+            present_foods.add(food_key)
+            
+            # Conta proteínas e carboidratos principais
+            if food_key in FOOD_CATEGORIES:
+                category = FOOD_CATEGORIES[food_key]
+                if category == "main_protein":
+                    main_proteins += 1
+                elif category == "main_carb":
+                    main_carbs += 1
+                elif category == "fruit":
+                    has_fruits = True
+        
+        # Valida requisitos específicos por refeição
+        requirements = REQUIRED_FOODS.get(meal_type, {})
+        
+        if meal_type == "cafe_da_manha":
+            # DEVE ter proteína leve (ovos, cottage, iogurte)
+            required_proteins = requirements.get("proteins", set())
+            has_required_protein = any(p in present_foods for p in required_proteins)
+            if not has_required_protein:
+                errors.append(f"❌ {meal_name}: DEVE conter uma proteína leve: {', '.join(required_proteins)}")
+            
+            # DEVE ter carboidrato leve (aveia, pão integral)
+            required_carbs = requirements.get("carbs", set())
+            has_required_carb = any(c in present_foods for c in required_carbs)
+            if not has_required_carb:
+                errors.append(f"❌ {meal_name}: DEVE conter carboidrato leve: {', '.join(required_carbs)}")
+        
+        elif meal_type in ["lanche_manha", "lanche_tarde"]:
+            # DEVE ter frutas
+            if not has_fruits:
+                errors.append(f"❌ {meal_name}: DEVE conter frutas")
+        
+        elif meal_type in ["almoco", "jantar"]:
+            # DEVE ter EXATAMENTE 1 proteína principal
+            if main_proteins != 1:
+                errors.append(f"❌ {meal_name}: DEVE conter EXATAMENTE 1 proteína principal (encontrado: {main_proteins})")
+            
+            # DEVE ter EXATAMENTE 1 carboidrato principal
+            if main_carbs != 1:
+                errors.append(f"❌ {meal_name}: DEVE conter EXATAMENTE 1 carboidrato principal (encontrado: {main_carbs})")
+        
+        elif meal_type == "ceia":
+            # DEVE ter proteína leve (ovos, cottage, iogurte)
+            required_proteins = requirements.get("proteins", set())
+            has_required_protein = any(p in present_foods for p in required_proteins)
+            if not has_required_protein:
+                errors.append(f"❌ {meal_name}: DEVE conter uma proteína leve: {', '.join(required_proteins)}")
     
-    # Totais da refeição
-    total_cal = meal.get("total_calories", 0)
-    macros = meal.get("macros", {})
-    p = macros.get("protein", 0)
-    c = macros.get("carbs", 0)
-    f = macros.get("fat", 0)
-    
-    print(f"  📊 Total: {total_cal}kcal | P{p}g C{c}g F{f}g")
+    return errors
 
-def run_diet_validation_test():
-    """Executa o teste completo de validação da dieta"""
-    print_header("TESTE DE VALIDAÇÃO DAS REGRAS POR REFEIÇÃO")
-    print_info("Testando POST /api/diet/generate")
-    print_info(f"Backend URL: {BACKEND_URL}")
+def print_diet_summary(diet_data: Dict):
+    """Imprime resumo da dieta gerada"""
+    print("\n" + "="*60)
+    print("📋 RESUMO DA DIETA GERADA")
+    print("="*60)
+    
+    meals = diet_data.get("meals", [])
+    
+    for i, meal in enumerate(meals):
+        print(f"\n{i}. {meal.get('name', 'N/A')} ({meal.get('time', 'N/A')})")
+        foods = meal.get("foods", [])
+        
+        for food in foods:
+            name = food.get("name", "N/A")
+            quantity = food.get("quantity", "N/A")
+            calories = food.get("calories", 0)
+            protein = food.get("protein", 0)
+            carbs = food.get("carbs", 0)
+            fat = food.get("fat", 0)
+            
+            print(f"   • {name} - {quantity} ({calories}kcal, P:{protein}g, C:{carbs}g, G:{fat}g)")
+    
+    # Totais
+    computed_calories = diet_data.get("computed_calories", 0)
+    computed_macros = diet_data.get("computed_macros", {})
+    target_calories = diet_data.get("target_calories", 0)
+    target_macros = diet_data.get("target_macros", {})
+    
+    print(f"\n📊 TOTAIS COMPUTADOS:")
+    print(f"   Calorias: {computed_calories}kcal (Target: {target_calories}kcal)")
+    print(f"   Proteína: {computed_macros.get('protein', 0)}g (Target: {target_macros.get('protein', 0)}g)")
+    print(f"   Carboidratos: {computed_macros.get('carbs', 0)}g (Target: {target_macros.get('carbs', 0)}g)")
+    print(f"   Gordura: {computed_macros.get('fat', 0)}g (Target: {target_macros.get('fat', 0)}g)")
+
+def run_comprehensive_test():
+    """Executa teste completo das regras de refeição"""
+    print("🧪 INICIANDO TESTE RIGOROSO DO ENDPOINT /api/diet/generate")
+    print("="*70)
     
     # 1. Criar usuário de teste
-    print_header("1. CRIAÇÃO DO USUÁRIO DE TESTE")
-    user_profile = create_test_user()
-    if not user_profile:
-        print_error("Falha ao criar usuário. Abortando teste.")
+    user_id = create_test_user()
+    if not user_id:
+        print("❌ TESTE FALHOU: Não foi possível criar usuário")
         return False
     
     # 2. Gerar dieta
-    print_header("2. GERAÇÃO DA DIETA")
-    diet = generate_diet(user_profile["id"])
-    if not diet:
-        print_error("Falha ao gerar dieta. Abortando teste.")
+    diet_data = generate_diet(user_id)
+    if not diet_data:
+        print("❌ TESTE FALHOU: Não foi possível gerar dieta")
         return False
     
-    # 3. Validar estrutura geral
-    print_header("3. VALIDAÇÃO DA ESTRUTURA GERAL")
-    structure_errors = validate_diet_structure(diet)
+    # 3. Imprimir resumo da dieta
+    print_diet_summary(diet_data)
+    
+    # 4. Validar estrutura
+    print("\n🔍 VALIDANDO ESTRUTURA DA DIETA...")
+    structure_errors = validate_meal_structure(diet_data)
     
     if structure_errors:
-        print_error("Erros na estrutura da dieta:")
+        print("❌ ERROS DE ESTRUTURA:")
         for error in structure_errors:
-            print_error(f"  • {error}")
+            print(f"   {error}")
+        return False
     else:
-        print_success("Estrutura da dieta está correta!")
+        print("✅ Estrutura da dieta válida (6 refeições)")
     
-    # 4. Mostrar detalhes das refeições
-    print_header("4. DETALHES DAS REFEIÇÕES GERADAS")
-    meals = diet.get("meals", [])
+    # 5. Validar alimentos proibidos (REGRA CRÍTICA)
+    print("\n🚫 VALIDANDO ALIMENTOS PROIBIDOS...")
+    forbidden_errors = validate_forbidden_foods(diet_data["meals"])
     
-    for i, meal in enumerate(meals):
-        print_meal_details(meal, i)
-    
-    # 5. Validar regras por refeição
-    print_header("5. VALIDAÇÃO DAS REGRAS POR REFEIÇÃO")
-    
-    total_errors = 0
-    
-    for i, meal in enumerate(meals):
-        meal_name = meal.get("name", f"Refeição {i + 1}")
-        print(f"\n{Colors.BOLD}Validando {meal_name}:{Colors.END}")
-        
-        meal_errors = validate_meal_rules(meal, meal_name)
-        
-        if meal_errors:
-            total_errors += len(meal_errors)
-            print_error(f"  {len(meal_errors)} erro(s) encontrado(s):")
-            for error in meal_errors:
-                print_error(f"    • {error}")
-        else:
-            print_success(f"  {meal_name} está conforme as regras!")
-    
-    # 6. Resumo final
-    print_header("6. RESUMO FINAL")
-    
-    structure_ok = len(structure_errors) == 0
-    rules_ok = total_errors == 0
-    
-    print(f"📊 Estrutura da dieta: {'✅ OK' if structure_ok else '❌ ERRO'}")
-    print(f"📋 Regras por refeição: {'✅ OK' if rules_ok else f'❌ {total_errors} ERRO(S)'}")
-    print(f"🍽️  Total de refeições: {len(meals)}")
-    print(f"⏰ Ceia (21:30) presente: {'✅ SIM' if any(m.get('name') == 'Ceia' for m in meals) else '❌ NÃO'}")
-    
-    # Totais da dieta
-    target_cal = diet.get("target_calories", 0)
-    computed_cal = diet.get("computed_calories", 0)
-    target_macros = diet.get("target_macros", {})
-    computed_macros = diet.get("computed_macros", {})
-    
-    print(f"\n📈 MACROS:")
-    print(f"   Target:   {target_cal}kcal | P{target_macros.get('protein', 0)}g C{target_macros.get('carbs', 0)}g F{target_macros.get('fat', 0)}g")
-    print(f"   Computed: {computed_cal}kcal | P{computed_macros.get('protein', 0)}g C{computed_macros.get('carbs', 0)}g F{computed_macros.get('fat', 0)}g")
-    
-    cal_diff = abs(computed_cal - target_cal)
-    p_diff = abs(computed_macros.get('protein', 0) - target_macros.get('protein', 0))
-    c_diff = abs(computed_macros.get('carbs', 0) - target_macros.get('carbs', 0))
-    f_diff = abs(computed_macros.get('fat', 0) - target_macros.get('fat', 0))
-    
-    print(f"   Diferenças: Δ{cal_diff}kcal | ΔP{p_diff}g ΔC{c_diff}g ΔF{f_diff}g")
-    
-    # Resultado final
-    all_ok = structure_ok and rules_ok
-    
-    if all_ok:
-        print_success("\n🎉 TESTE PASSOU! Todas as regras por refeição estão funcionando corretamente.")
+    if forbidden_errors:
+        print("❌ VIOLAÇÕES DE REGRAS CRÍTICAS:")
+        for error in forbidden_errors:
+            print(f"   {error}")
+        return False
     else:
-        print_error(f"\n💥 TESTE FALHOU! {len(structure_errors) + total_errors} erro(s) encontrado(s).")
+        print("✅ Nenhum alimento proibido encontrado")
     
-    return all_ok
+    # 6. Validar alimentos obrigatórios
+    print("\n✅ VALIDANDO ALIMENTOS OBRIGATÓRIOS...")
+    required_errors = validate_required_foods(diet_data["meals"])
+    
+    if required_errors:
+        print("❌ ALIMENTOS OBRIGATÓRIOS AUSENTES:")
+        for error in required_errors:
+            print(f"   {error}")
+        return False
+    else:
+        print("✅ Todos os alimentos obrigatórios presentes")
+    
+    # 7. Resultado final
+    print("\n" + "="*70)
+    print("🎉 TESTE COMPLETO: TODAS AS REGRAS VALIDADAS COM SUCESSO!")
+    print("✅ Endpoint POST /api/diet/generate está funcionando corretamente")
+    print("✅ Regras rígidas por tipo de refeição respeitadas")
+    print("✅ Nenhuma violação crítica encontrada")
+    print("="*70)
+    
+    return True
 
 if __name__ == "__main__":
-    print(f"{Colors.BOLD}Teste de Validação das Regras por Refeição - LAF Diet System{Colors.END}")
-    print(f"Data/Hora: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
-    try:
-        success = run_diet_validation_test()
-        sys.exit(0 if success else 1)
-    except KeyboardInterrupt:
-        print_warning("\nTeste interrompido pelo usuário.")
-        sys.exit(1)
-    except Exception as e:
-        print_error(f"Erro inesperado: {e}")
-        sys.exit(1)
+    success = run_comprehensive_test()
+    sys.exit(0 if success else 1)
