@@ -29,6 +29,16 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
+// Meal type icons and colors
+const MEAL_CONFIG: Record<string, { icon: string; emoji: string; color: string }> = {
+  'Café da Manhã': { icon: 'sunny-outline', emoji: '☀️', color: '#F59E0B' },
+  'Lanche Manhã': { icon: 'cafe-outline', emoji: '🍎', color: '#10B981' },
+  'Almoço': { icon: 'restaurant-outline', emoji: '🍽️', color: '#3B82F6' },
+  'Lanche Tarde': { icon: 'nutrition-outline', emoji: '🍎', color: '#8B5CF6' },
+  'Jantar': { icon: 'moon-outline', emoji: '🌙', color: '#6366F1' },
+  'Ceia': { icon: 'bed-outline', emoji: '🌙', color: '#EC4899' },
+};
+
 // Category labels in Portuguese
 const CATEGORY_LABELS: Record<string, string> = {
   protein: 'Proteína',
