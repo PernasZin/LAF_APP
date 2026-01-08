@@ -780,14 +780,6 @@ class DietAIService:
             auto_completed=auto_completed,
             auto_complete_message=auto_message
         )
-            target_calories=target_cal_int,
-            target_macros={"protein": target_p, "carbs": target_c, "fat": target_f},
-            meals=final_meals,
-            computed_calories=total_cal,
-            computed_macros={"protein": total_p, "carbs": total_c, "fat": total_f},
-            supplements=supplements,
-            notes=f"Dieta: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | Múltiplos de 10g"
-        )
     
     def to_strict_json(self, diet_plan: DietPlan) -> Dict:
         """Converte para formato JSON estrito"""
