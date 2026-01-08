@@ -143,6 +143,16 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Athlete Phase Card - Só aparece para atletas */}
+        {profile.athlete_mode && (
+          <AthletePhaseCard 
+            phase={profile.competition_phase} 
+            weeksToCompetition={profile.weeks_to_competition}
+            competitionDate={profile.athlete_competition_date || profile.competition_date}
+            colors={colors}
+          />
+        )}
+
         {/* Macros */}
         <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>Distribuição de Macros</Text>
