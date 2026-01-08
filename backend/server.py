@@ -383,15 +383,10 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
     Cria ou atualiza perfil de usuário (IDEMPOTENT - usa upsert).
     Calcula TDEE e macros automaticamente.
     
-    REGRAS:
-    - Se profile_data.id fornecido: usa upsert (cria ou atualiza)
-    - Nunca cria duplicatas
-    - Backend é fonte de verdade para has_profile
-    
-    REGRAS PARA ATLETA:
-    - competition_phase é OBRIGATÓRIO
-    - weeks_to_competition é OBRIGATÓRIO
-    - Fases válidas: off_season, pre_prep, prep, peak_week, post_show
+    MODO ATLETA AUTOMÁTICO:
+    - Usuário informa apenas athlete_competition_date (data do campeonato)
+    - Sistema calcula automaticamente: fase, semanas, ajustes calóricos
+    - NÃO precisa informar competition_phase nem weeks_to_competition
     """
     # OBRIGATÓRIO: ID do usuário autenticado
     if not profile_data.id:
@@ -400,25 +395,57 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
             detail="Campo 'id' é obrigatório (ID do usuário autenticado)"
         )
     
-    # Validação: atleta requer fase de competição e semanas
+    # Cria perfil completo
+    profile_dict = profile_data.dict()
+    profile_dict["id"] = profile_data.id
+    
+    # ==================== MODO ATLETA AUTOMÁTICO ====================
+    competition_phase = None
+    weeks_to_competition = None
+    
     if profile_data.goal == "atleta":
-        if not profile_data.competition_phase:
-            raise HTTPException(
-                status_code=400, 
-                detail="Atletas devem especificar competition_phase: 'off_season', 'pre_prep', 'prep', 'peak_week' ou 'post_show'"
-            )
+        # Modo atleta ativado automaticamente
+        profile_dict["athlete_mode"] = True
         
-        if profile_data.competition_phase not in VALID_COMPETITION_PHASES:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Fase inválida. Use: {', '.join(VALID_COMPETITION_PHASES)}"
-            )
+        # Verifica se tem data do campeonato
+        comp_date = profile_data.athlete_competition_date or profile_data.competition_date
         
-        if profile_data.weeks_to_competition is None or profile_data.weeks_to_competition < 0:
-            raise HTTPException(
-                status_code=400,
-                detail="Atletas devem especificar weeks_to_competition (número de semanas até a competição)"
-            )
+        if comp_date:
+            try:
+                # Parse da data
+                if isinstance(comp_date, str):
+                    parsed_date = datetime.fromisoformat(comp_date.replace('Z', '+00:00'))
+                else:
+                    parsed_date = comp_date
+                
+                # Calcula fase e semanas AUTOMATICAMENTE
+                competition_phase, weeks_to_competition = derive_phase_from_date(parsed_date)
+                
+                profile_dict["athlete_competition_date"] = parsed_date
+                profile_dict["competition_date"] = parsed_date  # Alias
+                profile_dict["competition_phase"] = competition_phase
+                profile_dict["weeks_to_competition"] = weeks_to_competition
+                profile_dict["last_competition_phase"] = competition_phase
+                profile_dict["phase_start_date"] = datetime.utcnow()
+                
+                logger.info(f"MODO ATLETA: Data={parsed_date.date()}, Fase={competition_phase}, Semanas={weeks_to_competition}")
+                
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Erro ao parsear data de competição: {e}")
+                # Fallback: usa off_season se não conseguir parsear
+                competition_phase = "off_season"
+                weeks_to_competition = 24
+                profile_dict["competition_phase"] = competition_phase
+                profile_dict["weeks_to_competition"] = weeks_to_competition
+        else:
+            # Atleta sem data = off_season por padrão
+            competition_phase = "off_season"
+            weeks_to_competition = 24
+            profile_dict["competition_phase"] = competition_phase
+            profile_dict["weeks_to_competition"] = weeks_to_competition
+            logger.info("MODO ATLETA: Sem data de competição, usando off_season")
+    else:
+        profile_dict["athlete_mode"] = False
     
     # Calcula BMR
     bmr = calculate_bmr(
@@ -440,7 +467,7 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
         tdee=tdee,
         goal=profile_data.goal,
         weight=profile_data.weight,
-        competition_phase=profile_data.competition_phase
+        competition_phase=competition_phase
     )
     
     # Calcula macros (com fase se atleta)
@@ -448,24 +475,8 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
         target_calories=target_calories,
         weight=profile_data.weight,
         goal=profile_data.goal,
-        competition_phase=profile_data.competition_phase
+        competition_phase=competition_phase
     )
-    
-    # Cria perfil completo
-    profile_dict = profile_data.dict()
-    profile_dict["id"] = profile_data.id
-    
-    # Processa campos de atleta
-    if profile_data.goal == "atleta":
-        # Parse competition_date se fornecida
-        if profile_data.competition_date:
-            try:
-                profile_dict["competition_date"] = datetime.fromisoformat(profile_data.competition_date.replace('Z', '+00:00'))
-            except (ValueError, TypeError):
-                profile_dict["competition_date"] = None
-        
-        # Define phase_start_date
-        profile_dict["phase_start_date"] = datetime.utcnow()
     
     # Adiciona campos calculados
     profile_dict["tdee"] = round(tdee, 0)
