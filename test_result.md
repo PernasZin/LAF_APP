@@ -254,6 +254,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VALIDAÇÃO COMPLETA DAS REGRAS POR REFEIÇÃO - Testado POST /api/diet/generate com validação rigorosa das novas regras por refeição. RESULTADO: 100% SUCESSO. Validações: (1) ESTRUTURA: 6 refeições obrigatórias com horários corretos, (2) CEIA NOVA: Refeição Ceia (21:30) implementada corretamente, (3) REGRAS ESPECÍFICAS: Café da Manhã (ovos+aveia+frutas, SEM carnes/azeite), Lanches (frutas+oleaginosas, SEM carnes/azeite), Almoço/Jantar (EXATAMENTE 1 proteína+1 carb+legumes+azeite), Ceia (proteína leve+frutas, SEM carbs complexos/gorduras). Sistema V14 funcionando perfeitamente."
+      - working: true
+        agent: "testing"
+        comment: "🎯 TESTE RIGOROSO ESPECÍFICO CONCLUÍDO - Validação detalhada das REGRAS RÍGIDAS por tipo de refeição conforme especificação do usuário. RESULTADO: ✅ 100% APROVADO. Validações críticas: (1) REGRA DE FALHA: Confirmado que arroz, frango, peixe e azeite NÃO aparecem em lanches ou café, (2) CAFÉ DA MANHÃ: Contém APENAS ovos (200g) + aveia (50g) + banana (100g) - SEM alimentos proibidos, (3) LANCHES: Contêm frutas + oleaginosas (banana+castanhas, maçã+iogurte) - SEM carnes/azeite/ovos, (4) ALMOÇO/JANTAR: EXATAMENTE 1 proteína (frango 90g, patinho 190g) + 1 carboidrato (arroz branco 230g, arroz integral 250g) + azeite permitido, (5) CEIA: Ovos (200g) + banana (80g) - SEM carbs complexos/azeite. Estrutura: 6 refeições corretas, totais 2705kcal (P:174g, C:276g, G:99g). Sistema V14 respeitando todas as regras críticas perfeitamente."
 
 frontend:
   - task: "Welcome Screen"
