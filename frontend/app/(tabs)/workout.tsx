@@ -502,6 +502,77 @@ export default function WorkoutScreen() {
         </View>
       </Modal>
 
+      {/* History Modal */}
+      <Modal
+        visible={showHistoryModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowHistoryModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.historyModalContent, { backgroundColor: colors.background }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>📊 Histórico de Treinos</Text>
+              <TouchableOpacity onPress={() => setShowHistoryModal(false)}>
+                <Ionicons name="close" size={28} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            
+            {/* Stats Summary */}
+            {historyStats && (
+              <View style={[styles.historyStats, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: colors.primary }]}>{historyStats.total_workouts}</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Treinos</Text>
+                </View>
+                <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: colors.success }]}>{historyStats.total_exercises}</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Exercícios</Text>
+                </View>
+                <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+                <View style={styles.statItem}>
+                  <Text style={[styles.statValue, { color: colors.warning }]}>
+                    {historyStats.this_week_count}/{historyStats.target_frequency || '-'}
+                  </Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Esta Semana</Text>
+                </View>
+              </View>
+            )}
+            
+            <ScrollView style={styles.historyList} showsVerticalScrollIndicator={false}>
+              {loadingHistory ? (
+                <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 40 }} />
+              ) : workoutHistory.length === 0 ? (
+                <View style={styles.emptyHistory}>
+                  <Ionicons name="fitness-outline" size={48} color={colors.textTertiary} />
+                  <Text style={[styles.emptyHistoryText, { color: colors.textSecondary }]}>
+                    Nenhum treino registrado ainda
+                  </Text>
+                  <Text style={[styles.emptyHistoryHint, { color: colors.textTertiary }]}>
+                    Complete exercícios para ver seu histórico aqui
+                  </Text>
+                </View>
+              ) : (
+                workoutHistory.map((item, idx) => (
+                  <View key={item.id || idx} style={[styles.historyItem, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+                    <View style={[styles.historyIcon, { backgroundColor: colors.success + '20' }]}>
+                      <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+                    </View>
+                    <View style={styles.historyInfo}>
+                      <Text style={[styles.historyName, { color: colors.text }]}>{item.workout_day_name}</Text>
+                      <Text style={[styles.historyMeta, { color: colors.textSecondary }]}>
+                        {item.exercises_completed} exercícios • {formatHistoryDate(item.completed_at)}
+                      </Text>
+                    </View>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       {/* Toast notification */}
       <Toast
         visible={toast.visible}
