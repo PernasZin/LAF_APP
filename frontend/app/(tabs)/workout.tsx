@@ -350,6 +350,13 @@ export default function WorkoutScreen() {
             </Text>
           </View>
           <TouchableOpacity
+            style={[styles.historyButton, { backgroundColor: colors.success + '15' }]}
+            onPress={openHistoryModal}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="time-outline" size={20} color={colors.success} />
+          </TouchableOpacity>
+          <TouchableOpacity
             style={[styles.regenerateButton, { backgroundColor: colors.primary + '15' }]}
             onPress={generateWorkout}
             activeOpacity={0.7}
