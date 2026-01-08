@@ -971,20 +971,22 @@ def validate_and_fix_food(food: Dict, preferred: Set[str] = None) -> Dict:
 
 def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = None) -> Dict:
     """
-    ✅ Valida e corrige uma refeição.
+    ✅ Valida e corrige uma refeição seguindo as REGRAS POR TIPO.
     
     GARANTIAS:
     - Refeição NUNCA vazia
     - Todos alimentos válidos
+    - Respeita regras de cada tipo de refeição
     - Totais calculados corretamente
     """
-    # Meal names padrão
+    # Meal names padrão (6 refeições)
     default_meals = [
-        {"name": "Café da Manhã", "time": "07:00"},
-        {"name": "Lanche Manhã", "time": "10:00"},
-        {"name": "Almoço", "time": "12:30"},
-        {"name": "Lanche Tarde", "time": "16:00"},
-        {"name": "Jantar", "time": "19:30"}
+        {"name": "Café da Manhã", "time": "07:00", "type": "cafe_da_manha"},
+        {"name": "Lanche Manhã", "time": "10:00", "type": "lanche"},
+        {"name": "Almoço", "time": "12:30", "type": "almoco_jantar"},
+        {"name": "Lanche Tarde", "time": "16:00", "type": "lanche"},
+        {"name": "Jantar", "time": "19:30", "type": "almoco_jantar"},
+        {"name": "Ceia", "time": "21:30", "type": "ceia"}
     ]
     
     # Garante nome e horário
@@ -998,19 +1000,26 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     # Obtém lista de foods
     foods = meal.get("foods", [])
     
-    # Se refeição vazia, adiciona alimento padrão
+    # Se refeição vazia, adiciona alimento padrão SEGUINDO AS REGRAS
     if not foods or len(foods) == 0:
-        # Escolhe alimento padrão baseado no horário
-        if meal_index == 0:  # Café
-            foods = [calc_food("ovos", 100), calc_food("aveia", 50), calc_food("banana", 100)]
+        if meal_index == 0:  # Café da Manhã
+            # PERMITIDO: ovos, aveia, frutas | PROIBIDO: carnes, azeite
+            foods = [calc_food("ovos", 100), calc_food("aveia", 40), calc_food("banana", 100)]
         elif meal_index == 1:  # Lanche manhã
-            foods = [calc_food("maca", 150), calc_food("pasta_amendoim", 20)]
+            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite
+            foods = [calc_food("maca", 150), calc_food("castanhas", 20)]
         elif meal_index == 2:  # Almoço
-            foods = [calc_food("frango", 150), calc_food("arroz_branco", 150), calc_food("salada", 100)]
+            # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
+            foods = [calc_food("frango", 150), calc_food("arroz_branco", 150), calc_food("salada", 100), calc_food("azeite", 10)]
         elif meal_index == 3:  # Lanche tarde
-            foods = [calc_food("batata_doce", 150), calc_food("frango", 100)]
-        else:  # Jantar
-            foods = [calc_food("tilapia", 150), calc_food("arroz_branco", 100), calc_food("brocolis", 100)]
+            # PERMITIDO: frutas, iogurte | PROIBIDO: carnes, azeite
+            foods = [calc_food("laranja", 150), calc_food("iogurte_grego", 170)]
+        elif meal_index == 4:  # Jantar
+            # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
+            foods = [calc_food("tilapia", 150), calc_food("arroz_integral", 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
+        else:  # Ceia
+            # PERMITIDO: ovos/iogurte/cottage + frutas | PROIBIDO: carnes, carbs complexos
+            foods = [calc_food("cottage", 100), calc_food("morango", 100)]
     
     # Valida cada alimento
     validated_foods = []
