@@ -110,6 +110,9 @@ class UserProfileUpdate(BaseModel):
     body_fat_percentage: Optional[float] = None
     weekly_training_frequency: Optional[int] = None
     goal: Optional[str] = None
+    # Modo Atleta
+    athlete_competition_date: Optional[str] = None  # ISO date YYYY-MM-DD
+    # Campos legados (calculados automaticamente)
     competition_phase: Optional[str] = None
     weeks_to_competition: Optional[int] = None
     competition_date: Optional[str] = None
