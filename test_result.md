@@ -243,6 +243,18 @@ backend:
         agent: "testing"
         comment: "✅ VALIDADO: Frequência de treino funcionando perfeitamente. Teste Bulking 5x/semana → 5 treinos distintos (ABCDE). Teste Cutting 3x/semana → 3 treinos distintos (Push/Pull/Legs). Sistema usa fallback determinístico quando IA falha, garantindo frequência exata."
 
+  - task: "Diet Generation - Meal Rules Validation"
+    implemented: true
+    working: true
+    file: "/app/backend/diet_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ VALIDAÇÃO COMPLETA DAS REGRAS POR REFEIÇÃO - Testado POST /api/diet/generate com validação rigorosa das novas regras por refeição. RESULTADO: 100% SUCESSO. Validações: (1) ESTRUTURA: 6 refeições obrigatórias com horários corretos, (2) CEIA NOVA: Refeição Ceia (21:30) implementada corretamente, (3) REGRAS ESPECÍFICAS: Café da Manhã (ovos+aveia+frutas, SEM carnes/azeite), Lanches (frutas+oleaginosas, SEM carnes/azeite), Almoço/Jantar (EXATAMENTE 1 proteína+1 carb+legumes+azeite), Ceia (proteína leve+frutas, SEM carbs complexos/gorduras). Sistema V14 funcionando perfeitamente."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
