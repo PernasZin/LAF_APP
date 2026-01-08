@@ -1375,6 +1375,112 @@ async def reset_workout_progress(workout_id: str):
     
     return updated_workout
 
+
+# ==================== WORKOUT HISTORY ENDPOINTS ====================
+
+class WorkoutHistoryEntry(BaseModel):
+    """Modelo para entrada no histórico de treinos"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    workout_day_name: str  # "Treino A - Peito/Tríceps"
+    exercises_completed: int
+    total_exercises: int
+    duration_minutes: Optional[int] = None
+    notes: Optional[str] = None
+    completed_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class WorkoutHistoryCreate(BaseModel):
+    """Request para salvar treino no histórico"""
+    workout_day_name: str
+    exercises_completed: int
+    total_exercises: int
+    duration_minutes: Optional[int] = None
+    notes: Optional[str] = None
+
+
+@api_router.post("/workout/history/{user_id}")
+async def save_workout_to_history(user_id: str, entry: WorkoutHistoryCreate):
+    """
+    Salva um treino concluído no histórico.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Cria entrada no histórico
+    history_entry = WorkoutHistoryEntry(
+        user_id=user_id,
+        workout_day_name=entry.workout_day_name,
+        exercises_completed=entry.exercises_completed,
+        total_exercises=entry.total_exercises,
+        duration_minutes=entry.duration_minutes,
+        notes=entry.notes
+    )
+    
+    # Salva no banco
+    entry_dict = history_entry.dict()
+    entry_dict["_id"] = entry_dict["id"]
+    await db.workout_history.insert_one(entry_dict)
+    
+    logger.info(f"Workout saved to history for user {user_id}: {entry.workout_day_name}")
+    
+    return history_entry
+
+
+@api_router.get("/workout/history/{user_id}")
+async def get_workout_history(user_id: str, days: int = 30, limit: int = 50):
+    """
+    Retorna histórico de treinos do usuário.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca histórico dos últimos N dias
+    from_date = datetime.utcnow() - timedelta(days=days)
+    
+    history = await db.workout_history.find(
+        {"user_id": user_id, "completed_at": {"$gte": from_date}}
+    ).sort("completed_at", -1).to_list(length=limit)
+    
+    # Formata resposta
+    formatted_history = []
+    for h in history:
+        formatted_history.append({
+            "id": h["_id"],
+            "workout_day_name": h["workout_day_name"],
+            "exercises_completed": h["exercises_completed"],
+            "total_exercises": h["total_exercises"],
+            "duration_minutes": h.get("duration_minutes"),
+            "notes": h.get("notes"),
+            "completed_at": h["completed_at"].isoformat()
+        })
+    
+    # Estatísticas
+    total_workouts = len(formatted_history)
+    total_exercises = sum(h["exercises_completed"] for h in formatted_history)
+    
+    # Frequência por semana
+    this_week_count = 0
+    week_start = datetime.utcnow() - timedelta(days=datetime.utcnow().weekday())
+    for h in history:
+        if h["completed_at"] >= week_start:
+            this_week_count += 1
+    
+    return {
+        "user_id": user_id,
+        "history": formatted_history,
+        "stats": {
+            "total_workouts": total_workouts,
+            "total_exercises": total_exercises,
+            "this_week_count": this_week_count,
+            "target_frequency": user.get("weekly_training_frequency", 0)
+        }
+    }
+
 # ==================== SETTINGS ENDPOINTS ====================
 
 @api_router.get("/user/settings/{user_id}", response_model=UserSettings)
