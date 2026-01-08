@@ -156,22 +156,50 @@ export default function GoalStep({ data, updateData }: Props) {
           <View style={styles.divider} />
           
           <Text style={styles.athleteTitle}>
-            <Ionicons name="calendar" size={20} color="#F59E0B" /> Data do Campeonato
+            <Ionicons name="calendar" size={20} color="#F59E0B" /> Data do Campeonato (Opcional)
           </Text>
           <Text style={styles.athleteDesc}>
             Informe a data e o sistema controlará sua preparação automaticamente.
+            {'\n'}Se não informar, começará em OFF-SEASON.
           </Text>
 
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
-            <Text style={styles.dateButtonText}>
-              {formatDateDisplay(data.athlete_competition_date)}
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
+          {/* Input de Data - WEB */}
+          {Platform.OS === 'web' ? (
+            <View style={styles.webDateContainer}>
+              <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
+              <input
+                type="date"
+                value={data.athlete_competition_date || ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  updateData({ athlete_competition_date: value });
+                }}
+                min={new Date().toISOString().split('T')[0]}
+                max={new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: 16,
+                  fontWeight: '500',
+                  color: '#92400E',
+                  marginLeft: 12,
+                  outline: 'none',
+                }}
+              />
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
+              <Text style={styles.dateButtonText}>
+                {formatDateDisplay(data.athlete_competition_date)}
+              </Text>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </TouchableOpacity>
+          )}
 
           {/* Mostra informação de fase calculada */}
           {data.athlete_competition_date && weeks !== null && phaseInfo && (
@@ -188,7 +216,7 @@ export default function GoalStep({ data, updateData }: Props) {
           )}
 
           {/* Date Picker Modal para iOS */}
-          {Platform.OS === 'ios' && showDatePicker && (
+          {Platform.OS === 'ios' && showDatePicker && DateTimePicker && (
             <Modal
               transparent
               animationType="slide"
@@ -218,7 +246,7 @@ export default function GoalStep({ data, updateData }: Props) {
           )}
 
           {/* Date Picker inline para Android */}
-          {Platform.OS === 'android' && showDatePicker && (
+          {Platform.OS === 'android' && showDatePicker && DateTimePicker && (
             <DateTimePicker
               value={data.athlete_competition_date ? new Date(data.athlete_competition_date) : new Date()}
               mode="date"
