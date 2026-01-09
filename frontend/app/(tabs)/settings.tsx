@@ -328,13 +328,13 @@ export default function SettingsScreen() {
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Configurações</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t.settings.title}</Text>
           {saving && <ActivityIndicator size="small" color={colors.primary} />}
         </View>
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>CONTA</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.settings.account.toUpperCase()}</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             <TouchableOpacity style={styles.profileRow} onPress={navigateToEditProfile}>
               <View style={styles.profileInfo}>
@@ -352,14 +352,14 @@ export default function SettingsScreen() {
                     {profile?.name || 'Usuário'}
                   </Text>
                   <Text style={[styles.profileMeta, { color: colors.textSecondary }]}>
-                    {profile?.goal === 'bulking' ? 'Ganho de Massa' :
-                     profile?.goal === 'cutting' ? 'Perda de Gordura' :
-                     profile?.goal === 'atleta' ? 'Atleta/Competição' : 'Manutenção'}
+                    {profile?.goal === 'bulking' ? t.home.bulking :
+                     profile?.goal === 'cutting' ? t.home.cutting :
+                     profile?.goal === 'atleta' ? t.home.athlete : t.home.maintenance}
                   </Text>
                 </View>
               </View>
               <View style={styles.editProfileArrow}>
-                <Text style={[styles.editText, { color: colors.primary }]}>Editar</Text>
+                <Text style={[styles.editText, { color: colors.primary }]}>{t.settings.editProfile}</Text>
                 <Ionicons name="chevron-forward" size={20} color={colors.primary} />
               </View>
             </TouchableOpacity>
@@ -368,19 +368,19 @@ export default function SettingsScreen() {
             
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Ionicons name="log-out-outline" size={20} color={colors.error} />
-              <Text style={[styles.logoutText, { color: colors.error }]}>Sair da Conta</Text>
+              <Text style={[styles.logoutText, { color: colors.error }]}>{t.settings.logout}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Notifications Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>NOTIFICAÇÕES</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.settings.notifications.toUpperCase()}</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             <SettingToggle
               icon="notifications-outline"
-              label="Ativar Notificações"
-              description="Receba lembretes de refeições e treinos"
+              label={t.settings.enableNotifications}
+              description={t.settings.notificationsDesc}
               value={notificationsEnabled}
               onToggle={handleNotificationsToggle}
               colors={colors}
@@ -392,9 +392,9 @@ export default function SettingsScreen() {
               <View style={styles.legalItemContent}>
                 <Ionicons name="settings-outline" size={20} color={colors.primary} />
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.legalText, { color: colors.text }]}>Configurar Lembretes</Text>
+                  <Text style={[styles.legalText, { color: colors.text }]}>{t.settings.configureReminders}</Text>
                   <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                    Horários de refeições, treino e peso
+                    {t.settings.remindersDesc}
                   </Text>
                 </View>
               </View>
@@ -405,30 +405,30 @@ export default function SettingsScreen() {
 
         {/* Appearance Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>APARÊNCIA</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.settings.appearance.toUpperCase()}</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <Text style={[styles.settingLabel, { color: colors.text }]}>Tema</Text>
+            <Text style={[styles.settingLabel, { color: colors.text }]}>{t.settings.theme}</Text>
             <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-              Escolha como o app deve aparecer
+              {t.settings.themeDesc}
             </Text>
             
             <View style={styles.themeOptions}>
               <ThemeOption
-                label="Sistema"
+                label={t.settings.system}
                 icon="phone-portrait-outline"
                 selected={themePreference === 'system'}
                 onPress={() => handleThemeChange('system')}
                 colors={colors}
               />
               <ThemeOption
-                label="Claro"
+                label={t.settings.light}
                 icon="sunny-outline"
                 selected={themePreference === 'light'}
                 onPress={() => handleThemeChange('light')}
                 colors={colors}
               />
               <ThemeOption
-                label="Escuro"
+                label={t.settings.dark}
                 icon="moon-outline"
                 selected={themePreference === 'dark'}
                 onPress={() => handleThemeChange('dark')}
@@ -440,7 +440,7 @@ export default function SettingsScreen() {
 
         {/* Language Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>IDIOMA</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.settings.language.toUpperCase()}</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             {LANGUAGES.map((lang, index) => (
               <React.Fragment key={lang.value}>
@@ -457,55 +457,18 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Privacy Section */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>PRIVACIDADE E DADOS</Text>
-          <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <SettingToggle
-              icon="analytics-outline"
-              label="Analytics"
-              description="Permite coleta anônima de dados de uso para melhorar o app"
-              value={privacyAnalytics}
-              onToggle={(v: boolean) => handlePrivacyToggle('analytics', v)}
-              colors={colors}
-            />
-            
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            
-            <SettingToggle
-              icon="sparkles-outline"
-              label="Personalização com IA"
-              description="Usa IA para gerar dietas e treinos personalizados"
-              value={privacyPersonalization}
-              onToggle={(v: boolean) => handlePrivacyToggle('personalization', v)}
-              colors={colors}
-            />
-            
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            
-            <SettingToggle
-              icon="mail-outline"
-              label="Comunicações"
-              description="Receba emails com dicas e novidades"
-              value={privacyNotifications}
-              onToggle={(v: boolean) => handlePrivacyToggle('notifications', v)}
-              colors={colors}
-            />
-          </View>
-        </View>
-
         {/* Data Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>DADOS</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.settings.data.toUpperCase()}</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             
             <TouchableOpacity style={styles.legalItem} onPress={handleClearCache}>
               <View style={styles.legalItemContent}>
                 <Ionicons name="trash-outline" size={20} color={colors.warning} />
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.legalText, { color: colors.text }]}>Limpar Cache</Text>
+                  <Text style={[styles.legalText, { color: colors.text }]}>{t.settings.clearCache}</Text>
                   <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                    Remove dados em cache localmente
+                    {t.settings.clearCacheDesc}
                   </Text>
                 </View>
               </View>
@@ -516,12 +479,12 @@ export default function SettingsScreen() {
 
         {/* Legal Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>LEGAL</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.settings.legal.toUpperCase()}</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             <TouchableOpacity style={styles.legalItem} onPress={navigateToPrivacyPolicy}>
               <View style={styles.legalItemContent}>
                 <Ionicons name="shield-checkmark-outline" size={20} color={colors.primary} />
-                <Text style={[styles.legalText, { color: colors.text }]}>Política de Privacidade</Text>
+                <Text style={[styles.legalText, { color: colors.text }]}>{t.settings.privacy}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
             </TouchableOpacity>
@@ -531,7 +494,7 @@ export default function SettingsScreen() {
             <TouchableOpacity style={styles.legalItem} onPress={navigateToTerms}>
               <View style={styles.legalItemContent}>
                 <Ionicons name="document-text-outline" size={20} color={colors.primary} />
-                <Text style={[styles.legalText, { color: colors.text }]}>Termos de Uso</Text>
+                <Text style={[styles.legalText, { color: colors.text }]}>{t.settings.terms}</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
             </TouchableOpacity>
