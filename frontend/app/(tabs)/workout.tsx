@@ -411,7 +411,7 @@ export default function WorkoutScreen() {
           <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]} numberOfLines={2}>
-                {selectedExercise?.name}
+                {selectedExercise ? translateExercise(selectedExercise.name, language) : ''}
               </Text>
               <TouchableOpacity onPress={() => setShowExerciseModal(false)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -447,7 +447,7 @@ export default function WorkoutScreen() {
                     <Ionicons name="bulb-outline" size={20} color={colors.primary} />
                     <Text style={[styles.notesTitle, { color: colors.primary }]}>{t.workout.howToExecute}</Text>
                   </View>
-                  <Text style={[styles.notesText, { color: colors.text }]}>{selectedExercise.notes}</Text>
+                  <Text style={[styles.notesText, { color: colors.text }]}>{translateExerciseNotes(selectedExercise.notes, language)}</Text>
                 </View>
               )}
 
