@@ -47,6 +47,7 @@ const LANGUAGES: { value: LanguagePreference; label: string; flag: string }[] = 
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
