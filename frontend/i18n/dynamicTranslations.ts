@@ -407,11 +407,104 @@ export function translateWorkoutName(name: string, language: SupportedLanguage):
 export function translateExerciseNotes(notes: string, language: SupportedLanguage): string {
   if (!notes) return '';
   
-  // Tenta match exato
+  // Se português, retorna original
+  if (language === 'pt-BR') return notes;
+  
+  // Tenta match exato primeiro
   if (exerciseInstructionsTranslations[notes]?.[language]) {
     return exerciseInstructionsTranslations[notes][language];
   }
   
-  // Se não encontrar tradução, retorna original
-  return notes;
+  // Dicionário de termos comuns em instruções
+  const instructionTerms: Record<string, Record<SupportedLanguage, string>> = {
+    // Movimentos básicos
+    'mantenha': { 'pt-BR': 'mantenha', 'en-US': 'keep', 'es-ES': 'mantén' },
+    'Mantenha': { 'pt-BR': 'Mantenha', 'en-US': 'Keep', 'es-ES': 'Mantén' },
+    'segure': { 'pt-BR': 'segure', 'en-US': 'hold', 'es-ES': 'sostén' },
+    'Segure': { 'pt-BR': 'Segure', 'en-US': 'Hold', 'es-ES': 'Sostén' },
+    'contraia': { 'pt-BR': 'contraia', 'en-US': 'contract', 'es-ES': 'contrae' },
+    'Contraia': { 'pt-BR': 'Contraia', 'en-US': 'Contract', 'es-ES': 'Contrae' },
+    'desça': { 'pt-BR': 'desça', 'en-US': 'lower', 'es-ES': 'baja' },
+    'Desça': { 'pt-BR': 'Desça', 'en-US': 'Lower', 'es-ES': 'Baja' },
+    'suba': { 'pt-BR': 'suba', 'en-US': 'raise', 'es-ES': 'sube' },
+    'Suba': { 'pt-BR': 'Suba', 'en-US': 'Raise', 'es-ES': 'Sube' },
+    'empurre': { 'pt-BR': 'empurre', 'en-US': 'push', 'es-ES': 'empuja' },
+    'Empurre': { 'pt-BR': 'Empurre', 'en-US': 'Push', 'es-ES': 'Empuja' },
+    'puxe': { 'pt-BR': 'puxe', 'en-US': 'pull', 'es-ES': 'tira' },
+    'Puxe': { 'pt-BR': 'Puxe', 'en-US': 'Pull', 'es-ES': 'Tira' },
+    'estenda': { 'pt-BR': 'estenda', 'en-US': 'extend', 'es-ES': 'extiende' },
+    'Estenda': { 'pt-BR': 'Estenda', 'en-US': 'Extend', 'es-ES': 'Extiende' },
+    'flexione': { 'pt-BR': 'flexione', 'en-US': 'flex', 'es-ES': 'flexiona' },
+    'Flexione': { 'pt-BR': 'Flexione', 'en-US': 'Flex', 'es-ES': 'Flexiona' },
+    'expire': { 'pt-BR': 'expire', 'en-US': 'exhale', 'es-ES': 'exhala' },
+    'Expire': { 'pt-BR': 'Expire', 'en-US': 'Exhale', 'es-ES': 'Exhala' },
+    'inspire': { 'pt-BR': 'inspire', 'en-US': 'inhale', 'es-ES': 'inhala' },
+    'Inspire': { 'pt-BR': 'Inspire', 'en-US': 'Inhale', 'es-ES': 'Inhala' },
+    'respire': { 'pt-BR': 'respire', 'en-US': 'breathe', 'es-ES': 'respira' },
+    'Respire': { 'pt-BR': 'Respire', 'en-US': 'Breathe', 'es-ES': 'Respira' },
+    
+    // Partes do corpo
+    'costas': { 'pt-BR': 'costas', 'en-US': 'back', 'es-ES': 'espalda' },
+    'peito': { 'pt-BR': 'peito', 'en-US': 'chest', 'es-ES': 'pecho' },
+    'ombros': { 'pt-BR': 'ombros', 'en-US': 'shoulders', 'es-ES': 'hombros' },
+    'braços': { 'pt-BR': 'braços', 'en-US': 'arms', 'es-ES': 'brazos' },
+    'pernas': { 'pt-BR': 'pernas', 'en-US': 'legs', 'es-ES': 'piernas' },
+    'joelhos': { 'pt-BR': 'joelhos', 'en-US': 'knees', 'es-ES': 'rodillas' },
+    'cotovelos': { 'pt-BR': 'cotovelos', 'en-US': 'elbows', 'es-ES': 'codos' },
+    'quadril': { 'pt-BR': 'quadril', 'en-US': 'hips', 'es-ES': 'cadera' },
+    'abdômen': { 'pt-BR': 'abdômen', 'en-US': 'core', 'es-ES': 'abdomen' },
+    'glúteos': { 'pt-BR': 'glúteos', 'en-US': 'glutes', 'es-ES': 'glúteos' },
+    'coluna': { 'pt-BR': 'coluna', 'en-US': 'spine', 'es-ES': 'columna' },
+    
+    // Posições e descrições
+    'reto': { 'pt-BR': 'reto', 'en-US': 'straight', 'es-ES': 'recto' },
+    'reta': { 'pt-BR': 'reta', 'en-US': 'straight', 'es-ES': 'recta' },
+    'retas': { 'pt-BR': 'retas', 'en-US': 'straight', 'es-ES': 'rectas' },
+    'controlado': { 'pt-BR': 'controlado', 'en-US': 'controlled', 'es-ES': 'controlado' },
+    'lentamente': { 'pt-BR': 'lentamente', 'en-US': 'slowly', 'es-ES': 'lentamente' },
+    'devagar': { 'pt-BR': 'devagar', 'en-US': 'slowly', 'es-ES': 'despacio' },
+    'movimento': { 'pt-BR': 'movimento', 'en-US': 'movement', 'es-ES': 'movimiento' },
+    'posição inicial': { 'pt-BR': 'posição inicial', 'en-US': 'starting position', 'es-ES': 'posición inicial' },
+    'posição': { 'pt-BR': 'posição', 'en-US': 'position', 'es-ES': 'posición' },
+    'repetição': { 'pt-BR': 'repetição', 'en-US': 'rep', 'es-ES': 'repetición' },
+    'repetições': { 'pt-BR': 'repetições', 'en-US': 'reps', 'es-ES': 'repeticiones' },
+    'série': { 'pt-BR': 'série', 'en-US': 'set', 'es-ES': 'serie' },
+    'séries': { 'pt-BR': 'séries', 'en-US': 'sets', 'es-ES': 'series' },
+    'contração': { 'pt-BR': 'contração', 'en-US': 'contraction', 'es-ES': 'contracción' },
+    'máxima': { 'pt-BR': 'máxima', 'en-US': 'maximum', 'es-ES': 'máxima' },
+    'força': { 'pt-BR': 'força', 'en-US': 'strength', 'es-ES': 'fuerza' },
+    
+    // Equipamentos
+    'barra': { 'pt-BR': 'barra', 'en-US': 'bar', 'es-ES': 'barra' },
+    'halter': { 'pt-BR': 'halter', 'en-US': 'dumbbell', 'es-ES': 'mancuerna' },
+    'halteres': { 'pt-BR': 'halteres', 'en-US': 'dumbbells', 'es-ES': 'mancuernas' },
+    'banco': { 'pt-BR': 'banco', 'en-US': 'bench', 'es-ES': 'banco' },
+    'cabo': { 'pt-BR': 'cabo', 'en-US': 'cable', 'es-ES': 'cable' },
+    'polia': { 'pt-BR': 'polia', 'en-US': 'pulley', 'es-ES': 'polea' },
+    'máquina': { 'pt-BR': 'máquina', 'en-US': 'machine', 'es-ES': 'máquina' },
+    
+    // Frases comuns
+    'com os pés na largura dos ombros': { 'pt-BR': 'com os pés na largura dos ombros', 'en-US': 'with feet shoulder-width apart', 'es-ES': 'con los pies a la anchura de los hombros' },
+    'mantendo a coluna reta': { 'pt-BR': 'mantendo a coluna reta', 'en-US': 'keeping your spine straight', 'es-ES': 'manteniendo la columna recta' },
+    'controle o movimento': { 'pt-BR': 'controle o movimento', 'en-US': 'control the movement', 'es-ES': 'controla el movimiento' },
+    'não use impulso': { 'pt-BR': 'não use impulso', 'en-US': 'do not use momentum', 'es-ES': 'no uses impulso' },
+    'sem impulso': { 'pt-BR': 'sem impulso', 'en-US': 'without momentum', 'es-ES': 'sin impulso' },
+    'volte à posição inicial': { 'pt-BR': 'volte à posição inicial', 'en-US': 'return to the starting position', 'es-ES': 'vuelve a la posición inicial' },
+  };
+  
+  // Traduz os termos encontrados
+  let translated = notes;
+  
+  // Ordena as chaves por tamanho (maior para menor) para evitar substituições parciais
+  const sortedKeys = Object.keys(instructionTerms).sort((a, b) => b.length - a.length);
+  
+  for (const key of sortedKeys) {
+    if (translated.toLowerCase().includes(key.toLowerCase())) {
+      // Usa regex para substituição case-insensitive mas preservando a estrutura original
+      const regex = new RegExp(key, 'gi');
+      translated = translated.replace(regex, instructionTerms[key][language]);
+    }
+  }
+  
+  return translated;
 }
