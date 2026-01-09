@@ -11,6 +11,8 @@ import GoalStep from './steps/GoalStep';
 import RestrictionsStep from './steps/RestrictionsStep';
 
 import { useAuthStore } from '../../stores/authStore';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../i18n/translations';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
