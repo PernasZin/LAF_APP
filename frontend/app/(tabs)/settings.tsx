@@ -492,39 +492,10 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* Data & Export Section */}
+        {/* Data Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>DADOS E EXPORTAÇÃO</Text>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>DADOS</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <TouchableOpacity style={styles.legalItem} onPress={() => router.push('/settings/export')}>
-              <View style={styles.legalItemContent}>
-                <Ionicons name="document-outline" size={20} color={colors.primary} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.legalText, { color: colors.text }]}>Exportar PDF</Text>
-                  <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                    Gere PDF da dieta e treino para compartilhar
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-            </TouchableOpacity>
-            
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
-            
-            <TouchableOpacity style={styles.legalItem} onPress={handleExportData}>
-              <View style={styles.legalItemContent}>
-                <Ionicons name="download-outline" size={20} color={colors.success} />
-                <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.legalText, { color: colors.text }]}>Exportar JSON</Text>
-                  <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                    Backup completo dos seus dados
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-            </TouchableOpacity>
-            
-            <View style={[styles.divider, { backgroundColor: colors.border }]} />
             
             <TouchableOpacity style={styles.legalItem} onPress={handleClearCache}>
               <View style={styles.legalItemContent}>
