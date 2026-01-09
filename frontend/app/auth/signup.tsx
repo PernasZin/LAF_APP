@@ -214,17 +214,17 @@ export default function SignUpScreen() {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>Criar Conta</Text>
+                <Text style={styles.buttonText}>{t.auth.signup}</Text>
               )}
             </TouchableOpacity>
           </View>
 
           {/* Footer */}
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Já tem uma conta?</Text>
+            <Text style={styles.footerText}>{t.auth.hasAccount}</Text>
             <Link href="/auth/login" asChild>
               <TouchableOpacity>
-                <Text style={styles.linkText}>Entrar</Text>
+                <Text style={styles.linkText}>{t.auth.login}</Text>
               </TouchableOpacity>
             </Link>
           </View>
