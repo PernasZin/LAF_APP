@@ -48,7 +48,7 @@ import sys
 from typing import Dict, List, Any, Set
 
 # Configuração da API
-BASE_URL = "https://athlete-phase.preview.emergentagent.com/api"
+BASE_URL = "https://workout-tracker-pro-4.preview.emergentagent.com/api"
 
 # Mapeamento de alimentos para categorias e validação
 FOOD_CATEGORIES = {
