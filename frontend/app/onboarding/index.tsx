@@ -25,6 +25,10 @@ export default function OnboardingScreen() {
   const userId = useAuthStore((s) => s.userId);
   const setProfileCompleted = useAuthStore((s) => s.setProfileCompleted);
   
+  // Language - get from settings store
+  const language = useSettingsStore((s) => s.language) as SupportedLanguage;
+  const t = translations[language].onboarding;
+  
   // Form data state
   const [formData, setFormData] = useState({
     // Básico
