@@ -56,79 +56,82 @@ export default function OnboardingScreen() {
   
   console.log('🎯 OnboardingScreen - userId:', userId);
 
-  // Steps - SIMPLIFICADO (sem etapa separada de Atleta)
+  // Steps - translated titles
   const steps = [
-    { title: 'Dados Básicos', component: BasicInfoStep },
-    { title: 'Dados Físicos', component: PhysicalDataStep },
-    { title: 'Nível de Treino', component: TrainingLevelStep },
-    { title: 'Seu Objetivo', component: GoalStep },
-    { title: 'Preferências', component: RestrictionsStep },
+    { title: t.steps.basicInfo, component: BasicInfoStep },
+    { title: t.steps.physicalData, component: PhysicalDataStep },
+    { title: t.steps.trainingLevel, component: TrainingLevelStep },
+    { title: t.steps.yourGoal, component: GoalStep },
+    { title: t.steps.preferences, component: RestrictionsStep },
   ];
 
   const updateFormData = (data: any) => {
     setFormData({ ...formData, ...data });
   };
 
+  // Step validation keys for translation matching
+  const stepValidationKeys = ['basicInfo', 'physicalData', 'trainingLevel', 'yourGoal', 'preferences'];
+
   const validateCurrentStep = () => {
     console.log('Validating step:', currentStep, 'Data:', formData);
     
-    const currentStepTitle = steps[currentStep]?.title;
+    const currentStepKey = stepValidationKeys[currentStep];
     
-    switch (currentStepTitle) {
-      case 'Dados Básicos':
+    switch (currentStepKey) {
+      case 'basicInfo':
         if (!formData.name || !formData.age || !formData.sex) {
-          Alert.alert('Campos Obrigatórios', 'Preencha nome, idade e sexo.');
+          Alert.alert(t.requiredFields, t.fillNameAgeSex);
           return false;
         }
         if (parseInt(formData.age) < 15 || parseInt(formData.age) > 100) {
-          Alert.alert('Idade Inválida', 'Idade deve estar entre 15 e 100 anos.');
+          Alert.alert(t.requiredFields, t.invalidAge);
           return false;
         }
         break;
       
-      case 'Dados Físicos':
+      case 'physicalData':
         if (!formData.height || !formData.weight) {
-          Alert.alert('Campos Obrigatórios', 'Preencha altura e peso atual.');
+          Alert.alert(t.requiredFields, t.fillHeightWeight);
           return false;
         }
         if (parseFloat(formData.height) < 100 || parseFloat(formData.height) > 250) {
-          Alert.alert('Altura Inválida', 'Altura deve estar entre 100cm e 250cm.');
+          Alert.alert(t.requiredFields, t.invalidHeight);
           return false;
         }
         if (parseFloat(formData.weight) < 30 || parseFloat(formData.weight) > 300) {
-          Alert.alert('Peso Inválido', 'Peso deve estar entre 30kg e 300kg.');
+          Alert.alert(t.requiredFields, t.invalidWeight);
           return false;
         }
         break;
       
-      case 'Nível de Treino':
+      case 'trainingLevel':
         if (!formData.training_level || !formData.weekly_training_frequency || !formData.available_time_per_session) {
-          Alert.alert('Campos Obrigatórios', 'Preencha todos os campos de treino.');
+          Alert.alert(t.requiredFields, t.fillTrainingFields);
           return false;
         }
         if (parseInt(formData.weekly_training_frequency) < 0 || parseInt(formData.weekly_training_frequency) > 7) {
-          Alert.alert('Frequência Inválida', 'Frequência deve estar entre 0 e 7 dias por semana.');
+          Alert.alert(t.requiredFields, t.invalidFrequency);
           return false;
         }
         break;
       
-      case 'Seu Objetivo':
+      case 'yourGoal':
         if (!formData.goal) {
-          Alert.alert('Objetivo Obrigatório', 'Selecione seu objetivo principal.');
+          Alert.alert(t.requiredFields, t.selectGoal);
           return false;
         }
         // Se for atleta, data do campeonato é OBRIGATÓRIA
         if (formData.goal === 'atleta' && !formData.athlete_competition_date) {
           Alert.alert(
-            'Data Obrigatória', 
-            'Para o modo Atleta, você precisa informar a data do seu campeonato.',
+            t.dateRequired, 
+            t.dateRequiredMessage,
             [{ text: 'OK' }]
           );
           return false;
         }
         break;
       
-      case 'Preferências':
+      case 'preferences':
         // Optional step
         break;
     }
