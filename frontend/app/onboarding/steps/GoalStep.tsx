@@ -214,7 +214,7 @@ export default function GoalStep({ data, updateData, language }: Props) {
                 </Text>
               </View>
               <Text style={styles.weeksText}>
-                {weeks > 0 ? `${weeks} semanas até o campeonato` : 'Campeonato passou'}
+                {weeks > 0 ? `${weeks} ${t.weeksToCompetition}` : t.competitionPassed}
               </Text>
             </View>
           )}
