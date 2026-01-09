@@ -380,7 +380,7 @@ export default function WorkoutScreen() {
                 <View style={[styles.progressBarFill, { width: `${progressPercent}%`, backgroundColor: colors.primary }]} />
               </View>
               <Text style={[styles.progressText, { color: colors.textSecondary }]}>
-                {completedExercises}/{totalExercises} exercícios
+                {completedExercises}/{totalExercises} {t.workout.exercises}
               </Text>
             </View>
           </View>
