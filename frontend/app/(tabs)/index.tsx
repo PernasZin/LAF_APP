@@ -319,7 +319,7 @@ export default function HomeScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.emptyContainer}>
           <Ionicons name="person-add-outline" size={60} color={colors.primary} />
-          <Text style={[styles.emptyTitle, { color: colors.text }]}>Bem-vindo ao LAF!</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.home.greeting} LAF!</Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Complete seu perfil para começar</Text>
         </View>
       </SafeAreaView>
@@ -343,8 +343,8 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={[styles.greeting, { color: colors.text }]}>Olá, {profile.name}!</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Vamos conquistar seus objetivos</Text>
+            <Text style={[styles.greeting, { color: colors.text }]}>{t.home.greeting}, {profile.name}!</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t.home.subtitle}</Text>
           </View>
           <TouchableOpacity style={styles.profileButton}>
             <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
@@ -357,13 +357,13 @@ export default function HomeScreen() {
             <Ionicons name="flame" size={28} color="#EF4444" />
             <Text style={[styles.statsValue, { color: colors.text }]}>{Math.round(profile.target_calories || 0)}</Text>
             <Text style={[styles.statsUnit, { color: colors.textSecondary }]}>kcal</Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>Meta Diária</Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>{t.home.dailyGoal}</Text>
           </View>
           <View style={[styles.statsCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             <Ionicons name="barbell" size={28} color={colors.primary} />
             <Text style={[styles.statsValue, { color: colors.text }]}>{profile.weekly_training_frequency || 0}</Text>
-            <Text style={[styles.statsUnit, { color: colors.textSecondary }]}>x/semana</Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>Treino</Text>
+            <Text style={[styles.statsUnit, { color: colors.textSecondary }]}>{t.home.weeklyFrequency}</Text>
+            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>{t.home.training}</Text>
           </View>
         </View>
 
