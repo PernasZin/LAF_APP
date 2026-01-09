@@ -494,37 +494,6 @@ export const exerciseInstructionsTranslations: Record<string, Record<SupportedLa
     'es-ES': 'Flexiona los brazos manteniendo los codos fijos al lado del cuerpo.'
   },
 };
-  'Estenda os braços completamente, contraia o tríceps no topo do movimento.': {
-    'pt-BR': 'Estenda os braços completamente, contraia o tríceps no topo do movimento.',
-    'en-US': 'Fully extend your arms, squeeze the triceps at the top of the movement.',
-    'es-ES': 'Extiende los brazos completamente, contrae el tríceps en la parte superior del movimiento.'
-  },
-  'Desça até as coxas ficarem paralelas ao chão, mantenha os joelhos alinhados com os pés.': {
-    'pt-BR': 'Desça até as coxas ficarem paralelas ao chão, mantenha os joelhos alinhados com os pés.',
-    'en-US': 'Lower until your thighs are parallel to the floor, keep your knees aligned with your feet.',
-    'es-ES': 'Baja hasta que los muslos estén paralelos al suelo, mantén las rodillas alineadas con los pies.'
-  },
-  'Empurre a plataforma controlando a descida, não trave os joelhos.': {
-    'pt-BR': 'Empurre a plataforma controlando a descida, não trave os joelhos.',
-    'en-US': 'Push the platform while controlling the descent, don\'t lock your knees.',
-    'es-ES': 'Empuja la plataforma controlando el descenso, no bloquees las rodillas.'
-  },
-  'Estenda as pernas completamente, contraia o quadríceps no topo.': {
-    'pt-BR': 'Estenda as pernas completamente, contraia o quadríceps no topo.',
-    'en-US': 'Fully extend your legs, squeeze the quadriceps at the top.',
-    'es-ES': 'Extiende las piernas completamente, contrae el cuádriceps en la parte superior.'
-  },
-  'Flexione as pernas até onde conseguir, contraia os isquiotibiais.': {
-    'pt-BR': 'Flexione as pernas até onde conseguir, contraia os isquiotibiais.',
-    'en-US': 'Curl your legs as far as you can, squeeze the hamstrings.',
-    'es-ES': 'Flexiona las piernas lo más que puedas, contrae los isquiotibiales.'
-  },
-  'Mantenha o core contraído durante todo o movimento.': {
-    'pt-BR': 'Mantenha o core contraído durante todo o movimento.',
-    'en-US': 'Keep your core engaged throughout the movement.',
-    'es-ES': 'Mantén el core contraído durante todo el movimiento.'
-  },
-};
 
 // ==================== FUNÇÕES HELPER ====================
 
