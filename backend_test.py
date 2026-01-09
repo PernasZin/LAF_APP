@@ -1,478 +1,574 @@
 #!/usr/bin/env python3
 """
-Teste Rigoroso do Endpoint POST /api/diet/generate
-=================================================
+LAF App Backend Testing Suite
+=============================
+Tests all backend endpoints for the LAF (Lifestyle and Fitness) application.
 
-OBJETIVO: Validar REGRAS RÍGIDAS por tipo de refeição conforme especificação.
+Test Coverage:
+1. Authentication endpoints (signup, login, validate)
+2. User Profile endpoints (GET, PUT)
+3. Diet endpoints (generate, get)
+4. Workout endpoints (generate, get, history)
 
-REGRA DE FALHA CRÍTICA:
-Se arroz, frango, peixe ou azeite aparecerem em lanches ou café, a saída é INVÁLIDA!
-
-VALIDAÇÕES OBRIGATÓRIAS:
-
-☀️ CAFÉ DA MANHÃ (índice 0):
-- DEVE conter APENAS: Ovos OU Cottage OU Iogurte Grego
-- DEVE conter: Aveia OU Pão Integral
-- PODE conter: Frutas
-- NÃO PODE conter: Arroz, Feijão, Frango, Peixe, Carne, Peru, Azeite
-
-🍎 LANCHE MANHÃ (índice 1):
-- DEVE conter: Frutas
-- PODE conter: Castanhas, Amêndoas
-- NÃO PODE conter: Arroz, Aveia, Pão, Batatas, Frango, Peixe, Carne, Peru, OVOS, Azeite, Pasta de Amendoim, Queijo
-
-🍽️ ALMOÇO (índice 2):
-- DEVE conter: EXATAMENTE 1 proteína (Frango, Patinho, Peixe, Peru)
-- DEVE conter: EXATAMENTE 1 carboidrato (Arroz, Batata, Macarrão, Feijão, Lentilha)
-- PODE conter: Azeite, Legumes
-
-🍎 LANCHE TARDE (índice 3):
-- DEVE conter: Frutas
-- PODE conter: Iogurte Grego OU Cottage, Castanhas, Amêndoas
-- NÃO PODE conter: Arroz, Aveia, Pão, Batatas, Frango, Peixe, Carne, Peru, OVOS, Azeite, Pasta de Amendoim
-
-🍽️ JANTAR (índice 4):
-- DEVE conter: EXATAMENTE 1 proteína
-- DEVE conter: EXATAMENTE 1 carboidrato
-- PODE conter: Azeite, Legumes
-
-🌙 CEIA (índice 5):
-- DEVE conter: Cottage OU Iogurte Grego OU Ovos
-- PODE conter: Frutas
-- NÃO PODE conter: Arroz, Batatas, Massas, Frango, Peixe, Carne, Azeite
+Backend URL: https://workout-tracker-pro-4.preview.emergentagent.com/api
 """
 
 import requests
 import json
-import sys
-from typing import Dict, List, Any, Set
+import time
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, Optional, List
 
-# Configuração da API
+# Configuration
 BASE_URL = "https://workout-tracker-pro-4.preview.emergentagent.com/api"
+TIMEOUT = 30
 
-# Mapeamento de alimentos para categorias e validação
-FOOD_CATEGORIES = {
-    # PROTEÍNAS PRINCIPAIS (permitidas em almoço/jantar)
-    "frango": "main_protein",
-    "patinho": "main_protein", 
-    "tilapia": "main_protein",
-    "atum": "main_protein",
-    "salmao": "main_protein",
-    "peru": "main_protein",
-    "carne_moida": "main_protein",
+class LAFBackendTester:
+    def __init__(self):
+        self.base_url = BASE_URL
+        self.session = requests.Session()
+        self.session.timeout = TIMEOUT
+        
+        # Test data storage
+        self.test_user_id = None
+        self.test_token = None
+        self.test_email = None
+        self.test_password = "testpass123"
+        
+        # Results tracking
+        self.results = {
+            "auth": {},
+            "profile": {},
+            "diet": {},
+            "workout": {}
+        }
+        
+    def log(self, message: str, level: str = "INFO"):
+        """Log test messages with timestamp"""
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        print(f"[{timestamp}] {level}: {message}")
+        
+    def make_request(self, method: str, endpoint: str, data: Dict = None, 
+                    headers: Dict = None, params: Dict = None) -> Dict:
+        """Make HTTP request with error handling"""
+        url = f"{self.base_url}{endpoint}"
+        
+        # Default headers
+        default_headers = {"Content-Type": "application/json"}
+        if headers:
+            default_headers.update(headers)
+            
+        try:
+            if method.upper() == "GET":
+                response = self.session.get(url, headers=default_headers, params=params)
+            elif method.upper() == "POST":
+                response = self.session.post(url, json=data, headers=default_headers)
+            elif method.upper() == "PUT":
+                response = self.session.put(url, json=data, headers=default_headers)
+            elif method.upper() == "DELETE":
+                response = self.session.delete(url, headers=default_headers)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+                
+            # Log request details
+            self.log(f"{method.upper()} {endpoint} -> {response.status_code}")
+            
+            return {
+                "status_code": response.status_code,
+                "data": response.json() if response.content else {},
+                "success": 200 <= response.status_code < 300,
+                "headers": dict(response.headers)
+            }
+            
+        except requests.exceptions.Timeout:
+            self.log(f"Request timeout for {method} {endpoint}", "ERROR")
+            return {"status_code": 408, "data": {"error": "Request timeout"}, "success": False}
+        except requests.exceptions.ConnectionError:
+            self.log(f"Connection error for {method} {endpoint}", "ERROR")
+            return {"status_code": 503, "data": {"error": "Connection error"}, "success": False}
+        except Exception as e:
+            self.log(f"Request error for {method} {endpoint}: {str(e)}", "ERROR")
+            return {"status_code": 500, "data": {"error": str(e)}, "success": False}
     
-    # PROTEÍNAS LEVES (permitidas em café/ceia/lanches)
-    "ovos": "light_protein",
-    "cottage": "light_protein",
-    "iogurte_grego": "light_protein",
-    
-    # CARBOIDRATOS PRINCIPAIS (permitidos em almoço/jantar)
-    "arroz_branco": "main_carb",
-    "arroz_integral": "main_carb",
-    "batata_doce": "main_carb",
-    "batata": "main_carb",
-    "macarrao": "main_carb",
-    "feijao": "main_carb",
-    "lentilha": "main_carb",
-    
-    # CARBOIDRATOS LEVES (permitidos apenas no café)
-    "aveia": "light_carb",
-    "pao_integral": "light_carb",
-    
-    # GORDURAS
-    "azeite": "fat",
-    "pasta_amendoim": "fat",
-    "castanhas": "fat",
-    "amendoas": "fat",
-    "queijo": "fat",
-    
-    # FRUTAS
-    "banana": "fruit",
-    "maca": "fruit",
-    "laranja": "fruit",
-    "morango": "fruit",
-    "mamao": "fruit",
-    "melancia": "fruit",
-    
-    # VEGETAIS
-    "salada": "vegetable",
-    "brocolis": "vegetable"
-}
-
-# Alimentos PROIBIDOS por tipo de refeição
-FORBIDDEN_FOODS = {
-    "cafe_da_manha": {
-        "arroz_branco", "arroz_integral", "feijao", "lentilha", "macarrao",
-        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
-        "azeite", "batata_doce", "batata"
-    },
-    "lanche_manha": {
-        "arroz_branco", "arroz_integral", "aveia", "pao_integral", "batata_doce", "batata",
-        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
-        "ovos", "azeite", "pasta_amendoim", "queijo", "feijao", "lentilha", "macarrao"
-    },
-    "lanche_tarde": {
-        "arroz_branco", "arroz_integral", "aveia", "pao_integral", "batata_doce", "batata",
-        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
-        "ovos", "azeite", "pasta_amendoim", "feijao", "lentilha", "macarrao"
-    },
-    "ceia": {
-        "arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao",
-        "frango", "patinho", "tilapia", "atum", "salmao", "peru", "carne_moida",
-        "azeite", "feijao", "lentilha"
-    }
-}
-
-# Alimentos OBRIGATÓRIOS por tipo de refeição
-REQUIRED_FOODS = {
-    "cafe_da_manha": {
-        "proteins": {"ovos", "cottage", "iogurte_grego"},  # APENAS UM destes
-        "carbs": {"aveia", "pao_integral"}  # APENAS UM destes
-    },
-    "lanche_manha": {
-        "fruits": True  # DEVE ter frutas
-    },
-    "almoco": {
-        "main_proteins": 1,  # EXATAMENTE 1 proteína principal
-        "main_carbs": 1      # EXATAMENTE 1 carboidrato principal
-    },
-    "lanche_tarde": {
-        "fruits": True  # DEVE ter frutas
-    },
-    "jantar": {
-        "main_proteins": 1,  # EXATAMENTE 1 proteína principal
-        "main_carbs": 1      # EXATAMENTE 1 carboidrato principal
-    },
-    "ceia": {
-        "proteins": {"ovos", "cottage", "iogurte_grego"}  # APENAS UM destes
-    }
-}
-
-def normalize_food_name(food_name: str) -> str:
-    """Normaliza nome do alimento para chave padrão"""
-    # Remove acentos e converte para minúsculo
-    name = food_name.lower().strip()
-    
-    # Mapeamentos comuns
-    mappings = {
-        "peito de frango": "frango",
-        "frango grelhado": "frango",
-        "patinho (carne magra)": "patinho",
-        "carne magra": "patinho",
-        "ovos inteiros": "ovos",
-        "queijo cottage": "cottage",
-        "iogurte grego": "iogurte_grego",
-        "arroz branco": "arroz_branco",
-        "arroz integral": "arroz_integral",
-        "batata doce": "batata_doce",
-        "batata inglesa": "batata",
-        "pão integral": "pao_integral",
-        "azeite de oliva": "azeite",
-        "pasta de amendoim": "pasta_amendoim",
-        "salada verde": "salada",
-        "brócolis": "brocolis",
-        "maçã": "maca"
-    }
-    
-    return mappings.get(name, name.replace(" ", "_").replace("ã", "a").replace("ç", "c"))
-
-def create_test_user() -> str:
-    """Cria usuário de teste com perfil completo"""
-    print("🔧 Criando usuário de teste...")
-    
-    # Dados realistas para teste
-    user_data = {
-        "id": "test_diet_rules_user_001",
-        "name": "Carlos Silva",
-        "age": 28,
-        "sex": "masculino",
-        "height": 175.0,
-        "weight": 80.0,
-        "target_weight": 75.0,
-        "body_fat_percentage": 15.0,
-        "training_level": "intermediario",
-        "weekly_training_frequency": 5,
-        "available_time_per_session": 60,
-        "goal": "cutting",
-        "dietary_restrictions": [],
-        "food_preferences": [
-            "frango", "patinho", "tilapia", "ovos", "cottage", "iogurte_grego",
-            "arroz_branco", "arroz_integral", "batata_doce", "aveia", "pao_integral",
-            "azeite", "castanhas", "amendoas", "banana", "maca", "laranja", "morango"
-        ]
-    }
-    
-    try:
-        response = requests.post(f"{BASE_URL}/user/profile", json=user_data, timeout=30)
-        if response.status_code == 200:
-            print(f"✅ Usuário criado: {user_data['id']}")
-            return user_data['id']
+    def test_auth_endpoints(self):
+        """Test authentication endpoints"""
+        self.log("=== TESTING AUTHENTICATION ENDPOINTS ===")
+        
+        # Generate unique test email
+        self.test_email = f"test_{uuid.uuid4().hex[:8]}@laf.com"
+        
+        # Test 1: POST /api/auth/signup
+        self.log("Testing POST /api/auth/signup")
+        signup_data = {
+            "email": self.test_email,
+            "password": self.test_password
+        }
+        
+        response = self.make_request("POST", "/auth/signup", signup_data)
+        self.results["auth"]["signup"] = response
+        
+        if response["success"]:
+            self.test_user_id = response["data"].get("user_id")
+            self.test_token = response["data"].get("access_token")
+            self.log(f"✅ Signup successful - User ID: {self.test_user_id}")
+            
+            # Validate response structure
+            required_fields = ["access_token", "token_type", "expires_in", "user_id", "email"]
+            missing_fields = [f for f in required_fields if f not in response["data"]]
+            if missing_fields:
+                self.log(f"⚠️ Missing fields in signup response: {missing_fields}", "WARN")
         else:
-            print(f"❌ Erro ao criar usuário: {response.status_code} - {response.text}")
-            return None
-    except Exception as e:
-        print(f"❌ Erro de conexão ao criar usuário: {e}")
-        return None
-
-def generate_diet(user_id: str) -> Dict:
-    """Gera dieta para o usuário"""
-    print(f"🍽️ Gerando dieta para usuário {user_id}...")
-    
-    try:
-        response = requests.post(f"{BASE_URL}/diet/generate", params={"user_id": user_id}, timeout=60)
-        if response.status_code == 200:
-            diet_data = response.json()
-            print(f"✅ Dieta gerada com sucesso")
-            return diet_data
+            self.log(f"❌ Signup failed: {response['data']}", "ERROR")
+            return False
+            
+        # Test 2: POST /api/auth/login
+        self.log("Testing POST /api/auth/login")
+        login_data = {
+            "email": self.test_email,
+            "password": self.test_password
+        }
+        
+        response = self.make_request("POST", "/auth/login", login_data)
+        self.results["auth"]["login"] = response
+        
+        if response["success"]:
+            self.log("✅ Login successful")
+            # Update token from login
+            self.test_token = response["data"].get("access_token")
         else:
-            print(f"❌ Erro ao gerar dieta: {response.status_code} - {response.text}")
-            return None
-    except Exception as e:
-        print(f"❌ Erro de conexão ao gerar dieta: {e}")
-        return None
+            self.log(f"❌ Login failed: {response['data']}", "ERROR")
+            
+        # Test 3: GET /api/auth/validate
+        self.log("Testing GET /api/auth/validate")
+        headers = {"Authorization": f"Bearer {self.test_token}"}
+        
+        response = self.make_request("GET", "/auth/validate", headers=headers)
+        self.results["auth"]["validate"] = response
+        
+        if response["success"]:
+            self.log("✅ Token validation successful")
+        else:
+            self.log(f"❌ Token validation failed: {response['data']}", "ERROR")
+            
+        return True
+    
+    def test_profile_endpoints(self):
+        """Test user profile endpoints"""
+        self.log("=== TESTING USER PROFILE ENDPOINTS ===")
+        
+        if not self.test_user_id:
+            self.log("❌ No test user ID available, skipping profile tests", "ERROR")
+            return False
+            
+        # Create a test profile first
+        self.log("Creating test profile")
+        profile_data = {
+            "id": self.test_user_id,
+            "name": "João Silva",
+            "age": 30,
+            "sex": "masculino",
+            "height": 175.0,
+            "weight": 80.0,
+            "target_weight": 75.0,
+            "body_fat_percentage": 15.0,
+            "training_level": "intermediario",
+            "weekly_training_frequency": 4,
+            "available_time_per_session": 60,
+            "goal": "cutting",
+            "dietary_restrictions": ["Sem Lactose"],
+            "food_preferences": ["frango", "arroz_branco", "batata_doce", "banana"]
+        }
+        
+        create_response = self.make_request("POST", "/user/profile", profile_data)
+        if not create_response["success"]:
+            self.log(f"❌ Failed to create test profile: {create_response['data']}", "ERROR")
+            return False
+        
+        # Test 1: GET /api/user/profile/{user_id}
+        self.log(f"Testing GET /api/user/profile/{self.test_user_id}")
+        
+        response = self.make_request("GET", f"/user/profile/{self.test_user_id}")
+        self.results["profile"]["get"] = response
+        
+        if response["success"]:
+            profile = response["data"]
+            self.log("✅ Profile retrieval successful")
+            
+            # Validate profile structure
+            required_fields = ["id", "name", "age", "sex", "height", "weight", "tdee", "target_calories", "macros"]
+            missing_fields = [f for f in required_fields if f not in profile]
+            if missing_fields:
+                self.log(f"⚠️ Missing fields in profile: {missing_fields}", "WARN")
+            
+            # Validate TDEE calculation
+            if "tdee" in profile and profile["tdee"] > 0:
+                self.log(f"✅ TDEE calculated: {profile['tdee']} kcal")
+            else:
+                self.log("⚠️ TDEE not calculated or invalid", "WARN")
+                
+            # Validate macros
+            if "macros" in profile and isinstance(profile["macros"], dict):
+                macros = profile["macros"]
+                if all(k in macros for k in ["protein", "carbs", "fat"]):
+                    self.log(f"✅ Macros calculated: P:{macros['protein']}g C:{macros['carbs']}g F:{macros['fat']}g")
+                else:
+                    self.log("⚠️ Incomplete macros calculation", "WARN")
+        else:
+            self.log(f"❌ Profile retrieval failed: {response['data']}", "ERROR")
+            
+        # Test 2: PUT /api/user/profile/{user_id}
+        self.log(f"Testing PUT /api/user/profile/{self.test_user_id}")
+        
+        update_data = {
+            "weight": 78.0,
+            "goal": "bulking"
+        }
+        
+        response = self.make_request("PUT", f"/user/profile/{self.test_user_id}", update_data)
+        self.results["profile"]["update"] = response
+        
+        if response["success"]:
+            updated_profile = response["data"]
+            self.log("✅ Profile update successful")
+            
+            # Verify weight was updated
+            if updated_profile.get("weight") == 78.0:
+                self.log("✅ Weight updated correctly")
+            else:
+                self.log(f"⚠️ Weight not updated correctly: {updated_profile.get('weight')}", "WARN")
+                
+            # Verify TDEE was recalculated
+            if "tdee" in updated_profile and updated_profile["tdee"] > 0:
+                self.log(f"✅ TDEE recalculated: {updated_profile['tdee']} kcal")
+            else:
+                self.log("⚠️ TDEE not recalculated", "WARN")
+        else:
+            self.log(f"❌ Profile update failed: {response['data']}", "ERROR")
+            
+        return True
+    
+    def test_diet_endpoints(self):
+        """Test diet endpoints"""
+        self.log("=== TESTING DIET ENDPOINTS ===")
+        
+        if not self.test_user_id:
+            self.log("❌ No test user ID available, skipping diet tests", "ERROR")
+            return False
+            
+        # Test 1: POST /api/diet/generate
+        self.log(f"Testing POST /api/diet/generate")
+        
+        response = self.make_request("POST", f"/diet/generate?user_id={self.test_user_id}")
+        self.results["diet"]["generate"] = response
+        
+        if response["success"]:
+            diet_plan = response["data"]
+            self.log("✅ Diet generation successful")
+            
+            # Validate diet structure
+            required_fields = ["id", "user_id", "meals", "target_calories", "target_macros", "computed_calories", "computed_macros"]
+            missing_fields = [f for f in required_fields if f not in diet_plan]
+            if missing_fields:
+                self.log(f"⚠️ Missing fields in diet plan: {missing_fields}", "WARN")
+            
+            # Validate meals count (should be 6 meals)
+            meals = diet_plan.get("meals", [])
+            if len(meals) == 6:
+                self.log("✅ Diet has 6 meals as required")
+                
+                # Validate meal structure
+                meal_names = [meal.get("name", "") for meal in meals]
+                expected_meals = ["Café da Manhã", "Lanche Manhã", "Almoço", "Lanche Tarde", "Jantar", "Ceia"]
+                
+                for expected in expected_meals:
+                    if any(expected in name for name in meal_names):
+                        self.log(f"✅ Found meal: {expected}")
+                    else:
+                        self.log(f"⚠️ Missing expected meal: {expected}", "WARN")
+                
+                # Validate foods in meals
+                total_foods = 0
+                for i, meal in enumerate(meals):
+                    foods = meal.get("foods", [])
+                    total_foods += len(foods)
+                    if len(foods) > 0:
+                        self.log(f"✅ Meal {i+1} ({meal.get('name', 'Unknown')}) has {len(foods)} foods")
+                    else:
+                        self.log(f"❌ Meal {i+1} is empty", "ERROR")
+                
+                self.log(f"✅ Total foods in diet: {total_foods}")
+            else:
+                self.log(f"⚠️ Diet has {len(meals)} meals, expected 6", "WARN")
+            
+            # Validate calorie accuracy
+            target_cal = diet_plan.get("target_calories", 0)
+            computed_cal = diet_plan.get("computed_calories", 0)
+            if target_cal > 0 and computed_cal > 0:
+                cal_diff = abs(target_cal - computed_cal)
+                cal_percent_diff = (cal_diff / target_cal) * 100
+                self.log(f"✅ Calories: Target {target_cal} vs Computed {computed_cal} (Δ{cal_diff}, {cal_percent_diff:.1f}%)")
+                
+                if cal_percent_diff <= 15:  # Within 15% tolerance
+                    self.log("✅ Calorie accuracy within acceptable range")
+                else:
+                    self.log(f"⚠️ Calorie difference too high: {cal_percent_diff:.1f}%", "WARN")
+            
+            # Validate macros accuracy
+            target_macros = diet_plan.get("target_macros", {})
+            computed_macros = diet_plan.get("computed_macros", {})
+            
+            for macro in ["protein", "carbs", "fat"]:
+                target = target_macros.get(macro, 0)
+                computed = computed_macros.get(macro, 0)
+                if target > 0 and computed > 0:
+                    diff = abs(target - computed)
+                    percent_diff = (diff / target) * 100
+                    self.log(f"✅ {macro.capitalize()}: Target {target}g vs Computed {computed}g (Δ{diff}g, {percent_diff:.1f}%)")
+        else:
+            self.log(f"❌ Diet generation failed: {response['data']}", "ERROR")
+            
+        # Test 2: GET /api/diet/{user_id}
+        self.log(f"Testing GET /api/diet/{self.test_user_id}")
+        
+        response = self.make_request("GET", f"/diet/{self.test_user_id}")
+        self.results["diet"]["get"] = response
+        
+        if response["success"]:
+            self.log("✅ Diet retrieval successful")
+            
+            # Verify it's the same diet we just generated
+            retrieved_diet = response["data"]
+            if "id" in retrieved_diet:
+                self.log(f"✅ Retrieved diet ID: {retrieved_diet['id']}")
+            else:
+                self.log("⚠️ Retrieved diet missing ID", "WARN")
+        else:
+            self.log(f"❌ Diet retrieval failed: {response['data']}", "ERROR")
+            
+        return True
+    
+    def test_workout_endpoints(self):
+        """Test workout endpoints"""
+        self.log("=== TESTING WORKOUT ENDPOINTS ===")
+        
+        if not self.test_user_id:
+            self.log("❌ No test user ID available, skipping workout tests", "ERROR")
+            return False
+            
+        # Test 1: POST /api/workout/generate
+        self.log(f"Testing POST /api/workout/generate")
+        
+        response = self.make_request("POST", f"/workout/generate?user_id={self.test_user_id}")
+        self.results["workout"]["generate"] = response
+        
+        workout_id = None
+        
+        if response["success"]:
+            workout_plan = response["data"]
+            workout_id = workout_plan.get("id")
+            self.log("✅ Workout generation successful")
+            
+            # Validate workout structure
+            required_fields = ["id", "user_id", "workout_days", "weekly_frequency", "training_level"]
+            missing_fields = [f for f in required_fields if f not in workout_plan]
+            if missing_fields:
+                self.log(f"⚠️ Missing fields in workout plan: {missing_fields}", "WARN")
+            
+            # Validate workout days count
+            workout_days = workout_plan.get("workout_days", [])
+            expected_frequency = 4  # From our test profile
+            
+            if len(workout_days) == expected_frequency:
+                self.log(f"✅ Workout has {len(workout_days)} days as expected")
+                
+                # Validate each workout day
+                total_exercises = 0
+                for i, day in enumerate(workout_days):
+                    exercises = day.get("exercises", [])
+                    total_exercises += len(exercises)
+                    day_name = day.get("name", f"Day {i+1}")
+                    
+                    if len(exercises) > 0:
+                        self.log(f"✅ {day_name} has {len(exercises)} exercises")
+                        
+                        # Validate exercise structure
+                        for j, exercise in enumerate(exercises[:2]):  # Check first 2 exercises
+                            required_ex_fields = ["name", "muscle_group", "sets", "reps", "rest"]
+                            missing_ex_fields = [f for f in required_ex_fields if f not in exercise]
+                            if missing_ex_fields:
+                                self.log(f"⚠️ Exercise {j+1} missing fields: {missing_ex_fields}", "WARN")
+                            else:
+                                self.log(f"✅ Exercise: {exercise['name']} - {exercise['sets']}x{exercise['reps']}")
+                    else:
+                        self.log(f"❌ {day_name} has no exercises", "ERROR")
+                
+                self.log(f"✅ Total exercises in workout: {total_exercises}")
+            else:
+                self.log(f"⚠️ Workout has {len(workout_days)} days, expected {expected_frequency}", "WARN")
+        else:
+            self.log(f"❌ Workout generation failed: {response['data']}", "ERROR")
+            
+        # Test 2: GET /api/workout/{user_id}
+        self.log(f"Testing GET /api/workout/{self.test_user_id}")
+        
+        response = self.make_request("GET", f"/workout/{self.test_user_id}")
+        self.results["workout"]["get"] = response
+        
+        if response["success"]:
+            self.log("✅ Workout retrieval successful")
+            
+            # Verify it's the same workout we just generated
+            retrieved_workout = response["data"]
+            if "id" in retrieved_workout and retrieved_workout["id"] == workout_id:
+                self.log(f"✅ Retrieved correct workout ID: {workout_id}")
+            else:
+                self.log("⚠️ Retrieved workout ID mismatch or missing", "WARN")
+        else:
+            self.log(f"❌ Workout retrieval failed: {response['data']}", "ERROR")
+            
+        # Test 3: POST /api/workout/history/{user_id}
+        self.log(f"Testing POST /api/workout/history/{self.test_user_id}")
+        
+        history_data = {
+            "workout_day_name": "Treino A - Peito/Tríceps",
+            "exercises_completed": 8,
+            "total_exercises": 10,
+            "duration_minutes": 45,
+            "notes": "Bom treino, aumentar peso no supino"
+        }
+        
+        response = self.make_request("POST", f"/workout/history/{self.test_user_id}", history_data)
+        self.results["workout"]["history_save"] = response
+        
+        if response["success"]:
+            self.log("✅ Workout history save successful")
+            
+            # Validate history entry structure
+            history_entry = response["data"]
+            required_fields = ["id", "user_id", "workout_day_name", "exercises_completed", "completed_at"]
+            missing_fields = [f for f in required_fields if f not in history_entry]
+            if missing_fields:
+                self.log(f"⚠️ Missing fields in history entry: {missing_fields}", "WARN")
+            else:
+                self.log(f"✅ History entry created with ID: {history_entry['id']}")
+        else:
+            self.log(f"❌ Workout history save failed: {response['data']}", "ERROR")
+            
+        # Test 4: GET /api/workout/history/{user_id}
+        self.log(f"Testing GET /api/workout/history/{self.test_user_id}")
+        
+        response = self.make_request("GET", f"/workout/history/{self.test_user_id}")
+        self.results["workout"]["history_get"] = response
+        
+        if response["success"]:
+            history_data = response["data"]
+            self.log("✅ Workout history retrieval successful")
+            
+            # Validate history structure
+            if "history" in history_data and isinstance(history_data["history"], list):
+                history_count = len(history_data["history"])
+                self.log(f"✅ Found {history_count} workout history entries")
+                
+                if history_count > 0:
+                    # Check the first entry
+                    first_entry = history_data["history"][0]
+                    if "workout_day_name" in first_entry:
+                        self.log(f"✅ Latest workout: {first_entry['workout_day_name']}")
+            
+            # Validate stats
+            if "stats" in history_data:
+                stats = history_data["stats"]
+                self.log(f"✅ Workout stats: {stats.get('total_workouts', 0)} total, {stats.get('this_week_count', 0)} this week")
+        else:
+            self.log(f"❌ Workout history retrieval failed: {response['data']}", "ERROR")
+            
+        return True
+    
+    def run_all_tests(self):
+        """Run all backend tests"""
+        self.log("🚀 STARTING LAF BACKEND TESTING SUITE")
+        self.log(f"Backend URL: {self.base_url}")
+        
+        start_time = time.time()
+        
+        # Run test suites
+        auth_success = self.test_auth_endpoints()
+        if auth_success:
+            profile_success = self.test_profile_endpoints()
+            diet_success = self.test_diet_endpoints()
+            workout_success = self.test_workout_endpoints()
+        else:
+            self.log("❌ Authentication tests failed, skipping other tests", "ERROR")
+            profile_success = diet_success = workout_success = False
+        
+        end_time = time.time()
+        duration = end_time - start_time
+        
+        # Generate summary
+        self.generate_summary(duration)
+        
+        return {
+            "auth": auth_success,
+            "profile": profile_success,
+            "diet": diet_success,
+            "workout": workout_success
+        }
+    
+    def generate_summary(self, duration: float):
+        """Generate test summary"""
+        self.log("=" * 60)
+        self.log("🏁 TEST SUMMARY")
+        self.log("=" * 60)
+        
+        total_tests = 0
+        passed_tests = 0
+        
+        for category, tests in self.results.items():
+            self.log(f"\n📊 {category.upper()} ENDPOINTS:")
+            
+            for test_name, result in tests.items():
+                total_tests += 1
+                status = "✅ PASS" if result["success"] else "❌ FAIL"
+                status_code = result["status_code"]
+                
+                self.log(f"  {test_name}: {status} ({status_code})")
+                
+                if result["success"]:
+                    passed_tests += 1
+                else:
+                    error_msg = result["data"].get("error", result["data"].get("detail", "Unknown error"))
+                    self.log(f"    Error: {error_msg}")
+        
+        # Overall statistics
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+        
+        self.log(f"\n📈 OVERALL RESULTS:")
+        self.log(f"  Total Tests: {total_tests}")
+        self.log(f"  Passed: {passed_tests}")
+        self.log(f"  Failed: {total_tests - passed_tests}")
+        self.log(f"  Success Rate: {success_rate:.1f}%")
+        self.log(f"  Duration: {duration:.2f} seconds")
+        
+        if success_rate >= 80:
+            self.log("🎉 BACKEND TESTING COMPLETED SUCCESSFULLY!")
+        elif success_rate >= 60:
+            self.log("⚠️ BACKEND TESTING COMPLETED WITH WARNINGS")
+        else:
+            self.log("❌ BACKEND TESTING FAILED - CRITICAL ISSUES FOUND")
 
-def validate_meal_structure(diet_data: Dict) -> List[str]:
-    """Valida estrutura básica da dieta"""
-    errors = []
-    
-    # Verifica se tem campo meals
-    if "meals" not in diet_data:
-        errors.append("❌ CRÍTICO: Campo 'meals' não encontrado na resposta")
-        return errors
-    
-    meals = diet_data["meals"]
-    
-    # Verifica se tem exatamente 6 refeições
-    if len(meals) != 6:
-        errors.append(f"❌ CRÍTICO: Esperado 6 refeições, encontrado {len(meals)}")
-        return errors
-    
-    # Verifica estrutura de cada refeição
-    expected_meal_names = [
-        "Café da Manhã", "Lanche Manhã", "Almoço", 
-        "Lanche Tarde", "Jantar", "Ceia"
-    ]
-    
-    for i, meal in enumerate(meals):
-        if "name" not in meal:
-            errors.append(f"❌ Refeição {i}: Campo 'name' ausente")
-        elif meal["name"] not in expected_meal_names:
-            errors.append(f"⚠️ Refeição {i}: Nome inesperado '{meal['name']}'")
-        
-        if "foods" not in meal:
-            errors.append(f"❌ CRÍTICO: Refeição {i} ({meal.get('name', 'N/A')}): Campo 'foods' ausente")
-        elif len(meal["foods"]) == 0:
-            errors.append(f"❌ CRÍTICO: Refeição {i} ({meal.get('name', 'N/A')}): Lista de alimentos vazia")
-    
-    return errors
 
-def validate_forbidden_foods(meals: List[Dict]) -> List[str]:
-    """Valida REGRA CRÍTICA: alimentos proibidos por tipo de refeição"""
-    errors = []
+def main():
+    """Main test execution"""
+    tester = LAFBackendTester()
+    results = tester.run_all_tests()
     
-    meal_types = ["cafe_da_manha", "lanche_manha", "almoco", "lanche_tarde", "jantar", "ceia"]
-    
-    for i, meal in enumerate(meals):
-        if i >= len(meal_types):
-            continue
-            
-        meal_type = meal_types[i]
-        meal_name = meal.get("name", f"Refeição {i}")
-        foods = meal.get("foods", [])
-        
-        forbidden = FORBIDDEN_FOODS.get(meal_type, set())
-        
-        for food in foods:
-            food_name = food.get("name", "")
-            food_key = normalize_food_name(food_name)
-            
-            if food_key in forbidden:
-                errors.append(f"❌ CRÍTICO: {meal_name} contém alimento PROIBIDO: {food_name} ({food_key})")
-        
-        # REGRA ESPECIAL: Arroz, Frango, Peixe, Azeite em lanches ou café = INVÁLIDO
-        critical_forbidden = {"arroz_branco", "arroz_integral", "frango", "tilapia", "atum", "salmao", "azeite"}
-        
-        if meal_type in ["cafe_da_manha", "lanche_manha", "lanche_tarde"]:
-            for food in foods:
-                food_key = normalize_food_name(food.get("name", ""))
-                if food_key in critical_forbidden:
-                    errors.append(f"🚨 FALHA CRÍTICA: {meal_name} contém {food.get('name')} - SAÍDA INVÁLIDA!")
-    
-    return errors
-
-def validate_required_foods(meals: List[Dict]) -> List[str]:
-    """Valida alimentos obrigatórios por tipo de refeição"""
-    errors = []
-    
-    meal_types = ["cafe_da_manha", "lanche_manha", "almoco", "lanche_tarde", "jantar", "ceia"]
-    
-    for i, meal in enumerate(meals):
-        if i >= len(meal_types):
-            continue
-            
-        meal_type = meal_types[i]
-        meal_name = meal.get("name", f"Refeição {i}")
-        foods = meal.get("foods", [])
-        
-        # Extrai chaves dos alimentos presentes
-        present_foods = set()
-        main_proteins = 0
-        main_carbs = 0
-        has_fruits = False
-        
-        for food in foods:
-            food_key = normalize_food_name(food.get("name", ""))
-            present_foods.add(food_key)
-            
-            # Conta proteínas e carboidratos principais
-            if food_key in FOOD_CATEGORIES:
-                category = FOOD_CATEGORIES[food_key]
-                if category == "main_protein":
-                    main_proteins += 1
-                elif category == "main_carb":
-                    main_carbs += 1
-                elif category == "fruit":
-                    has_fruits = True
-        
-        # Valida requisitos específicos por refeição
-        requirements = REQUIRED_FOODS.get(meal_type, {})
-        
-        if meal_type == "cafe_da_manha":
-            # DEVE ter proteína leve (ovos, cottage, iogurte)
-            required_proteins = requirements.get("proteins", set())
-            has_required_protein = any(p in present_foods for p in required_proteins)
-            if not has_required_protein:
-                errors.append(f"❌ {meal_name}: DEVE conter uma proteína leve: {', '.join(required_proteins)}")
-            
-            # DEVE ter carboidrato leve (aveia, pão integral)
-            required_carbs = requirements.get("carbs", set())
-            has_required_carb = any(c in present_foods for c in required_carbs)
-            if not has_required_carb:
-                errors.append(f"❌ {meal_name}: DEVE conter carboidrato leve: {', '.join(required_carbs)}")
-        
-        elif meal_type in ["lanche_manha", "lanche_tarde"]:
-            # DEVE ter frutas
-            if not has_fruits:
-                errors.append(f"❌ {meal_name}: DEVE conter frutas")
-        
-        elif meal_type in ["almoco", "jantar"]:
-            # DEVE ter EXATAMENTE 1 proteína principal
-            if main_proteins != 1:
-                errors.append(f"❌ {meal_name}: DEVE conter EXATAMENTE 1 proteína principal (encontrado: {main_proteins})")
-            
-            # DEVE ter EXATAMENTE 1 carboidrato principal
-            if main_carbs != 1:
-                errors.append(f"❌ {meal_name}: DEVE conter EXATAMENTE 1 carboidrato principal (encontrado: {main_carbs})")
-        
-        elif meal_type == "ceia":
-            # DEVE ter proteína leve (ovos, cottage, iogurte)
-            required_proteins = requirements.get("proteins", set())
-            has_required_protein = any(p in present_foods for p in required_proteins)
-            if not has_required_protein:
-                errors.append(f"❌ {meal_name}: DEVE conter uma proteína leve: {', '.join(required_proteins)}")
-    
-    return errors
-
-def print_diet_summary(diet_data: Dict):
-    """Imprime resumo da dieta gerada"""
-    print("\n" + "="*60)
-    print("📋 RESUMO DA DIETA GERADA")
-    print("="*60)
-    
-    meals = diet_data.get("meals", [])
-    
-    for i, meal in enumerate(meals):
-        print(f"\n{i}. {meal.get('name', 'N/A')} ({meal.get('time', 'N/A')})")
-        foods = meal.get("foods", [])
-        
-        for food in foods:
-            name = food.get("name", "N/A")
-            quantity = food.get("quantity", "N/A")
-            calories = food.get("calories", 0)
-            protein = food.get("protein", 0)
-            carbs = food.get("carbs", 0)
-            fat = food.get("fat", 0)
-            
-            print(f"   • {name} - {quantity} ({calories}kcal, P:{protein}g, C:{carbs}g, G:{fat}g)")
-    
-    # Totais
-    computed_calories = diet_data.get("computed_calories", 0)
-    computed_macros = diet_data.get("computed_macros", {})
-    target_calories = diet_data.get("target_calories", 0)
-    target_macros = diet_data.get("target_macros", {})
-    
-    print(f"\n📊 TOTAIS COMPUTADOS:")
-    print(f"   Calorias: {computed_calories}kcal (Target: {target_calories}kcal)")
-    print(f"   Proteína: {computed_macros.get('protein', 0)}g (Target: {target_macros.get('protein', 0)}g)")
-    print(f"   Carboidratos: {computed_macros.get('carbs', 0)}g (Target: {target_macros.get('carbs', 0)}g)")
-    print(f"   Gordura: {computed_macros.get('fat', 0)}g (Target: {target_macros.get('fat', 0)}g)")
-
-def run_comprehensive_test():
-    """Executa teste completo das regras de refeição"""
-    print("🧪 INICIANDO TESTE RIGOROSO DO ENDPOINT /api/diet/generate")
-    print("="*70)
-    
-    # 1. Criar usuário de teste
-    user_id = create_test_user()
-    if not user_id:
-        print("❌ TESTE FALHOU: Não foi possível criar usuário")
-        return False
-    
-    # 2. Gerar dieta
-    diet_data = generate_diet(user_id)
-    if not diet_data:
-        print("❌ TESTE FALHOU: Não foi possível gerar dieta")
-        return False
-    
-    # 3. Imprimir resumo da dieta
-    print_diet_summary(diet_data)
-    
-    # 4. Validar estrutura
-    print("\n🔍 VALIDANDO ESTRUTURA DA DIETA...")
-    structure_errors = validate_meal_structure(diet_data)
-    
-    if structure_errors:
-        print("❌ ERROS DE ESTRUTURA:")
-        for error in structure_errors:
-            print(f"   {error}")
-        return False
+    # Return exit code based on results
+    if all(results.values()):
+        exit(0)  # All tests passed
     else:
-        print("✅ Estrutura da dieta válida (6 refeições)")
-    
-    # 5. Validar alimentos proibidos (REGRA CRÍTICA)
-    print("\n🚫 VALIDANDO ALIMENTOS PROIBIDOS...")
-    forbidden_errors = validate_forbidden_foods(diet_data["meals"])
-    
-    if forbidden_errors:
-        print("❌ VIOLAÇÕES DE REGRAS CRÍTICAS:")
-        for error in forbidden_errors:
-            print(f"   {error}")
-        return False
-    else:
-        print("✅ Nenhum alimento proibido encontrado")
-    
-    # 6. Validar alimentos obrigatórios
-    print("\n✅ VALIDANDO ALIMENTOS OBRIGATÓRIOS...")
-    required_errors = validate_required_foods(diet_data["meals"])
-    
-    if required_errors:
-        print("❌ ALIMENTOS OBRIGATÓRIOS AUSENTES:")
-        for error in required_errors:
-            print(f"   {error}")
-        return False
-    else:
-        print("✅ Todos os alimentos obrigatórios presentes")
-    
-    # 7. Resultado final
-    print("\n" + "="*70)
-    print("🎉 TESTE COMPLETO: TODAS AS REGRAS VALIDADAS COM SUCESSO!")
-    print("✅ Endpoint POST /api/diet/generate está funcionando corretamente")
-    print("✅ Regras rígidas por tipo de refeição respeitadas")
-    print("✅ Nenhuma violação crítica encontrada")
-    print("="*70)
-    
-    return True
+        exit(1)  # Some tests failed
+
 
 if __name__ == "__main__":
-    success = run_comprehensive_test()
-    sys.exit(0 if success else 1)
+    main()
