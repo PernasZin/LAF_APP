@@ -647,12 +647,15 @@ function MacroItem({ label, current, target, color, colors }: any) {
   );
 }
 
-function MealCard({ meal, mealIndex, colors, onFoodPress }: any) {
+function MealCard({ meal, mealIndex, colors, onFoodPress, language }: any) {
   const [expanded, setExpanded] = useState(true);
   const cardStyles = createCardStyles(colors);
   
   // Get meal config for icon/color
   const mealConfig = MEAL_CONFIG[meal.name] || { icon: 'restaurant-outline', emoji: '🍽️', color: colors.primary };
+  
+  // Translate meal name
+  const translatedMealName = translateMealName(meal.name, language);
 
   return (
     <View style={[cardStyles.mealCard, { backgroundColor: colors.backgroundCard, borderColor: mealConfig.color + '30' }]}>
@@ -662,7 +665,7 @@ function MealCard({ meal, mealIndex, colors, onFoodPress }: any) {
             <Text style={cardStyles.mealEmoji}>{mealConfig.emoji}</Text>
           </View>
           <View style={cardStyles.mealInfo}>
-            <Text style={[cardStyles.mealName, { color: colors.text }]}>{meal.name}</Text>
+            <Text style={[cardStyles.mealName, { color: colors.text }]}>{translatedMealName}</Text>
             <Text style={[cardStyles.mealTime, { color: colors.textSecondary }]}>⏰ {meal.time}</Text>
           </View>
         </View>
@@ -684,7 +687,7 @@ function MealCard({ meal, mealIndex, colors, onFoodPress }: any) {
               <View style={cardStyles.foodMain}>
                 <View style={[cardStyles.foodCategoryDot, { backgroundColor: CATEGORY_COLORS[food.category] || '#9CA3AF' }]} />
                 <View style={cardStyles.foodTextContainer}>
-                  <Text style={[cardStyles.foodName, { color: colors.text }]}>{food.name}</Text>
+                  <Text style={[cardStyles.foodName, { color: colors.text }]}>{translateFood(food.name, language)}</Text>
                   <Text style={[cardStyles.foodQuantity, { color: colors.textSecondary }]}>
                     {food.quantity_display || food.quantity}
                   </Text>
