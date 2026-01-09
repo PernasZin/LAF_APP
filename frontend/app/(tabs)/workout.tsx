@@ -423,17 +423,17 @@ export default function WorkoutScreen() {
                 <View style={styles.exerciseInfoRow}>
                   <View style={styles.exerciseInfoItem}>
                     <Ionicons name="repeat-outline" size={24} color={colors.primary} />
-                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Séries</Text>
+                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>{t.workout.sets}</Text>
                     <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.sets}</Text>
                   </View>
                   <View style={styles.exerciseInfoItem}>
                     <Ionicons name="fitness-outline" size={24} color={colors.primary} />
-                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Repetições</Text>
+                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>{t.workout.reps}</Text>
                     <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.reps}</Text>
                   </View>
                   <View style={styles.exerciseInfoItem}>
                     <Ionicons name="time-outline" size={24} color={colors.primary} />
-                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>Descanso</Text>
+                    <Text style={[styles.exerciseInfoLabel, { color: colors.textSecondary }]}>{t.workout.rest}</Text>
                     <Text style={[styles.exerciseInfoValue, { color: colors.text }]}>{selectedExercise?.rest}</Text>
                   </View>
                 </View>
@@ -444,7 +444,7 @@ export default function WorkoutScreen() {
                 <View style={[styles.notesCard, { backgroundColor: colors.primary + '15', borderColor: colors.primary + '30' }]}>
                   <View style={styles.notesHeader}>
                     <Ionicons name="bulb-outline" size={20} color={colors.primary} />
-                    <Text style={[styles.notesTitle, { color: colors.primary }]}>Como executar</Text>
+                    <Text style={[styles.notesTitle, { color: colors.primary }]}>{t.workout.howToExecute}</Text>
                   </View>
                   <Text style={[styles.notesText, { color: colors.text }]}>{selectedExercise.notes}</Text>
                 </View>
@@ -452,7 +452,7 @@ export default function WorkoutScreen() {
 
               {/* Rest Timer */}
               <View style={[styles.timerCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-                <Text style={[styles.timerTitle, { color: colors.textSecondary }]}>Timer de Descanso</Text>
+                <Text style={[styles.timerTitle, { color: colors.textSecondary }]}>{t.workout.restTimer}</Text>
                 <Text style={[
                   styles.timerDisplay, 
                   { color: timerActive && timerSeconds <= 10 ? colors.error : colors.text }
@@ -466,7 +466,7 @@ export default function WorkoutScreen() {
                       onPress={startRestTimer}
                     >
                       <Ionicons name="play" size={20} color="#fff" />
-                      <Text style={styles.timerButtonText}>Iniciar</Text>
+                      <Text style={styles.timerButtonText}>{t.workout.start}</Text>
                     </TouchableOpacity>
                   ) : (
                     <TouchableOpacity
@@ -474,7 +474,7 @@ export default function WorkoutScreen() {
                       onPress={resetTimer}
                     >
                       <Ionicons name="refresh" size={20} color="#fff" />
-                      <Text style={styles.timerButtonText}>Reiniciar</Text>
+                      <Text style={styles.timerButtonText}>{t.workout.restart}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
