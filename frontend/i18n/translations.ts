@@ -198,6 +198,115 @@ export interface Translations {
     createAccount: string;
     enterAccount: string;
   };
+  // Onboarding
+  onboarding: {
+    // Steps titles
+    steps: {
+      basicInfo: string;
+      physicalData: string;
+      trainingLevel: string;
+      yourGoal: string;
+      preferences: string;
+    };
+    // Buttons
+    saving: string;
+    finish: string;
+    // BasicInfoStep
+    letsStart: string;
+    tellUsAboutYou: string;
+    name: string;
+    yourName: string;
+    age: string;
+    yourAge: string;
+    sex: string;
+    male: string;
+    female: string;
+    // PhysicalDataStep
+    physicalDataTitle: string;
+    physicalDataDesc: string;
+    height: string;
+    heightPlaceholder: string;
+    currentWeight: string;
+    currentWeightPlaceholder: string;
+    targetWeight: string;
+    targetWeightPlaceholder: string;
+    bodyFatPercentage: string;
+    bodyFatPlaceholder: string;
+    bodyFatHint: string;
+    // TrainingLevelStep
+    trainingLevelTitle: string;
+    trainingLevelDesc: string;
+    currentLevel: string;
+    beginner: string;
+    beginnerDesc: string;
+    intermediate: string;
+    intermediateDesc: string;
+    advanced: string;
+    advancedDesc: string;
+    daysPerWeek: string;
+    daysPlaceholder: string;
+    timePerSession: string;
+    timePlaceholder: string;
+    // GoalStep
+    goalTitle: string;
+    goalDesc: string;
+    cutting: string;
+    cuttingDesc: string;
+    bulking: string;
+    bulkingDesc: string;
+    maintenance: string;
+    maintenanceDesc: string;
+    athlete: string;
+    athleteDesc: string;
+    competitionDate: string;
+    competitionDateDesc: string;
+    selectDate: string;
+    weeksToCompetition: string;
+    competitionPassed: string;
+    // RestrictionsStep
+    foodPreferences: string;
+    foodPreferencesDescAthlete: string;
+    foodPreferencesDescGeneral: string;
+    athleteMode: string;
+    flexibleMode: string;
+    dietaryRestrictions: string;
+    vegetarian: string;
+    lactoseFree: string;
+    glutenFree: string;
+    lowCarb: string;
+    availableFoods: string;
+    selected: string;
+    proteins: string;
+    proteinsDesc: string;
+    carbs: string;
+    carbsDesc: string;
+    fats: string;
+    fatsDesc: string;
+    fruits: string;
+    fruitsDesc: string;
+    supplements: string;
+    supplementsDesc: string;
+    separate: string;
+    athleteInfoBox: string;
+    generalInfoBox: string;
+    skipHint: string;
+    // Validation errors
+    requiredFields: string;
+    fillNameAgeSex: string;
+    invalidAge: string;
+    fillHeightWeight: string;
+    invalidHeight: string;
+    invalidWeight: string;
+    fillTrainingFields: string;
+    invalidFrequency: string;
+    selectGoal: string;
+    dateRequired: string;
+    dateRequiredMessage: string;
+    sessionExpired: string;
+    // Success/Error
+    error: string;
+    couldNotSaveProfile: string;
+  };
 }
 
 export const translations: Record<SupportedLanguage, Translations> = {
