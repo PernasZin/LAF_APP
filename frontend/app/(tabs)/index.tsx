@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../theme/ThemeContext';
 import { HomeSkeleton } from '../../components';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
