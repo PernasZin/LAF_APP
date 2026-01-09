@@ -161,10 +161,10 @@ export default function GoalStep({ data, updateData, language }: Props) {
           <View style={styles.divider} />
           
           <Text style={styles.athleteTitle}>
-            <Ionicons name="calendar" size={20} color="#F59E0B" /> Data do Campeonato *
+            <Ionicons name="calendar" size={20} color="#F59E0B" /> {t.competitionDate}
           </Text>
           <Text style={styles.athleteDesc}>
-            Informe a data do seu campeonato. O sistema controlará sua preparação automaticamente até o dia do evento.
+            {t.competitionDateDesc}
           </Text>
 
           {/* Input de Data - WEB */}
