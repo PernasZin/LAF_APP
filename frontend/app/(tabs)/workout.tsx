@@ -11,6 +11,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { Toast, WorkoutSkeleton } from '../../components';
 import { useToast } from '../../hooks/useToast';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -29,6 +30,7 @@ const safeFetch = async (url: string, options?: RequestInit) => {
 
 export default function WorkoutScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = createStyles(colors);
   const { toast, showSuccess, showError, hideToast } = useToast();
   const { lightImpact, mediumImpact, successFeedback, errorFeedback, selectionFeedback } = useHaptics();
