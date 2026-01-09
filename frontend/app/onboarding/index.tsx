@@ -228,12 +228,12 @@ export default function OnboardingScreen() {
     } catch (error: any) {
       console.error('❌ Error saving profile:', error);
       
-      let errorMessage = 'Não foi possível salvar seu perfil.';
+      let errorMessage = t.couldNotSaveProfile;
       if (error.message) {
         errorMessage = error.message;
       }
       
-      Alert.alert('Erro', errorMessage);
+      Alert.alert(t.error, errorMessage);
       setLoading(false);
     }
   };
