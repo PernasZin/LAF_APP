@@ -78,6 +78,17 @@ export default function LoginScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+          
+          {/* Language Selector - Top Right */}
+          <TouchableOpacity 
+            style={styles.languageButton} 
+            onPress={() => setShowLanguageModal(true)}
+          >
+            <Text style={styles.languageFlag}>{currentLang.flag}</Text>
+            <Text style={styles.languageText}>{currentLang.label}</Text>
+            <Ionicons name="chevron-down" size={16} color="#6B7280" />
+          </TouchableOpacity>
+          
           <View style={styles.header}>
             <View style={styles.logo}><Ionicons name="fitness" size={60} color="#10B981" /></View>
             <Text style={styles.title}>LAF</Text>
@@ -135,6 +146,41 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      
+      {/* Language Selection Modal */}
+      <Modal
+        visible={showLanguageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowLanguageModal(false)}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t.settings.language}</Text>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[
+                  styles.languageOption,
+                  language === lang.code && styles.languageOptionActive
+                ]}
+                onPress={() => handleSelectLanguage(lang.code)}
+              >
+                <Text style={styles.languageOptionFlag}>{lang.flag}</Text>
+                <Text style={[
+                  styles.languageOptionText,
+                  language === lang.code && styles.languageOptionTextActive
+                ]}>
+                  {lang.label}
+                </Text>
+                {language === lang.code && (
+                  <Ionicons name="checkmark-circle" size={22} color="#10B981" />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
