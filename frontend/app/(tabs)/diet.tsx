@@ -401,7 +401,7 @@ export default function DietScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Substituir Alimento</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>{t.diet.substituteFood}</Text>
               <TouchableOpacity onPress={() => setSubstitutionModal(false)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
