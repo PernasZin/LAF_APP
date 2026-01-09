@@ -30,7 +30,7 @@ const safeFetch = async (url: string, options?: RequestInit) => {
 
 export default function WorkoutScreen() {
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const styles = createStyles(colors);
   const { toast, showSuccess, showError, hideToast } = useToast();
   const { lightImpact, mediumImpact, successFeedback, errorFeedback, selectionFeedback } = useHaptics();
