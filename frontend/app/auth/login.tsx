@@ -1,26 +1,47 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView,
+  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Modal, Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Link } from 'expo-router';
 import { useAuthStore } from '../../stores/authStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { useTranslation } from '../../i18n';
+import { SupportedLanguage } from '../../i18n/translations';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+// Language options with flags
+const LANGUAGES = [
+  { code: 'pt-BR' as SupportedLanguage, label: 'Português', flag: '🇧🇷' },
+  { code: 'en-US' as SupportedLanguage, label: 'English', flag: '🇺🇸' },
+  { code: 'es-ES' as SupportedLanguage, label: 'Español', flag: '🇪🇸' },
+];
 
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
   const { t } = useTranslation();
   
+  // Language settings
+  const language = useSettingsStore((s) => s.language) as SupportedLanguage;
+  const setLanguage = useSettingsStore((s) => s.setLanguage);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  
+  const currentLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSelectLanguage = (langCode: SupportedLanguage) => {
+    setLanguage(langCode);
+    setShowLanguageModal(false);
+  };
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
