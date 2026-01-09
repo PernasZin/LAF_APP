@@ -172,14 +172,7 @@ export default function SettingsScreen() {
 
   const handleLanguageChange = (lang: LanguagePreference) => {
     setLanguage(lang);
-    // Mensagem informativa que a tradução não está implementada
-    if (lang !== 'pt-BR') {
-      Alert.alert(
-        'Idioma',
-        'A tradução para outros idiomas será implementada em breve. O aplicativo continuará em Português.',
-        [{ text: 'OK' }]
-      );
-    }
+    // Agora a tradução funciona automaticamente via i18n
   };
 
   const handleLogout = async () => {
