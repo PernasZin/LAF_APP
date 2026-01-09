@@ -295,14 +295,14 @@ export default function ProgressScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Registrar Peso</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>{t.progress.recordWeight}</Text>
               <TouchableOpacity onPress={() => setShowModal(false)}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>
-              Seu peso atual (kg)
+              {t.progress.enterWeight}
             </Text>
             
             <View style={[styles.inputContainer, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
@@ -327,7 +327,7 @@ export default function ProgressScreen() {
               {saving ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.saveButtonText}>Salvar</Text>
+                <Text style={styles.saveButtonText}>{t.common.save}</Text>
               )}
             </TouchableOpacity>
           </View>
