@@ -7,14 +7,64 @@ import { SupportedLanguage } from './translations';
 
 // ==================== EXERCÍCIOS ====================
 export const exerciseTranslations: Record<string, Record<SupportedLanguage, string>> = {
-  // Peito
+  // ============ PEITO - DO BACKEND ============
+  'Supino na Máquina': { 'pt-BR': 'Supino na Máquina', 'en-US': 'Chest Press Machine', 'es-ES': 'Press de Pecho en Máquina' },
+  'Crucifixo na Máquina (Peck Deck)': { 'pt-BR': 'Crucifixo na Máquina (Peck Deck)', 'en-US': 'Pec Deck Machine (Chest Fly)', 'es-ES': 'Aperturas en Máquina (Pec Deck)' },
+  'Cross Over (Polia Alta)': { 'pt-BR': 'Cross Over (Polia Alta)', 'en-US': 'Cable Crossover (High Pulley)', 'es-ES': 'Cruce de Poleas (Polea Alta)' },
+  'Supino Inclinado com Halteres': { 'pt-BR': 'Supino Inclinado com Halteres', 'en-US': 'Incline Dumbbell Press', 'es-ES': 'Press Inclinado con Mancuernas' },
+  
+  // ============ COSTAS - DO BACKEND ============
+  'Puxada Frontal (Pulley)': { 'pt-BR': 'Puxada Frontal (Pulley)', 'en-US': 'Lat Pulldown', 'es-ES': 'Jalón al Pecho' },
+  'Remada na Máquina (Sentado)': { 'pt-BR': 'Remada na Máquina (Sentado)', 'en-US': 'Seated Machine Row', 'es-ES': 'Remo en Máquina (Sentado)' },
+  'Remada Baixa (Polia)': { 'pt-BR': 'Remada Baixa (Polia)', 'en-US': 'Seated Cable Row', 'es-ES': 'Remo Bajo en Polea' },
+  'Pulldown com Corda (Polia Alta)': { 'pt-BR': 'Pulldown com Corda (Polia Alta)', 'en-US': 'Rope Pulldown (High Pulley)', 'es-ES': 'Jalón con Cuerda (Polea Alta)' },
+  
+  // ============ OMBROS - DO BACKEND ============
+  'Desenvolvimento na Máquina': { 'pt-BR': 'Desenvolvimento na Máquina', 'en-US': 'Machine Shoulder Press', 'es-ES': 'Press de Hombros en Máquina' },
+  'Elevação Lateral na Máquina': { 'pt-BR': 'Elevação Lateral na Máquina', 'en-US': 'Machine Lateral Raise', 'es-ES': 'Elevación Lateral en Máquina' },
+  'Elevação Lateral com Halteres (Sentado)': { 'pt-BR': 'Elevação Lateral com Halteres (Sentado)', 'en-US': 'Seated Dumbbell Lateral Raise', 'es-ES': 'Elevación Lateral con Mancuernas (Sentado)' },
+  'Face Pull (Polia)': { 'pt-BR': 'Face Pull (Polia)', 'en-US': 'Face Pull (Cable)', 'es-ES': 'Face Pull (Polea)' },
+  
+  // ============ BÍCEPS - DO BACKEND ============
+  'Rosca na Máquina': { 'pt-BR': 'Rosca na Máquina', 'en-US': 'Machine Bicep Curl', 'es-ES': 'Curl de Bíceps en Máquina' },
+  'Rosca na Polia Baixa': { 'pt-BR': 'Rosca na Polia Baixa', 'en-US': 'Low Cable Curl', 'es-ES': 'Curl en Polea Baja' },
+  'Rosca Alternada com Halteres (Sentado)': { 'pt-BR': 'Rosca Alternada com Halteres (Sentado)', 'en-US': 'Seated Alternating Dumbbell Curl', 'es-ES': 'Curl Alternado con Mancuernas (Sentado)' },
+  'Rosca Martelo com Halteres (Sentado)': { 'pt-BR': 'Rosca Martelo com Halteres (Sentado)', 'en-US': 'Seated Hammer Curl', 'es-ES': 'Curl Martillo con Mancuernas (Sentado)' },
+  
+  // ============ TRÍCEPS - DO BACKEND ============
+  'Tríceps na Polia (Corda)': { 'pt-BR': 'Tríceps na Polia (Corda)', 'en-US': 'Rope Tricep Pushdown', 'es-ES': 'Extensión de Tríceps con Cuerda' },
+  'Tríceps na Polia (Barra Reta)': { 'pt-BR': 'Tríceps na Polia (Barra Reta)', 'en-US': 'Straight Bar Tricep Pushdown', 'es-ES': 'Extensión de Tríceps con Barra Recta' },
+  'Tríceps na Máquina': { 'pt-BR': 'Tríceps na Máquina', 'en-US': 'Machine Tricep Extension', 'es-ES': 'Extensión de Tríceps en Máquina' },
+  'Tríceps Francês com Halter (Sentado)': { 'pt-BR': 'Tríceps Francês com Halter (Sentado)', 'en-US': 'Seated Dumbbell French Press', 'es-ES': 'Press Francés con Mancuerna (Sentado)' },
+  
+  // ============ QUADRÍCEPS - DO BACKEND ============
+  'Leg Press 45°': { 'pt-BR': 'Leg Press 45°', 'en-US': '45° Leg Press', 'es-ES': 'Prensa de Piernas 45°' },
+  'Cadeira Extensora': { 'pt-BR': 'Cadeira Extensora', 'en-US': 'Leg Extension Machine', 'es-ES': 'Extensión de Piernas' },
+  'Agachamento no Smith Machine': { 'pt-BR': 'Agachamento no Smith Machine', 'en-US': 'Smith Machine Squat', 'es-ES': 'Sentadilla en Máquina Smith' },
+  'Leg Press Horizontal': { 'pt-BR': 'Leg Press Horizontal', 'en-US': 'Horizontal Leg Press', 'es-ES': 'Prensa de Piernas Horizontal' },
+  
+  // ============ POSTERIOR DE COXA - DO BACKEND ============
+  'Mesa Flexora': { 'pt-BR': 'Mesa Flexora', 'en-US': 'Lying Leg Curl', 'es-ES': 'Curl de Piernas Acostado' },
+  'Cadeira Flexora (Sentado)': { 'pt-BR': 'Cadeira Flexora (Sentado)', 'en-US': 'Seated Leg Curl', 'es-ES': 'Curl de Piernas Sentado' },
+  'Stiff na Máquina Smith': { 'pt-BR': 'Stiff na Máquina Smith', 'en-US': 'Smith Machine Romanian Deadlift', 'es-ES': 'Peso Muerto Rumano en Smith' },
+  'Glúteo na Máquina (Kick Back)': { 'pt-BR': 'Glúteo na Máquina (Kick Back)', 'en-US': 'Glute Kickback Machine', 'es-ES': 'Patada de Glúteo en Máquina' },
+  
+  // ============ PANTURRILHA - DO BACKEND ============
+  'Panturrilha no Leg Press': { 'pt-BR': 'Panturrilha no Leg Press', 'en-US': 'Calf Raise on Leg Press', 'es-ES': 'Elevación de Talones en Prensa' },
+  'Panturrilha Sentado na Máquina': { 'pt-BR': 'Panturrilha Sentado na Máquina', 'en-US': 'Seated Calf Raise Machine', 'es-ES': 'Elevación de Talones Sentado' },
+  'Panturrilha em Pé na Máquina': { 'pt-BR': 'Panturrilha em Pé na Máquina', 'en-US': 'Standing Calf Raise Machine', 'es-ES': 'Elevación de Talones de Pie' },
+  
+  // ============ ABDÔMEN - DO BACKEND ============
+  'Abdominal na Máquina': { 'pt-BR': 'Abdominal na Máquina', 'en-US': 'Machine Crunch', 'es-ES': 'Crunch en Máquina' },
+  'Abdominal na Polia Alta (Corda)': { 'pt-BR': 'Abdominal na Polia Alta (Corda)', 'en-US': 'Cable Crunch (Rope)', 'es-ES': 'Crunch en Polea Alta (Cuerda)' },
+  'Prancha Isométrica': { 'pt-BR': 'Prancha Isométrica', 'en-US': 'Isometric Plank', 'es-ES': 'Plancha Isométrica' },
+  'Elevação de Pernas no Apoio': { 'pt-BR': 'Elevação de Pernas no Apoio', 'en-US': 'Hanging Leg Raise', 'es-ES': 'Elevación de Piernas en Apoyo' },
+  
+  // ============ VARIAÇÕES ADICIONAIS ============
   'Supino Reto': { 'pt-BR': 'Supino Reto', 'en-US': 'Flat Bench Press', 'es-ES': 'Press de Banca Plano' },
   'Supino Inclinado': { 'pt-BR': 'Supino Inclinado', 'en-US': 'Incline Bench Press', 'es-ES': 'Press de Banca Inclinado' },
   'Supino Declinado': { 'pt-BR': 'Supino Declinado', 'en-US': 'Decline Bench Press', 'es-ES': 'Press de Banca Declinado' },
   'Supino Máquina': { 'pt-BR': 'Supino Máquina', 'en-US': 'Chest Press Machine', 'es-ES': 'Press de Pecho en Máquina' },
-  'Supino na Máquina': { 'pt-BR': 'Supino na Máquina', 'en-US': 'Chest Press Machine', 'es-ES': 'Press de Pecho en Máquina' },
-  'Supino Reto Máquina': { 'pt-BR': 'Supino Reto Máquina', 'en-US': 'Flat Chest Press Machine', 'es-ES': 'Press Plano en Máquina' },
-  'Supino Inclinado Máquina': { 'pt-BR': 'Supino Inclinado Máquina', 'en-US': 'Incline Chest Press Machine', 'es-ES': 'Press Inclinado en Máquina' },
   'Voador': { 'pt-BR': 'Voador', 'en-US': 'Pec Deck Fly', 'es-ES': 'Aperturas en Máquina' },
   'Crucifixo': { 'pt-BR': 'Crucifixo', 'en-US': 'Dumbbell Fly', 'es-ES': 'Aperturas con Mancuernas' },
   'Crucifixo Inclinado': { 'pt-BR': 'Crucifixo Inclinado', 'en-US': 'Incline Dumbbell Fly', 'es-ES': 'Aperturas Inclinadas' },
@@ -25,105 +75,62 @@ export const exerciseTranslations: Record<string, Record<SupportedLanguage, stri
   'Flexão': { 'pt-BR': 'Flexão', 'en-US': 'Push-ups', 'es-ES': 'Flexiones' },
   'Peck Deck': { 'pt-BR': 'Peck Deck', 'en-US': 'Pec Deck Machine', 'es-ES': 'Máquina Peck Deck' },
   
-  // Costas
   'Puxada Frontal': { 'pt-BR': 'Puxada Frontal', 'en-US': 'Lat Pulldown', 'es-ES': 'Jalón al Pecho' },
   'Puxada Aberta': { 'pt-BR': 'Puxada Aberta', 'en-US': 'Wide Grip Pulldown', 'es-ES': 'Jalón Abierto' },
   'Puxada Fechada': { 'pt-BR': 'Puxada Fechada', 'en-US': 'Close Grip Pulldown', 'es-ES': 'Jalón Cerrado' },
   'Puxada Supinada': { 'pt-BR': 'Puxada Supinada', 'en-US': 'Underhand Pulldown', 'es-ES': 'Jalón Supino' },
-  'Puxada na Máquina': { 'pt-BR': 'Puxada na Máquina', 'en-US': 'Machine Pulldown', 'es-ES': 'Jalón en Máquina' },
   'Remada Curvada': { 'pt-BR': 'Remada Curvada', 'en-US': 'Bent Over Row', 'es-ES': 'Remo Inclinado' },
   'Remada Baixa': { 'pt-BR': 'Remada Baixa', 'en-US': 'Seated Cable Row', 'es-ES': 'Remo Sentado' },
   'Remada na Máquina': { 'pt-BR': 'Remada na Máquina', 'en-US': 'Machine Row', 'es-ES': 'Remo en Máquina' },
-  'Remada Máquina': { 'pt-BR': 'Remada Máquina', 'en-US': 'Machine Row', 'es-ES': 'Remo en Máquina' },
   'Remada Unilateral': { 'pt-BR': 'Remada Unilateral', 'en-US': 'One-Arm Dumbbell Row', 'es-ES': 'Remo Unilateral' },
-  'Remada Serrote': { 'pt-BR': 'Remada Serrote', 'en-US': 'One-Arm Dumbbell Row', 'es-ES': 'Remo Unilateral' },
   'Pullover': { 'pt-BR': 'Pullover', 'en-US': 'Pullover', 'es-ES': 'Pullover' },
-  'Pullover Máquina': { 'pt-BR': 'Pullover Máquina', 'en-US': 'Machine Pullover', 'es-ES': 'Pullover en Máquina' },
   'Barra Fixa': { 'pt-BR': 'Barra Fixa', 'en-US': 'Pull-ups', 'es-ES': 'Dominadas' },
   'Levantamento Terra': { 'pt-BR': 'Levantamento Terra', 'en-US': 'Deadlift', 'es-ES': 'Peso Muerto' },
   'Remada Cavalinho': { 'pt-BR': 'Remada Cavalinho', 'en-US': 'T-Bar Row', 'es-ES': 'Remo en T' },
-  'Remada Alta': { 'pt-BR': 'Remada Alta', 'en-US': 'Upright Row', 'es-ES': 'Remo Alto' },
   
-  // Ombros
   'Desenvolvimento': { 'pt-BR': 'Desenvolvimento', 'en-US': 'Shoulder Press', 'es-ES': 'Press Militar' },
   'Desenvolvimento Máquina': { 'pt-BR': 'Desenvolvimento Máquina', 'en-US': 'Machine Shoulder Press', 'es-ES': 'Press de Hombros en Máquina' },
-  'Desenvolvimento na Máquina': { 'pt-BR': 'Desenvolvimento na Máquina', 'en-US': 'Machine Shoulder Press', 'es-ES': 'Press de Hombros en Máquina' },
-  'Desenvolvimento com Halteres': { 'pt-BR': 'Desenvolvimento com Halteres', 'en-US': 'Dumbbell Shoulder Press', 'es-ES': 'Press de Hombros con Mancuernas' },
-  'Desenvolvimento com Barra': { 'pt-BR': 'Desenvolvimento com Barra', 'en-US': 'Barbell Shoulder Press', 'es-ES': 'Press Militar con Barra' },
   'Elevação Lateral': { 'pt-BR': 'Elevação Lateral', 'en-US': 'Lateral Raise', 'es-ES': 'Elevación Lateral' },
-  'Elevação Lateral Máquina': { 'pt-BR': 'Elevação Lateral Máquina', 'en-US': 'Machine Lateral Raise', 'es-ES': 'Elevación Lateral en Máquina' },
   'Elevação Frontal': { 'pt-BR': 'Elevação Frontal', 'en-US': 'Front Raise', 'es-ES': 'Elevación Frontal' },
   'Crucifixo Invertido': { 'pt-BR': 'Crucifixo Invertido', 'en-US': 'Reverse Fly', 'es-ES': 'Pájaro' },
-  'Crucifixo Invertido Máquina': { 'pt-BR': 'Crucifixo Invertido Máquina', 'en-US': 'Reverse Pec Deck', 'es-ES': 'Pájaro en Máquina' },
   'Encolhimento': { 'pt-BR': 'Encolhimento', 'en-US': 'Shrugs', 'es-ES': 'Encogimientos' },
   'Face Pull': { 'pt-BR': 'Face Pull', 'en-US': 'Face Pull', 'es-ES': 'Face Pull' },
   
-  // Bíceps
   'Rosca Direta': { 'pt-BR': 'Rosca Direta', 'en-US': 'Barbell Curl', 'es-ES': 'Curl con Barra' },
-  'Rosca Direta Barra': { 'pt-BR': 'Rosca Direta Barra', 'en-US': 'Barbell Curl', 'es-ES': 'Curl con Barra' },
   'Rosca Alternada': { 'pt-BR': 'Rosca Alternada', 'en-US': 'Alternating Dumbbell Curl', 'es-ES': 'Curl Alternado' },
   'Rosca Martelo': { 'pt-BR': 'Rosca Martelo', 'en-US': 'Hammer Curl', 'es-ES': 'Curl Martillo' },
   'Rosca Scott': { 'pt-BR': 'Rosca Scott', 'en-US': 'Preacher Curl', 'es-ES': 'Curl en Banco Scott' },
-  'Rosca Scott Máquina': { 'pt-BR': 'Rosca Scott Máquina', 'en-US': 'Machine Preacher Curl', 'es-ES': 'Curl Scott en Máquina' },
   'Rosca Concentrada': { 'pt-BR': 'Rosca Concentrada', 'en-US': 'Concentration Curl', 'es-ES': 'Curl Concentrado' },
   'Rosca Cabo': { 'pt-BR': 'Rosca Cabo', 'en-US': 'Cable Curl', 'es-ES': 'Curl en Polea' },
-  'Rosca na Máquina': { 'pt-BR': 'Rosca na Máquina', 'en-US': 'Machine Bicep Curl', 'es-ES': 'Curl en Máquina' },
-  'Rosca Bíceps Máquina': { 'pt-BR': 'Rosca Bíceps Máquina', 'en-US': 'Machine Bicep Curl', 'es-ES': 'Curl de Bíceps en Máquina' },
   
-  // Tríceps
   'Tríceps Pulley': { 'pt-BR': 'Tríceps Pulley', 'en-US': 'Tricep Pushdown', 'es-ES': 'Extensión de Tríceps en Polea' },
   'Tríceps Corda': { 'pt-BR': 'Tríceps Corda', 'en-US': 'Rope Pushdown', 'es-ES': 'Extensión con Cuerda' },
   'Tríceps Testa': { 'pt-BR': 'Tríceps Testa', 'en-US': 'Skull Crushers', 'es-ES': 'Press Francés' },
   'Tríceps Coice': { 'pt-BR': 'Tríceps Coice', 'en-US': 'Tricep Kickback', 'es-ES': 'Patada de Tríceps' },
   'Tríceps Máquina': { 'pt-BR': 'Tríceps Máquina', 'en-US': 'Machine Tricep Extension', 'es-ES': 'Extensión de Tríceps en Máquina' },
-  'Tríceps na Máquina': { 'pt-BR': 'Tríceps na Máquina', 'en-US': 'Machine Tricep Extension', 'es-ES': 'Extensión de Tríceps en Máquina' },
   'Mergulho': { 'pt-BR': 'Mergulho', 'en-US': 'Dips', 'es-ES': 'Fondos' },
-  'Paralelas': { 'pt-BR': 'Paralelas', 'en-US': 'Parallel Bar Dips', 'es-ES': 'Fondos en Paralelas' },
   'Supino Fechado': { 'pt-BR': 'Supino Fechado', 'en-US': 'Close Grip Bench Press', 'es-ES': 'Press Agarre Cerrado' },
-  'Extensão de Tríceps': { 'pt-BR': 'Extensão de Tríceps', 'en-US': 'Tricep Extension', 'es-ES': 'Extensión de Tríceps' },
   
-  // Pernas
   'Agachamento': { 'pt-BR': 'Agachamento', 'en-US': 'Squat', 'es-ES': 'Sentadilla' },
   'Agachamento Livre': { 'pt-BR': 'Agachamento Livre', 'en-US': 'Barbell Squat', 'es-ES': 'Sentadilla con Barra' },
-  'Agachamento Smith': { 'pt-BR': 'Agachamento Smith', 'en-US': 'Smith Machine Squat', 'es-ES': 'Sentadilla en Smith' },
-  'Agachamento no Smith': { 'pt-BR': 'Agachamento no Smith', 'en-US': 'Smith Machine Squat', 'es-ES': 'Sentadilla en Smith' },
-  'Agachamento Sumô': { 'pt-BR': 'Agachamento Sumô', 'en-US': 'Sumo Squat', 'es-ES': 'Sentadilla Sumo' },
   'Leg Press': { 'pt-BR': 'Leg Press', 'en-US': 'Leg Press', 'es-ES': 'Prensa de Piernas' },
-  'Leg Press 45°': { 'pt-BR': 'Leg Press 45°', 'en-US': '45° Leg Press', 'es-ES': 'Prensa 45°' },
-  'Leg Press Horizontal': { 'pt-BR': 'Leg Press Horizontal', 'en-US': 'Horizontal Leg Press', 'es-ES': 'Prensa Horizontal' },
-  'Cadeira Extensora': { 'pt-BR': 'Cadeira Extensora', 'en-US': 'Leg Extension', 'es-ES': 'Extensión de Piernas' },
-  'Extensora': { 'pt-BR': 'Extensora', 'en-US': 'Leg Extension', 'es-ES': 'Extensión de Piernas' },
-  'Mesa Flexora': { 'pt-BR': 'Mesa Flexora', 'en-US': 'Leg Curl', 'es-ES': 'Curl de Piernas' },
-  'Flexora': { 'pt-BR': 'Flexora', 'en-US': 'Leg Curl', 'es-ES': 'Curl de Piernas' },
-  'Cadeira Flexora': { 'pt-BR': 'Cadeira Flexora', 'en-US': 'Seated Leg Curl', 'es-ES': 'Curl Sentado' },
-  'Flexora Sentado': { 'pt-BR': 'Flexora Sentado', 'en-US': 'Seated Leg Curl', 'es-ES': 'Curl de Piernas Sentado' },
+  'Cadeira Flexora': { 'pt-BR': 'Cadeira Flexora', 'en-US': 'Seated Leg Curl', 'es-ES': 'Curl de Piernas Sentado' },
   'Stiff': { 'pt-BR': 'Stiff', 'en-US': 'Romanian Deadlift', 'es-ES': 'Peso Muerto Rumano' },
   'Afundo': { 'pt-BR': 'Afundo', 'en-US': 'Lunges', 'es-ES': 'Zancadas' },
-  'Avanço': { 'pt-BR': 'Avanço', 'en-US': 'Lunges', 'es-ES': 'Zancadas' },
   'Passada': { 'pt-BR': 'Passada', 'en-US': 'Walking Lunges', 'es-ES': 'Zancadas Caminando' },
   'Hack Squat': { 'pt-BR': 'Hack Squat', 'en-US': 'Hack Squat', 'es-ES': 'Sentadilla Hack' },
-  'Hack': { 'pt-BR': 'Hack', 'en-US': 'Hack Squat', 'es-ES': 'Sentadilla Hack' },
   'Adutora': { 'pt-BR': 'Adutora', 'en-US': 'Hip Adduction', 'es-ES': 'Aducción de Cadera' },
   'Abdutora': { 'pt-BR': 'Abdutora', 'en-US': 'Hip Abduction', 'es-ES': 'Abducción de Cadera' },
   'Panturrilha em Pé': { 'pt-BR': 'Panturrilha em Pé', 'en-US': 'Standing Calf Raise', 'es-ES': 'Elevación de Talones de Pie' },
   'Panturrilha Sentado': { 'pt-BR': 'Panturrilha Sentado', 'en-US': 'Seated Calf Raise', 'es-ES': 'Elevación de Talones Sentado' },
-  'Panturrilha no Leg Press': { 'pt-BR': 'Panturrilha no Leg Press', 'en-US': 'Calf Raise on Leg Press', 'es-ES': 'Pantorrillas en Prensa' },
   'Gêmeos': { 'pt-BR': 'Gêmeos', 'en-US': 'Calf Raise', 'es-ES': 'Pantorrillas' },
-  'Glúteo na Máquina': { 'pt-BR': 'Glúteo na Máquina', 'en-US': 'Glute Machine', 'es-ES': 'Glúteos en Máquina' },
-  'Glúteo Máquina': { 'pt-BR': 'Glúteo Máquina', 'en-US': 'Glute Machine', 'es-ES': 'Glúteos en Máquina' },
-  'Búlgaro': { 'pt-BR': 'Búlgaro', 'en-US': 'Bulgarian Split Squat', 'es-ES': 'Sentadilla Búlgara' },
-  'Agachamento Búlgaro': { 'pt-BR': 'Agachamento Búlgaro', 'en-US': 'Bulgarian Split Squat', 'es-ES': 'Sentadilla Búlgara' },
   
-  // Abdômen
   'Abdominal': { 'pt-BR': 'Abdominal', 'en-US': 'Crunches', 'es-ES': 'Abdominales' },
   'Abdominal Infra': { 'pt-BR': 'Abdominal Infra', 'en-US': 'Reverse Crunches', 'es-ES': 'Abdominales Inferiores' },
-  'Abdominal Máquina': { 'pt-BR': 'Abdominal Máquina', 'en-US': 'Machine Crunches', 'es-ES': 'Abdominales en Máquina' },
-  'Abdominal na Máquina': { 'pt-BR': 'Abdominal na Máquina', 'en-US': 'Machine Crunches', 'es-ES': 'Abdominales en Máquina' },
   'Prancha': { 'pt-BR': 'Prancha', 'en-US': 'Plank', 'es-ES': 'Plancha' },
   'Prancha Lateral': { 'pt-BR': 'Prancha Lateral', 'en-US': 'Side Plank', 'es-ES': 'Plancha Lateral' },
   'Elevação de Pernas': { 'pt-BR': 'Elevação de Pernas', 'en-US': 'Leg Raises', 'es-ES': 'Elevación de Piernas' },
   'Oblíquo': { 'pt-BR': 'Oblíquo', 'en-US': 'Oblique Crunches', 'es-ES': 'Oblicuos' },
-  'Rotação Russa': { 'pt-BR': 'Rotação Russa', 'en-US': 'Russian Twist', 'es-ES': 'Giro Ruso' },
 };
 
 // ==================== ALIMENTOS ====================
