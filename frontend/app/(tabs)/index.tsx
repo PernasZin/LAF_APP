@@ -379,25 +379,25 @@ export default function HomeScreen() {
 
         {/* Macros */}
         <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Distribuição de Macros</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{t.home.macrosDistribution}</Text>
           {profile.macros && (
             <View style={styles.macrosContainer}>
               <MacroItem
-                label="Proteínas"
+                label={t.home.protein}
                 value={profile.macros.protein || 0}
                 color="#3B82F6"
                 textColor={colors.text}
                 labelColor={colors.textSecondary}
               />
               <MacroItem
-                label="Carboidratos"
+                label={t.home.carbs}
                 value={profile.macros.carbs || 0}
                 color="#F59E0B"
                 textColor={colors.text}
                 labelColor={colors.textSecondary}
               />
               <MacroItem
-                label="Gorduras"
+                label={t.home.fat}
                 value={profile.macros.fat || 0}
                 color="#EF4444"
                 textColor={colors.text}
@@ -409,21 +409,21 @@ export default function HomeScreen() {
 
         {/* Goal Card */}
         <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>Seu Objetivo</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{t.home.yourGoal}</Text>
           <View style={styles.goalContainer}>
             <View style={[styles.goalIcon, { backgroundColor: colors.primary + '20' }]}>
               <Ionicons name="trophy" size={24} color={colors.primary} />
             </View>
             <View style={styles.goalContent}>
               <Text style={[styles.goalLabel, { color: colors.text }]}>
-                {profile.goal === 'cutting' && 'Emagrecimento (Cutting)'}
-                {profile.goal === 'bulking' && 'Ganho de Massa (Bulking)'}
-                {profile.goal === 'manutencao' && 'Manutenção'}
-                {profile.goal === 'atleta' && `Atleta - ${profile.competition_phase || 'Prep'}`}
+                {profile.goal === 'cutting' && t.home.cutting}
+                {profile.goal === 'bulking' && t.home.bulking}
+                {profile.goal === 'manutencao' && t.home.maintenance}
+                {profile.goal === 'atleta' && `${t.home.athlete} - ${profile.competition_phase || 'Prep'}`}
                 {!profile.goal && 'Não definido'}
               </Text>
               <Text style={[styles.goalDesc, { color: colors.textSecondary }]}>
-                TDEE: {Math.round(profile.tdee || 0)} kcal/dia
+                {t.home.tdee}: {Math.round(profile.tdee || 0)} kcal/dia
               </Text>
             </View>
           </View>
@@ -432,9 +432,9 @@ export default function HomeScreen() {
         {/* Coming Soon */}
         <View style={[styles.comingSoonCard, { backgroundColor: colors.primary + '15' }]}>
           <Ionicons name="rocket-outline" size={48} color={colors.primary} />
-          <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>Em Breve</Text>
+          <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>{t.home.comingSoon}</Text>
           <Text style={[styles.comingSoonText, { color: colors.textSecondary }]}>
-            Sistema de dieta personalizada e treinos sob medida com IA
+            {t.home.comingSoonText}
           </Text>
         </View>
       </ScrollView>
