@@ -586,11 +586,14 @@ export default function WorkoutScreen() {
   );
 }
 
-function WorkoutDayCard({ day, dayIndex, colors, onExercisePress, onToggleComplete }: any) {
+function WorkoutDayCard({ day, dayIndex, colors, onExercisePress, onToggleComplete, language }: any) {
   const [expanded, setExpanded] = useState(dayIndex === 0);
   const completedCount = day.exercises?.filter((ex: any) => ex.completed)?.length || 0;
   const totalCount = day.exercises?.length || 0;
   const dayComplete = completedCount === totalCount && totalCount > 0;
+  
+  // Translate workout name
+  const translatedDayName = translateWorkoutName(day.name, language);
 
   return (
     <View style={[cardStyles.dayCard, { backgroundColor: colors.backgroundCard, borderColor: dayComplete ? colors.success : colors.border }]}>
@@ -604,7 +607,7 @@ function WorkoutDayCard({ day, dayIndex, colors, onExercisePress, onToggleComple
             />
           </View>
           <View style={cardStyles.dayInfo}>
-            <Text style={[cardStyles.dayName, { color: colors.text }]}>{day.name}</Text>
+            <Text style={[cardStyles.dayName, { color: colors.text }]}>{translatedDayName}</Text>
             <Text style={[cardStyles.dayMeta, { color: colors.textSecondary }]}>
               {day.day} • {day.duration} min • {completedCount}/{totalCount}
             </Text>
@@ -643,7 +646,7 @@ function WorkoutDayCard({ day, dayIndex, colors, onExercisePress, onToggleComple
                     { color: colors.text },
                     exercise.completed && { textDecorationLine: 'line-through', color: colors.textSecondary }
                   ]}>
-                    {exercise.name}
+                    {translateExercise(exercise.name, language)}
                   </Text>
                   <Text style={[cardStyles.exerciseDetails, { color: colors.textSecondary }]}>
                     {exercise.sets}x{exercise.reps} • {exercise.rest}
