@@ -409,14 +409,14 @@ export default function DietScreen() {
 
             {selectedFood && (
               <View style={[styles.currentFoodBox, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-                <Text style={[styles.currentFoodLabel, { color: colors.textSecondary }]}>Alimento atual:</Text>
-                <Text style={[styles.currentFoodName, { color: colors.text }]}>{selectedFood.name}</Text>
+                <Text style={[styles.currentFoodLabel, { color: colors.textSecondary }]}>{t.diet.currentFood}:</Text>
+                <Text style={[styles.currentFoodName, { color: colors.text }]}>{translateFood(selectedFood.name, language)}</Text>
                 <Text style={[styles.currentFoodMacros, { color: colors.textSecondary }]}>
                   {selectedFood.quantity} • P:{selectedFood.protein}g C:{selectedFood.carbs}g G:{selectedFood.fat}g
                 </Text>
                 <View style={[styles.categoryBadge, { backgroundColor: CATEGORY_COLORS[selectedFood.category] + '20' }]}>
                   <Text style={[styles.categoryBadgeText, { color: CATEGORY_COLORS[selectedFood.category] }]}>
-                    {CATEGORY_LABELS[selectedFood.category]}
+                    {t.diet.categories[selectedFood.category as keyof typeof t.diet.categories] || CATEGORY_LABELS[selectedFood.category]}
                   </Text>
                 </View>
               </View>
