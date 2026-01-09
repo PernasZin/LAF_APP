@@ -619,6 +619,13 @@ export const translations: Record<SupportedLanguage, Translations> = {
       substituted: '¡Alimento sustituido con éxito!',
       existingDiet: 'Dieta Existente',
       existingDietMessage: 'Ya tienes una dieta generada. Para cambiar, usa la sustitución de alimentos.',
+      categories: {
+        protein: 'Proteína',
+        carb: 'Carbohidrato',
+        fat: 'Grasa',
+        fruit: 'Fruta',
+        vegetable: 'Vegetal',
+      },
     },
     workout: {
       title: 'Tu Plan de Entreno',
