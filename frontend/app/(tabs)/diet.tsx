@@ -236,16 +236,6 @@ export default function DietScreen() {
     }
   };
 
-  // Open substitution modal
-  const openSubstitutionModal = (food: any, mealIndex: number, foodIndex: number) => {
-    lightImpact(); // Haptic ao abrir modal
-    setSelectedFood(food);
-    setSelectedMealIndex(mealIndex);
-    setSelectedFoodIndex(foodIndex);
-    setSubstitutionModal(true);
-    loadSubstitutes(food.category);
-  };
-
   // Show skeleton while loading initially
   if (initialLoading) {
     return (
