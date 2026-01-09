@@ -1,26 +1,30 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   data: any;
   updateData: (data: any) => void;
+  language: SupportedLanguage;
 }
 
-export default function BasicInfoStep({ data, updateData }: Props) {
+export default function BasicInfoStep({ data, updateData, language }: Props) {
+  const t = translations[language].onboarding;
+  
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Vamos começar!</Text>
+      <Text style={styles.title}>{t.letsStart}</Text>
       <Text style={styles.description}>
-        Conte-nos um pouco sobre você para personalizarmos seu plano.
+        {t.tellUsAboutYou}
       </Text>
 
       {/* Nome */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Nome</Text>
+        <Text style={styles.label}>{t.name}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Seu nome"
+          placeholder={t.yourName}
           value={data.name}
           onChangeText={(text) => updateData({ name: text })}
           placeholderTextColor="#9CA3AF"
@@ -29,10 +33,10 @@ export default function BasicInfoStep({ data, updateData }: Props) {
 
       {/* Idade */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Idade</Text>
+        <Text style={styles.label}>{t.age}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Sua idade"
+          placeholder={t.yourAge}
           value={data.age}
           onChangeText={(text) => updateData({ age: text })}
           keyboardType="numeric"
@@ -42,7 +46,7 @@ export default function BasicInfoStep({ data, updateData }: Props) {
 
       {/* Sexo */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Sexo</Text>
+        <Text style={styles.label}>{t.sex}</Text>
         <View style={styles.optionRow}>
           <TouchableOpacity
             style={[
@@ -63,7 +67,7 @@ export default function BasicInfoStep({ data, updateData }: Props) {
                 data.sex === 'masculino' && styles.optionTextActive,
               ]}
             >
-              Masculino
+              {t.male}
             </Text>
           </TouchableOpacity>
 
@@ -86,7 +90,7 @@ export default function BasicInfoStep({ data, updateData }: Props) {
                 data.sex === 'feminino' && styles.optionTextActive,
               ]}
             >
-              Feminino
+              {t.female}
             </Text>
           </TouchableOpacity>
         </View>
