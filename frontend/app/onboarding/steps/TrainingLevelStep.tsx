@@ -1,29 +1,33 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   data: any;
   updateData: (data: any) => void;
+  language: SupportedLanguage;
 }
 
-export default function TrainingLevelStep({ data, updateData }: Props) {
+export default function TrainingLevelStep({ data, updateData, language }: Props) {
+  const t = translations[language].onboarding;
+  
   const levels = [
-    { value: 'iniciante', label: 'Iniciante', icon: 'star-outline' as any, desc: '0-1 ano de treino' },
-    { value: 'intermediario', label: 'Intermediário', icon: 'star-half-outline' as any, desc: '1-3 anos de treino' },
-    { value: 'avancado', label: 'Avançado', icon: 'star' as any, desc: '3+ anos de treino' },
+    { value: 'iniciante', label: t.beginner, icon: 'star-outline' as any, desc: t.beginnerDesc },
+    { value: 'intermediario', label: t.intermediate, icon: 'star-half-outline' as any, desc: t.intermediateDesc },
+    { value: 'avancado', label: t.advanced, icon: 'star' as any, desc: t.advancedDesc },
   ];
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Nível de Treino</Text>
+      <Text style={styles.title}>{t.trainingLevelTitle}</Text>
       <Text style={styles.description}>
-        Isso nos ajuda a calibrar a intensidade e volume dos seus treinos.
+        {t.trainingLevelDesc}
       </Text>
 
       {/* Nível */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Qual seu nível atual?</Text>
+        <Text style={styles.label}>{t.currentLevel}</Text>
         <View style={styles.levelContainer}>
           {levels.map((level) => (
             <TouchableOpacity
@@ -56,10 +60,10 @@ export default function TrainingLevelStep({ data, updateData }: Props) {
 
       {/* Frequência */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Quantos dias por semana você pode treinar?</Text>
+        <Text style={styles.label}>{t.daysPerWeek}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: 4"
+          placeholder={t.daysPlaceholder}
           value={data.weekly_training_frequency}
           onChangeText={(text) => updateData({ weekly_training_frequency: text })}
           keyboardType="numeric"
@@ -69,10 +73,10 @@ export default function TrainingLevelStep({ data, updateData }: Props) {
 
       {/* Tempo Disponível */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Tempo disponível por treino (minutos)</Text>
+        <Text style={styles.label}>{t.timePerSession}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: 60"
+          placeholder={t.timePlaceholder}
           value={data.available_time_per_session}
           onChangeText={(text) => updateData({ available_time_per_session: text })}
           keyboardType="numeric"
