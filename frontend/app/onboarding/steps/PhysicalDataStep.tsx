@@ -1,25 +1,29 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   data: any;
   updateData: (data: any) => void;
+  language: SupportedLanguage;
 }
 
-export default function PhysicalDataStep({ data, updateData }: Props) {
+export default function PhysicalDataStep({ data, updateData, language }: Props) {
+  const t = translations[language].onboarding;
+  
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Dados Físicos</Text>
+      <Text style={styles.title}>{t.physicalDataTitle}</Text>
       <Text style={styles.description}>
-        Essas informações são essenciais para calcular suas necessidades calóricas.
+        {t.physicalDataDesc}
       </Text>
 
       {/* Altura */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Altura (cm)</Text>
+        <Text style={styles.label}>{t.height}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: 175"
+          placeholder={t.heightPlaceholder}
           value={data.height}
           onChangeText={(text) => updateData({ height: text })}
           keyboardType="numeric"
@@ -29,10 +33,10 @@ export default function PhysicalDataStep({ data, updateData }: Props) {
 
       {/* Peso Atual */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Peso Atual (kg)</Text>
+        <Text style={styles.label}>{t.currentWeight}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: 80"
+          placeholder={t.currentWeightPlaceholder}
           value={data.weight}
           onChangeText={(text) => updateData({ weight: text })}
           keyboardType="numeric"
@@ -42,10 +46,10 @@ export default function PhysicalDataStep({ data, updateData }: Props) {
 
       {/* Peso Meta */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Peso Meta (kg) - Opcional</Text>
+        <Text style={styles.label}>{t.targetWeight}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: 75"
+          placeholder={t.targetWeightPlaceholder}
           value={data.target_weight}
           onChangeText={(text) => updateData({ target_weight: text })}
           keyboardType="numeric"
@@ -55,17 +59,17 @@ export default function PhysicalDataStep({ data, updateData }: Props) {
 
       {/* Percentual de Gordura */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Percentual de Gordura (%) - Opcional</Text>
+        <Text style={styles.label}>{t.bodyFatPercentage}</Text>
         <TextInput
           style={styles.input}
-          placeholder="Ex: 15"
+          placeholder={t.bodyFatPlaceholder}
           value={data.body_fat_percentage}
           onChangeText={(text) => updateData({ body_fat_percentage: text })}
           keyboardType="numeric"
           placeholderTextColor="#9CA3AF"
         />
         <Text style={styles.hint}>
-          Se não souber, pode deixar em branco.
+          {t.bodyFatHint}
         </Text>
       </View>
     </View>
