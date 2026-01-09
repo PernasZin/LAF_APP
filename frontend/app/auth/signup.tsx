@@ -122,8 +122,8 @@ export default function SignUpScreen() {
             <View style={styles.logoContainer}>
               <Ionicons name="fitness" size={60} color="#10B981" />
             </View>
-            <Text style={styles.title}>Criar Conta</Text>
-            <Text style={styles.subtitle}>Comece sua jornada fitness</Text>
+            <Text style={styles.title}>{t.auth.signup}</Text>
+            <Text style={styles.subtitle}>{t.home.subtitle}</Text>
           </View>
 
           {/* Form */}
@@ -138,7 +138,7 @@ export default function SignUpScreen() {
 
             {/* Email */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t.auth.email}</Text>
               <View style={[styles.inputWrapper, errors.email && styles.inputError]}>
                 <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
                 <TextInput
