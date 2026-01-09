@@ -662,6 +662,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     if breakfast_carb and breakfast_carb in FOODS:
         c_grams = clamp(cafe_c * 0.6 / max(FOODS[breakfast_carb]["c"] / 100, 0.1), 30, 80)
+        # LIMITE ESPECÍFICO: Aveia máximo 80g
+        if breakfast_carb == "aveia":
+            c_grams = min(c_grams, 80)
         cafe_foods.append(calc_food(breakfast_carb, c_grams))
     
     if breakfast_fruit and breakfast_fruit in FOODS:
