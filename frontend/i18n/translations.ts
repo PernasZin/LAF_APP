@@ -96,6 +96,7 @@ export interface Translations {
     workouts: string;
     thisWeek: string;
     completeHint: string;
+    weekProgress: string;
   };
   // Progress screen
   progress: {
