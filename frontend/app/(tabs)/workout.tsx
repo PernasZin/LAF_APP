@@ -496,7 +496,7 @@ export default function WorkoutScreen() {
                   color="#fff" 
                 />
                 <Text style={styles.completeButtonText}>
-                  {selectedExercise?.completed ? 'Concluído!' : 'Marcar como Concluído'}
+                  {selectedExercise?.completed ? t.workout.completed : t.workout.markComplete}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
@@ -514,7 +514,7 @@ export default function WorkoutScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.historyModalContent, { backgroundColor: colors.background }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>📊 Histórico de Treinos</Text>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>📊 {t.workout.history}</Text>
               <TouchableOpacity onPress={() => setShowHistoryModal(false)}>
                 <Ionicons name="close" size={28} color={colors.text} />
               </TouchableOpacity>
@@ -525,19 +525,19 @@ export default function WorkoutScreen() {
               <View style={[styles.historyStats, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
                 <View style={styles.statItem}>
                   <Text style={[styles.statValue, { color: colors.primary }]}>{historyStats.total_workouts}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Treinos</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.workout.workouts}</Text>
                 </View>
                 <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
                 <View style={styles.statItem}>
                   <Text style={[styles.statValue, { color: colors.success }]}>{historyStats.total_exercises}</Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Exercícios</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.workout.exercises}</Text>
                 </View>
                 <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
                 <View style={styles.statItem}>
                   <Text style={[styles.statValue, { color: colors.warning }]}>
                     {historyStats.this_week_count}/{historyStats.target_frequency || '-'}
                   </Text>
-                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Esta Semana</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{t.workout.thisWeek}</Text>
                 </View>
               </View>
             )}
@@ -549,10 +549,10 @@ export default function WorkoutScreen() {
                 <View style={styles.emptyHistory}>
                   <Ionicons name="fitness-outline" size={48} color={colors.textTertiary} />
                   <Text style={[styles.emptyHistoryText, { color: colors.textSecondary }]}>
-                    Nenhum treino registrado ainda
+                    {t.workout.noHistory}
                   </Text>
                   <Text style={[styles.emptyHistoryHint, { color: colors.textTertiary }]}>
-                    Complete exercícios para ver seu histórico aqui
+                    {t.workout.completeHint}
                   </Text>
                 </View>
               ) : (
