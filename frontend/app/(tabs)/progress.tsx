@@ -13,6 +13,7 @@ import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
 import { Toast, ProgressSkeleton } from '../../components';
 import { useToast } from '../../hooks/useToast';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const SCREEN_WIDTH = Dimensions.get('window').width;
