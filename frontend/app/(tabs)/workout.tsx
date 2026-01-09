@@ -395,6 +395,7 @@ export default function WorkoutScreen() {
             colors={colors}
             onExercisePress={openExerciseDetail}
             onToggleComplete={toggleExerciseComplete}
+            language={language}
           />
         ))}
       </ScrollView>
