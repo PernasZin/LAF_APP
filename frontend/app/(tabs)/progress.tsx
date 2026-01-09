@@ -210,24 +210,24 @@ export default function ProgressScreen() {
         >
           <Ionicons name="add-circle-outline" size={20} color={canRecord ? '#fff' : colors.textTertiary} />
           <Text style={[styles.recordButtonText, { color: canRecord ? '#fff' : colors.textTertiary }]}>
-            {canRecord ? 'Registrar Peso' : `Próximo registro em ${daysUntilNext} dias`}
+            {canRecord ? t.progress.recordWeight : `Próximo registro em ${daysUntilNext} dias`}
           </Text>
         </TouchableOpacity>
 
         {/* Chart */}
         {history.length > 0 ? (
           <View style={[styles.chartCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <Text style={[styles.chartTitle, { color: colors.text }]}>Evolução do Peso</Text>
+            <Text style={[styles.chartTitle, { color: colors.text }]}>{t.progress.evolution}</Text>
             <WeightChart data={history} colors={colors} />
           </View>
         ) : (
           <View style={[styles.emptyChart, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             <Ionicons name="analytics-outline" size={48} color={colors.textTertiary} />
             <Text style={[styles.emptyChartText, { color: colors.textSecondary }]}>
-              Nenhum registro de peso ainda
+              {t.progress.noRecords}
             </Text>
             <Text style={[styles.emptyChartSubtext, { color: colors.textTertiary }]}>
-              Registre seu peso a cada 2 semanas para acompanhar sua evolução
+              {t.progress.recordWeight}
             </Text>
           </View>
         )}
@@ -235,7 +235,7 @@ export default function ProgressScreen() {
         {/* History List */}
         {history.length > 0 && (
           <View style={styles.historySection}>
-            <Text style={[styles.historyTitle, { color: colors.text }]}>Histórico</Text>
+            <Text style={[styles.historyTitle, { color: colors.text }]}>{t.progress.weightHistory}</Text>
             {history.slice().reverse().map((record: any, index: number) => (
               <View 
                 key={record.id} 
@@ -280,7 +280,7 @@ export default function ProgressScreen() {
         <View style={[styles.infoBox, { backgroundColor: colors.primary + '10' }]}>
           <Ionicons name="information-circle-outline" size={20} color={colors.primary} />
           <Text style={[styles.infoBoxText, { color: colors.text }]}>
-            Registre seu peso a cada 2 semanas para um acompanhamento preciso e evitar flutuações diárias.
+            {t.progress.recordWeight}
           </Text>
         </View>
       </ScrollView>
