@@ -81,6 +81,14 @@ export interface Translations {
     sets: string;
     reps: string;
     rest: string;
+    exercises: string;
+    howToExecute: string;
+    restTimer: string;
+    start: string;
+    restart: string;
+    workouts: string;
+    thisWeek: string;
+    completeHint: string;
   };
   // Progress screen
   progress: {
@@ -93,6 +101,9 @@ export interface Translations {
     noRecords: string;
     last30Days: string;
     evolution: string;
+    addWeight: string;
+    enterWeight: string;
+    inPeriod: string;
   };
   // Settings screen
   settings: {
