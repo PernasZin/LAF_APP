@@ -69,9 +69,11 @@ export default function GoalStep({ data, updateData, language }: Props) {
   };
 
   const formatDateDisplay = (dateStr: string) => {
-    if (!dateStr) return 'Selecionar data';
+    if (!dateStr) return t.selectDate;
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR', {
+    // Use appropriate locale based on language
+    const locale = language === 'pt-BR' ? 'pt-BR' : language === 'es-ES' ? 'es-ES' : 'en-US';
+    return date.toLocaleDateString(locale, {
       day: '2-digit',
       month: 'long',
       year: 'numeric'
