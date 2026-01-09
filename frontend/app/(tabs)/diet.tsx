@@ -59,7 +59,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 
 export default function DietScreen() {
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const styles = createStyles(colors);
   const { toast, showSuccess, showError, hideToast } = useToast();
   const { lightImpact, successFeedback, errorFeedback, selectionFeedback } = useHaptics();
