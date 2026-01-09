@@ -496,13 +496,28 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>DADOS E EXPORTAÇÃO</Text>
           <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+            <TouchableOpacity style={styles.legalItem} onPress={() => router.push('/settings/export')}>
+              <View style={styles.legalItemContent}>
+                <Ionicons name="document-outline" size={20} color={colors.primary} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.legalText, { color: colors.text }]}>Exportar PDF</Text>
+                  <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                    Gere PDF da dieta e treino para compartilhar
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
+            
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            
             <TouchableOpacity style={styles.legalItem} onPress={handleExportData}>
               <View style={styles.legalItemContent}>
                 <Ionicons name="download-outline" size={20} color={colors.success} />
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={[styles.legalText, { color: colors.text }]}>Exportar Meus Dados</Text>
+                  <Text style={[styles.legalText, { color: colors.text }]}>Exportar JSON</Text>
                   <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                    Baixe dieta, treino e progresso em JSON
+                    Backup completo dos seus dados
                   </Text>
                 </View>
               </View>
