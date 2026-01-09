@@ -699,27 +699,52 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     meals.append({"name": "Lanche Manhã", "time": "10:00", "foods": lanche1_foods})
     
-    # ==================== 🍽️ ALMOÇO (30% P, 30% C, 30% F) ====================
-    # OBRIGATÓRIO: EXATAMENTE 1 proteína + 1 carboidrato + legumes
-    # PERMITIDO: azeite
+    # ==================== 🍽️ ALMOÇO E JANTAR - DISTRIBUIÇÃO IGUAL ====================
+    # Proteínas e carboidratos são divididos IGUALMENTE entre Almoço e Jantar (50/50)
+    # Isso evita ter 200g em uma refeição e 100g em outra
     
-    almoco_p = target_p * 0.30
-    almoco_c = target_c * 0.30
-    almoco_f = target_f * 0.30
+    # Calcular total de proteína e carb para Almoço + Jantar
+    total_main_meals_p = target_p * 0.60  # 60% da proteína total vai para almoço+jantar
+    total_main_meals_c = target_c * 0.55  # 55% do carb total vai para almoço+jantar
+    total_main_meals_f = target_f * 0.55  # 55% da gordura total
     
+    # Dividir IGUALMENTE (50% cada)
+    almoco_p = total_main_meals_p * 0.50
+    almoco_c = total_main_meals_c * 0.50
+    almoco_f = total_main_meals_f * 0.50
+    
+    jantar_p = total_main_meals_p * 0.50
+    jantar_c = total_main_meals_c * 0.50
+    jantar_f = total_main_meals_f * 0.50
+    
+    # Selecionar alimentos para ambas as refeições
     lunch_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
     lunch_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
     
+    # Proteína/carb diferente para jantar se possível
+    used_proteins = {lunch_protein} if lunch_protein else set()
+    used_carbs = {lunch_carb} if lunch_carb else set()
+    
+    dinner_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority, exclude=used_proteins)
+    if not dinner_protein:
+        dinner_protein = lunch_protein  # Usar a mesma se não tiver alternativa
+    
+    dinner_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority, exclude=used_carbs)
+    if not dinner_carb:
+        dinner_carb = lunch_carb
+    
+    # ==================== 🍽️ ALMOÇO ====================
     almoco_foods = []
     
     if lunch_protein and lunch_protein in FOODS:
-        protein_grams = clamp(almoco_p / (FOODS[lunch_protein]["p"] / 100), 120, 300)
+        # Limite máximo aumentado para 1000g (1kg)
+        protein_grams = clamp(almoco_p / (FOODS[lunch_protein]["p"] / 100), 80, 1000)
         almoco_foods.append(calc_food(lunch_protein, protein_grams))
     else:
         almoco_foods.append(calc_food("frango", 150))
     
     if lunch_carb and lunch_carb in FOODS:
-        carb_grams = clamp(almoco_c / max(FOODS[lunch_carb]["c"] / 100, 0.1), 100, 300)
+        carb_grams = clamp(almoco_c / max(FOODS[lunch_carb]["c"] / 100, 0.1), 80, 1000)
         almoco_foods.append(calc_food(lunch_carb, carb_grams))
     else:
         almoco_foods.append(calc_food("arroz_branco", 150))
@@ -728,7 +753,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     almoco_foods.append(calc_food("salada", 100))
     
     if "azeite" in preferred or not preferred:
-        azeite_grams = clamp(almoco_f * 0.3 / 1.0, 10, 20)
+        azeite_grams = clamp(almoco_f * 0.3 / 1.0, 5, 30)
         almoco_foods.append(calc_food("azeite", azeite_grams))
     
     meals.append({"name": "Almoço", "time": "12:30", "foods": almoco_foods})
@@ -752,11 +777,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     lanche2_foods = []
     
     if snack2_fruit and snack2_fruit in FOODS:
-        fruit_grams = clamp(lanche2_c / max(FOODS[snack2_fruit]["c"] / 100, 0.1), 100, 200)
+        fruit_grams = clamp(lanche2_c / max(FOODS[snack2_fruit]["c"] / 100, 0.1), 80, 300)
         lanche2_foods.append(calc_food(snack2_fruit, fruit_grams))
     
     if snack_protein and snack_protein in FOODS:
-        protein_grams = clamp(lanche2_p / max(FOODS[snack_protein]["p"] / 100, 0.1), 100, 170)
+        protein_grams = clamp(lanche2_p / max(FOODS[snack_protein]["p"] / 100, 0.1), 80, 250)
         lanche2_foods.append(calc_food(snack_protein, protein_grams))
     
     if not lanche2_foods:
@@ -764,45 +789,27 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     meals.append({"name": "Lanche Tarde", "time": "16:00", "foods": lanche2_foods})
     
-    # ==================== 🍽️ JANTAR (30% P, 25% C, 25% F) ====================
-    # OBRIGATÓRIO: EXATAMENTE 1 proteína + 1 carboidrato + legumes
-    # PERMITIDO: azeite
-    
-    jantar_p = target_p * 0.30
-    jantar_c = target_c * 0.25
-    jantar_f = target_f * 0.25
-    
-    # Usar proteína/carb diferente se possível
-    used_proteins = {lunch_protein} if lunch_protein else set()
-    used_carbs = {lunch_carb} if lunch_carb else set()
-    
-    dinner_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority, exclude=used_proteins)
-    if not dinner_protein:
-        dinner_protein = lunch_protein
-    
-    dinner_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority, exclude=used_carbs)
-    if not dinner_carb:
-        dinner_carb = lunch_carb
-    
+    # ==================== 🍽️ JANTAR (mesma quantidade que almoço) ====================
     jantar_foods = []
     
     if dinner_protein and dinner_protein in FOODS:
-        protein_grams = clamp(jantar_p / (FOODS[dinner_protein]["p"] / 100), 120, 250)
+        # Mesma lógica do almoço - limite de 1kg
+        protein_grams = clamp(jantar_p / (FOODS[dinner_protein]["p"] / 100), 80, 1000)
         jantar_foods.append(calc_food(dinner_protein, protein_grams))
     else:
         jantar_foods.append(calc_food("tilapia", 150))
     
     if dinner_carb and dinner_carb in FOODS:
-        carb_grams = clamp(jantar_c / max(FOODS[dinner_carb]["c"] / 100, 0.1), 80, 250)
+        carb_grams = clamp(jantar_c / max(FOODS[dinner_carb]["c"] / 100, 0.1), 80, 1000)
         jantar_foods.append(calc_food(dinner_carb, carb_grams))
     else:
-        jantar_foods.append(calc_food("arroz_integral", 120))
+        jantar_foods.append(calc_food("arroz_integral", 150))
     
     # Legumes + Azeite
     jantar_foods.append(calc_food("brocolis", 100))
     
     if "azeite" in preferred or not preferred:
-        azeite_grams = clamp(jantar_f * 0.25 / 1.0, 8, 15)
+        azeite_grams = clamp(jantar_f * 0.3 / 1.0, 5, 30)
         jantar_foods.append(calc_food("azeite", azeite_grams))
     
     meals.append({"name": "Jantar", "time": "19:30", "foods": jantar_foods})
