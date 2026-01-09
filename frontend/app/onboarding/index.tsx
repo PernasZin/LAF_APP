@@ -279,6 +279,7 @@ export default function OnboardingScreen() {
           <CurrentStepComponent 
             data={formData}
             updateData={updateFormData}
+            language={language}
           />
         </ScrollView>
 
@@ -291,7 +292,7 @@ export default function OnboardingScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.nextButtonText}>
-              {loading ? 'Salvando...' : currentStep === steps.length - 1 ? 'Finalizar' : 'Próximo'}
+              {loading ? t.saving : currentStep === steps.length - 1 ? t.finish : translations[language].common.next}
             </Text>
             {!loading && <Ionicons name="arrow-forward" size={20} color="#fff" />}
           </TouchableOpacity>
