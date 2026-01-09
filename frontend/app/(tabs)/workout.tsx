@@ -305,7 +305,7 @@ export default function WorkoutScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.loadingText, { color: colors.text }]}>Gerando treino...</Text>
+          <Text style={[styles.loadingText, { color: colors.text }]}>{t.workout.generating}</Text>
         </View>
       </SafeAreaView>
     );
@@ -319,9 +319,9 @@ export default function WorkoutScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         >
           <Ionicons name="barbell-outline" size={80} color={colors.textTertiary} />
-          <Text style={[styles.emptyTitle, { color: colors.text }]}>Nenhum treino gerado</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.workout.noData}</Text>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            Gere seu plano de treino personalizado
+            {t.workout.generating.replace('...', '')}
           </Text>
           <TouchableOpacity
             style={[styles.generateButton, { backgroundColor: colors.primary }]}
@@ -329,7 +329,7 @@ export default function WorkoutScreen() {
             activeOpacity={0.8}
           >
             <Ionicons name="sparkles" size={20} color="#fff" />
-            <Text style={styles.generateButtonText}>Gerar Meu Treino</Text>
+            <Text style={styles.generateButtonText}>{t.workout.generateWorkout}</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -346,9 +346,9 @@ export default function WorkoutScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Treino</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>{t.workout.title}</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-              {workoutPlan.notes || `${workoutPlan.weekly_frequency}x por semana`}
+              {workoutPlan.notes || `${workoutPlan.weekly_frequency}x ${t.home.weeklyFrequency.replace('x/', '')}`}
             </Text>
           </View>
           <TouchableOpacity
