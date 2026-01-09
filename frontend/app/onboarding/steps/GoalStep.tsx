@@ -230,7 +230,7 @@ export default function GoalStep({ data, updateData, language }: Props) {
               <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>
                   <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Data do Campeonato</Text>
+                    <Text style={styles.modalTitle}>{t.competitionDate.replace(' *', '')}</Text>
                     <Pressable onPress={() => setShowDatePicker(false)}>
                       <Text style={styles.modalDone}>OK</Text>
                     </Pressable>
