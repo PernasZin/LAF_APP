@@ -1,16 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   data: any;
   updateData: (data: any) => void;
+  language: SupportedLanguage;
 }
 
 interface FoodItem {
   id: string;
-  name: string;
-  selectable: boolean; // true = pode selecionar, false = apenas visualização
+  nameKey: string; // key for translation
+  selectable: boolean;
 }
 
 // ============================================
