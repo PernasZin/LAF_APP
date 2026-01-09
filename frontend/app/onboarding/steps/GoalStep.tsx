@@ -109,9 +109,9 @@ export default function GoalStep({ data, updateData, language }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Qual seu objetivo?</Text>
+      <Text style={styles.title}>{t.goalTitle}</Text>
       <Text style={styles.description}>
-        Vamos ajustar seu plano de dieta e treino para seu objetivo específico.
+        {t.goalDesc}
       </Text>
 
       <View style={styles.goalsContainer}>
