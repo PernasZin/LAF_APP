@@ -7,12 +7,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Link } from 'expo-router';
 import { useAuthStore } from '../../stores/authStore';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function LoginScreen() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+  const { t } = useTranslation();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +24,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      setError('Preencha todos os campos');
+      setError(t.common.error);
       return;
     }
     
@@ -38,7 +40,7 @@ export default function LoginScreen() {
       
       const data = await res.json();
       
-      if (!res.ok) throw new Error(data.detail || 'Erro ao fazer login');
+      if (!res.ok) throw new Error(data.detail || t.common.error);
       
       // Save to AuthStore (SINGLE SOURCE OF TRUTH)
       await login(data.user_id, data.access_token, data.profile_completed);
@@ -58,7 +60,7 @@ export default function LoginScreen() {
           <View style={styles.header}>
             <View style={styles.logo}><Ionicons name="fitness" size={60} color="#10B981" /></View>
             <Text style={styles.title}>LAF</Text>
-            <Text style={styles.subtitle}>Entre na sua conta</Text>
+            <Text style={styles.subtitle}>{t.auth.enterAccount}</Text>
           </View>
 
           {error && (
@@ -69,7 +71,7 @@ export default function LoginScreen() {
           )}
 
           <View style={styles.form}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>{t.auth.email}</Text>
             <View style={styles.inputBox}>
               <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
               <TextInput
@@ -83,14 +85,14 @@ export default function LoginScreen() {
               />
             </View>
 
-            <Text style={styles.label}>Senha</Text>
+            <Text style={styles.label}>{t.auth.password}</Text>
             <View style={styles.inputBox}>
               <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
               <TextInput
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Sua senha"
+                placeholder="********"
                 placeholderTextColor="#9CA3AF"
                 secureTextEntry={!showPassword}
               />
@@ -100,14 +102,14 @@ export default function LoginScreen() {
             </View>
 
             <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
-              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}
+              {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{t.auth.login}</Text>}
             </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Não tem conta?</Text>
+            <Text style={styles.footerText}>{t.auth.noAccount}</Text>
             <Link href="/auth/signup" asChild>
-              <TouchableOpacity><Text style={styles.link}>Criar conta</Text></TouchableOpacity>
+              <TouchableOpacity><Text style={styles.link}>{t.auth.createAccount}</Text></TouchableOpacity>
             </Link>
           </View>
         </ScrollView>
