@@ -18,6 +18,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useSettingsStore, ThemePreference, LanguagePreference } from '../../stores/settingsStore';
 import { useAuthStore } from '../../stores/authStore';
 import { useTheme } from '../../theme/ThemeContext';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
