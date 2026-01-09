@@ -371,6 +371,7 @@ export default function DietScreen() {
             mealIndex={mealIndex}
             colors={colors} 
             onFoodPress={openSubstitution}
+            language={language}
           />
         ))}
 
