@@ -160,7 +160,7 @@ export default function SignUpScreen() {
 
             {/* Password */}
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>Senha</Text>
+              <Text style={styles.label}>{t.auth.password}</Text>
               <View style={[styles.inputWrapper, errors.password && styles.inputError]}>
                 <Ionicons name="lock-closed-outline" size={20} color="#9CA3AF" />
                 <TextInput
