@@ -164,7 +164,7 @@ export default function OnboardingScreen() {
     
     // CRITICAL: userId must exist from auth
     if (!userId) {
-      Alert.alert('Erro', 'Sessão expirada. Faça login novamente.');
+      Alert.alert(t.error, t.sessionExpired);
       router.replace('/auth/login');
       return;
     }
