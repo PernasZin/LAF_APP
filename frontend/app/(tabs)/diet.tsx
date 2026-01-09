@@ -11,6 +11,7 @@ import { useTheme } from '../../theme/ThemeContext';
 import { Toast, DietSkeleton } from '../../components';
 import { useToast } from '../../hooks/useToast';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
