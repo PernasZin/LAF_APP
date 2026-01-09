@@ -601,6 +601,43 @@ const athleteCardStyles = StyleSheet.create({
   hint: { fontSize: 11, marginTop: 12, lineHeight: 16 },
 });
 
+// ==================== ATHLETE PHASE BADGE (COMPACT) ====================
+function AthletePhaseBadge({ phase, colors }: { phase: string; colors: any }) {
+  const PHASE_BADGE_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
+    'off_season': { label: 'OFF', color: '#10B981', icon: 'leaf' },
+    'pre_prep': { label: 'PRÉ', color: '#F59E0B', icon: 'trending-up' },
+    'prep': { label: 'PREP', color: '#EF4444', icon: 'flame' },
+    'peak_week': { label: 'PEAK', color: '#8B5CF6', icon: 'flash' },
+    'post_show': { label: 'PÓS', color: '#3B82F6', icon: 'heart' },
+  };
+
+  const config = PHASE_BADGE_CONFIG[phase] || PHASE_BADGE_CONFIG['prep'];
+
+  return (
+    <View style={[phaseBadgeStyles.container, { backgroundColor: config.color + '15', borderColor: config.color }]}>
+      <Ionicons name={config.icon as any} size={14} color={config.color} />
+      <Text style={[phaseBadgeStyles.label, { color: config.color }]}>{config.label}</Text>
+    </View>
+  );
+}
+
+const phaseBadgeStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+});
+
 function MacroItem({ label, current, target, color, colors }: any) {
   const percentage = Math.min(100, (current / target) * 100);
   const isOnTarget = Math.abs(current - target) <= target * 0.1;
