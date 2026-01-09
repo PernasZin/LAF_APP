@@ -469,6 +469,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       workouts: 'Workouts',
       thisWeek: 'This Week',
       completeHint: 'Complete exercises to see your history here',
+      weekProgress: 'Weekly Progress',
     },
     progress: {
       title: 'Your Progress',
