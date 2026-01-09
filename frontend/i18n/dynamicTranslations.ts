@@ -270,15 +270,37 @@ export function translateExercise(name: string, language: SupportedLanguage): st
  * Traduz nome de alimento
  */
 export function translateFood(name: string, language: SupportedLanguage): string {
-  // Tenta match exato
+  // Se o idioma é português, retorna o original
+  if (language === 'pt-BR') {
+    return name;
+  }
+  
+  // Tenta match exato primeiro
   if (foodTranslations[name]?.[language]) {
     return foodTranslations[name][language];
   }
   
-  // Tenta match parcial (para casos como "Peito de Frango Grelhado 200g")
-  for (const [key, translations] of Object.entries(foodTranslations)) {
-    if (name.toLowerCase().includes(key.toLowerCase())) {
-      return name.replace(new RegExp(key, 'i'), translations[language]);
+  // Normaliza o nome para comparação (remove quantidades como "200g", "100ml")
+  const nameWithoutQuantity = name.replace(/\s*\d+\s*(g|ml|kg|l|unidade|unidades|fatia|fatias)?\s*$/i, '').trim();
+  
+  // Tenta match exato sem quantidade
+  if (foodTranslations[nameWithoutQuantity]?.[language]) {
+    const quantityMatch = name.match(/\s*(\d+\s*(g|ml|kg|l|unidade|unidades|fatia|fatias)?)\s*$/i);
+    const quantity = quantityMatch ? quantityMatch[0] : '';
+    return foodTranslations[nameWithoutQuantity][language] + quantity;
+  }
+  
+  // Tenta match com palavras-chave (do maior para menor para evitar substituições parciais incorretas)
+  const sortedKeys = Object.keys(foodTranslations).sort((a, b) => b.length - a.length);
+  
+  for (const key of sortedKeys) {
+    const keyLower = key.toLowerCase();
+    const nameLower = name.toLowerCase();
+    
+    // Verifica se o nome começa com a chave (para evitar "Ovo" substituir parte de "Ovos")
+    if (nameLower === keyLower || nameLower.startsWith(keyLower + ' ')) {
+      const restOfName = name.substring(key.length);
+      return foodTranslations[key][language] + restOfName;
     }
   }
   
