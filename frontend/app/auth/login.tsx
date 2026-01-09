@@ -188,6 +188,20 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   content: { flexGrow: 1, padding: 24, justifyContent: 'center' },
+  // Language selector button
+  languageButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    alignSelf: 'flex-end',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+    marginBottom: 16,
+  },
+  languageFlag: { fontSize: 18 },
+  languageText: { fontSize: 14, fontWeight: '500', color: '#374151' },
   header: { alignItems: 'center', marginBottom: 32 },
   logo: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#F0FDF4', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   title: { fontSize: 36, fontWeight: '700', color: '#10B981' },
@@ -204,4 +218,52 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', gap: 8 },
   footerText: { fontSize: 14, color: '#6B7280' },
   link: { fontSize: 14, fontWeight: '600', color: '#10B981' },
+  // Modal styles
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: 'rgba(0,0,0,0.5)', 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: { 
+    backgroundColor: '#fff', 
+    borderRadius: 16, 
+    padding: 20,
+    width: '100%',
+    maxWidth: 300,
+  },
+  modalTitle: { 
+    fontSize: 18, 
+    fontWeight: '700', 
+    color: '#111827', 
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  languageOption: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    marginBottom: 8,
+    backgroundColor: '#F9FAFB',
+    gap: 12,
+  },
+  languageOptionActive: { 
+    backgroundColor: '#F0FDF4',
+    borderWidth: 2,
+    borderColor: '#10B981',
+  },
+  languageOptionFlag: { fontSize: 24 },
+  languageOptionText: { 
+    flex: 1, 
+    fontSize: 16, 
+    fontWeight: '500', 
+    color: '#374151' 
+  },
+  languageOptionTextActive: { 
+    color: '#10B981', 
+    fontWeight: '600' 
+  },
 });
