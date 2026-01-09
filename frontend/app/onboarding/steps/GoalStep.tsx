@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, Modal, Pressable, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 // DateTimePicker só funciona em iOS/Android, não na web
 let DateTimePicker: any = null;
@@ -11,38 +12,40 @@ if (Platform.OS !== 'web') {
 interface Props {
   data: any;
   updateData: (data: any) => void;
+  language: SupportedLanguage;
 }
 
-export default function GoalStep({ data, updateData }: Props) {
+export default function GoalStep({ data, updateData, language }: Props) {
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const t = translations[language].onboarding;
   
   const goals = [
     {
       value: 'cutting',
-      label: 'Emagrecimento (Cutting)',
+      label: t.cutting,
       icon: 'trending-down' as any,
-      desc: 'Perder gordura e definir',
+      desc: t.cuttingDesc,
       color: '#EF4444',
     },
     {
       value: 'bulking',
-      label: 'Ganho de Massa (Bulking)',
+      label: t.bulking,
       icon: 'trending-up' as any,
-      desc: 'Ganhar músculo e força',
+      desc: t.bulkingDesc,
       color: '#10B981',
     },
     {
       value: 'manutencao',
-      label: 'Manutenção',
+      label: t.maintenance,
       icon: 'remove' as any,
-      desc: 'Manter peso e melhorar performance',
+      desc: t.maintenanceDesc,
       color: '#3B82F6',
     },
     {
       value: 'atleta',
-      label: 'Atleta/Competição',
+      label: t.athlete,
       icon: 'trophy' as any,
-      desc: 'Preparação automática até o campeonato',
+      desc: t.athleteDesc,
       color: '#F59E0B',
     },
   ];
