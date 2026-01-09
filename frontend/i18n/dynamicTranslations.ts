@@ -274,6 +274,200 @@ export const workoutNameTranslations: Record<string, Record<SupportedLanguage, s
 
 // ==================== INSTRUÇÕES DOS EXERCÍCIOS ====================
 export const exerciseInstructionsTranslations: Record<string, Record<SupportedLanguage, string>> = {
+  // ============ PEITO - INSTRUÇÕES DO BACKEND ============
+  'Sente com costas apoiadas. Empurre as manoplas para frente até extensão quase completa. Retorne controlado sem bater os pesos.': {
+    'pt-BR': 'Sente com costas apoiadas. Empurre as manoplas para frente até extensão quase completa. Retorne controlado sem bater os pesos.',
+    'en-US': 'Sit with your back supported. Push the handles forward until near full extension. Return slowly without letting the weights slam.',
+    'es-ES': 'Siéntate con la espalda apoyada. Empuja las manijas hacia adelante hasta extensión casi completa. Regresa controlado sin golpear los pesos.'
+  },
+  'Cotovelos na altura dos ombros. Junte os braços à frente contraindo o peitoral. Abra controlado até sentir leve alongamento.': {
+    'pt-BR': 'Cotovelos na altura dos ombros. Junte os braços à frente contraindo o peitoral. Abra controlado até sentir leve alongamento.',
+    'en-US': 'Elbows at shoulder height. Bring your arms together in front contracting the chest. Open slowly until you feel a light stretch.',
+    'es-ES': 'Codos a la altura de los hombros. Junta los brazos al frente contrayendo el pectoral. Abre controlado hasta sentir un leve estiramiento.'
+  },
+  'Cabos na posição alta. Dê um passo à frente. Puxe os cabos para baixo e para frente, cruzando na frente do corpo. Volte controlado.': {
+    'pt-BR': 'Cabos na posição alta. Dê um passo à frente. Puxe os cabos para baixo e para frente, cruzando na frente do corpo. Volte controlado.',
+    'en-US': 'Cables in high position. Step forward. Pull the cables down and forward, crossing in front of your body. Return slowly.',
+    'es-ES': 'Cables en posición alta. Da un paso adelante. Tira de los cables hacia abajo y adelante, cruzando frente al cuerpo. Regresa controlado.'
+  },
+  'Banco a 30°. Halteres ao lado do peito. Empurre para cima sem bater os halteres no topo. Desça controlado até cotovelos a 90°.': {
+    'pt-BR': 'Banco a 30°. Halteres ao lado do peito. Empurre para cima sem bater os halteres no topo. Desça controlado até cotovelos a 90°.',
+    'en-US': 'Bench at 30°. Dumbbells at chest level. Push up without clanking the dumbbells at the top. Lower slowly until elbows reach 90°.',
+    'es-ES': 'Banco a 30°. Mancuernas al lado del pecho. Empuja hacia arriba sin chocar las mancuernas arriba. Baja controlado hasta codos a 90°.'
+  },
+  
+  // ============ COSTAS - INSTRUÇÕES DO BACKEND ============
+  'Pegada um pouco mais larga que os ombros. Puxe a barra até a altura do queixo, levando os cotovelos para baixo e para trás. Retorne controlado.': {
+    'pt-BR': 'Pegada um pouco mais larga que os ombros. Puxe a barra até a altura do queixo, levando os cotovelos para baixo e para trás. Retorne controlado.',
+    'en-US': 'Grip slightly wider than shoulders. Pull the bar to chin height, bringing elbows down and back. Return slowly.',
+    'es-ES': 'Agarre un poco más ancho que los hombros. Tira de la barra hasta la altura del mentón, llevando los codos hacia abajo y atrás. Regresa controlado.'
+  },
+  'Peito apoiado no suporte. Puxe as manoplas em direção ao abdômen, contraindo as escápulas. Retorne estendendo completamente os braços.': {
+    'pt-BR': 'Peito apoiado no suporte. Puxe as manoplas em direção ao abdômen, contraindo as escápulas. Retorne estendendo completamente os braços.',
+    'en-US': 'Chest supported on the pad. Pull the handles toward your abdomen, squeezing your shoulder blades. Return by fully extending your arms.',
+    'es-ES': 'Pecho apoyado en el soporte. Tira de las manijas hacia el abdomen, contrayendo las escápulas. Regresa extendiendo completamente los brazos.'
+  },
+  'Sente com pernas levemente flexionadas. Puxe o triângulo até o abdômen, mantendo costas retas. Estenda os braços completamente na volta.': {
+    'pt-BR': 'Sente com pernas levemente flexionadas. Puxe o triângulo até o abdômen, mantendo costas retas. Estenda os braços completamente na volta.',
+    'en-US': 'Sit with legs slightly bent. Pull the handle to your abdomen, keeping your back straight. Fully extend your arms on the return.',
+    'es-ES': 'Siéntate con piernas ligeramente flexionadas. Tira del triángulo hasta el abdomen, manteniendo la espalda recta. Extiende los brazos completamente al volver.'
+  },
+  'Braços estendidos acima. Puxe a corda até a altura das coxas, mantendo cotovelos próximos ao corpo. Retorne controlado.': {
+    'pt-BR': 'Braços estendidos acima. Puxe a corda até a altura das coxas, mantendo cotovelos próximos ao corpo. Retorne controlado.',
+    'en-US': 'Arms extended overhead. Pull the rope down to thigh level, keeping elbows close to your body. Return slowly.',
+    'es-ES': 'Brazos extendidos arriba. Tira de la cuerda hasta la altura de los muslos, manteniendo los codos cerca del cuerpo. Regresa controlado.'
+  },
+  
+  // ============ OMBROS - INSTRUÇÕES DO BACKEND ============
+  'Sente com costas totalmente apoiadas. Empurre as manoplas para cima até quase estender os cotovelos. Desça até a altura das orelhas.': {
+    'pt-BR': 'Sente com costas totalmente apoiadas. Empurre as manoplas para cima até quase estender os cotovelos. Desça até a altura das orelhas.',
+    'en-US': 'Sit with your back fully supported. Push the handles up until your elbows are almost extended. Lower to ear level.',
+    'es-ES': 'Siéntate con la espalda totalmente apoyada. Empuja las manijas hacia arriba hasta casi extender los codos. Baja hasta la altura de las orejas.'
+  },
+  'Cotovelos apoiados nas almofadas. Eleve os braços até a altura dos ombros. Desça controlado sem deixar os pesos baterem.': {
+    'pt-BR': 'Cotovelos apoiados nas almofadas. Eleve os braços até a altura dos ombros. Desça controlado sem deixar os pesos baterem.',
+    'en-US': 'Elbows resting on the pads. Raise your arms to shoulder height. Lower slowly without letting the weights slam.',
+    'es-ES': 'Codos apoyados en las almohadillas. Eleva los brazos hasta la altura de los hombros. Baja controlado sin dejar que los pesos golpeen.'
+  },
+  'Sente no banco para mais estabilidade. Cotovelos levemente flexionados. Eleve até a altura dos ombros. Desça controlado.': {
+    'pt-BR': 'Sente no banco para mais estabilidade. Cotovelos levemente flexionados. Eleve até a altura dos ombros. Desça controlado.',
+    'en-US': 'Sit on a bench for more stability. Elbows slightly bent. Raise to shoulder height. Lower slowly.',
+    'es-ES': 'Siéntate en el banco para más estabilidad. Codos ligeramente flexionados. Eleva hasta la altura de los hombros. Baja controlado.'
+  },
+  'Polia na altura do rosto. Puxe a corda em direção ao rosto, abrindo os cotovelos para os lados. Aperte as escápulas no final.': {
+    'pt-BR': 'Polia na altura do rosto. Puxe a corda em direção ao rosto, abrindo os cotovelos para os lados. Aperte as escápulas no final.',
+    'en-US': 'Cable at face height. Pull the rope toward your face, spreading elbows to the sides. Squeeze shoulder blades at the end.',
+    'es-ES': 'Polea a la altura del rostro. Tira de la cuerda hacia la cara, abriendo los codos hacia los lados. Aprieta las escápulas al final.'
+  },
+  
+  // ============ BÍCEPS - INSTRUÇÕES DO BACKEND ============
+  'Braços apoiados no suporte. Flexione os cotovelos trazendo as manoplas em direção aos ombros. Desça controlado sem estender completamente.': {
+    'pt-BR': 'Braços apoiados no suporte. Flexione os cotovelos trazendo as manoplas em direção aos ombros. Desça controlado sem estender completamente.',
+    'en-US': 'Arms supported on the pad. Curl by bringing the handles toward your shoulders. Lower slowly without fully extending.',
+    'es-ES': 'Brazos apoyados en el soporte. Flexiona los codos llevando las manijas hacia los hombros. Baja controlado sin extender completamente.'
+  },
+  'De frente para a polia baixa. Cotovelos fixos ao lado do corpo. Flexione puxando a barra até os ombros. Desça controlado.': {
+    'pt-BR': 'De frente para a polia baixa. Cotovelos fixos ao lado do corpo. Flexione puxando a barra até os ombros. Desça controlado.',
+    'en-US': 'Facing the low pulley. Elbows fixed at your sides. Curl by pulling the bar to your shoulders. Lower slowly.',
+    'es-ES': 'De frente a la polea baja. Codos fijos al lado del cuerpo. Flexiona tirando de la barra hasta los hombros. Baja controlado.'
+  },
+  'Sente no banco com costas apoiadas. Alterne os braços. Gire o punho (supinação) durante a subida. Desça controlado.': {
+    'pt-BR': 'Sente no banco com costas apoiadas. Alterne os braços. Gire o punho (supinação) durante a subida. Desça controlado.',
+    'en-US': 'Sit on a bench with back supported. Alternate arms. Rotate your wrist (supination) on the way up. Lower slowly.',
+    'es-ES': 'Siéntate en el banco con espalda apoyada. Alterna los brazos. Gira la muñeca (supinación) durante la subida. Baja controlado.'
+  },
+  'Pegada neutra (palmas voltadas para dentro). Cotovelos fixos. Flexione até contrair o bíceps. Desça controlado.': {
+    'pt-BR': 'Pegada neutra (palmas voltadas para dentro). Cotovelos fixos. Flexione até contrair o bíceps. Desça controlado.',
+    'en-US': 'Neutral grip (palms facing in). Elbows fixed. Curl until biceps are contracted. Lower slowly.',
+    'es-ES': 'Agarre neutro (palmas hacia adentro). Codos fijos. Flexiona hasta contraer el bíceps. Baja controlado.'
+  },
+  
+  // ============ TRÍCEPS - INSTRUÇÕES DO BACKEND ============
+  'Cotovelos fixos ao lado do corpo. Estenda os braços completamente, abrindo a corda no final. Retorne até 90° nos cotovelos.': {
+    'pt-BR': 'Cotovelos fixos ao lado do corpo. Estenda os braços completamente, abrindo a corda no final. Retorne até 90° nos cotovelos.',
+    'en-US': 'Elbows fixed at your sides. Fully extend your arms, spreading the rope at the bottom. Return to 90° at the elbows.',
+    'es-ES': 'Codos fijos al lado del cuerpo. Extiende los brazos completamente, abriendo la cuerda al final. Regresa hasta 90° en los codos.'
+  },
+  'Pegada pronada na barra. Cotovelos fixos. Empurre a barra para baixo até extensão completa. Retorne controlado até 90°.': {
+    'pt-BR': 'Pegada pronada na barra. Cotovelos fixos. Empurre a barra para baixo até extensão completa. Retorne controlado até 90°.',
+    'en-US': 'Overhand grip on the bar. Elbows fixed. Push the bar down to full extension. Return slowly to 90°.',
+    'es-ES': 'Agarre pronado en la barra. Codos fijos. Empuja la barra hacia abajo hasta extensión completa. Regresa controlado hasta 90°.'
+  },
+  'Sente com costas apoiadas. Empurre as manoplas para baixo estendendo os cotovelos. Retorne controlado sem deixar pesos baterem.': {
+    'pt-BR': 'Sente com costas apoiadas. Empurre as manoplas para baixo estendendo os cotovelos. Retorne controlado sem deixar pesos baterem.',
+    'en-US': 'Sit with your back supported. Push the handles down by extending your elbows. Return slowly without letting weights slam.',
+    'es-ES': 'Siéntate con espalda apoyada. Empuja las manijas hacia abajo extendiendo los codos. Regresa controlado sin dejar golpear los pesos.'
+  },
+  'Sente no banco. Segure um halter acima da cabeça com as duas mãos. Desça atrás da cabeça. Estenda sem mover os cotovelos.': {
+    'pt-BR': 'Sente no banco. Segure um halter acima da cabeça com as duas mãos. Desça atrás da cabeça. Estenda sem mover os cotovelos.',
+    'en-US': 'Sit on a bench. Hold a dumbbell overhead with both hands. Lower behind your head. Extend without moving your elbows.',
+    'es-ES': 'Siéntate en el banco. Sostén una mancuerna sobre la cabeza con ambas manos. Baja detrás de la cabeza. Extiende sin mover los codos.'
+  },
+  
+  // ============ QUADRÍCEPS - INSTRUÇÕES DO BACKEND ============
+  'Pés no centro da plataforma na largura dos ombros. Desça até 90° nos joelhos. Empurre sem travar os joelhos no topo.': {
+    'pt-BR': 'Pés no centro da plataforma na largura dos ombros. Desça até 90° nos joelhos. Empurre sem travar os joelhos no topo.',
+    'en-US': 'Feet in the center of the platform, shoulder-width apart. Lower to 90° at the knees. Push without locking knees at the top.',
+    'es-ES': 'Pies en el centro de la plataforma al ancho de los hombros. Baja hasta 90° en las rodillas. Empuja sin trabar las rodillas arriba.'
+  },
+  'Ajuste o encosto para joelhos alinhados com o eixo. Estenda as pernas completamente, contraindo no topo. Desça controlado.': {
+    'pt-BR': 'Ajuste o encosto para joelhos alinhados com o eixo. Estenda as pernas completamente, contraindo no topo. Desça controlado.',
+    'en-US': 'Adjust the backrest so knees align with the pivot. Fully extend your legs, contracting at the top. Lower slowly.',
+    'es-ES': 'Ajusta el respaldo para rodillas alineadas con el eje. Extiende las piernas completamente, contrayendo arriba. Baja controlado.'
+  },
+  'Pés ligeiramente à frente da barra. Desça até coxas paralelas ao chão. Suba empurrando pelos calcanhares. Joelhos alinhados com os pés.': {
+    'pt-BR': 'Pés ligeiramente à frente da barra. Desça até coxas paralelas ao chão. Suba empurrando pelos calcanhares. Joelhos alinhados com os pés.',
+    'en-US': 'Feet slightly in front of the bar. Lower until thighs are parallel to the floor. Push through your heels. Knees aligned with feet.',
+    'es-ES': 'Pies ligeramente delante de la barra. Baja hasta muslos paralelos al suelo. Sube empujando por los talones. Rodillas alineadas con los pies.'
+  },
+  'Costas totalmente apoiadas. Pés na largura dos ombros. Empurre a plataforma sem travar joelhos. Desça controlado até 90°.': {
+    'pt-BR': 'Costas totalmente apoiadas. Pés na largura dos ombros. Empurre a plataforma sem travar joelhos. Desça controlado até 90°.',
+    'en-US': 'Back fully supported. Feet shoulder-width apart. Push the platform without locking knees. Lower slowly to 90°.',
+    'es-ES': 'Espalda totalmente apoyada. Pies al ancho de los hombros. Empuja la plataforma sin trabar rodillas. Baja controlado hasta 90°.'
+  },
+  
+  // ============ POSTERIOR - INSTRUÇÕES DO BACKEND ============
+  'Deite de bruços com joelhos alinhados ao eixo da máquina. Flexione as pernas trazendo os calcanhares em direção aos glúteos. Desça controlado.': {
+    'pt-BR': 'Deite de bruços com joelhos alinhados ao eixo da máquina. Flexione as pernas trazendo os calcanhares em direção aos glúteos. Desça controlado.',
+    'en-US': 'Lie face down with knees aligned with the machine pivot. Curl your legs bringing heels toward your glutes. Lower slowly.',
+    'es-ES': 'Acuéstate boca abajo con rodillas alineadas al eje de la máquina. Flexiona las piernas llevando los talones hacia los glúteos. Baja controlado.'
+  },
+  'Sente com coxas apoiadas. Flexione as pernas para baixo e para trás. Contraia no final do movimento. Retorne controlado.': {
+    'pt-BR': 'Sente com coxas apoiadas. Flexione as pernas para baixo e para trás. Contraia no final do movimento. Retorne controlado.',
+    'en-US': 'Sit with thighs supported. Curl your legs down and back. Contract at the end of the movement. Return slowly.',
+    'es-ES': 'Siéntate con muslos apoyados. Flexiona las piernas hacia abajo y atrás. Contrae al final del movimiento. Regresa controlado.'
+  },
+  'Pernas semi-estendidas, pés na largura do quadril. Desça a barra deslizando próximo às coxas até sentir alongamento. Suba contraindo glúteos.': {
+    'pt-BR': 'Pernas semi-estendidas, pés na largura do quadril. Desça a barra deslizando próximo às coxas até sentir alongamento. Suba contraindo glúteos.',
+    'en-US': 'Legs semi-extended, feet hip-width apart. Lower the bar sliding close to your thighs until you feel a stretch. Rise contracting glutes.',
+    'es-ES': 'Piernas semi-extendidas, pies al ancho de la cadera. Baja la barra deslizando cerca de los muslos hasta sentir estiramiento. Sube contrayendo glúteos.'
+  },
+  'Apoie o pé na plataforma. Empurre para trás estendendo o quadril. Contraia o glúteo no topo. Retorne controlado sem deixar peso bater.': {
+    'pt-BR': 'Apoie o pé na plataforma. Empurre para trás estendendo o quadril. Contraia o glúteo no topo. Retorne controlado sem deixar peso bater.',
+    'en-US': 'Place your foot on the platform. Push back extending your hip. Contract your glute at the top. Return slowly without letting the weight slam.',
+    'es-ES': 'Apoya el pie en la plataforma. Empuja hacia atrás extendiendo la cadera. Contrae el glúteo arriba. Regresa controlado sin dejar golpear el peso.'
+  },
+  
+  // ============ PANTURRILHA - INSTRUÇÕES DO BACKEND ============
+  'Apoie apenas a ponta dos pés na plataforma. Empurre estendendo os tornozelos o máximo possível. Desça alongando bem a panturrilha.': {
+    'pt-BR': 'Apoie apenas a ponta dos pés na plataforma. Empurre estendendo os tornozelos o máximo possível. Desça alongando bem a panturrilha.',
+    'en-US': 'Place only the balls of your feet on the platform. Push by extending your ankles as much as possible. Lower, stretching your calves well.',
+    'es-ES': 'Apoya solo la punta de los pies en la plataforma. Empuja extendiendo los tobillos al máximo. Baja estirando bien la pantorrilla.'
+  },
+  'Joelhos a 90° sob as almofadas. Eleve os calcanhares o máximo possível. Desça controlado até sentir alongamento completo.': {
+    'pt-BR': 'Joelhos a 90° sob as almofadas. Eleve os calcanhares o máximo possível. Desça controlado até sentir alongamento completo.',
+    'en-US': 'Knees at 90° under the pads. Raise your heels as high as possible. Lower slowly until you feel a full stretch.',
+    'es-ES': 'Rodillas a 90° bajo las almohadillas. Eleva los talones lo máximo posible. Baja controlado hasta sentir estiramiento completo.'
+  },
+  'Ombros sob as almofadas. Eleve nos dedos o máximo possível, contraindo no topo. Desça alongando completamente.': {
+    'pt-BR': 'Ombros sob as almofadas. Eleve nos dedos o máximo possível, contraindo no topo. Desça alongando completamente.',
+    'en-US': 'Shoulders under the pads. Rise on your toes as high as possible, contracting at the top. Lower, fully stretching.',
+    'es-ES': 'Hombros bajo las almohadillas. Elévate en los dedos lo máximo posible, contrayendo arriba. Baja estirando completamente.'
+  },
+  
+  // ============ ABDÔMEN - INSTRUÇÕES DO BACKEND ============
+  'Sente e segure as manoplas. Flexione o tronco para frente contraindo o abdômen. Retorne controlado sem soltar a tensão.': {
+    'pt-BR': 'Sente e segure as manoplas. Flexione o tronco para frente contraindo o abdômen. Retorne controlado sem soltar a tensão.',
+    'en-US': 'Sit and hold the handles. Flex your torso forward contracting your abs. Return slowly without releasing tension.',
+    'es-ES': 'Siéntate y sostén las manijas. Flexiona el tronco hacia adelante contrayendo el abdomen. Regresa controlado sin soltar la tensión.'
+  },
+  'Ajoelhe de costas para a polia. Segure a corda atrás da cabeça. Flexione o tronco em direção ao chão. Retorne controlado.': {
+    'pt-BR': 'Ajoelhe de costas para a polia. Segure a corda atrás da cabeça. Flexione o tronco em direção ao chão. Retorne controlado.',
+    'en-US': 'Kneel with your back to the pulley. Hold the rope behind your head. Flex your torso toward the floor. Return slowly.',
+    'es-ES': 'Arrodíllate de espaldas a la polea. Sostén la cuerda detrás de la cabeza. Flexiona el tronco hacia el suelo. Regresa controlado.'
+  },
+  'Apoie antebraços e pontas dos pés no chão. Corpo reto da cabeça aos calcanhares. Mantenha o abdômen contraído. Não deixe o quadril subir ou descer.': {
+    'pt-BR': 'Apoie antebraços e pontas dos pés no chão. Corpo reto da cabeça aos calcanhares. Mantenha o abdômen contraído. Não deixe o quadril subir ou descer.',
+    'en-US': 'Support yourself on forearms and toes. Body straight from head to heels. Keep your abs contracted. Do not let your hips rise or drop.',
+    'es-ES': 'Apóyate en antebrazos y puntas de los pies. Cuerpo recto de la cabeza a los talones. Mantén el abdomen contraído. No dejes que la cadera suba o baje.'
+  },
+  'Costas apoiadas no suporte, braços nos apoios. Eleve as pernas estendidas até 90°. Desça controlado sem balançar o corpo.': {
+    'pt-BR': 'Costas apoiadas no suporte, braços nos apoios. Eleve as pernas estendidas até 90°. Desça controlado sem balançar o corpo.',
+    'en-US': 'Back against the support, arms on the rests. Raise extended legs to 90°. Lower slowly without swinging your body.',
+    'es-ES': 'Espalda apoyada en el soporte, brazos en los apoyos. Eleva las piernas extendidas hasta 90°. Baja controlado sin balancear el cuerpo.'
+  },
+
+  // Instruções genéricas
   'Deite no banco, segure a barra na largura dos ombros, desça até o peito e empurre para cima.': {
     'pt-BR': 'Deite no banco, segure a barra na largura dos ombros, desça até o peito e empurre para cima.',
     'en-US': 'Lie on the bench, grip the bar shoulder-width apart, lower to chest level and push up.',
@@ -299,6 +493,7 @@ export const exerciseInstructionsTranslations: Record<string, Record<SupportedLa
     'en-US': 'Curl your arms keeping your elbows fixed at your sides.',
     'es-ES': 'Flexiona los brazos manteniendo los codos fijos al lado del cuerpo.'
   },
+};
   'Estenda os braços completamente, contraia o tríceps no topo do movimento.': {
     'pt-BR': 'Estenda os braços completamente, contraia o tríceps no topo do movimento.',
     'en-US': 'Fully extend your arms, squeeze the triceps at the top of the movement.',
