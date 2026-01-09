@@ -423,14 +423,14 @@ export default function DietScreen() {
             )}
 
             <Text style={[styles.substitutesLabel, { color: colors.text }]}>
-              Escolha um substituto:
+              {t.diet.chooseSubstitute}:
             </Text>
 
             {loadingSubstitutes ? (
               <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
             ) : substitutes.length === 0 ? (
               <Text style={[styles.noSubstitutes, { color: colors.textSecondary }]}>
-                Nenhum substituto disponível para este alimento.
+                {t.diet.noSubstitutes}
               </Text>
             ) : (
               <ScrollView style={styles.substitutesList}>
@@ -443,7 +443,7 @@ export default function DietScreen() {
                     activeOpacity={0.7}
                   >
                     <View style={styles.substituteInfo}>
-                      <Text style={[styles.substituteName, { color: colors.text }]}>{sub.name}</Text>
+                      <Text style={[styles.substituteName, { color: colors.text }]}>{translateFood(sub.name, language)}</Text>
                       <Text style={[styles.substituteQuantity, { color: colors.primary }]}>{sub.quantity}</Text>
                     </View>
                     <Text style={[styles.substituteMacros, { color: colors.textSecondary }]}>
