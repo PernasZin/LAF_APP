@@ -308,7 +308,7 @@ export default function DietScreen() {
       >
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Plano de Dieta</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>{t.diet.title}</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               {Math.round(totalMealCalories)} / {Math.round(targetCalories)} kcal
             </Text>
@@ -326,21 +326,21 @@ export default function DietScreen() {
         <View style={[styles.macrosCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
           <View style={styles.macrosRow}>
             <MacroItem 
-              label="Proteína" 
+              label={t.home.protein} 
               current={totalMealMacros.protein} 
               target={targetMacros.protein} 
               color="#EF4444" 
               colors={colors} 
             />
             <MacroItem 
-              label="Carboidratos" 
+              label={t.home.carbs} 
               current={totalMealMacros.carbs} 
               target={targetMacros.carbs} 
               color="#F59E0B" 
               colors={colors} 
             />
             <MacroItem 
-              label="Gorduras" 
+              label={t.home.fat} 
               current={totalMealMacros.fat} 
               target={targetMacros.fat} 
               color="#3B82F6" 
@@ -353,7 +353,7 @@ export default function DietScreen() {
         <View style={[styles.infoBox, { backgroundColor: colors.primary + '15' }]}>
           <Ionicons name="swap-horizontal" size={18} color={colors.primary} />
           <Text style={[styles.infoBoxText, { color: colors.text }]}>
-            Toque em um alimento para substituir
+            {t.diet.tapToSubstitute}
           </Text>
         </View>
 
@@ -363,7 +363,7 @@ export default function DietScreen() {
         )}
 
         {/* Meals */}
-        <Text style={[styles.mealsTitle, { color: colors.text }]}>Refeições do Dia</Text>
+        <Text style={[styles.mealsTitle, { color: colors.text }]}>{t.diet.mealsOfDay}</Text>
         {dietPlan.meals.map((meal: any, mealIndex: number) => (
           <MealCard 
             key={meal.id || mealIndex} 
@@ -379,7 +379,7 @@ export default function DietScreen() {
           <View style={[styles.supplementsCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
             <View style={styles.supplementsHeader}>
               <Ionicons name="flask-outline" size={20} color="#8B5CF6" />
-              <Text style={[styles.supplementsTitle, { color: colors.text }]}>Suplementação</Text>
+              <Text style={[styles.supplementsTitle, { color: colors.text }]}>{t.diet.supplements}</Text>
             </View>
             {dietPlan.supplements.map((supplement: string, idx: number) => (
               <Text key={idx} style={[styles.supplementItem, { color: colors.textSecondary }]}>
