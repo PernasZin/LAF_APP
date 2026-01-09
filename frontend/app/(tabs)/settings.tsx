@@ -383,6 +383,21 @@ export default function SettingsScreen() {
               onToggle={handleNotificationsToggle}
               colors={colors}
             />
+            
+            <View style={[styles.divider, { backgroundColor: colors.border }]} />
+            
+            <TouchableOpacity style={styles.legalItem} onPress={() => router.push('/settings/notifications')}>
+              <View style={styles.legalItemContent}>
+                <Ionicons name="settings-outline" size={20} color={colors.primary} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.legalText, { color: colors.text }]}>Configurar Lembretes</Text>
+                  <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                    Horários de refeições, treino e peso
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
           </View>
         </View>
 
