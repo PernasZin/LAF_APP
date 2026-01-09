@@ -66,6 +66,13 @@ export interface Translations {
     substituted: string;
     existingDiet: string;
     existingDietMessage: string;
+    categories: {
+      protein: string;
+      carb: string;
+      fat: string;
+      fruit: string;
+      vegetable: string;
+    };
   };
   // Workout screen
   workout: {
