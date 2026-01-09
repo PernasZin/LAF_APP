@@ -315,12 +315,19 @@ export default function DietScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />}
       >
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>Seu Plano de Dieta</Text>
             <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
               {Math.round(totalMealCalories)} / {Math.round(targetCalories)} kcal
             </Text>
           </View>
+          {/* Athlete Phase Badge */}
+          {userProfile?.athlete_mode && (
+            <AthletePhaseBadge 
+              phase={userProfile.competition_phase || userProfile.last_competition_phase} 
+              colors={colors}
+            />
+          )}
         </View>
 
         {/* Macros Summary */}
