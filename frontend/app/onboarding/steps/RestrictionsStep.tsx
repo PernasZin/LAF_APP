@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { translations, SupportedLanguage } from '../../../i18n/translations';
+import { foodTranslations } from '../../../i18n/dynamicTranslations';
 
 interface Props {
   data: any;
@@ -11,7 +12,7 @@ interface Props {
 
 interface FoodItem {
   id: string;
-  nameKey: string; // key for translation
+  namePt: string; // Portuguese name (base)
   selectable: boolean;
 }
 
@@ -22,118 +23,147 @@ interface FoodItem {
 // ATLETA: Lista restrita de alimentos limpos
 const ATHLETE_FOODS: Record<string, FoodItem[]> = {
   proteins: [
-    { id: 'chicken_breast', name: 'Peito de Frango', selectable: true },
-    { id: 'lean_beef', name: 'Carne Bovina (Patinho)', selectable: true },
-    { id: 'eggs', name: 'Ovos Inteiros', selectable: true },
-    { id: 'tilapia', name: 'Tilápia', selectable: true },
-    { id: 'tuna', name: 'Atum', selectable: true },
-    { id: 'salmon', name: 'Salmão', selectable: true },
+    { id: 'chicken_breast', namePt: 'Peito de Frango', selectable: true },
+    { id: 'lean_beef', namePt: 'Patinho', selectable: true },
+    { id: 'eggs', namePt: 'Ovos Inteiros', selectable: true },
+    { id: 'tilapia', namePt: 'Tilápia', selectable: true },
+    { id: 'tuna', namePt: 'Atum', selectable: true },
+    { id: 'salmon', namePt: 'Salmão', selectable: true },
   ],
   carbs: [
-    { id: 'white_rice', name: 'Arroz Branco', selectable: true },
-    { id: 'brown_rice', name: 'Arroz Integral', selectable: true },
-    { id: 'sweet_potato', name: 'Batata Doce', selectable: true },
-    { id: 'potato', name: 'Batata Inglesa', selectable: true },
-    { id: 'oats', name: 'Aveia', selectable: true },
-    { id: 'pasta', name: 'Macarrão', selectable: true },
-    { id: 'bread', name: 'Pão', selectable: true },
+    { id: 'white_rice', namePt: 'Arroz Branco', selectable: true },
+    { id: 'brown_rice', namePt: 'Arroz Integral', selectable: true },
+    { id: 'sweet_potato', namePt: 'Batata Doce', selectable: true },
+    { id: 'potato', namePt: 'Batata Inglesa', selectable: true },
+    { id: 'oats', namePt: 'Aveia', selectable: true },
+    { id: 'pasta', namePt: 'Macarrão', selectable: true },
+    { id: 'bread', namePt: 'Pão', selectable: true },
   ],
   fats: [
-    { id: 'olive_oil', name: 'Azeite de Oliva', selectable: true },
-    { id: 'peanut_butter', name: 'Pasta de Amendoim', selectable: true },
+    { id: 'olive_oil', namePt: 'Azeite de Oliva', selectable: true },
+    { id: 'peanut_butter', namePt: 'Pasta de Amendoim', selectable: true },
   ],
   fruits: [
-    { id: 'banana', name: 'Banana', selectable: true },
-    { id: 'apple', name: 'Maçã', selectable: true },
-    { id: 'orange', name: 'Laranja', selectable: true },
-    { id: 'strawberry', name: 'Morango', selectable: true },
-    { id: 'papaya', name: 'Mamão', selectable: true },
-    { id: 'mango', name: 'Manga', selectable: true },
-    { id: 'watermelon', name: 'Melancia', selectable: true },
-    { id: 'avocado', name: 'Abacate', selectable: true },
+    { id: 'banana', namePt: 'Banana', selectable: true },
+    { id: 'apple', namePt: 'Maçã', selectable: true },
+    { id: 'orange', namePt: 'Laranja', selectable: true },
+    { id: 'strawberry', namePt: 'Morango', selectable: true },
+    { id: 'papaya', namePt: 'Mamão', selectable: true },
+    { id: 'mango', namePt: 'Manga', selectable: true },
+    { id: 'watermelon', namePt: 'Melancia', selectable: true },
+    { id: 'avocado', namePt: 'Abacate', selectable: true },
   ],
   supplements: [
-    { id: 'creatine', name: 'Creatina', selectable: true },
-    { id: 'multivitamin', name: 'Multivitamínico', selectable: true },
-    { id: 'omega3', name: 'Ômega 3', selectable: true },
-    { id: 'caffeine', name: 'Cafeína', selectable: true },
+    { id: 'creatine', namePt: 'Creatina', selectable: true },
+    { id: 'multivitamin', namePt: 'Multivitamínico', selectable: true },
+    { id: 'omega3', namePt: 'Ômega 3', selectable: true },
+    { id: 'caffeine', namePt: 'Cafeína', selectable: true },
   ],
 };
 
 // GERAL: Lista de alimentos ATIVOS no sistema
-// Apenas alimentos que podem aparecer nas dietas geradas
 const GENERAL_FOODS: Record<string, FoodItem[]> = {
   proteins: [
-    { id: 'chicken_breast', name: 'Peito de Frango', selectable: true },
-    { id: 'lean_beef', name: 'Carne Bovina Magra', selectable: true },
-    { id: 'eggs', name: 'Ovos Inteiros', selectable: true },
-    { id: 'tilapia', name: 'Tilápia', selectable: true },
-    { id: 'tuna', name: 'Atum', selectable: true },
-    { id: 'salmon', name: 'Salmão', selectable: true },
-    { id: 'turkey', name: 'Peru', selectable: true },
-    { id: 'cottage', name: 'Queijo Cottage', selectable: true },
-    { id: 'greek_yogurt', name: 'Iogurte Grego', selectable: true },
+    { id: 'chicken_breast', namePt: 'Peito de Frango', selectable: true },
+    { id: 'lean_beef', namePt: 'Patinho', selectable: true },
+    { id: 'eggs', namePt: 'Ovos Inteiros', selectable: true },
+    { id: 'tilapia', namePt: 'Tilápia', selectable: true },
+    { id: 'tuna', namePt: 'Atum', selectable: true },
+    { id: 'salmon', namePt: 'Salmão', selectable: true },
+    { id: 'turkey', namePt: 'Peru', selectable: true },
+    { id: 'cottage', namePt: 'Queijo Cottage', selectable: true },
+    { id: 'greek_yogurt', namePt: 'Iogurte Grego', selectable: true },
   ],
   carbs: [
-    { id: 'white_rice', name: 'Arroz Branco', selectable: true },
-    { id: 'brown_rice', name: 'Arroz Integral', selectable: true },
-    { id: 'sweet_potato', name: 'Batata Doce', selectable: true },
-    { id: 'potato', name: 'Batata Inglesa', selectable: true },
-    { id: 'oats', name: 'Aveia', selectable: true },
-    { id: 'pasta', name: 'Macarrão', selectable: true },
-    { id: 'whole_bread', name: 'Pão Integral', selectable: true },
-    { id: 'beans', name: 'Feijão', selectable: true },
-    { id: 'lentils', name: 'Lentilha', selectable: true },
+    { id: 'white_rice', namePt: 'Arroz Branco', selectable: true },
+    { id: 'brown_rice', namePt: 'Arroz Integral', selectable: true },
+    { id: 'sweet_potato', namePt: 'Batata Doce', selectable: true },
+    { id: 'potato', namePt: 'Batata Inglesa', selectable: true },
+    { id: 'oats', namePt: 'Aveia', selectable: true },
+    { id: 'pasta', namePt: 'Macarrão', selectable: true },
+    { id: 'whole_bread', namePt: 'Pão Integral', selectable: true },
+    { id: 'beans', namePt: 'Feijão', selectable: true },
+    { id: 'lentils', namePt: 'Lentilha', selectable: true },
   ],
   fats: [
-    { id: 'olive_oil', name: 'Azeite de Oliva', selectable: true },
-    { id: 'peanut_butter', name: 'Pasta de Amendoim', selectable: true },
-    { id: 'nuts', name: 'Castanhas', selectable: true },
-    { id: 'almonds', name: 'Amêndoas', selectable: true },
-    { id: 'cheese', name: 'Queijo', selectable: true },
+    { id: 'olive_oil', namePt: 'Azeite de Oliva', selectable: true },
+    { id: 'peanut_butter', namePt: 'Pasta de Amendoim', selectable: true },
+    { id: 'nuts', namePt: 'Castanha', selectable: true },
+    { id: 'almonds', namePt: 'Amêndoas', selectable: true },
+    { id: 'cheese', namePt: 'Queijo', selectable: true },
   ],
   fruits: [
-    { id: 'banana', name: 'Banana', selectable: true },
-    { id: 'apple', name: 'Maçã', selectable: true },
-    { id: 'orange', name: 'Laranja', selectable: true },
-    { id: 'strawberry', name: 'Morango', selectable: true },
-    { id: 'papaya', name: 'Mamão', selectable: true },
-    { id: 'watermelon', name: 'Melancia', selectable: true },
+    { id: 'banana', namePt: 'Banana', selectable: true },
+    { id: 'apple', namePt: 'Maçã', selectable: true },
+    { id: 'orange', namePt: 'Laranja', selectable: true },
+    { id: 'strawberry', namePt: 'Morango', selectable: true },
+    { id: 'papaya', namePt: 'Mamão', selectable: true },
+    { id: 'watermelon', namePt: 'Melancia', selectable: true },
   ],
   supplements: [
-    { id: 'creatine', name: 'Creatina', selectable: true },
-    { id: 'multivitamin', name: 'Multivitamínico', selectable: true },
-    { id: 'omega3', name: 'Ômega 3', selectable: true },
-    { id: 'caffeine', name: 'Cafeína', selectable: true },
-    { id: 'vitamin_d', name: 'Vitamina D', selectable: true },
-    { id: 'vitamin_c', name: 'Vitamina C', selectable: true },
-    { id: 'zinc', name: 'Zinco', selectable: true },
-    { id: 'magnesium', name: 'Magnésio', selectable: true },
-    { id: 'collagen', name: 'Colágeno', selectable: true },
+    { id: 'creatine', namePt: 'Creatina', selectable: true },
+    { id: 'multivitamin', namePt: 'Multivitamínico', selectable: true },
+    { id: 'omega3', namePt: 'Ômega 3', selectable: true },
+    { id: 'caffeine', namePt: 'Cafeína', selectable: true },
+    { id: 'vitamin_d', namePt: 'Vitamina D', selectable: true },
+    { id: 'vitamin_c', namePt: 'Vitamina C', selectable: true },
+    { id: 'zinc', namePt: 'Zinco', selectable: true },
+    { id: 'magnesium', namePt: 'Magnésio', selectable: true },
+    { id: 'collagen', namePt: 'Colágeno', selectable: true },
   ],
 };
 
-const CATEGORIES = [
-  { key: 'proteins', label: 'Proteínas', icon: 'fitness-outline', color: '#EF4444', description: 'Fontes de proteína' },
-  { key: 'carbs', label: 'Carboidratos', icon: 'leaf-outline', color: '#F59E0B', description: 'Fontes de energia' },
-  { key: 'fats', label: 'Gorduras', icon: 'water-outline', color: '#3B82F6', description: 'Gorduras boas' },
-  { key: 'fruits', label: 'Frutas', icon: 'nutrition-outline', color: '#EC4899', description: 'Vitaminas e fibras' },
-  { key: 'supplements', label: 'Suplementação', icon: 'flask-outline', color: '#8B5CF6', description: 'Não substitui refeições' },
-];
+// Additional supplement translations
+const supplementTranslations: Record<string, Record<SupportedLanguage, string>> = {
+  'Creatina': { 'pt-BR': 'Creatina', 'en-US': 'Creatine', 'es-ES': 'Creatina' },
+  'Multivitamínico': { 'pt-BR': 'Multivitamínico', 'en-US': 'Multivitamin', 'es-ES': 'Multivitamínico' },
+  'Ômega 3': { 'pt-BR': 'Ômega 3', 'en-US': 'Omega 3', 'es-ES': 'Omega 3' },
+  'Cafeína': { 'pt-BR': 'Cafeína', 'en-US': 'Caffeine', 'es-ES': 'Cafeína' },
+  'Vitamina D': { 'pt-BR': 'Vitamina D', 'en-US': 'Vitamin D', 'es-ES': 'Vitamina D' },
+  'Vitamina C': { 'pt-BR': 'Vitamina C', 'en-US': 'Vitamin C', 'es-ES': 'Vitamina C' },
+  'Zinco': { 'pt-BR': 'Zinco', 'en-US': 'Zinc', 'es-ES': 'Zinc' },
+  'Magnésio': { 'pt-BR': 'Magnésio', 'en-US': 'Magnesium', 'es-ES': 'Magnesio' },
+  'Colágeno': { 'pt-BR': 'Colágeno', 'en-US': 'Collagen', 'es-ES': 'Colágeno' },
+};
 
-const dietaryOptions = [
-  'Vegetariano',
-  'Sem Lactose',
-  'Sem Glúten',
-  'Low Carb',
-];
+// Helper function to translate food names
+const translateFoodName = (namePt: string, language: SupportedLanguage): string => {
+  // Check food translations first
+  if (foodTranslations[namePt]?.[language]) {
+    return foodTranslations[namePt][language];
+  }
+  // Check supplement translations
+  if (supplementTranslations[namePt]?.[language]) {
+    return supplementTranslations[namePt][language];
+  }
+  // Return Portuguese name as fallback
+  return namePt;
+};
 
-export default function RestrictionsStep({ data, updateData }: Props) {
+export default function RestrictionsStep({ data, updateData, language }: Props) {
+  const t = translations[language].onboarding;
+  
   // Determina se é atleta
   const isAthlete = data.goal === 'atleta';
   
   // Seleciona o banco de dados baseado no objetivo
   const FOOD_DATABASE = isAthlete ? ATHLETE_FOODS : GENERAL_FOODS;
+
+  // Categories with translations
+  const CATEGORIES = [
+    { key: 'proteins', label: t.proteins, icon: 'fitness-outline', color: '#EF4444', description: t.proteinsDesc },
+    { key: 'carbs', label: t.carbs, icon: 'leaf-outline', color: '#F59E0B', description: t.carbsDesc },
+    { key: 'fats', label: t.fats, icon: 'water-outline', color: '#3B82F6', description: t.fatsDesc },
+    { key: 'fruits', label: t.fruits, icon: 'nutrition-outline', color: '#EC4899', description: t.fruitsDesc },
+    { key: 'supplements', label: t.supplements, icon: 'flask-outline', color: '#8B5CF6', description: t.supplementsDesc },
+  ];
+
+  const dietaryOptions = [
+    { key: 'Vegetariano', label: t.vegetarian },
+    { key: 'Sem Lactose', label: t.lactoseFree },
+    { key: 'Sem Glúten', label: t.glutenFree },
+    { key: 'Low Carb', label: t.lowCarb },
+  ];
 
   const toggleItem = (array: string[], item: string) => {
     if (array.includes(item)) {
@@ -157,13 +187,11 @@ export default function RestrictionsStep({ data, updateData }: Props) {
   const selectedCount = data.food_preferences?.length || 0;
 
   // Descrição dinâmica baseada no objetivo
-  const description = isAthlete
-    ? 'Lista restrita de alimentos base para dieta de atleta. Apenas alimentos limpos e de fácil medição.'
-    : 'Selecione os alimentos que você gosta. Maior variedade para uma dieta flexível.';
+  const description = isAthlete ? t.foodPreferencesDescAthlete : t.foodPreferencesDescGeneral;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Preferências Alimentares</Text>
+      <Text style={styles.title}>{t.foodPreferences}</Text>
       <Text style={styles.description}>{description}</Text>
 
       {/* Badge do modo */}
@@ -174,7 +202,7 @@ export default function RestrictionsStep({ data, updateData }: Props) {
           color={isAthlete ? '#F59E0B' : '#10B981'} 
         />
         <Text style={[styles.modeBadgeText, { color: isAthlete ? '#F59E0B' : '#10B981' }]}>
-          {isAthlete ? 'Modo Atleta: Lista Restrita' : 'Modo Flexível: Lista Expandida'}
+          {isAthlete ? t.athleteMode : t.flexibleMode}
         </Text>
       </View>
 
@@ -182,21 +210,21 @@ export default function RestrictionsStep({ data, updateData }: Props) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="warning-outline" size={20} color="#F59E0B" />
-          <Text style={styles.sectionTitle}>Restrições Dietéticas</Text>
+          <Text style={styles.sectionTitle}>{t.dietaryRestrictions}</Text>
         </View>
         <View style={styles.chipsContainer}>
           {dietaryOptions.map((option) => (
             <TouchableOpacity
-              key={option}
+              key={option.key}
               style={[
                 styles.chip,
-                data.dietary_restrictions?.includes(option) && styles.chipActive,
+                data.dietary_restrictions?.includes(option.key) && styles.chipActive,
               ]}
               onPress={() =>
                 updateData({
                   dietary_restrictions: toggleItem(
                     data.dietary_restrictions || [],
-                    option
+                    option.key
                   ),
                 })
               }
@@ -205,12 +233,12 @@ export default function RestrictionsStep({ data, updateData }: Props) {
               <Text
                 style={[
                   styles.chipText,
-                  data.dietary_restrictions?.includes(option) && styles.chipTextActive,
+                  data.dietary_restrictions?.includes(option.key) && styles.chipTextActive,
                 ]}
               >
-                {option}
+                {option.label}
               </Text>
-              {data.dietary_restrictions?.includes(option) && (
+              {data.dietary_restrictions?.includes(option.key) && (
                 <Ionicons name="checkmark" size={16} color="#10B981" />
               )}
             </TouchableOpacity>
@@ -221,8 +249,8 @@ export default function RestrictionsStep({ data, updateData }: Props) {
       {/* Food Preferences by Category */}
       <View style={styles.foodSection}>
         <View style={styles.foodHeader}>
-          <Text style={styles.foodTitle}>Alimentos Disponíveis</Text>
-          <Text style={styles.selectedCount}>{selectedCount} selecionados</Text>
+          <Text style={styles.foodTitle}>{t.availableFoods}</Text>
+          <Text style={styles.selectedCount}>{selectedCount} {t.selected}</Text>
         </View>
 
         {CATEGORIES.map((category) => (
@@ -237,7 +265,7 @@ export default function RestrictionsStep({ data, updateData }: Props) {
               </View>
               {category.key === 'supplements' && (
                 <View style={[styles.separateBadge, { backgroundColor: category.color }]}>
-                  <Text style={styles.separateBadgeText}>SEPARADO</Text>
+                  <Text style={styles.separateBadgeText}>{t.separate}</Text>
                 </View>
               )}
             </View>
@@ -260,7 +288,7 @@ export default function RestrictionsStep({ data, updateData }: Props) {
                       isFoodSelected(food.id) && { color: category.color },
                     ]}
                   >
-                    {food.name}
+                    {translateFoodName(food.namePt, language)}
                   </Text>
                   {isFoodSelected(food.id) && (
                     <Ionicons name="checkmark-circle" size={14} color={category.color} />
@@ -275,15 +303,12 @@ export default function RestrictionsStep({ data, updateData }: Props) {
       <View style={styles.infoBox}>
         <Ionicons name="information-circle-outline" size={18} color="#6B7280" />
         <Text style={styles.infoText}>
-          {isAthlete 
-            ? 'Dieta de atleta: quantidades em múltiplos de 10g para medição precisa.'
-            : 'Você pode ajustar suas preferências depois nas configurações.'
-          }
+          {isAthlete ? t.athleteInfoBox : t.generalInfoBox}
         </Text>
       </View>
 
       <Text style={styles.hint}>
-        Você pode pular esta etapa e ajustar depois nas configurações.
+        {t.skipHint}
       </Text>
     </View>
   );
