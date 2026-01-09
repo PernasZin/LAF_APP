@@ -162,9 +162,9 @@ export default function ProgressScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Progresso</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t.progress.title}</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Últimos 30 dias
+            {t.progress.last30Days}
           </Text>
         </View>
 
@@ -172,7 +172,7 @@ export default function ProgressScreen() {
         <View style={[styles.weightCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
           <View style={styles.weightCardHeader}>
             <Ionicons name="scale-outline" size={24} color={colors.primary} />
-            <Text style={[styles.weightCardTitle, { color: colors.textSecondary }]}>Peso Atual</Text>
+            <Text style={[styles.weightCardTitle, { color: colors.textSecondary }]}>{t.progress.currentWeight}</Text>
           </View>
           <Text style={[styles.currentWeight, { color: colors.text }]}>
             {currentWeight.toFixed(1)} <Text style={styles.weightUnit}>kg</Text>
@@ -192,7 +192,7 @@ export default function ProgressScreen() {
                 styles.changeText, 
                 { color: stats.total_change < 0 ? colors.success : colors.warning }
               ]}>
-                {stats.total_change > 0 ? '+' : ''}{stats.total_change.toFixed(1)} kg no período
+                {stats.total_change > 0 ? '+' : ''}{stats.total_change.toFixed(1)} kg
               </Text>
             </View>
           )}
