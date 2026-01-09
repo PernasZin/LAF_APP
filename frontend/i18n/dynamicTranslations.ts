@@ -109,7 +109,20 @@ export const foodTranslations: Record<string, Record<SupportedLanguage, string>>
   'Whey Protein': { 'pt-BR': 'Whey Protein', 'en-US': 'Whey Protein', 'es-ES': 'Proteína de Suero' },
   'Queijo Cottage': { 'pt-BR': 'Queijo Cottage', 'en-US': 'Cottage Cheese', 'es-ES': 'Queso Cottage' },
   'Iogurte Grego': { 'pt-BR': 'Iogurte Grego', 'en-US': 'Greek Yogurt', 'es-ES': 'Yogur Griego' },
+  'Iogurte Natural': { 'pt-BR': 'Iogurte Natural', 'en-US': 'Plain Yogurt', 'es-ES': 'Yogur Natural' },
+  'Iogurte': { 'pt-BR': 'Iogurte', 'en-US': 'Yogurt', 'es-ES': 'Yogur' },
   'Tofu': { 'pt-BR': 'Tofu', 'en-US': 'Tofu', 'es-ES': 'Tofu' },
+  
+  // Carnes adicionais
+  'Frango Grelhado': { 'pt-BR': 'Frango Grelhado', 'en-US': 'Grilled Chicken', 'es-ES': 'Pollo a la Plancha' },
+  'Carne Moída': { 'pt-BR': 'Carne Moída', 'en-US': 'Ground Beef', 'es-ES': 'Carne Molida' },
+  'Filé de Frango': { 'pt-BR': 'Filé de Frango', 'en-US': 'Chicken Fillet', 'es-ES': 'Filete de Pollo' },
+  'Filé de Peixe': { 'pt-BR': 'Filé de Peixe', 'en-US': 'Fish Fillet', 'es-ES': 'Filete de Pescado' },
+  'Camarão': { 'pt-BR': 'Camarão', 'en-US': 'Shrimp', 'es-ES': 'Camarón' },
+  'Peru': { 'pt-BR': 'Peru', 'en-US': 'Turkey', 'es-ES': 'Pavo' },
+  'Peito de Peru': { 'pt-BR': 'Peito de Peru', 'en-US': 'Turkey Breast', 'es-ES': 'Pechuga de Pavo' },
+  'Carne de Porco': { 'pt-BR': 'Carne de Porco', 'en-US': 'Pork', 'es-ES': 'Cerdo' },
+  'Lombo': { 'pt-BR': 'Lombo', 'en-US': 'Pork Loin', 'es-ES': 'Lomo de Cerdo' },
   
   // Carboidratos
   'Arroz': { 'pt-BR': 'Arroz', 'en-US': 'Rice', 'es-ES': 'Arroz' },
