@@ -371,7 +371,7 @@ export default function WorkoutScreen() {
         <View style={[styles.progressCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
           <View style={styles.progressHeader}>
             <Ionicons name="trophy-outline" size={24} color={colors.primary} />
-            <Text style={[styles.progressTitle, { color: colors.text }]}>Progresso da Semana</Text>
+            <Text style={[styles.progressTitle, { color: colors.text }]}>{t.workout.weekProgress}</Text>
           </View>
           <View style={styles.progressContent}>
             <Text style={[styles.progressPercent, { color: colors.primary }]}>{progressPercent}%</Text>
