@@ -937,7 +937,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         c_per_100 = FOODS[food_key]["c"]
                         if c_per_100 > 0:
                             delta = gap_c / (c_per_100 / 100)
-                            new_g = clamp(food["grams"] + delta, 30, 300)
+                            # LIMITE ESPECÍFICO: Aveia máximo 80g
+                            max_grams = 80 if food_key == "aveia" else 300
+                            new_g = clamp(food["grams"] + delta, 30, max_grams)
                             if abs(new_g - food["grams"]) >= 10:
                                 meals[0]["foods"][f_idx] = calc_food(food_key, new_g)
                                 adjusted = True
