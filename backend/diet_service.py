@@ -248,7 +248,7 @@ def normalize_food(pref: str) -> str:
     return FOOD_NORMALIZATION.get(pref, pref)
 
 
-def calc_food(food_key: str, grams: float) -> Dict:
+def calc_food(food_key: str, grams: float, round_down: bool = False) -> Dict:
     """
     Calcula macros de um alimento em quantidade específica.
     
@@ -258,6 +258,10 @@ def calc_food(food_key: str, grams: float) -> Dict:
     - grams SEMPRE <= MAX_FOOD_GRAMS (800g) ou MAX_CARB_GRAMS (1200g) para carbs
     - Alimentos CONTÁVEIS (ovos, pão, iogurte) são ajustados para unidades inteiras
     - TODOS os campos obrigatórios preenchidos
+    
+    Parâmetros:
+    - round_down: Se True, arredonda contáveis para BAIXO (menos macros)
+                  Se False (padrão), arredonda para o mais próximo
     
     Formato: "Nome – Xg (≈ Y medida caseira)"
     """
@@ -308,8 +312,14 @@ def calc_food(food_key: str, grams: float) -> Dict:
         unit_weight = COUNTABLE_FOODS[food_key]
         # Calcula quantas unidades seriam necessárias
         units_needed = grams / unit_weight
-        # Arredonda para o inteiro mais próximo (mínimo 1)
-        units_int = max(1, round(units_needed))
+        
+        # IMPORTANTE: Arredondar para baixo quando round_down=True
+        # Isso ajuda a manter os macros abaixo do target para ajuste fino posterior
+        if round_down:
+            units_int = max(1, int(units_needed))  # Arredonda para BAIXO (floor)
+        else:
+            units_int = max(1, round(units_needed))  # Arredonda normal
+        
         # Limita a um máximo razoável
         max_units = 10 if food_key in ["ovos", "claras"] else 4
         units_int = min(units_int, max_units)
