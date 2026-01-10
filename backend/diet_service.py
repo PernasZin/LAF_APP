@@ -815,21 +815,21 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     almoco_foods = []
     
     if lunch_protein and lunch_protein in FOODS:
-        protein_grams = clamp(almoco_p / (FOODS[lunch_protein]["p"] / 100), 100, 400)
+        protein_grams = clamp(almoco_p / (FOODS[lunch_protein]["p"] / 100), 100, 500)
         almoco_foods.append(calc_food(lunch_protein, protein_grams))
     else:
         almoco_foods.append(calc_food("frango", 200))
     
     if lunch_carb and lunch_carb in FOODS:
-        carb_grams = clamp(almoco_c / max(FOODS[lunch_carb]["c"] / 100, 0.1), 100, 400)
+        carb_grams = clamp(almoco_c / max(FOODS[lunch_carb]["c"] / 100, 0.1), 100, 600)
         almoco_foods.append(calc_food(lunch_carb, carb_grams))
     else:
-        almoco_foods.append(calc_food("arroz_branco", 200))
+        almoco_foods.append(calc_food("arroz_branco", 250))
     
     almoco_foods.append(calc_food("salada", 100))
     
     if "azeite" in preferred or not preferred:
-        azeite_grams = clamp(almoco_f * 0.3 / 1.0, 10, 30)
+        azeite_grams = clamp(almoco_f * 0.4 / 1.0, 10, 40)
         almoco_foods.append(calc_food("azeite", azeite_grams))
     
     meals.append({"name": "Almoço", "time": "12:30", "foods": almoco_foods})
