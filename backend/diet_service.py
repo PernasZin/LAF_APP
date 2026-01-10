@@ -906,12 +906,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if "farofa" in FOODS and meal_c * 0.15 > 10:
                     farofa_grams = clamp((meal_c * 0.15) / max(FOODS["farofa"]["c"] / 100, 0.1), 20, 80)
                     foods.append(calc_food("farofa", farofa_grams))
-                            third_carb = tc
-                            break
-                
-                if third_carb and meal_c * 0.20 > 15:  # Só adiciona se tiver carbs suficientes
-                    tc_grams = clamp((meal_c * 0.20) / max(FOODS[third_carb]["c"] / 100, 0.1), 30, 150)
-                    foods.append(calc_food(third_carb, tc_grams))
                     
             else:
                 foods.append(calc_food("arroz_branco", 200))
