@@ -1304,42 +1304,12 @@ async def get_user_notifications(user_id: str, unread_only: bool = False):
                 "id": "weight_reminder_soon",
                 "type": "weight_update",
                 "title": "⏰ Atualização de peso em breve",
-                "message": f"Em {7 - days_since_last} dia(s) você poderá registrar seu novo peso.",
+                "message": f"Em {14 - days_since_last} dia(s) você poderá registrar seu novo peso.",
                 "created_at": datetime.utcnow().isoformat(),
                 "read": False,
                 "action_url": "/progress",
                 "priority": "low"
             })
-    
-    # 2. Verificar Peak Week para atletas
-    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
-    if is_athlete:
-        comp_date = user.get("athlete_competition_date") or user.get("competition_date")
-        if comp_date:
-            days_to_comp = (comp_date - datetime.utcnow()).days
-            
-            if 0 < days_to_comp <= 7:
-                dynamic_notifications.append({
-                    "id": "peak_week_active",
-                    "type": "peak_week",
-                    "title": "🏆 PEAK WEEK ATIVA!",
-                    "message": f"Faltam {days_to_comp} dia(s) para a competição. Siga o protocolo de Peak Week com atenção.",
-                    "created_at": datetime.utcnow().isoformat(),
-                    "read": False,
-                    "action_url": "/peak-week",
-                    "priority": "critical"
-                })
-            elif 7 < days_to_comp <= 14:
-                dynamic_notifications.append({
-                    "id": "peak_week_approaching",
-                    "type": "peak_week",
-                    "title": "⚡ Peak Week se aproximando",
-                    "message": f"Em {days_to_comp - 7} dia(s) começa sua Peak Week. Prepare-se!",
-                    "created_at": datetime.utcnow().isoformat(),
-                    "read": False,
-                    "action_url": "/peak-week",
-                    "priority": "medium"
-                })
     
     # Formata notificações do banco
     db_notifications = []
