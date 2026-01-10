@@ -267,6 +267,30 @@ backend:
         agent: "testing"
         comment: "🎯 TESTE RIGOROSO ESPECÍFICO CONCLUÍDO - Validação detalhada das REGRAS RÍGIDAS por tipo de refeição conforme especificação do usuário. RESULTADO: ✅ 100% APROVADO. Validações críticas: (1) REGRA DE FALHA: Confirmado que arroz, frango, peixe e azeite NÃO aparecem em lanches ou café, (2) CAFÉ DA MANHÃ: Contém APENAS ovos (200g) + aveia (50g) + banana (100g) - SEM alimentos proibidos, (3) LANCHES: Contêm frutas + oleaginosas (banana+castanhas, maçã+iogurte) - SEM carnes/azeite/ovos, (4) ALMOÇO/JANTAR: EXATAMENTE 1 proteína (frango 90g, patinho 190g) + 1 carboidrato (arroz branco 230g, arroz integral 250g) + azeite permitido, (5) CEIA: Ovos (200g) + banana (80g) - SEM carbs complexos/azeite. Estrutura: 6 refeições corretas, totais 2705kcal (P:174g, C:276g, G:99g). Sistema V14 respeitando todas as regras críticas perfeitamente."
 
+  - task: "Weight Registration with 14-Day Blocking"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ AUDITORIA VALIDADA - Registro de peso com bloqueio de 14 dias funcionando corretamente conforme revisão. TESTES: (1) REGISTRO INICIAL: Peso 84.5kg registrado com sucesso incluindo questionário obrigatório, (2) BLOQUEIO 14 DIAS: Tentativa de segundo registro corretamente bloqueada com mensagem 'Aguarde mais 14 dias para o próximo registro. Atualização a cada 2 semanas', (3) SEM REFERÊNCIAS ATLETA: Confirmado que respostas não contêm campos de athlete/peak_week/competition. Sistema funcionando exatamente como especificado na revisão."
+
+  - task: "Water Tracker System"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ WATER TRACKER VALIDADO - Sistema de rastreamento de água funcionando corretamente. TESTE: POST /api/tracker/water-sodium/{user_id} com 500ml registrado com sucesso, retornando total acumulado de 1000ml. Endpoint responde sem erros e não contém referências a modo atleta. Funcionalidade operacional conforme especificação."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
