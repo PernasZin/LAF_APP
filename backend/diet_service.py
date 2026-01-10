@@ -1136,7 +1136,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 
                 if carb_comp and carb_comp in ["feijao", "lentilha"]:
                     # ==================== QUANTIDADE DE FEIJÃO POR OBJETIVO ====================
-                    # BULK: 160-180g | MANUTENÇÃO: 130-160g | CUT: 100-130g | ATLETA: 0-80g
+                    # BULK: 160-180g | MANUTENÇÃO: 130-160g | CUT: 100-130g
                     c_comp_grams = clamp(
                         (meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 
                         feijao_min,  # Mínimo baseado no objetivo
