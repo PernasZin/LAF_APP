@@ -260,11 +260,10 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
     """
     Calcula distribuição de macronutrientes.
     
-    REGRAS PARA ATLETA/COMPETIÇÃO:
-    - off_season: P=2.0g/kg, G=0.9g/kg, C=restante (ALTO)
-    - pre_prep: P=2.2g/kg, G=0.8g/kg, C=restante (MODERADO)
-    - prep: P=2.6g/kg, G=0.7g/kg, C=restante (BAIXO)
-    - peak_week: P=2.8g/kg, G=0.5g/kg, C=restante (MUITO BAIXO)
+    REGRAS PARA ATLETA/COMPETIÇÃO (simplificado para 4 fases):
+    - off_season: P=2.0g/kg, G=0.9g/kg, C=restante (ALTO) - >16 semanas
+    - pre_contest: P=2.4g/kg, G=0.7g/kg, C=restante (BAIXO) - 2-16 semanas
+    - peak_week: P=2.8g/kg, G=0.5g/kg, C=restante (MUITO BAIXO) - <2 semanas
     - post_show: P=2.0g/kg, G=1.0g/kg, C=restante (RECUPERAÇÃO)
     """
     if goal == "cutting":
@@ -288,13 +287,9 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
             # OFF-SEASON (Lean Bulk): P=2.0g/kg, G=0.9g/kg, C=restante (ALTO)
             protein_g = weight * 2.0
             fat_g = weight * 0.9
-        elif competition_phase == "pre_prep":
-            # PRE-PREP (Transição): P=2.2g/kg, G=0.8g/kg, C=restante (MODERADO)
-            protein_g = weight * 2.2
-            fat_g = weight * 0.8
-        elif competition_phase == "prep":
-            # PREP (Cutting Agressivo): P=2.6g/kg, G=0.7g/kg, C=restante (BAIXO)
-            protein_g = weight * 2.6
+        elif competition_phase == "pre_contest":
+            # PRE-CONTEST (Cutting): P=2.4g/kg, G=0.7g/kg, C=restante (BAIXO)
+            protein_g = weight * 2.4
             fat_g = weight * 0.7
         elif competition_phase == "peak_week":
             # PEAK WEEK (Final): P=2.8g/kg, G=0.5g/kg, C=restante (MUITO BAIXO)
@@ -305,8 +300,8 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
             protein_g = weight * 2.0
             fat_g = weight * 1.0
         else:
-            # Default para prep se fase não especificada
-            protein_g = weight * 2.6
+            # Default para pre_contest se fase não especificada
+            protein_g = weight * 2.4
             fat_g = weight * 0.7
         
         protein_cal = protein_g * 4
