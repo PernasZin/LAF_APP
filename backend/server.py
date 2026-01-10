@@ -1152,8 +1152,7 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     Registra peso do usuário COM questionário obrigatório de acompanhamento.
     
     RESTRIÇÕES:
-    - ATLETAS: Bloqueio semanal (7 dias) para controle preciso
-    - OUTROS: Bloqueio quinzenal (14 dias)
+    - TODOS: Bloqueio semanal (7 dias) para melhor acompanhamento
     
     QUESTIONÁRIO (0-10):
     - Dieta: Como seguiu a dieta?
@@ -1175,9 +1174,9 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    # Determina período de bloqueio baseado no objetivo
+    # Bloqueio de 7 dias para todos
+    block_days = 7
     is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
-    block_days = 7 if is_athlete else 14
     
     # Verifica último registro
     last_record = await db.weight_records.find_one(
@@ -1189,10 +1188,9 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
         days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
         if days_since_last < block_days:
             days_remaining = block_days - days_since_last
-            period_text = "semanal" if is_athlete else "quinzenal"
             raise HTTPException(
                 status_code=400,
-                detail=f"Aguarde mais {days_remaining} dias para o próximo registro. Registro {period_text}."
+                detail=f"Aguarde mais {days_remaining} dias para o próximo registro. Registro semanal."
             )
     
     # Valida peso
