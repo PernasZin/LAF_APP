@@ -1688,7 +1688,9 @@ class DietAIService:
         
         # Gera dieta com alimentos auto-completados se necessário
         # Passa meal_count para gerar a quantidade correta de refeições
-        meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions, meal_count)
+        # IMPORTANTE: Passa raw_preferred (originais do usuário) para priorização
+        meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions, meal_count,
+                              original_preferred=raw_preferred)
         
         # Fine-tune (múltiplas rodadas se necessário)
         for _ in range(5):  # Aumentado para 5 tentativas
