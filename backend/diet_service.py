@@ -232,6 +232,16 @@ FOODS = {
     # === VEGETAIS ===
     "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "category": "vegetable", "unit": "prato cheio", "unit_g": 100},
     "brocolis": {"name": "Brócolis", "p": 2.8, "c": 7.0, "f": 0.4, "category": "vegetable", "unit": "xícara cozido", "unit_g": 100},
+    
+    # === EXTRAS/DOCES (para lanches) ===
+    "leite_condensado": {"name": "Leite Condensado", "p": 8.0, "c": 55.0, "f": 8.0, "category": "extra", "unit": "colher sopa", "unit_g": 20},
+    "mel": {"name": "Mel", "p": 0.3, "c": 82.0, "f": 0.0, "category": "extra", "unit": "colher sopa", "unit_g": 21},
+    "geleia": {"name": "Geleia de Frutas", "p": 0.3, "c": 68.0, "f": 0.1, "category": "extra", "unit": "colher sopa", "unit_g": 20},
+    "chocolate_amargo": {"name": "Chocolate Amargo 70%", "p": 8.0, "c": 33.0, "f": 42.0, "category": "extra", "unit": "quadrado", "unit_g": 10},
+    "whey_protein": {"name": "Whey Protein", "p": 80.0, "c": 5.0, "f": 3.0, "category": "extra", "unit": "scoop", "unit_g": 30},
+    "pasta_amendoim_doce": {"name": "Pasta de Amendoim c/ Mel", "p": 22.0, "c": 20.0, "f": 45.0, "category": "extra", "unit": "colher sopa", "unit_g": 20},
+    "cream_cheese": {"name": "Cream Cheese", "p": 6.0, "c": 4.0, "f": 34.0, "category": "extra", "unit": "colher sopa", "unit_g": 30},
+    "manteiga": {"name": "Manteiga", "p": 0.9, "c": 0.1, "f": 81.0, "category": "fat", "unit": "colher chá", "unit_g": 10},
 }
 
 
