@@ -257,7 +257,7 @@ export default function MealConfigScreen() {
       if (userId && BACKEND_URL) {
         try {
           // 1. Salva configurações
-          await safeFetch(`${BACKEND_URL}/api/user/settings/${userId}`, {
+          const settingsResponse = await safeFetch(`${BACKEND_URL}/api/user/settings/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -266,15 +266,30 @@ export default function MealConfigScreen() {
             }),
           });
           
+          if (!settingsResponse.ok) {
+            console.warn('Aviso: Não foi possível salvar configurações no backend');
+          }
+          
           // 2. Deleta dieta existente para forçar regeneração
-          await safeFetch(`${BACKEND_URL}/api/diet/${userId}`, {
-            method: 'DELETE',
-          });
+          try {
+            await safeFetch(`${BACKEND_URL}/api/diet/${userId}`, {
+              method: 'DELETE',
+            });
+            console.log('✅ Dieta antiga deletada');
+          } catch (deleteErr) {
+            console.log('Dieta não existia ou já foi deletada');
+          }
           
           // 3. Gera nova dieta com as novas configurações
-          await safeFetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
+          const dietResponse = await safeFetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
             method: 'POST',
           });
+          
+          if (dietResponse.ok) {
+            console.log('✅ Nova dieta gerada com sucesso');
+          } else {
+            console.warn('Aviso: Erro ao gerar nova dieta, será gerada no próximo acesso');
+          }
           
         } catch (err) {
           console.log('Erro ao salvar/regenerar:', err);
