@@ -905,7 +905,7 @@ async def check_can_update_weight(user_id: str):
     Verifica se o usuário pode atualizar o peso.
     
     REGRAS:
-    - TODOS: Bloqueio semanal (7 dias) - padronizado para melhor acompanhamento
+    - Bloqueio de 14 dias (2 semanas) para melhor acompanhamento
     
     Retorna informações sobre quando pode atualizar novamente.
     """
@@ -914,9 +914,8 @@ async def check_can_update_weight(user_id: str):
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    # Bloqueio de 7 dias para todos
-    block_days = 7
-    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    # Bloqueio de 14 dias (2 semanas)
+    block_days = 14
     
     # Busca último registro
     last_record = await db.weight_records.find_one(
