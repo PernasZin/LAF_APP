@@ -659,6 +659,7 @@ async def generate_diet(user_id: str):
     - NUNCA retorna erro por validação de macros
     - Dieta sempre válida e utilizável
     - Sistema auto-corrige automaticamente
+    - Suporta 4, 5 ou 6 refeições configuráveis
     
     TOLERÂNCIAS AMPLAS (para garantir sucesso):
     - Proteína: ±20% ou 30g
@@ -672,6 +673,19 @@ async def generate_diet(user_id: str):
         if not user_profile:
             raise HTTPException(status_code=404, detail="Perfil não encontrado")
         
+        # Busca configurações do usuário (meal_count e meal_times)
+        user_settings = await db.user_settings.find_one({"user_id": user_id})
+        meal_count = 6  # Padrão
+        meal_times = None
+        
+        if user_settings:
+            meal_count = user_settings.get('meal_count', 6)
+            meal_times = user_settings.get('meal_times', None)
+        
+        # Valida meal_count
+        if meal_count not in [4, 5, 6]:
+            meal_count = 6
+        
         # Importa serviço de dieta
         from diet_service import DietAIService
         
@@ -681,7 +695,9 @@ async def generate_diet(user_id: str):
         diet_plan = diet_service.generate_diet_plan(
             user_profile=dict(user_profile),
             target_calories=user_profile.get('target_calories', 2000),
-            target_macros=user_profile.get('macros', {"protein": 150, "carbs": 200, "fat": 60})
+            target_macros=user_profile.get('macros', {"protein": 150, "carbs": 200, "fat": 60}),
+            meal_count=meal_count,
+            meal_times=meal_times
         )
         
         # VALIDAÇÃO INFORMATIVA (apenas log, não bloqueia)
