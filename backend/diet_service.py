@@ -826,12 +826,6 @@ def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
             'p_mult': 2.2,
             'fat_min_per_kg': 1.0,   # Mínimo 1g/kg em bulking
             'fat_max_per_kg': 1.5    # Máximo 1.5g/kg em bulking
-        },
-        'atleta': {
-            'cal_mult': 1.0, 
-            'p_mult': 2.4,
-            'fat_min_per_kg': 0.8,
-            'fat_max_per_kg': 1.2
         }
     }
     
