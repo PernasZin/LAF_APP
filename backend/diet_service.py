@@ -895,7 +895,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         ["ovos", "iogurte_grego", "iogurte_natural", "claras"], "protein")
     
     light_protein_priority_ceia = get_preferred_first(
-        ["cottage", "iogurte_grego", "iogurte_natural"], "protein")  # NUNCA OVOS NA CEIA!
+        ["iogurte_grego", "iogurte_natural"], "protein")  # NUNCA OVOS NA CEIA!
     
     # Carboidratos principais (para almoço/jantar) - EXCLUI feijão/lentilha
     carb_priority = get_preferred_first(
