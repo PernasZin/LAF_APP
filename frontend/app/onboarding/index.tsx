@@ -205,11 +205,6 @@ export default function OnboardingScreen() {
         injury_history: formData.injury_history,
       };
 
-      // Add athlete-specific field (APENAS a data - backend calcula tudo)
-      if (formData.goal === 'atleta' && formData.athlete_competition_date) {
-        profileData.athlete_competition_date = formData.athlete_competition_date;
-      }
-
       console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
       console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
 
