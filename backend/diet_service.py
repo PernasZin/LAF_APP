@@ -853,22 +853,48 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods = [calc_food("banana", 150), calc_food("iogurte_grego", 170), calc_food("castanhas", 25)]
                 
         elif meal_type in ['almoco', 'jantar']:
-            # Almoço/Jantar: proteína principal + carboidrato + vegetais + azeite
+            # Almoço/Jantar: proteína principal + carboidratos (principal + complemento) + vegetais + azeite
             protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
-            carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
+            carb_main = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
             
+            # Adiciona proteína
             if protein and protein in FOODS:
                 p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 100, 400)
                 foods.append(calc_food(protein, p_grams))
             else:
                 foods.append(calc_food("frango", 200))
             
-            if carb and carb in FOODS:
-                # Aumentado limite para dietas de alta caloria (>3500kcal)
-                c_grams = clamp(meal_c / max(FOODS[carb]["c"] / 100, 0.1), 150, MAX_CARB_GRAMS)
-                foods.append(calc_food(carb, c_grams))
+            # Distribui carboidratos entre principal (70%) e complemento (30%)
+            if carb_main and carb_main in FOODS:
+                # Carboidrato principal (arroz, batata, macarrão, etc) - 70% dos carbs
+                carb_main_ratio = 0.70
+                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 100, 600)
+                foods.append(calc_food(carb_main, c_main_grams))
+                
+                # Carboidrato complementar (feijão, lentilha) - 30% dos carbs
+                # Seleciona um complemento diferente do principal
+                carb_comp = None
+                for comp in carb_complement:
+                    if comp != carb_main and comp in FOODS:
+                        if not preferred or comp in preferred:
+                            # Verifica restrições
+                            if not any(comp in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
+                                carb_comp = comp
+                                break
+                
+                if carb_comp:
+                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 300)
+                    foods.append(calc_food(carb_comp, c_comp_grams))
+                else:
+                    # Se não tem complemento, aumenta o principal
+                    c_extra = clamp((meal_c * 0.30) / max(FOODS[carb_main]["c"] / 100, 0.1), 50, 300)
+                    # Atualiza o carboidrato principal já adicionado
+                    if foods and foods[-1].get("key") == carb_main:
+                        new_grams = foods[-1]["grams"] + c_extra
+                        foods[-1] = calc_food(carb_main, min(new_grams, 800))
             else:
                 foods.append(calc_food("arroz_branco", 300))
+                foods.append(calc_food("feijao", 150))
             
             # Vegetais
             if meal_type == 'almoco':
