@@ -470,9 +470,7 @@ export default function ProgressScreen() {
         <View style={[styles.infoBox, { backgroundColor: colors.primary + '10' }]}>
           <Ionicons name="information-circle-outline" size={20} color={colors.primary} />
           <Text style={[styles.infoBoxText, { color: colors.text }]}>
-            {isAthlete 
-              ? `🏆 Modo Atleta: Registre seu peso semanalmente para acompanhar a preparação com máxima precisão.`
-              : `Registre seu peso semanalmente para acompanhar seu progresso. O questionário ajuda a identificar o que pode ser melhorado.`}
+            Registre seu peso a cada 2 semanas para acompanhar seu progresso. O questionário ajuda a identificar o que pode ser melhorado.
           </Text>
         </View>
       </ScrollView>
