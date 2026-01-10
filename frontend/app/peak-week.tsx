@@ -397,6 +397,32 @@ const createStyles = (colors: any) => StyleSheet.create({
   headerTitle: { fontSize: 28, fontWeight: '700' },
   headerSubtitle: { fontSize: 14, marginTop: 2 },
   
+  // Weigh-In Strategy Card
+  weighInCard: { 
+    padding: 16, 
+    borderRadius: 12, 
+    borderWidth: 2, 
+    marginBottom: 16 
+  },
+  weighInHeader: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 8, 
+    marginBottom: 8 
+  },
+  weighInEmoji: { fontSize: 24 },
+  weighInTitle: { fontSize: 16, fontWeight: '700' },
+  weighInBadge: { 
+    backgroundColor: '#D97706', 
+    alignSelf: 'flex-start', 
+    paddingHorizontal: 10, 
+    paddingVertical: 4, 
+    borderRadius: 8, 
+    marginBottom: 12 
+  },
+  weighInBadgeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  weighInNote: { fontSize: 13, lineHeight: 20, marginBottom: 4 },
+  
   // Tracker Button
   trackerButton: { 
     flexDirection: 'row', 
@@ -420,6 +446,13 @@ const createStyles = (colors: any) => StyleSheet.create({
   todayStatEmoji: { fontSize: 24, marginBottom: 4 },
   todayStatValue: { fontSize: 20, fontWeight: '700' },
   todayStatLabel: { fontSize: 11, marginTop: 2 },
+  phaseBadgeContainer: { 
+    marginTop: 12, 
+    padding: 10, 
+    borderRadius: 8, 
+    alignItems: 'center' 
+  },
+  phaseBadgeText: { fontSize: 14, fontWeight: '700' },
   
   // Weight Card
   weightCard: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 16 },
