@@ -962,8 +962,8 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         if c_per_100 > 0:
                             # Distribui o ajuste entre as refeições
                             delta = (gap_c / 2) / (c_per_100 / 100)
-                            # Limite específico para aveia, maior para arroz
-                            max_grams = 120 if food_key == "aveia" else 800
+                            # Limite específico para aveia (menor), maior para arroz/batata
+                            max_grams = 120 if food_key == "aveia" else MAX_CARB_GRAMS
                             new_g = clamp(food["grams"] + delta, 50, max_grams)
                             if abs(new_g - food["grams"]) >= 10:
                                 meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
