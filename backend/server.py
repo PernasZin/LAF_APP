@@ -740,14 +740,15 @@ async def generate_diet(user_id: str):
         
         # Salva no banco (IDEMPOTENT - sobrescreve dieta existente)
         diet_dict = diet_plan.dict()
+        
+        # Remove dieta existente do usuário antes de inserir nova
+        await db.diet_plans.delete_many({"user_id": user_id})
+        
+        # Define o _id como o id da dieta
         diet_dict["_id"] = diet_dict["id"]
         
-        # Usa replace_one com upsert para garantir uma única dieta por usuário
-        await db.diet_plans.replace_one(
-            {"user_id": user_id},
-            diet_dict,
-            upsert=True
-        )
+        # Insere nova dieta
+        await db.diet_plans.insert_one(diet_dict)
         
         logger.info(
             f"DIETA V14 GERADA COM SUCESSO - User: {user_id} | "
