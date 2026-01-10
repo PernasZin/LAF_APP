@@ -2191,6 +2191,483 @@ def generate_performance_suggestions(weight_change: float, weekly_rate: float,
     return suggestions
 
 
+# ==================== ATHLETE PHASE HISTORY ENDPOINTS ====================
+
+@api_router.get("/athlete/phases/{user_id}")
+async def get_athlete_phase_history(user_id: str):
+    """
+    Retorna histórico completo das fases do atleta.
+    
+    Inclui:
+    - Todas as fases registradas (OFF, PREP, PEAK, POST)
+    - Datas de início e fim
+    - Peso no início e fim de cada fase
+    - Estatísticas de cada fase
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca histórico de fases
+    phases = await db.athlete_phases.find(
+        {"user_id": user_id}
+    ).sort("started_at", -1).to_list(length=50)
+    
+    # Formata resposta
+    history = []
+    for p in phases:
+        history.append({
+            "id": p["_id"],
+            "phase": p["phase"],
+            "phase_name": format_phase_name(p["phase"]),
+            "started_at": p["started_at"].isoformat(),
+            "ended_at": p.get("ended_at").isoformat() if p.get("ended_at") else None,
+            "competition_date": p.get("competition_date").isoformat() if p.get("competition_date") else None,
+            "competition_name": p.get("competition_name"),
+            "start_weight": p.get("start_weight"),
+            "end_weight": p.get("end_weight"),
+            "weight_change": round(p.get("end_weight", 0) - p.get("start_weight", 0), 1) if p.get("end_weight") else None,
+            "duration_days": (p.get("ended_at") - p["started_at"]).days if p.get("ended_at") else None,
+            "notes": p.get("notes"),
+            "stats": p.get("stats", {})
+        })
+    
+    # Fase atual
+    current_phase = user.get("competition_phase")
+    current_phase_start = None
+    
+    # Busca início da fase atual (última fase sem ended_at)
+    current_phase_record = await db.athlete_phases.find_one(
+        {"user_id": user_id, "ended_at": None}
+    )
+    
+    if current_phase_record:
+        current_phase_start = current_phase_record["started_at"]
+    
+    # Estatísticas gerais
+    total_preps = sum(1 for p in history if p["phase"] == "pre_contest")
+    total_competitions = sum(1 for p in history if p.get("competition_date"))
+    
+    return {
+        "user_id": user_id,
+        "is_athlete": user.get("goal") == "atleta" or user.get("athlete_mode", False),
+        "current_phase": current_phase,
+        "current_phase_name": format_phase_name(current_phase) if current_phase else None,
+        "current_phase_start": current_phase_start.isoformat() if current_phase_start else None,
+        "history": history,
+        "stats": {
+            "total_phases": len(history),
+            "total_preps": total_preps,
+            "total_competitions": total_competitions
+        }
+    }
+
+
+@api_router.post("/athlete/phases/{user_id}")
+async def start_athlete_phase(user_id: str, phase_data: AthletePhaseHistoryCreate):
+    """
+    Inicia uma nova fase para o atleta.
+    
+    Automaticamente:
+    - Finaliza a fase anterior (se existir)
+    - Registra peso atual como peso inicial
+    - Cria novo registro de fase
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Finaliza fase anterior se existir
+    previous_phase = await db.athlete_phases.find_one(
+        {"user_id": user_id, "ended_at": None}
+    )
+    
+    if previous_phase:
+        # Busca último peso registrado
+        last_weight = await db.weight_records.find_one(
+            {"user_id": user_id},
+            sort=[("recorded_at", -1)]
+        )
+        
+        end_weight = last_weight["weight"] if last_weight else user.get("weight")
+        
+        # Calcula estatísticas da fase anterior
+        phase_stats = await calculate_phase_stats(
+            user_id, 
+            previous_phase["started_at"], 
+            datetime.utcnow()
+        )
+        
+        # Atualiza fase anterior
+        await db.athlete_phases.update_one(
+            {"_id": previous_phase["_id"]},
+            {"$set": {
+                "ended_at": datetime.utcnow(),
+                "end_weight": end_weight,
+                "stats": phase_stats
+            }}
+        )
+    
+    # Cria nova fase
+    current_weight = user.get("weight", 80)
+    
+    new_phase = AthletePhaseRecord(
+        user_id=user_id,
+        phase=phase_data.phase,
+        started_at=datetime.utcnow(),
+        competition_date=phase_data.competition_date,
+        competition_name=phase_data.competition_name,
+        start_weight=current_weight,
+        target_weight=user.get("target_weight"),
+        notes=phase_data.notes
+    )
+    
+    phase_dict = new_phase.dict()
+    phase_dict["_id"] = phase_dict["id"]
+    await db.athlete_phases.insert_one(phase_dict)
+    
+    # Atualiza fase no perfil do usuário
+    await db.user_profiles.update_one(
+        {"_id": user_id},
+        {"$set": {
+            "competition_phase": phase_data.phase,
+            "athlete_competition_date": phase_data.competition_date,
+            "athlete_mode": True
+        }}
+    )
+    
+    return {
+        "success": True,
+        "phase": new_phase.dict(),
+        "message": f"Fase {format_phase_name(phase_data.phase)} iniciada com sucesso"
+    }
+
+
+async def calculate_phase_stats(user_id: str, start_date: datetime, end_date: datetime) -> dict:
+    """Calcula estatísticas de uma fase"""
+    
+    # Busca registros de peso do período
+    weight_records = await db.weight_records.find(
+        {
+            "user_id": user_id,
+            "recorded_at": {"$gte": start_date, "$lte": end_date}
+        }
+    ).to_list(length=100)
+    
+    if not weight_records:
+        return {}
+    
+    # Calcula estatísticas
+    weights = [r["weight"] for r in weight_records]
+    questionnaire_avgs = [r.get("questionnaire_average", 0) for r in weight_records if r.get("questionnaire_average")]
+    
+    stats = {
+        "total_weight_records": len(weight_records),
+        "weight_change": round(weights[-1] - weights[0], 1) if len(weights) >= 2 else 0,
+        "lowest_weight": min(weights),
+        "highest_weight": max(weights),
+        "average_performance": round(sum(questionnaire_avgs) / len(questionnaire_avgs), 1) if questionnaire_avgs else 0
+    }
+    
+    return stats
+
+
+def format_phase_name(phase: str) -> str:
+    """Formata nome da fase para exibição"""
+    names = {
+        "off_season": "OFF-SEASON",
+        "pre_contest": "PREP",
+        "peak_week": "PEAK WEEK",
+        "post_show": "PÓS-SHOW"
+    }
+    return names.get(phase, phase.upper() if phase else "")
+
+
+# ==================== WATER/SODIUM TRACKER ENDPOINTS ====================
+
+@api_router.get("/tracker/water-sodium/{user_id}")
+async def get_water_sodium_tracker(user_id: str, date: str = None):
+    """
+    Retorna dados do tracker de água/sódio do dia.
+    
+    Se não especificado, retorna dados de hoje.
+    
+    SEGURANÇA:
+    - Alerta se água < 2L
+    - Alerta se sódio < 500mg
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Determina a data
+    if date:
+        try:
+            target_date = datetime.fromisoformat(date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Formato de data inválido. Use YYYY-MM-DD")
+    else:
+        target_date = datetime.utcnow()
+    
+    # Início e fim do dia
+    day_start = target_date.replace(hour=0, minute=0, second=0, microsecond=0)
+    day_end = day_start + timedelta(days=1)
+    
+    # Busca entrada do dia
+    entry = await db.water_sodium_tracker.find_one({
+        "user_id": user_id,
+        "date": {"$gte": day_start, "$lt": day_end}
+    })
+    
+    # Determina metas baseadas na fase (Peak Week tem metas específicas)
+    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    competition_phase = user.get("competition_phase")
+    
+    # Metas padrão
+    water_target = 3000  # 3L em ml
+    sodium_target = 2000  # 2000mg
+    
+    # Ajusta metas para Peak Week
+    if is_athlete and competition_phase == "peak_week":
+        comp_date = user.get("athlete_competition_date") or user.get("competition_date")
+        if comp_date:
+            days_to_comp = (comp_date - datetime.utcnow()).days
+            peak_day = 7 - max(0, min(7, days_to_comp))
+            
+            # Metas por dia da Peak Week
+            peak_week_targets = {
+                1: {"water": 5000, "sodium": 2000},
+                2: {"water": 4500, "sodium": 1700},
+                3: {"water": 4000, "sodium": 1400},
+                4: {"water": 3500, "sodium": 1000},
+                5: {"water": 3000, "sodium": 800},
+                6: {"water": 2500, "sodium": 600},
+                7: {"water": 2000, "sodium": 500},
+            }
+            
+            targets = peak_week_targets.get(peak_day, {"water": 3000, "sodium": 2000})
+            water_target = targets["water"]
+            sodium_target = targets["sodium"]
+    
+    # Se não tem entrada, retorna valores zerados
+    if not entry:
+        return {
+            "user_id": user_id,
+            "date": day_start.isoformat(),
+            "water_ml": 0,
+            "water_target_ml": water_target,
+            "water_percent": 0,
+            "sodium_mg": 0,
+            "sodium_target_mg": sodium_target,
+            "sodium_percent": 0,
+            "is_peak_week": competition_phase == "peak_week",
+            "peak_week_day": 7 - max(0, min(7, (comp_date - datetime.utcnow()).days)) if competition_phase == "peak_week" and comp_date else None,
+            "warnings": [],
+            "entries": []
+        }
+    
+    # Calcula porcentagens
+    water_percent = min(100, round((entry.get("water_ml", 0) / water_target) * 100))
+    sodium_percent = min(100, round((entry.get("sodium_mg", 0) / sodium_target) * 100))
+    
+    # Verifica limites de segurança
+    warnings = []
+    water_ml = entry.get("water_ml", 0)
+    sodium_mg = entry.get("sodium_mg", 0)
+    
+    # Água mínima: 2L
+    if water_ml > 0 and water_ml < 2000:
+        warnings.append({
+            "type": "danger",
+            "icon": "💧",
+            "message": "Atenção: Ingestão de água abaixo do mínimo seguro (2L). Aumente a hidratação!"
+        })
+    
+    # Sódio mínimo: 500mg
+    if sodium_mg > 0 and sodium_mg < 500:
+        warnings.append({
+            "type": "danger",
+            "icon": "🧂",
+            "message": "Atenção: Sódio abaixo do mínimo seguro (500mg). Não corte completamente!"
+        })
+    
+    # Busca entradas individuais do dia (log de adições)
+    entries_log = entry.get("entries_log", [])
+    
+    return {
+        "user_id": user_id,
+        "date": day_start.isoformat(),
+        "water_ml": water_ml,
+        "water_target_ml": water_target,
+        "water_percent": water_percent,
+        "sodium_mg": sodium_mg,
+        "sodium_target_mg": sodium_target,
+        "sodium_percent": sodium_percent,
+        "is_peak_week": competition_phase == "peak_week",
+        "peak_week_day": 7 - max(0, min(7, (comp_date - datetime.utcnow()).days)) if competition_phase == "peak_week" and 'comp_date' in dir() and comp_date else None,
+        "warnings": warnings,
+        "entries_log": entries_log,
+        "notes": entry.get("notes")
+    }
+
+
+@api_router.post("/tracker/water-sodium/{user_id}")
+async def add_water_sodium(user_id: str, entry: WaterSodiumEntryCreate):
+    """
+    Adiciona entrada de água/sódio.
+    
+    Soma aos valores existentes do dia.
+    
+    SEGURANÇA:
+    - Emite alerta se água < 2L no final do dia
+    - Emite alerta se sódio < 500mg
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Dia atual
+    now = datetime.utcnow()
+    day_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    day_end = day_start + timedelta(days=1)
+    
+    # Busca entrada existente do dia
+    existing = await db.water_sodium_tracker.find_one({
+        "user_id": user_id,
+        "date": {"$gte": day_start, "$lt": day_end}
+    })
+    
+    # Prepara log de entrada
+    entry_log = {
+        "time": now.isoformat(),
+        "water_ml": entry.water_ml or 0,
+        "sodium_mg": entry.sodium_mg or 0,
+        "notes": entry.notes
+    }
+    
+    if existing:
+        # Atualiza entrada existente
+        new_water = existing.get("water_ml", 0) + (entry.water_ml or 0)
+        new_sodium = existing.get("sodium_mg", 0) + (entry.sodium_mg or 0)
+        
+        # Adiciona ao log
+        entries_log = existing.get("entries_log", [])
+        entries_log.append(entry_log)
+        
+        await db.water_sodium_tracker.update_one(
+            {"_id": existing["_id"]},
+            {"$set": {
+                "water_ml": new_water,
+                "sodium_mg": new_sodium,
+                "water_below_minimum": new_water < 2000,
+                "sodium_below_minimum": new_sodium < 500,
+                "entries_log": entries_log,
+                "updated_at": now
+            }}
+        )
+        
+        result_water = new_water
+        result_sodium = new_sodium
+    else:
+        # Cria nova entrada
+        new_entry = WaterSodiumEntry(
+            user_id=user_id,
+            date=day_start,
+            water_ml=entry.water_ml or 0,
+            sodium_mg=entry.sodium_mg or 0,
+            water_below_minimum=(entry.water_ml or 0) < 2000,
+            sodium_below_minimum=(entry.sodium_mg or 0) < 500,
+            notes=entry.notes
+        )
+        
+        entry_dict = new_entry.dict()
+        entry_dict["_id"] = entry_dict["id"]
+        entry_dict["entries_log"] = [entry_log]
+        entry_dict["created_at"] = now
+        
+        await db.water_sodium_tracker.insert_one(entry_dict)
+        
+        result_water = entry.water_ml or 0
+        result_sodium = entry.sodium_mg or 0
+    
+    # Verifica warnings
+    warnings = []
+    if result_water < 2000:
+        warnings.append("⚠️ Água abaixo de 2L. Continue hidratando!")
+    if result_sodium < 500:
+        warnings.append("⚠️ Sódio abaixo do mínimo seguro (500mg)")
+    
+    return {
+        "success": True,
+        "water_ml": result_water,
+        "sodium_mg": result_sodium,
+        "added_water": entry.water_ml or 0,
+        "added_sodium": entry.sodium_mg or 0,
+        "warnings": warnings,
+        "message": "Registro adicionado com sucesso"
+    }
+
+
+@api_router.get("/tracker/water-sodium/{user_id}/history")
+async def get_water_sodium_history(user_id: str, days: int = 7):
+    """
+    Retorna histórico de água/sódio dos últimos N dias.
+    
+    Útil para visualizar tendências durante Peak Week.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Período
+    from_date = datetime.utcnow() - timedelta(days=days)
+    
+    # Busca entradas
+    entries = await db.water_sodium_tracker.find(
+        {"user_id": user_id, "date": {"$gte": from_date}}
+    ).sort("date", 1).to_list(length=days)
+    
+    # Formata resposta
+    history = []
+    for e in entries:
+        history.append({
+            "date": e["date"].strftime("%Y-%m-%d"),
+            "water_ml": e.get("water_ml", 0),
+            "sodium_mg": e.get("sodium_mg", 0),
+            "water_below_minimum": e.get("water_below_minimum", False),
+            "sodium_below_minimum": e.get("sodium_below_minimum", False)
+        })
+    
+    # Estatísticas
+    if history:
+        avg_water = sum(h["water_ml"] for h in history) / len(history)
+        avg_sodium = sum(h["sodium_mg"] for h in history) / len(history)
+        days_below_water = sum(1 for h in history if h["water_below_minimum"])
+        days_below_sodium = sum(1 for h in history if h["sodium_below_minimum"])
+    else:
+        avg_water = 0
+        avg_sodium = 0
+        days_below_water = 0
+        days_below_sodium = 0
+    
+    return {
+        "user_id": user_id,
+        "period_days": days,
+        "history": history,
+        "stats": {
+            "avg_water_ml": round(avg_water),
+            "avg_sodium_mg": round(avg_sodium),
+            "days_below_minimum_water": days_below_water,
+            "days_below_minimum_sodium": days_below_sodium
+        }
+    }
+
+
 # ==================== WORKOUT ENDPOINTS ====================
 
 @api_router.post("/workout/generate")
