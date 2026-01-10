@@ -430,7 +430,7 @@ function CircularProgress({ percentage, color, size, strokeWidth }: {
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <Svg width={size} height={size} style={styles.circularProgress}>
+    <Svg width={size} height={size} style={{ position: 'absolute', top: 16 }}>
       {/* Background Circle */}
       <Circle
         cx={size / 2}
