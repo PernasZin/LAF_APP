@@ -805,6 +805,34 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   athletePhaseText: { fontSize: 12, fontWeight: '700' },
   
+  // Notifications Card
+  notificationsCard: { 
+    padding: 12, 
+    borderRadius: 12, 
+    borderWidth: 1, 
+    marginBottom: 16 
+  },
+  notificationItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingVertical: 8 
+  },
+  notificationContent: { flex: 1 },
+  notificationTitle: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
+  notificationMessage: { fontSize: 12, lineHeight: 16 },
+  
+  // Peak Week Button
+  peakWeekButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 8, 
+    paddingVertical: 14, 
+    borderRadius: 12, 
+    marginBottom: 16 
+  },
+  peakWeekButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  
   // Weight Card
   weightCard: { padding: 20, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
   weightCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
