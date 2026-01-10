@@ -174,7 +174,6 @@ export default function EditProfileScreen() {
       if (profileData) {
         const profile = JSON.parse(profileData);
         profile.name = name.trim();
-        profile.weight = weightNum;
         profile.goal = goal;
         await AsyncStorage.setItem('userProfile', JSON.stringify(profile));
       }
