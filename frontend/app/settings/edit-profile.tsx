@@ -339,82 +339,6 @@ export default function EditProfileScreen() {
   );
 }
 
-const datePickerStyles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  container: {
-    width: '90%',
-    maxWidth: 400,
-    borderRadius: 16,
-    padding: 20,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  pickerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  pickerColumn: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  pickerLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  pickerScroll: {
-    height: 180,
-    width: '100%',
-  },
-  pickerItem: {
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginVertical: 2,
-  },
-  pickerItemText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  preview: {
-    marginTop: 16,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  previewText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  buttons: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
-
 const createStyles = (colors: any) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scrollView: { flex: 1 },
@@ -436,10 +360,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   goalLabel: { fontSize: 16, fontWeight: '600', marginRight: 8 },
   goalDescription: { fontSize: 13 },
   goalCheck: { position: 'absolute', right: 16 },
-  dateButton: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 52, borderRadius: 12, borderWidth: 1, paddingHorizontal: 16 },
-  dateText: { fontSize: 16, flex: 1 },
-  phaseInfo: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12, borderRadius: 8, marginTop: 12 },
-  phaseText: { fontSize: 14, fontWeight: '600' },
   saveButton: { height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   saveButtonDisabled: { opacity: 0.7 },
   saveButtonText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
