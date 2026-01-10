@@ -849,17 +849,17 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # Fruta
             if fruit and fruit in FOODS:
-                fruit_grams = clamp(meal_c * 0.5 / max(FOODS[fruit]["c"] / 100, 0.1), 80, 200)
+                fruit_grams = clamp(meal_c * 0.6 / max(FOODS[fruit]["c"] / 100, 0.1), 80, 200)
                 foods.append(calc_food(fruit, fruit_grams))
             
-            # Extra doce (mel ou leite condensado) - pequena quantidade para completar carbs
+            # Extra doce (mel ou leite condensado) - MÁXIMO 30g, apenas em lanches/café
             carbs_so_far = sum(f.get("carbs", 0) for f in foods)
             carbs_remaining = meal_c - carbs_so_far
             if carbs_remaining > 5:
-                # Adiciona mel ou leite condensado (20-40g)
-                extra = "mel" if carbs_remaining < 20 else "leite_condensado"
+                # Adiciona mel ou leite condensado (máximo 30g!)
+                extra = "mel" if carbs_remaining < 15 else "leite_condensado"
                 if extra in FOODS:
-                    extra_grams = clamp(carbs_remaining / max(FOODS[extra]["c"] / 100, 0.1), 10, 40)
+                    extra_grams = clamp(carbs_remaining / max(FOODS[extra]["c"] / 100, 0.1), 10, 30)
                     foods.append(calc_food(extra, extra_grams))
             
             # Castanhas/amêndoas para gordura
