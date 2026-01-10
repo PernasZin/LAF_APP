@@ -743,6 +743,16 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {/* Water Tracker - Sistema de Hidratação por kg */}
+        {profile.weight && profile.weight > 0 && (
+          <WaterTracker 
+            weight={profile.weight} 
+            colors={colors} 
+            t={t}
+            onUpdate={() => {}}
+          />
+        )}
+
         {/* Goal Card */}
         <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>{t.home.yourGoal}</Text>
