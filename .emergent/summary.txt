@@ -1,193 +1,130 @@
 <analysis>
 
-**original_problem_statement**: The user initially requested a series of improvements and bug fixes for a diet and fitness application. The requests included:
-1.  A visual overhaul of the application.
-2.  Restricting new users from logging their weight for the first 14 days.
-3.  Removing the weight field from the user profile screen.
-4.  Implementing strict business logic for diet generation, including a rule to forbid eggs in the 'Ceia' (supper) meal and specific rules for calculating fat macros based on the user's goal and body weight.
-5.  Changing the names of user goals (e.g., 'bulking' to 'Off-Season'), which was later reverted by the user.
-6.  Adding a feature for users to configure the number of daily meals (4, 5, or 6) and customize their meal times.
-7.  Implementing a complete cardio planning system, including exercise suggestions, substitutions, and progress tracking.
-8.  Fixing numerous bugs related to state management, such as the diet plan not updating when settings are changed, and UI components not rendering correctly.
-9.  Refining the cardio substitution feature to show the equivalent workout time for alternative exercises.
-10. Correcting the logic for determining an athlete's competition phase (e.g., 'Peak Week', 'Off-Season').
+**original_problem_statement**: The user wants to build a comprehensive diet and fitness application. The core feature revolves around dynamic, rule-based generation of diet and cardio plans.
+
+Initial & ongoing requests include:
+1.  **Diet Generation Logic**:
+    *   Implement strict business rules (e.g., no eggs in supper, specific fat calculations).
+    *   Allow users to configure 4, 5, or 6 meals per day.
+    *   **Crucial Clarification**: When changing the number of meals, the *total daily food and macronutrients* must remain the same; only the distribution across meals should change. The current implementation is failing this, leading to significant calorie/macro deficits on 4/5 meal plans.
+    *   The diet generation must be robust enough to meet high-calorie targets (e.g., >3700 kcal) by generating sufficient food quantities, especially carbohydrates.
+2.  **Onboarding Flow**: The meal configuration (number of meals) should be part of the initial user profile setup (onboarding).
+3.  **Cardio Plan**: Implement a full cardio planning system, including substitutions with equivalent workout times.
+4.  **Athlete Features**:
+    *   Allow users to identify as athletes and set a competition date.
+    *   Calculate the athlete's current training phase (e.g., 'Peak Week', 'Off-Season') based on the competition date.
+5.  **Bug Fixes**:
+    *   Fix a broken date picker on the Edit Profile screen.
+    *   Ensure UI updates correctly across the app when settings (like user goal) are changed.
 
 **User's preferred language**: Portuguese (Brasil)
 
 **what currently exists?**
 - A full-stack application with a FastAPI backend and an Expo (React Native) frontend.
-- A comprehensive internationalization (i18n) system.
-- The UI has been visually updated with new colors, fonts, and spacing.
-- The backend has complex, rule-based generation for diet plans (no eggs in supper, specific fat calculations) and cardio plans.
-- A meal configuration system is in place, allowing users to select 4, 5, or 6 meals and set custom times via a dedicated settings screen.
-- A new Cardio tab and screen have been added, which displays a generated cardio plan.
-- The Edit Profile screen has been heavily modified to include an option for Athlete and a competition date selector, although it is currently buggy.
-- The backend logic for athlete competition phases has been corrected to properly calculate the phase based on the time until the competition date.
+- The backend features a complex, rule-based service () for generating diet and cardio plans.
+- The user can select their preferred number of meals (4, 5, or 6) during an updated onboarding flow and in the settings.
+- The frontend includes a Cardio tab with exercise details and substitutions, a settings area for profile and meal configuration, and a home screen to view the diet.
+- The Edit Profile screen has a working, custom-built date picker for athletes to set their competition date.
+- State management on the frontend has been improved with  to refetch data when a screen becomes active, ensuring changes made in settings are reflected on other tabs.
 
 **Last working item**:
-    - Last item agent was working: The agent was working on a multi-part task to address several user-reported bugs simultaneously:
-        1.  **Cardio Substitutions**: Implementing the logic to show the equivalent time needed for a substitute cardio exercise (e.g., 30 min Bike is equivalent to 45 min Walk).
-        2.  **Date Picker Fix**: The user reported that the date picker on the Edit Profile screen was broken (only shows confirm). The agent was in the process of replacing the faulty native  with a custom-built manual date picker using  components for day, month, and year.
-        3.  **Diet Compaction**: The user reported that when changing the number of meals, the diet plan becomes empty. The agent's previous fix (deleting the cached diet) caused this. The next step is to adjust the backend to properly redistribute the existing food items across the new number of meals instead of starting from scratch.
+    - Last item agent was working: The agent was debugging the core diet generation logic in . The user reported that diets with 4 or 5 meals have significantly lower calories and macros than the 6-meal diet. The user's expectation is that the total food quantity for the day remains constant, regardless of the meal count, with only the distribution changing. The agent rewrote the logic to first calculate total daily food and then distribute it, but the generated diet still failed to meet the macro targets (especially carbohydrates).
     - Status: IN PROGRESS
-    - Agent Testing Done: N
-    - Which testing method agent to use? both
+    - Agent Testing Done: N (Local tests showed promise, but live tests failed)
+    - Which testing method agent to use? backend testing agent
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Date picker on the Edit Profile screen is broken. (P0)
-  - Issue 2: Changing the number of meals in settings causes the diet plan to become empty. (P1)
-  - Issue 3: Changing the user's goal in Edit Profile does not update the macros on the Home screen or the cardio plan. (P2)
-  - Issue 4: Cardio substitution UI needs to display the equivalent workout time. (P3)
-  - Issue 5: A new complex business rule for athlete phase transitions needs to be implemented. (P4)
+  - Issue 1: Diet generation is incorrect for 4 and 5 meal plans (P0)
 
   Issues Detail:
-  - **Issue 1: Date picker on the Edit Profile screen is broken.**
-     - **Attempted fixes**: The agent identified that the standard  was not working correctly in the web preview environment. The agent started creating a custom, manual date picker component directly within  using s. This work is incomplete.
+  - **Issue 1: Diet generation is incorrect for 4 and 5 meal plans**
+     - **Attempted fixes**: The agent correctly identified that the logic shouldn't generate fewer food items but rather redistribute the same total amount. The agent refactored  to generate total daily food first and then partition it into meals. However, the result was still incorrect, with major carbohydrate and calorie deficits. The agent identified two likely causes:
+        1.  Hardcoded limits on food quantities (e.g., ) are too low for high-calorie targets, preventing the  function from adding enough food.
+        2.  A suspected backend module caching/reloading issue. Local tests of the function showed correct behavior, but the API endpoint returned results from what seemed to be an older version of the code, even after service restarts.
      - **Next debug checklist**:
-         1. Complete the implementation of the manual date picker UI in .
-         2. Ensure the state of the custom picker correctly updates the  state variable.
-         3. Verify that the selected date is correctly saved when the user presses Save.
-     - **Why fix this issue and what will be achieved with the fix?**: The Athlete feature is unusable without a working date picker to set the competition date. Fixing this will complete the Edit Profile functionality for athletes.
+         1.  **Resolve the backend reload issue**: Confirm that changes to  are active after a backend: stopped
+backend: started. Add a version number or timestamp to a log message in the diet generation function to definitively verify which code version is running.
+         2.  **Increase Food Generation Limits**: Review and increase the  values and  constants in , especially for carbohydrate sources like arroz (rice) and aveia (oats), to allow for larger portions required by high-calorie diets.
+         3.  **Test Generation**: After confirming the code is reloading correctly, run a test for a high-calorie user (e.g., 3783 kcal target) with 5 meals and verify if the generated carbs/calories are much closer to the target.
+     - **Why fix this issue and what will be achieved with the fix?**: This is the application's core feature and is fundamentally broken from the user's perspective. Fixing it will make the meal configuration feature usable and deliver the primary value proposition of the app.
      - **Status**: IN PROGRESS
-     - **Is recurring issue?**: N
-     - **Should Test frontend/backend/both after fix?**: Frontend
-     - **Blocked on other issue**: None
-
-  - **Issue 2: Changing the number of meals in settings causes the diet plan to become empty.**
-     - **Attempted fixes**: The agent's previous fix was to delete the cached diet from the database when meal settings are changed, forcing a regeneration. This caused the bug, as the regeneration logic does not compact or redistribute the food but creates a new, often incomplete plan.
-     - **Next debug checklist**:
-         1. Review the  function in .
-         2. Modify the logic so that when  changes, it intelligently redistributes the *total daily food items* across the new meal structure, rather than erasing the plan. This might involve re-running the meal assignment part of the logic without re-calculating the total food amounts.
-     - **Why fix this issue and what will be achieved with the fix?**: This is a major UX issue. Users expect their diet to adjust, not disappear. Fixing this will make the meal configuration feature work as intended.
-     - **Status**: NOT STARTED
      - **Is recurring issue?**: Y
-     - **Should Test frontend/backend/both after fix?**: Backend
-     - **Blocked on other issue**: None
-
-  - **Issue 3: Changing user's goal does not update Home screen or Cardio plan.**
-     - **Attempted fixes**: The agent added API calls inside the  function in  to delete the diet and cardio caches, intending to force a refresh.
-     - **Next debug checklist**:
-         1. Verify that the API calls to delete the caches are succeeding.
-         2. The core issue is likely client-side state management. The Home and Cardio screens are not aware that their data is stale after the profile is updated.
-         3. Implement a state management solution (e.g., using a global state with Zustand/Redux or a React Context) to signal a refresh, or pass a callback/use navigation events to trigger a re-fetch on the Home and Cardio screens after returning from the profile edit screen.
-     - **Why fix this issue and what will be achieved with the fix?**: The app feels broken when user changes don't reflect immediately. This will ensure a cohesive and responsive user experience.
-     - **Status**: NOT STARTED
-     - **Is recurring issue?**: Y
-     - **Should Test frontend/backend/both after fix?**: Frontend
-     - **Blocked on other issue**: None
-
-  - **Issue 4: Cardio substitution UI needs to display equivalent workout time.**
-     - **Attempted fixes**:
-         - Backend: The agent updated the  endpoint in  to calculate and return .
-         - Frontend: The agent updated the UI in  to display this new data field.
-     - **Next debug checklist**: The implementation seems complete but has not been tested.
-         1. Log in to the app and navigate to the Cardio tab.
-         2. Tap on a cardio exercise to open the details modal.
-         3. Verify that the list of substitutes correctly displays the equivalent time (e.g., Caminhada: 45 min).
-     - **Why fix this issue and what will be achieved with the fix?**: This provides crucial information to the user, allowing them to make informed decisions about their workout.
-     - **Status**: IN PROGRESS (Testing Pending)
-     - **Is recurring issue?**: N
-     - **Should Test frontend/backend/both after fix?**: Frontend
-     - **Blocked on other issue**: None
-
-  - **Issue 5: Automatic athlete phase transition rule.**
-     - **Attempted fixes**: None.
-     - **Next debug checklist**: This is a new feature request from the user (Msg 402: when the athlete user after 2 weeks of creating the account, pass 2 weeks of the preparation phase). This requires significant logic.
-         1. Clarify the exact rule with the user. It's ambiguous.
-         2. Design a stateful logic, likely in the backend  endpoint, that checks both  date of the user and the current competition phase.
-         3. Implement the logic to override the user's goal or phase based on these time-based conditions.
-     - **Why fix this issue and what will be achieved with this?**: Implements a specific business rule requested by the user for athlete progression.
-     - **Status**: NOT STARTED
-     - **Is recurring issue?**: N
      - **Should Test frontend/backend/both after fix?**: Backend
      - **Blocked on other issue**: None
 
 **In progress Task List**:
-  - **Task 1: Complete the Edit Profile screen refactor.**
-     - **Where to resume**: . The agent was implementing a custom date picker. This needs to be finished and tested.
-     - **What will be achieved with this?**: A fully functional Edit Profile screen where users (including athletes) can update their goal and competition date. This is a prerequisite for fixing Issue 3.
-     - **Status**: IN PROGRESS
-     - **Should Test frontend/backend/both after fix?**: Frontend
-     - **Blocked on something**: No.
+  - Task 1: Refactor diet generation logic (same as Issue 1)
+     - Where to resume: 
+     - What will be achieved with this?: A working diet generation system that correctly adjusts to the user's chosen number of meals.
+     - Status: IN PROGRESS
+     - Should Test frontend/backend/both after fix?: Backend
+     - Blocked on something: Potential backend service reload/caching issue.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P0**: Fix the diet compaction logic in the backend (Issue 2).
-    - **P1**: Fix the client-side state update issue after changing goals (Issue 3).
+    - **P1**: Once the diet generation is fixed, a full end-to-end test is needed: create a new user, select 4 meals in onboarding, and verify the diet is generated correctly on the home screen.
 - **Future Tasks**:
-    - **P2**: Implement the automatic phase transition logic for athletes (Issue 5).
-    - **P3**: The original summary mentioned a plan to move push notifications to the backend. This has not been addressed and remains a future task.
+    - **P2**: Implement the automatic athlete phase transition rule (from original summary, when the athlete user after 2 weeks of creating the account, pass 2 weeks of the preparation phase). This complex business rule has not been started.
+    - **P3**: Move push notifications to the backend for more robust scheduling.
 
 **Completed work in this session**
-- **Visual Overhaul**: Updated app-wide colors, fonts, and component styles for a more modern look.
-- **Weight Update Restriction**: Implemented a 14-day waiting period for new users to log weight and removed the weight field from the profile edit screen.
-- **Diet Generation Rule (No Eggs in Supper)**: Successfully implemented and tested a strict backend rule to prevent eggs from being included in the 'Ceia' meal.
-- **Diet Generation Rule (Fat Calculation)**: Implemented and tested complex backend rules for calculating daily fat intake based on user's goal, weight, and total calories.
-- **Athlete Competition Phase Logic**: Corrected the backend logic to accurately determine an athlete's phase (Peak Week, Pre-Contest, etc.) based on the number of weeks until their competition date.
-- **Meal Configuration System**: Created a new UI for users to select 4, 5, or 6 meals and customize times. The backend was updated to support dynamic meal generation based on these settings.
-- **Cardio Feature**: Implemented a new Cardio tab and screen, with backend logic to generate cardio plans and provide substitution options.
-- **Bug Fix (Meal Config Screen)**: Fixed critical import path errors that were causing the  screen to crash.
+- **Date Picker Fix (P0 COMPLETED)**: Fully repaired the broken date picker in  by completing the custom -based implementation. Tested and verified it correctly saves the competition date and triggers the athlete phase calculation.
+- **Cardio Substitution Time (P3 COMPLETED)**: Fixed the UI in  to correctly display the equivalent time for substitute exercises. The root cause was a missing  and a  style issue, both of which were resolved.
+- **State Management Refresh (P2 COMPLETED)**: Ensured that the Home, Diet, and Cardio tabs refresh their data when the user navigates back to them after making changes in settings by implementing .
+- **Onboarding Meal Configuration**: Successfully added a new Meal Plan step to the onboarding flow in , allowing users to set their meal count during initial setup. A new file  was created.
+- **Backend Diet Deletion Endpoint**: Added a  endpoint to  to allow the frontend to clear a user's diet cache.
+
+**Earlier issues found/mentioned but not fixed**
+- The core issue of the diet losing food has been the primary focus and is still being worked on. No other known issues were mentioned and ignored.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Rule-Based Generation**: The backend uses complex, hard-coded business rules in  and  to generate dynamic diet and cardio plans.
-- **Client-Side State Desynchronization**: A recurring problem where changes made in one part of the app (Settings) are not reflected in other parts (Home, Cardio) without a manual refresh. This indicates a need for a more robust state management strategy.
-- **API-Driven UI**: The application relies heavily on fetching all its content from the backend, including UI text for athlete phases and entire plans for diet/cardio.
-- **Conditional UI Rendering**: The  screen uses conditional rendering to show/hide the competition date picker based on whether the Athlete goal is selected.
+- **Rule-Based Diet Generation**: The backend in  uses a complex set of rules, food definitions, and distribution percentages to construct daily meal plans. The current challenge is making this system flexible for different meal counts while maintaining macro-nutrient targets.
+- **Backend Module Caching**: The agent strongly suspects that Python's module caching is preventing changes in  from being reflected immediately after a service restart. This is a common issue in development environments with some WSGI servers.
+- **Client-Side State Synchronization**: The use of  was a key fix to ensure that screens refetch data from the backend when they become visible, solving the problem of stale data after profile edits.
 
 **key DB schema**
-- No new collections were added, but the  document structure was extended to include:
-    - 
-    - 
-- The  collection was extended to include:
-    - 
+- No schema changes were made in this session. Existing fields in  () and  () were utilized.
 
 **All files of reference**
-- : **CRITICAL**. This file is the epicenter of several current bugs and the ongoing refactor. It controls goal selection and competition date.
-- : **CRITICAL**. Contains the API logic for diet/cardio generation triggers, athlete phase calculation, and user settings.
-- : **CRITICAL**. Contains the core business logic for how diets are constructed. It will need to be modified to fix the diet compaction issue.
-- : The new cardio screen. Will need verification for the equivalent time feature.
-- : The meal configuration screen. Its save function is what triggers the diet disappearing bug.
+- : **CRITICAL**. This file contains the entire diet generation logic. It is the locus of the main pending issue and will be the primary focus for the next agent.
+- : The main onboarding flow, modified to include the new meal configuration step.
+- : The new UI component for selecting meal count during onboarding.
+- : The file where the cardio substitution UI was successfully fixed.
+- : The file where the date picker was successfully fixed.
 
 **Critical Info for New Agent**
-1.  **Top Priority is Fixing User-Reported Bugs**: The user has reported a chain of related bugs. Your immediate focus should be the **Pending/In progress Issue list**, starting with the broken date picker (P0), as it blocks other testing.
-2.  **State Management is the Root Cause**: The problem of the Home screen and Cardio plan not updating (Issue 3) is a classic client-side state management issue. Simply deleting the cache on the backend is not enough. You must implement a way for the frontend screens to know they need to re-fetch their data after a profile update.
-3.  **Diet Compaction is a Backend Logic Problem**: Do not try to fix the disappearing diet (Issue 2) on the frontend. The logic in  must be enhanced to intelligently redistribute food items into a different number of meals, not just create a blank slate.
-4.  ** is Mid-Refactor**: You are inheriting a file () that is in the middle of a major change (replacing a native date picker with a custom one). You must complete this implementation before you can fully test the athlete features.
+1.  **User's Core Requirement**: The user has been very clear: changing from 6 to 5 or 4 meals should *not* reduce the total amount of food for the day, only redistribute it. The total calories and macros should be as close as possible across all plans.
+2.  **Suspected Backend Caching Issue**: You are likely to face an issue where your changes to  do not apply, even after restarting the backend. **Your first action should be to verify you can reliably deploy changes to this file.** Add a unique log message or a print statement with a version number inside the  function and check the logs after a restart to confirm the new code is running. If it's not, you must resolve this before debugging the logic further.
+3.  **Food Limits are a Bottleneck**: The current logic is failing for high-calorie targets (>3700 kcal) because the  function is constrained by hardcoded maximums for food portions (e.g., 500g of rice). You will likely need to increase these limits in  to allow the algorithm to hit the targets.
 
 **Last 10 User Messages and any pending HUMAN messages**
-- **(LATEST) User (Msg 437)**: Reports 3 bugs: 1) Cardio substitutions don't show equivalent time, 2) Changing meal count makes diet disappear, 3) Date picker is broken. **(IN PROGRESS)**
-- **User (Msg 402)**: Reports 5 issues: 1) Cardio subs need time, 2) Meal config not working, 3) Missing athlete goal in profile, 4) Goal change doesn't update app, 5) New rule for athlete phase progression. **(IN PROGRESS)**
-- **User (Msg 373)**: Reports 2 issues: 1) Meal config doesn't update diet, 2) Requests cardio system. **(Partially addressed, new bugs introduced)**
-- **User (Msg 350)**: Reports bug in athlete phase calculation and requests  be extended to 16 weeks. **(COMPLETED)**
-- **User (Msg 323)**: Corrects the agent, stating that the original goals (Bulking, Cutting) should remain and athlete-specific names are for a separate feature. **(COMPLETED)**
-- **User (Msg 286)**: erro na tela (error on screen) - reporting the crash on the new meal config screen. **(COMPLETED)**
-- **User (Msg 225)**: Requests the meal configuration system. **(COMPLETED)**
-- **User (Msg 178)**: Requests to change the names of the diet phases. **(COMPLETED, then REVERTED per Msg 323)**
-- **User (Msg 161)**: Provides strict rules for calculating fat in the diet. **(COMPLETED)**
-- **User (Msg 122)**: Provides strict rule: NO EGGS in the 'Ceia' meal. **(COMPLETED)**
+- **(LATEST) User (Msg 248)**: Clarified the core requirement: 4 or 5 meal plans should have the SAME total food/macros as the 6-meal plan, just distributed differently. **(IN PROGRESS)**
+- **User (Msg 173)**: Reports that the diet is losing a lot of calories, carbs, and fats, and provides a screenshot showing a large calorie deficit. **(IN PROGRESS)**
+- **User (Msg 146)**: Reports that the diet is being cut when using 4 or 5 meals and provides a screenshot. **(IN PROGRESS)**
+- **User (Msg 115)**: Reports the diet is still losing food and requests the meal configuration screen be moved to the onboarding flow. **(Onboarding part COMPLETED, diet bug IN PROGRESS)**
+- **User (Msg 43)**: Confirms to proceed with the proposed 3-step fix plan. **(COMPLETED)**
+- **User (Msg 5)**: Confirms the initial plan. **(COMPLETED)**
 
 **Project Health Check:**
 - **Broken**:
-    - The  screen is partially broken due to the in-progress date picker implementation.
-    - The data flow for updating user goals is broken, leading to a stale UI on other screens.
-    - The diet plan disappears when meal settings are changed, making the feature unusable.
+    - The core diet generation logic () is not functional as per user requirements for 4 and 5-meal plans. This is the highest priority issue.
 - **Mocked**: None.
 
 **3rd Party Integrations**
 -  / : For internationalization.
-- : For scheduling local push notifications (backend integration is a future task).
+- : For scheduling local push notifications.
 
 **Testing status**
-- **Testing agent used after significant changes**: NO
-- **Troubleshoot agent used after agent stuck in loop**: NO
-- **Test files created**: The previous agent created temporary test scripts (e.g., , ) but did not commit them to the repository. No permanent test files exist.
-- **Known regressions**: The fix for meal settings not updating diet introduced a new, worse bug where the diet disappears entirely.
+  - Testing agent used after significant changes: NO
+  - Troubleshoot agent used after agent stuck in loop: NO
+  - Test files created: None
+  - Known regressions: None (The diet generation was flawed from the start of this specific feature, so it's a persistent bug rather than a regression).
 
 **What agent forgot to execute**
-- The agent has not yet addressed the user's request from message 402 for a new, complex, time-based rule for athlete phase progression (when the athlete user after 2 weeks of creating the account, pass 2 weeks of the preparation phase). This has been deferred and listed as a future task.
+- The agent correctly prioritized the user's immediate and repeated feedback on the diet generation logic. The longer-term future task of implementing a new athlete phase transition rule was appropriately deferred and has not been forgotten.
 
 </analysis>
