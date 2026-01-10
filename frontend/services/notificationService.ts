@@ -213,28 +213,6 @@ async function saveScheduledNotification(notification: ScheduledNotification): P
 }
 
 /**
- * Retorna protocolo do dia da Peak Week
- */
-function getPeakWeekDayProtocol(day: number, weight: number): { water: number; sodium: number; carbs: number } {
-  const protocols: { [key: number]: { water: number; sodium: number; carbsPerKg: number } } = {
-    1: { water: 5.0, sodium: 2000, carbsPerKg: 1.0 },
-    2: { water: 4.5, sodium: 1700, carbsPerKg: 0.8 },
-    3: { water: 4.0, sodium: 1400, carbsPerKg: 0.6 },
-    4: { water: 3.5, sodium: 1000, carbsPerKg: 2.0 },
-    5: { water: 3.0, sodium: 800, carbsPerKg: 3.0 },
-    6: { water: 2.5, sodium: 600, carbsPerKg: 4.0 },
-    7: { water: 2.0, sodium: 500, carbsPerKg: 2.0 },
-  };
-
-  const protocol = protocols[day] || protocols[1];
-  return {
-    water: protocol.water,
-    sodium: protocol.sodium,
-    carbs: Math.round(protocol.carbsPerKg * weight),
-  };
-}
-
-/**
  * Verifica e atualiza o status das notificações
  */
 export async function checkNotificationPermissions(): Promise<boolean> {
@@ -263,8 +241,6 @@ export function addNotificationResponseReceivedListener(
 export default {
   registerForPushNotificationsAsync,
   scheduleWeightReminder,
-  schedulePeakWeekNotifications,
-  scheduleWaterSodiumReminder,
   cancelNotificationsByType,
   cancelAllNotifications,
   getScheduledNotifications,
