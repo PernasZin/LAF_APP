@@ -458,12 +458,12 @@ const macroStyles = StyleSheet.create({
   macroItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   macroIndicator: {
-    width: 4,
-    height: 40,
-    borderRadius: 2,
+    width: 5,
+    height: 44,
+    borderRadius: 3,
   },
   macroContent: {
     flex: 1,
@@ -472,12 +472,13 @@ const macroStyles = StyleSheet.create({
     alignItems: 'center',
   },
   macroLabel: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
   },
   macroValue: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
 });
 
