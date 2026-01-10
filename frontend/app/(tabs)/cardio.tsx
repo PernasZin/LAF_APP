@@ -49,6 +49,15 @@ interface CardioExercise {
   how_to_feel_en: string;
   how_to_feel_es: string;
   substitutes: string[];
+  substitutes_detailed?: {
+    id: string;
+    name: string;
+    name_en: string;
+    name_es: string;
+    original_duration: number;
+    equivalent_duration: number;
+    intensity: string;
+  }[];
   sessions_per_week: number;
 }
 
