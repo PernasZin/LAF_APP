@@ -278,35 +278,16 @@ def calculate_target_calories(tdee: float, goal: str, weight: float, competition
     elif goal == "bulking":
         # Superávit de 10-15% para ganho de massa
         return tdee * 1.12  # 12% de superávit
-    elif goal == "atleta":
-        # OBRIGATÓRIO: fase de competição deve estar definida
-        if competition_phase == "off_season":
-            # Off-Season: superávit moderado (+7.5%)
-            return tdee * 1.075
-        elif competition_phase == "pre_contest":
-            # Pre-Contest: déficit progressivo (-17.5%)
-            return tdee * 0.825
-        elif competition_phase == "peak_week":
-            # Peak Week: déficit muito agressivo (-25%)
-            return tdee * 0.75
-        elif competition_phase == "post_show":
-            # Post-Show: superávit para recuperação (+10%)
-            return tdee * 1.10
-        else:
-            # Default para pre_contest se fase não especificada
-            return tdee * 0.825
     else:  # manutenção
         return tdee
 
-def calculate_macros(target_calories: float, weight: float, goal: str, competition_phase: Optional[str] = None) -> Dict[str, float]:
+def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[str, float]:
     """
-    Calcula distribuição de macronutrientes.
+    Calcula distribuição de macronutrientes baseado no objetivo.
     
-    REGRAS PARA ATLETA/COMPETIÇÃO (simplificado para 4 fases):
-    - off_season: P=2.0g/kg, G=0.9g/kg, C=restante (ALTO) - >16 semanas
-    - pre_contest: P=2.4g/kg, G=0.7g/kg, C=restante (BAIXO) - 2-16 semanas
-    - peak_week: P=2.8g/kg, G=0.5g/kg, C=restante (MUITO BAIXO) - <2 semanas
-    - post_show: P=2.0g/kg, G=1.0g/kg, C=restante (RECUPERAÇÃO)
+    - cutting: P=2.2g/kg, G=0.8g/kg, C=restante
+    - bulking: P=2.0g/kg, G=1.0g/kg, C=restante
+    - manutencao: P=1.8g/kg, G=1.0g/kg, C=restante
     """
     if goal == "cutting":
         # Alto proteína, moderado carbo, baixo gordura
@@ -320,32 +301,6 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
         # Alto proteína, alto carbo, moderado gordura
         protein_g = weight * 2.0  # 2g por kg
         fat_g = weight * 1.0      # 1g por kg
-        protein_cal = protein_g * 4
-        fat_cal = fat_g * 9
-        carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = max(0, carbs_cal / 4)
-    elif goal == "atleta":
-        if competition_phase == "off_season":
-            # OFF-SEASON (Lean Bulk): P=2.0g/kg, G=0.9g/kg, C=restante (ALTO)
-            protein_g = weight * 2.0
-            fat_g = weight * 0.9
-        elif competition_phase == "pre_contest":
-            # PRE-CONTEST (Cutting): P=2.4g/kg, G=0.7g/kg, C=restante (BAIXO)
-            protein_g = weight * 2.4
-            fat_g = weight * 0.7
-        elif competition_phase == "peak_week":
-            # PEAK WEEK (Final): P=2.8g/kg, G=0.5g/kg, C=restante (MUITO BAIXO)
-            protein_g = weight * 2.8
-            fat_g = weight * 0.5
-        elif competition_phase == "post_show":
-            # POST-SHOW (Recuperação): P=2.0g/kg, G=1.0g/kg, C=restante
-            protein_g = weight * 2.0
-            fat_g = weight * 1.0
-        else:
-            # Default para pre_contest se fase não especificada
-            protein_g = weight * 2.4
-            fat_g = weight * 0.7
-        
         protein_cal = protein_g * 4
         fat_cal = fat_g * 9
         carbs_cal = target_calories - protein_cal - fat_cal
@@ -364,40 +319,7 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
         "fat": round(fat_g, 1)
     }
 
-# ==================== HELPER FUNCTIONS ====================
-
-VALID_COMPETITION_PHASES = ["off_season", "pre_contest", "peak_week", "post_show"]
-
-def calculate_weeks_to_competition(competition_date: datetime) -> int:
-    """Calcula semanas até a competição baseado na data"""
-    now = datetime.utcnow()
-    if competition_date <= now:
-        return -1  # Competição já passou (negativo)
-    
-    delta = competition_date - now
-    weeks = delta.days // 7
-    return weeks
-
-def derive_phase_from_date(competition_date: datetime) -> Tuple[str, int]:
-    """
-    LÓGICA DE FASES AUTOMÁTICAS baseada na data do campeonato.
-    
-    Mapeamento CORRIGIDO:
-    - > 16 semanas → OFF_SEASON (construção de massa)
-    - 2 a 16 semanas → PRE_CONTEST (perda de gordura e definição)
-    - 0 a 2 semanas → PEAK_WEEK (ajustes finais de água e carbs)
-    - data passou → POST_SHOW (recuperação)
-    
-    Returns: (phase, weeks_to_competition)
-    """
-    now = datetime.utcnow()
-    
-    # Verifica se a competição já passou
-    if competition_date <= now:
-        return "post_show", -1
-    
-    # Calcula dias restantes
-    delta = competition_date - now
+# ==================== ROUTES ====================
     days = delta.days
     weeks = days // 7
     
