@@ -106,7 +106,7 @@ FOOD_NORMALIZATION = {
     "pork": "suino", "eggs": "ovos", "egg_whites": "claras",
     "tilapia": "tilapia", "tuna": "atum", "salmon": "salmao",
     "shrimp": "camarao", "sardine": "sardinha", "turkey": "peru", "fish": "tilapia",
-    "cottage": "cottage", "greek_yogurt": "iogurte_grego", "tofu": "tofu",
+    "greek_yogurt": "iogurte_grego", "natural_yogurt": "iogurte_natural", "tofu": "tofu",
     
     # CARBOIDRATOS
     "white_rice": "arroz_branco", "brown_rice": "arroz_integral", "rice": "arroz_branco",
