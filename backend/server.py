@@ -1184,7 +1184,7 @@ async def get_weight_history(user_id: str, days: int = 30):
         total_change = 0
     
     # Verifica se pode registrar novo peso
-    # Regra: Usuário só pode registrar peso após 1 dia do cadastro ou 14 dias após o último registro
+    # Regra: Usuário só pode registrar peso 14 dias após o cadastro OU 14 dias após o último registro
     last_record = await db.weight_records.find_one(
         {"user_id": user_id},
         sort=[("recorded_at", -1)]
@@ -1193,20 +1193,20 @@ async def get_weight_history(user_id: str, days: int = 30):
     can_record = True
     days_until_next = 0
     
-    # Verifica se usuário é novo (menos de 1 dia desde o cadastro)
-    if user.get("created_at"):
-        days_since_creation = (datetime.utcnow() - user["created_at"]).days
-        if days_since_creation < 1 and not last_record:
-            # Usuário novo sem registros - deve aguardar
-            can_record = False
-            days_until_next = 1 - days_since_creation
-    
-    # Se já tem registro, aplica regra de 14 dias
+    # Se já tem registro de peso, verifica 14 dias desde o último registro
     if last_record:
         days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
         if days_since_last < 14:
             can_record = False
             days_until_next = 14 - days_since_last
+    else:
+        # Se não tem registro de peso, verifica 14 dias desde a criação da conta
+        # (peso inicial foi coletado no onboarding)
+        if user.get("created_at"):
+            days_since_creation = (datetime.utcnow() - user["created_at"]).days
+            if days_since_creation < 14:
+                can_record = False
+                days_until_next = 14 - days_since_creation
     
     return {
         "user_id": user_id,
