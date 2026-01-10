@@ -10,7 +10,7 @@ Test Coverage:
 3. Diet endpoints (generate, get)
 4. Workout endpoints (generate, get, history)
 
-Backend URL: https://diet-cardio-hub.preview.emergentagent.com/api
+Backend URL: https://athlete-diet-hub-1.preview.emergentagent.com/api
 """
 
 import requests
@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Optional, List
 
 # Configuration
-BASE_URL = "https://diet-cardio-hub.preview.emergentagent.com/api"
+BASE_URL = "https://athlete-diet-hub-1.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class LAFBackendTester:
