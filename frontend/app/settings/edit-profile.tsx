@@ -319,6 +319,43 @@ export default function EditProfileScreen() {
                 ))}
               </View>
             </View>
+
+            {/* Data do Campeonato - apenas para atletas */}
+            {goal === 'atleta' && (
+              <View style={styles.fieldContainer}>
+                <Text style={[styles.label, { color: colors.text }]}>Data do Campeonato *</Text>
+                <Text style={[styles.sublabel, { color: colors.textSecondary }]}>
+                  A fase será calculada automaticamente com base nas semanas restantes
+                </Text>
+                <TouchableOpacity
+                  style={[styles.dateButton, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }]}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Ionicons name="calendar" size={20} color={colors.primary} />
+                  <Text style={[styles.dateText, { color: competitionDate ? colors.text : colors.inputPlaceholder }]}>
+                    {competitionDate 
+                      ? competitionDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+                      : 'Selecionar data do campeonato'}
+                  </Text>
+                </TouchableOpacity>
+                {competitionDate && (
+                  <View style={[styles.phaseInfo, { backgroundColor: colors.primary + '15' }]}>
+                    <Ionicons name="trophy" size={16} color={colors.primary} />
+                    <Text style={[styles.phaseText, { color: colors.primary }]}>
+                      {(() => {
+                        const now = new Date();
+                        const days = Math.ceil((competitionDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                        const weeks = Math.floor(days / 7);
+                        if (days < 0) return 'Pós-Show (Recuperação)';
+                        if (weeks < 2) return `Peak Week (${days} dias)`;
+                        if (weeks <= 16) return `Pré-Contest (${weeks} semanas)`;
+                        return `Off-Season (${weeks} semanas)`;
+                      })()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           {/* Save Button */}
