@@ -715,9 +715,10 @@ MEAL_RULES = {
         "description": "Lanche leve: frutas + iogurte/cottage + castanhas/amêndoas/nozes"
     },
     "almoco_jantar": {
-        # OBRIGATÓRIO: 1 proteína + carboidratos (principal + complemento)
+        # OBRIGATÓRIO: 1 proteína MAGRA + carboidratos (principal + complemento)
+        # OVOS são PROIBIDOS no almoço/jantar para evitar excesso de gordura!
         "proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", 
-                     "salmao", "peru", "ovos", "camarao", "sardinha", "suino", "tofu"},
+                     "salmao", "peru", "camarao", "sardinha", "suino", "tofu"},
         "carbs": {"arroz_branco", "arroz_integral", "batata_doce",
                   "macarrao", "macarrao_integral", "feijao", "lentilha", "farofa"},
         "fats": {"azeite"},  # PERMITIDO: apenas azeite
