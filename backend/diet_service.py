@@ -1196,7 +1196,7 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
 
 
 def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int,
-                          preferred: Set[str] = None) -> List[Dict]:
+                          preferred: Set[str] = None, meal_count: int = 6) -> List[Dict]:
     """
     ✅ CHECKLIST FINAL OBRIGATÓRIO
     
@@ -1207,17 +1207,13 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     ☑ Quantidades em múltiplos de 10g
     ☑ Dieta consistente e utilizável
     ☑ Estrutura JSON válida
-    ☑ 6 refeições completas
+    ☑ Número correto de refeições (4, 5 ou 6)
     
     Se qualquer item falhar → CORRIGE AUTOMATICAMENTE
     """
-    # Garante mínimo de 6 refeições
-    while len(meals) < 6:
-        meals.append({})
-    
-    # Valida cada refeição
+    # Valida cada refeição (apenas as que existem)
     validated_meals = []
-    for idx, meal in enumerate(meals[:6]):  # Máximo 6 refeições
+    for idx, meal in enumerate(meals[:meal_count]):
         validated_meal = validate_and_fix_meal(meal, idx, preferred)
         validated_meals.append(validated_meal)
     
@@ -1225,10 +1221,25 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     all_foods = [f for m in validated_meals for f in m.get("foods", [])]
     total_p, total_c, total_f, total_cal = sum_foods(all_foods)
     
+    # Determina índices das refeições principais
+    if meal_count == 4:
+        # Café(0), Almoço(1), Lanche(2), Jantar(3)
+        main_meal_indices = [1, 3]
+    elif meal_count == 5:
+        # Café(0), LancheManhã(1), Almoço(2), LancheTarde(3), Jantar(4)
+        main_meal_indices = [2, 4]
+    else:
+        # 6 refeições: Almoço(2), Jantar(4)
+        main_meal_indices = [2, 4]
+    
     # Se calorias totais < mínimo diário, adiciona comida nas refeições principais
     while total_cal < MIN_DAILY_CALORIES:
-        # Adiciona proteína no almoço ou jantar (índices 2 e 4)
-        target_meal = 2 if validated_meals[2].get("total_calories", 0) < validated_meals[4].get("total_calories", 0) else 4
+        # Escolhe a refeição principal com menos calorias
+        target_meal = main_meal_indices[0]
+        if len(main_meal_indices) > 1:
+            if validated_meals[main_meal_indices[0]].get("total_calories", 0) > validated_meals[main_meal_indices[1]].get("total_calories", 0):
+                target_meal = main_meal_indices[1]
+        
         validated_meals[target_meal]["foods"].append(calc_food("frango", 100))
         
         # Recalcula totais da refeição
@@ -1253,8 +1264,8 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
                     recalc = calc_food(food_key, grams)
                     food.update(recalc)
             
-            # REGRA ABSOLUTA FINAL: NUNCA OVOS NA CEIA (índice 5)
-            if meal_idx == 5 and food.get("key") == "ovos":
+            # REGRA ABSOLUTA FINAL: NUNCA OVOS NA CEIA (apenas em 6 refeições, índice 5)
+            if meal_count == 6 and meal_idx == 5 and food.get("key") == "ovos":
                 # Substitui ovos por cottage na ceia
                 grams = food.get("grams", 100)
                 validated_meals[meal_idx]["foods"][food_idx] = calc_food("cottage", grams)
@@ -1262,6 +1273,8 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
                 mp, mc, mf, mcal = sum_foods(validated_meals[meal_idx]["foods"])
                 validated_meals[meal_idx]["total_calories"] = mcal
                 validated_meals[meal_idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
+    return validated_meals
     
     return validated_meals
 
