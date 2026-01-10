@@ -206,9 +206,29 @@ FOODS = {
     "mirtilo": {"name": "Mirtilo", "p": 0.7, "c": 14.0, "f": 0.3, "category": "fruit", "unit": "xícara", "unit_g": 150},
     "acai": {"name": "Açaí", "p": 1.0, "c": 6.0, "f": 5.0, "category": "fruit", "unit": "polpa 100g", "unit_g": 100},
     
-    # === VEGETAIS ===
+    # === VEGETAIS E LEGUMES ===
+    # Fonte de fibras, vitaminas, minerais - NÃO substituem macros principais
+    # Prioridade: saúde intestinal, micronutrientes, recuperação atleta
+    
+    # Folhas verdes (saladas)
     "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "category": "vegetable", "unit": "prato cheio", "unit_g": 100},
+    "alface": {"name": "Alface", "p": 1.2, "c": 2.0, "f": 0.2, "category": "vegetable", "unit": "folhas", "unit_g": 50},
+    "rucola": {"name": "Rúcula", "p": 2.6, "c": 3.7, "f": 0.7, "category": "vegetable", "unit": "maço", "unit_g": 50},
+    "espinafre": {"name": "Espinafre", "p": 2.9, "c": 3.6, "f": 0.4, "category": "vegetable", "unit": "xícara", "unit_g": 100},
+    "couve": {"name": "Couve", "p": 2.9, "c": 4.4, "f": 0.6, "category": "vegetable", "unit": "folhas refogadas", "unit_g": 100},
+    
+    # Crucíferas (alto valor nutricional)
     "brocolis": {"name": "Brócolis", "p": 2.8, "c": 7.0, "f": 0.4, "category": "vegetable", "unit": "xícara cozido", "unit_g": 100},
+    "couve_flor": {"name": "Couve-flor", "p": 1.9, "c": 5.0, "f": 0.3, "category": "vegetable", "unit": "xícara cozida", "unit_g": 100},
+    
+    # Legumes variados
+    "cenoura": {"name": "Cenoura", "p": 0.9, "c": 10.0, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 80},
+    "abobrinha": {"name": "Abobrinha", "p": 1.2, "c": 3.0, "f": 0.3, "category": "vegetable", "unit": "unidade média", "unit_g": 150},
+    "pepino": {"name": "Pepino", "p": 0.7, "c": 4.0, "f": 0.1, "category": "vegetable", "unit": "unidade", "unit_g": 150},
+    "tomate": {"name": "Tomate", "p": 0.9, "c": 3.9, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 120},
+    "beterraba": {"name": "Beterraba", "p": 1.6, "c": 10.0, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 100},
+    "vagem": {"name": "Vagem", "p": 1.8, "c": 7.0, "f": 0.2, "category": "vegetable", "unit": "xícara cozida", "unit_g": 100},
+    "pimentao": {"name": "Pimentão", "p": 1.0, "c": 6.0, "f": 0.3, "category": "vegetable", "unit": "unidade média", "unit_g": 120},
     
     # === EXTRAS/DOCES (APENAS para café da manhã e lanches - MÁXIMO 30g) ===
     "leite_condensado": {"name": "Leite Condensado", "p": 8.0, "c": 55.0, "f": 8.0, "category": "extra", "unit": "colher sopa", "unit_g": 20},
