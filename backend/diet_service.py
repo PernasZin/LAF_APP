@@ -903,34 +903,40 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # Distribui carboidratos entre principal (70%) e complemento (30%)
             if carb_main and carb_main in FOODS:
                 # Carboidrato principal (arroz, batata, macarrão, etc) - 70% dos carbs
-                carb_main_ratio = 0.70
-                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 100, 600)
+                # Distribuição: 50% arroz/batata + 30% feijão/lentilha + 20% outro (ou vegetais)
+                carb_main_ratio = 0.50
+                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 400)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
                 # Carboidrato complementar (feijão, lentilha) - 30% dos carbs
-                # Seleciona um complemento diferente do principal
                 carb_comp = None
                 for comp in carb_complement:
                     if comp != carb_main and comp in FOODS:
-                        # Adiciona complemento independente de preferências (feijão é essencial)
-                        # Apenas verifica restrições
                         if not any(comp in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
                             carb_comp = comp
                             break
                 
                 if carb_comp:
-                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 250)
+                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 60, 200)
                     foods.append(calc_food(carb_comp, c_comp_grams))
-                else:
-                    # Se não tem complemento (todas opções bloqueadas), aumenta o principal
-                    c_extra = clamp((meal_c * 0.30) / max(FOODS[carb_main]["c"] / 100, 0.1), 50, 300)
-                    # Atualiza o carboidrato principal já adicionado
-                    if foods and len(foods) >= 2 and foods[-1].get("key") == carb_main:
-                        new_grams = foods[-1]["grams"] + c_extra
-                        foods[-1] = calc_food(carb_main, min(new_grams, 800))
+                
+                # Terceiro carb (20%) - adiciona farofa, polenta ou mandioca para variar
+                third_carb_options = ["farofa", "mandioca", "polenta", "batata", "milho"]
+                third_carb = None
+                for tc in third_carb_options:
+                    if tc != carb_main and tc in FOODS:
+                        if not any(tc in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
+                            third_carb = tc
+                            break
+                
+                if third_carb and meal_c * 0.20 > 15:  # Só adiciona se tiver carbs suficientes
+                    tc_grams = clamp((meal_c * 0.20) / max(FOODS[third_carb]["c"] / 100, 0.1), 30, 150)
+                    foods.append(calc_food(third_carb, tc_grams))
+                    
             else:
-                foods.append(calc_food("arroz_branco", 300))
-                foods.append(calc_food("feijao", 150))
+                foods.append(calc_food("arroz_branco", 200))
+                foods.append(calc_food("feijao", 120))
+                foods.append(calc_food("farofa", 30))
             
             # Vegetais
             if meal_type == 'almoco':
@@ -938,8 +944,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             else:
                 foods.append(calc_food("brocolis", 100))
             
-            # Azeite - limite mais conservador (5-25g)
-            azeite_grams = clamp(meal_f * 0.35 / 1.0, 5, 25)
+            # Azeite - limite mais conservador (5-20g)
+            azeite_grams = clamp(meal_f * 0.30 / 1.0, 5, 20)
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'ceia':
