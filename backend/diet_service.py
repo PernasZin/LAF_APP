@@ -1359,7 +1359,7 @@ class DietAIService:
         
         # ✅ VALIDAÇÃO BULLETPROOF FINAL
         # Garante que NUNCA retorna dieta inválida
-        meals = validate_and_fix_diet(meals, target_p, target_c, target_f, preferred_foods)
+        meals = validate_and_fix_diet(meals, target_p, target_c, target_f, preferred_foods, meal_count)
         
         # Ajusta para o número de refeições configurado
         if len(meals) > meal_count:
