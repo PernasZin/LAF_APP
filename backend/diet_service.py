@@ -835,10 +835,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food("frango", 200))
             
             if carb and carb in FOODS:
-                c_grams = clamp(meal_c / max(FOODS[carb]["c"] / 100, 0.1), 150, 700)
+                # Aumentado limite para dietas de alta caloria (>3500kcal)
+                c_grams = clamp(meal_c / max(FOODS[carb]["c"] / 100, 0.1), 150, MAX_CARB_GRAMS)
                 foods.append(calc_food(carb, c_grams))
             else:
-                foods.append(calc_food("arroz_branco", 250))
+                foods.append(calc_food("arroz_branco", 300))
             
             # Vegetais
             if meal_type == 'almoco':
