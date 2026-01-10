@@ -1405,6 +1405,13 @@ class DietAIService:
                     "macros": {"protein": 20, "carbs": 0, "fat": 2}
                 })
         
+        # Aplica horários personalizados se fornecidos
+        if meal_times and len(meal_times) == len(meals):
+            for i, mt in enumerate(meal_times):
+                if isinstance(mt, dict):
+                    meals[i]["name"] = mt.get("name", meals[i].get("name", f"Refeição {i+1}"))
+                    meals[i]["time"] = mt.get("time", meals[i].get("time", "12:00"))
+        
         # Formata resultado
         final_meals = []
         for m in meals:
