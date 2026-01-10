@@ -52,7 +52,6 @@ export default function WaterSodiumTrackerScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [trackerData, setTrackerData] = useState<any>(null);
-  const [peakWeekData, setPeakWeekData] = useState<any>(null);
   
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -72,10 +71,7 @@ export default function WaterSodiumTrackerScreen() {
       setUserId(id);
       
       if (id && BACKEND_URL) {
-        await Promise.all([
-          loadTracker(id),
-          loadPeakWeek(id),
-        ]);
+        await loadTracker(id);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -93,18 +89,6 @@ export default function WaterSodiumTrackerScreen() {
       }
     } catch (error) {
       console.error('Erro ao carregar tracker:', error);
-    }
-  };
-
-  const loadPeakWeek = async (uid: string) => {
-    try {
-      const response = await safeFetch(`${BACKEND_URL}/api/peak-week/${uid}`);
-      if (response.ok) {
-        const data = await response.json();
-        setPeakWeekData(data);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar peak week:', error);
     }
   };
 
