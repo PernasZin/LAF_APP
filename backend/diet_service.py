@@ -640,15 +640,16 @@ MEAL_RULES = {
         "description": "Lanche leve: frutas + iogurte/cottage + castanhas/amêndoas/nozes"
     },
     "almoco_jantar": {
-        # OBRIGATÓRIO: Exatamente 1 proteína + Exatamente 1 carboidrato
+        # OBRIGATÓRIO: 1 proteína + carboidratos (principal + complemento)
         "proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", 
                      "salmao", "peru", "ovos", "camarao", "sardinha", "suino", "tofu"},
         "carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata",
-                  "macarrao", "feijao", "lentilha", "quinoa", "cuscuz", "grao_de_bico", "milho"},
+                  "macarrao", "macarrao_integral", "feijao", "lentilha", "quinoa", "cuscuz", 
+                  "grao_de_bico", "milho", "mandioca", "inhame", "cara", "polenta",
+                  "batata_baroa", "ervilha", "banana_da_terra"},
         "fats": {"azeite"},  # PERMITIDO: apenas azeite
         "fruits": False,
-        # PROIBIDO: Mais de 1 proteína, Mais de 1 carboidrato
-        "description": "Refeição completa: EXATAMENTE 1 proteína + 1 carboidrato + azeite"
+        "description": "Refeição completa: 1 proteína + carboidratos (principal + feijão/lentilha) + azeite"
     },
     "ceia": {
         # PERMITIDOS: Cottage, Iogurte Grego + Frutas - NUNCA OVOS!
