@@ -984,7 +984,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # NÃO adiciona gordura extra nos lanches por padrão
             # O iogurte já tem gordura suficiente e o fine_tune adicionará azeite se precisar
-                foods.append(calc_food(fat, f_grams))
             
             if not foods:
                 foods = [calc_food("iogurte_natural", 170), calc_food("banana", 120), calc_food("mel", 20)]
