@@ -729,28 +729,28 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     # ==================== DISTRIBUIÇÃO BASEADA EM MEAL_COUNT ====================
     
     if meal_count == 4:
-        # 4 refeições: Café (25%), Almoço (35%), Lanche Tarde (10%), Jantar (30%)
+        # 4 refeições: Café (25%), Almoço (40%), Lanche Tarde (10%), Jantar (25%)
         dist_cafe = {'p': 0.25, 'c': 0.25, 'f': 0.10}
-        dist_almoco = {'p': 0.35, 'c': 0.35, 'f': 0.45}
+        dist_almoco = {'p': 0.40, 'c': 0.40, 'f': 0.45}
         dist_lanche_tarde = {'p': 0.10, 'c': 0.10, 'f': 0.15}
-        dist_jantar = {'p': 0.30, 'c': 0.30, 'f': 0.30}
+        dist_jantar = {'p': 0.25, 'c': 0.25, 'f': 0.30}
         
     elif meal_count == 5:
         # 5 refeições: Café (20%), Lanche Manhã (10%), Almoço (30%), Lanche Tarde (10%), Jantar (30%)
         dist_cafe = {'p': 0.20, 'c': 0.20, 'f': 0.10}
         dist_lanche_manha = {'p': 0.05, 'c': 0.10, 'f': 0.15}
-        dist_almoco = {'p': 0.30, 'c': 0.30, 'f': 0.35}
+        dist_almoco = {'p': 0.35, 'c': 0.35, 'f': 0.35}
         dist_lanche_tarde = {'p': 0.10, 'c': 0.10, 'f': 0.15}
-        dist_jantar = {'p': 0.35, 'c': 0.30, 'f': 0.25}
+        dist_jantar = {'p': 0.30, 'c': 0.25, 'f': 0.25}
         
     else:  # 6 refeições (padrão)
         # 6 refeições: Café (15%), Lanche1 (10%), Almoço (25%), Lanche2 (10%), Jantar (25%), Ceia (15%)
-        dist_cafe = {'p': 0.15, 'c': 0.20, 'f': 0.05}
+        dist_cafe = {'p': 0.15, 'c': 0.15, 'f': 0.05}
         dist_lanche_manha = {'p': 0.05, 'c': 0.10, 'f': 0.15}
-        dist_almoco = {'p': 0.25, 'c': 0.25, 'f': 0.30}
+        dist_almoco = {'p': 0.30, 'c': 0.30, 'f': 0.30}
         dist_lanche_tarde = {'p': 0.10, 'c': 0.10, 'f': 0.15}
         dist_jantar = {'p': 0.25, 'c': 0.25, 'f': 0.30}
-        dist_ceia = {'p': 0.20, 'c': 0.10, 'f': 0.05}
+        dist_ceia = {'p': 0.15, 'c': 0.10, 'f': 0.05}
     
     # ==================== ☀️ CAFÉ DA MANHÃ (SEMPRE) ====================
     cafe_p = target_p * dist_cafe['p']
