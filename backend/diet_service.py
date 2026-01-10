@@ -986,7 +986,11 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         f_per_100 = FOODS[food_key]["f"]
                         if f_per_100 > 0:
                             delta = gap_f / (f_per_100 / 100)
-                            new_g = clamp(food["grams"] + delta, 5, 100)
+                            # Se gap_f < 0 (excesso), permite reduzir até 5g
+                            # Se gap_f > 0 (falta), permite aumentar até 60g
+                            min_g = 5 if gap_f < 0 else 10
+                            max_g = 60 if gap_f > 0 else food["grams"]  # Não aumenta se já em excesso
+                            new_g = clamp(food["grams"] + delta, min_g, max_g)
                             if abs(new_g - food["grams"]) >= 5:
                                 meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                                 adjusted = True
