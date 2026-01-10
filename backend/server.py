@@ -114,8 +114,6 @@ class WeightRecord(BaseModel):
     notes: Optional[str] = None
     # Questionário de acompanhamento
     questionnaire: Optional[QuestionnaireResponse] = None
-    # Fase do atleta (se aplicável)
-    athlete_phase: Optional[str] = None
     # Média do questionário
     questionnaire_average: Optional[float] = None
 
