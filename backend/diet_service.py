@@ -801,7 +801,8 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
 # ==================== GERAÇÃO DE DIETA ====================
 
 def generate_diet(target_p: int, target_c: int, target_f: int,
-                  preferred: Set[str], restrictions: List[str], meal_count: int = 6) -> List[Dict]:
+                  preferred: Set[str], restrictions: List[str], meal_count: int = 6,
+                  original_preferred: Set[str] = None) -> List[Dict]:
     """
     Gera dieta seguindo regras rígidas por tipo de refeição.
     
@@ -819,20 +820,71 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     🌙 Ceia: proteína leve (iogurte/cottage) + frutas - NUNCA OVOS NA CEIA!
     
     ⭐ REGRA IMPORTANTE: Todos os alimentos selecionados pelo usuário DEVEM aparecer na dieta!
+    
+    Parâmetros:
+    - original_preferred: Preferências ORIGINAIS do usuário (antes do auto-complete)
+                          Esses alimentos têm PRIORIDADE MÁXIMA
     """
     
+    # Se não foi passado original_preferred, assume que preferred são as originais
+    if original_preferred is None:
+        original_preferred = preferred
+    
     # ==================== PRIORIZAR ALIMENTOS SELECIONADOS ====================
-    # Se o usuário selecionou um alimento, ele DEVE aparecer na dieta
+    # Alimentos ORIGINAIS do usuário têm prioridade sobre auto-completados
     
     # Alimentos que são complementos (não devem ser confundidos com carboidratos principais)
     COMPLEMENT_FOODS = {"feijao", "lentilha"}
     
+    # Lista de tipos de arroz (não misturar)
+    TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
+    
     def get_preferred_first(default_list: List[str], category: str = None, exclude_complements: bool = False) -> List[str]:
-        """Retorna lista com alimentos preferidos primeiro, depois os defaults"""
+        """
+        Retorna lista com alimentos preferidos primeiro, depois os defaults.
+        PRIORIDADE: Originais do usuário > Auto-completados > Defaults
+        """
         if not preferred:
             return default_list
         
-        # Filtra preferidos que são da categoria (se especificada) e existem no FOODS
+        # Primeiro: Alimentos ORIGINAIS do usuário (escolha explícita)
+        original_in_category = []
+        for p in original_preferred:
+            if p in FOODS:
+                if category is None or FOODS[p]["category"] == category:
+                    if exclude_complements and p in COMPLEMENT_FOODS:
+                        continue
+                    original_in_category.append(p)
+        
+        # Segundo: Alimentos auto-completados (não originais)
+        auto_completed_in_category = []
+        for p in preferred:
+            if p not in original_preferred and p in FOODS:
+                if category is None or FOODS[p]["category"] == category:
+                    if exclude_complements and p in COMPLEMENT_FOODS:
+                        continue
+                    auto_completed_in_category.append(p)
+        
+        # Combina: Originais primeiro, depois auto-completados, depois defaults
+        result = original_in_category.copy()
+        
+        # Adiciona auto-completados (sem duplicar tipos de arroz)
+        for ac in auto_completed_in_category:
+            if ac not in result:
+                # Se já tem um tipo de arroz, não adiciona outro
+                if ac in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
+                    continue
+                result.append(ac)
+        
+        # Adiciona defaults que não estão na lista
+        for d in default_list:
+            if d not in result and d in FOODS:
+                # Se já tem um tipo de arroz, não adiciona outro
+                if d in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
+                    continue
+                result.append(d)
+        
+        return result if result else default_list
         pref_in_category = []
         for p in preferred:
             if p in FOODS:
