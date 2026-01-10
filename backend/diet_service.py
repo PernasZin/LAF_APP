@@ -631,10 +631,8 @@ MEAL_RULES = {
         # OBRIGATÓRIO: 1 proteína + carboidratos (principal + complemento)
         "proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", 
                      "salmao", "peru", "ovos", "camarao", "sardinha", "suino", "tofu"},
-        "carbs": {"arroz_branco", "arroz_integral", "batata_doce", "batata",
-                  "macarrao", "macarrao_integral", "feijao", "lentilha", "quinoa", "cuscuz", 
-                  "grao_de_bico", "milho", "mandioca", "inhame", "cara", "polenta",
-                  "batata_baroa", "ervilha", "banana_da_terra"},
+        "carbs": {"arroz_branco", "arroz_integral", "batata_doce",
+                  "macarrao", "macarrao_integral", "feijao", "lentilha", "farofa"},
         "fats": {"azeite"},  # PERMITIDO: apenas azeite
         "fruits": False,
         "description": "Refeição completa: 1 proteína + carboidratos (principal + feijão/lentilha) + azeite"
