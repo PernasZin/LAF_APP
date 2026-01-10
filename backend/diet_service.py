@@ -523,12 +523,6 @@ def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
             'fat_min_per_kg': 1.0,   # Mínimo 1g/kg em bulking
             'fat_max_per_kg': 1.5    # Máximo 1.5g/kg em bulking
         },
-        'peak': {
-            'cal_mult': 0.90,        # Déficit leve para ajustes finais
-            'p_mult': 2.5,           # Proteína alta para preservar massa
-            'fat_min_per_kg': 0.5,   # Gordura reduzida
-            'fat_max_per_kg': 0.8    # Máximo baixo para depleção
-        },
         'atleta': {
             'cal_mult': 1.0, 
             'p_mult': 2.4,
