@@ -885,22 +885,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 result.append(d)
         
         return result if result else default_list
-        pref_in_category = []
-        for p in preferred:
-            if p in FOODS:
-                if category is None or FOODS[p]["category"] == category:
-                    # Se exclude_complements, não inclui feijão/lentilha na lista de carbs principais
-                    if exclude_complements and p in COMPLEMENT_FOODS:
-                        continue
-                    pref_in_category.append(p)
-        
-        # Preferidos primeiro, depois defaults que não estão nos preferidos
-        result = pref_in_category.copy()
-        for d in default_list:
-            if d not in result and d in FOODS:
-                result.append(d)
-        
-        return result if result else default_list
     
     # Prioridades por categoria - COM PREFERÊNCIAS DO USUÁRIO PRIMEIRO
     protein_priority = get_preferred_first(
