@@ -734,26 +734,6 @@ function formatShortDate(dateStr: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-function getPhaseColor(phase: string): string {
-  const colors: { [key: string]: string } = {
-    off_season: '#10B981',
-    pre_contest: '#3B82F6',
-    peak_week: '#EF4444',
-    post_show: '#8B5CF6',
-  };
-  return colors[phase] || '#6B7280';
-}
-
-function formatPhaseName(phase: string): string {
-  const names: { [key: string]: string } = {
-    off_season: 'OFF-SEASON',
-    pre_contest: 'PREP',
-    peak_week: 'PEAK WEEK',
-    post_show: 'PÓS-SHOW',
-  };
-  return names[phase] || phase.toUpperCase();
-}
-
 const createStyles = (colors: any) => StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -761,19 +741,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   header: { marginBottom: 16 },
   headerTitle: { fontSize: 28, fontWeight: '700' },
   headerSubtitle: { fontSize: 14, marginTop: 4 },
-  
-  // Athlete Phase Badge
-  athletePhaseBadge: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    alignSelf: 'flex-start',
-    gap: 6, 
-    paddingHorizontal: 12, 
-    paddingVertical: 6, 
-    borderRadius: 20, 
-    marginBottom: 16 
-  },
-  athletePhaseText: { fontSize: 12, fontWeight: '700' },
   
   // Notifications Card
   notificationsCard: { 
@@ -790,18 +757,6 @@ const createStyles = (colors: any) => StyleSheet.create({
   notificationContent: { flex: 1 },
   notificationTitle: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
   notificationMessage: { fontSize: 12, lineHeight: 16 },
-  
-  // Peak Week Button
-  peakWeekButton: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    gap: 8, 
-    paddingVertical: 14, 
-    borderRadius: 12, 
-    marginBottom: 16 
-  },
-  peakWeekButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   
   // Weight Card
   weightCard: { padding: 20, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
