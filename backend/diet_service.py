@@ -1066,9 +1066,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             if carb_main and carb_main in FOODS:
                 # Carboidrato principal (arroz OU batata doce OU macarrão)
-                # LIMITE MÁXIMO 300g de arroz para evitar porções excessivas
-                carb_main_ratio = 0.50
-                max_carb_main = 300 if carb_main in {"arroz_branco", "arroz_integral"} else 350
+                # LIMITE MÁXIMO 250g de arroz para evitar porções excessivas
+                carb_main_ratio = 0.45
+                max_carb_main = 250 if carb_main in {"arroz_branco", "arroz_integral"} else 300
                 c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, max_carb_main)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
