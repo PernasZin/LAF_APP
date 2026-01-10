@@ -383,6 +383,53 @@ export default function EditProfileScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <Modal
+          transparent
+          animationType="fade"
+          visible={showDatePicker}
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <View style={datePickerStyles.overlay}>
+            <View style={[datePickerStyles.container, { backgroundColor: colors.backgroundCard }]}>
+              <Text style={[datePickerStyles.title, { color: colors.text }]}>
+                Selecionar Data do Campeonato
+              </Text>
+              <DateTimePicker
+                value={competitionDate || new Date()}
+                mode="date"
+                display="spinner"
+                onChange={(event, selectedDate) => {
+                  if (event.type === 'set' && selectedDate) {
+                    setCompetitionDate(selectedDate);
+                  }
+                  if (Platform.OS === 'android') {
+                    setShowDatePicker(false);
+                  }
+                }}
+                minimumDate={new Date()}
+                textColor={colors.text}
+              />
+              <View style={datePickerStyles.buttons}>
+                <TouchableOpacity 
+                  style={[datePickerStyles.button, { backgroundColor: colors.backgroundSecondary }]}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <Text style={[datePickerStyles.buttonText, { color: colors.text }]}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[datePickerStyles.button, { backgroundColor: colors.primary }]}
+                  onPress={() => setShowDatePicker(false)}
+                >
+                  <Text style={[datePickerStyles.buttonText, { color: '#FFFFFF' }]}>Confirmar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
       {/* Toast notification */}
       <Toast
         visible={toast.visible}
@@ -393,6 +440,41 @@ export default function EditProfileScreen() {
     </SafeAreaView>
   );
 }
+
+const datePickerStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  container: {
+    width: '90%',
+    borderRadius: 16,
+    padding: 20,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  buttons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 const createStyles = (colors: any) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
