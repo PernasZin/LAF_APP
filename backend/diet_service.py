@@ -216,7 +216,7 @@ FOODS = {
     
     # === VEGETAIS E LEGUMES ===
     # Fonte de fibras, vitaminas, minerais - NÃO substituem macros principais
-    # Prioridade: saúde intestinal, micronutrientes, recuperação atleta
+    # Prioridade: saúde intestinal, micronutrientes, recuperação muscular
     
     # Folhas verdes (saladas)
     "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "category": "vegetable", "unit": "prato cheio", "unit_g": 100},
