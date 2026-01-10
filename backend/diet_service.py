@@ -872,6 +872,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 
         elif meal_type in ['almoco', 'jantar']:
             # Almoço/Jantar: proteína principal + carboidratos (principal + complemento) + vegetais + azeite
+            # NUNCA adicionar extras (leite condensado, mel, requeijão light) no almoço/jantar!
             protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
             carb_main = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
             
@@ -884,10 +885,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # Distribui carboidratos entre principal (70%) e complemento (30%)
             if carb_main and carb_main in FOODS:
-                # Carboidrato principal (arroz, batata, macarrão, etc) - 70% dos carbs
-                # Distribuição: 45% arroz/batata + 35% feijão/lentilha + 20% outro
-                carb_main_ratio = 0.45
-                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 320)
+                # Distribuição: 50% arroz/batata + 35% feijão/lentilha + 15% farofa
+                carb_main_ratio = 0.50
+                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 350)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
                 # Carboidrato complementar (feijão, lentilha) - 35% dos carbs
@@ -902,12 +902,10 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     c_comp_grams = clamp((meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 250)
                     foods.append(calc_food(carb_comp, c_comp_grams))
                 
-                # Terceiro carb (20%) - adiciona farofa, polenta ou mandioca para variar
-                third_carb_options = ["farofa", "mandioca", "polenta", "batata", "milho"]
-                third_carb = None
-                for tc in third_carb_options:
-                    if tc != carb_main and tc in FOODS:
-                        if not any(tc in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
+                # Farofa (15%) - complemento clássico brasileiro
+                if "farofa" in FOODS and meal_c * 0.15 > 10:
+                    farofa_grams = clamp((meal_c * 0.15) / max(FOODS["farofa"]["c"] / 100, 0.1), 20, 80)
+                    foods.append(calc_food("farofa", farofa_grams))
                             third_carb = tc
                             break
                 
