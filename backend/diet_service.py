@@ -1046,12 +1046,16 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
             carb_main = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
             
-            # Adiciona proteína
+            # Adiciona proteína - FRANGO como principal
+            # Limite máximo 250g para evitar porções excessivas
             if protein and protein in FOODS:
-                p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 100, 400)
+                # Frango: limite de 150-250g (porção adequada)
+                # Outras proteínas: até 200g
+                max_protein_grams = 250 if protein == "frango" else 200
+                p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 100, max_protein_grams)
                 foods.append(calc_food(protein, p_grams))
             else:
-                foods.append(calc_food("frango", 200))
+                foods.append(calc_food("frango", 180))
             
             # ==================== CARBOIDRATOS ====================
             # REGRA: Apenas 1 tipo de arroz por dieta (não misturar branco com integral)
