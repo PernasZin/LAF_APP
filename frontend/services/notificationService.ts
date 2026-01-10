@@ -103,14 +103,6 @@ export async function registerForPushNotificationsAsync(): Promise<string | null
       lightColor: '#3B82F6',
     });
 
-    await Notifications.setNotificationChannelAsync('peak_week', {
-      name: 'Peak Week',
-      description: 'Alertas importantes durante a Peak Week',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 500, 250, 500],
-      lightColor: '#EF4444',
-    });
-
     await Notifications.setNotificationChannelAsync('hydration', {
       name: 'Hidratação',
       description: 'Lembretes de água e sódio',
