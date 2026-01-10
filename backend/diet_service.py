@@ -703,8 +703,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     DISTRIBUIÇÃO DE MACROS POR NÚMERO DE REFEIÇÕES:
     
-    4 refeições: Café (20%), Almoço (35%), Lanche (15%), Jantar (30%)
-    5 refeições: Café (15%), Lanche1 (10%), Almoço (30%), Lanche2 (15%), Jantar (30%)
+    4 refeições: Café (25%), Almoço (35%), Lanche (10%), Jantar (30%)
+    5 refeições: Café (20%), Lanche1 (10%), Almoço (30%), Lanche2 (10%), Jantar (30%)
     6 refeições: Café (15%), Lanche1 (10%), Almoço (25%), Lanche2 (10%), Jantar (25%), Ceia (15%)
     
     REGRAS OBRIGATÓRIAS:
@@ -724,38 +724,37 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     fat_priority_lanche = ["castanhas", "amendoas"]  # Removido: pasta_amendoim
     fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia"]
     
-    # Distribuição de macros baseada no número de refeições
-    if meal_count == 4:
-        distributions = {
-            'cafe': {'p': 0.20, 'c': 0.25},
-            'almoco': {'p': 0.35, 'c': 0.35},
-            'lanche': {'p': 0.15, 'c': 0.15},
-            'jantar': {'p': 0.30, 'c': 0.25}
-        }
-    elif meal_count == 5:
-        distributions = {
-            'cafe': {'p': 0.15, 'c': 0.20},
-            'lanche1': {'p': 0.10, 'c': 0.10},
-            'almoco': {'p': 0.30, 'c': 0.30},
-            'lanche2': {'p': 0.15, 'c': 0.15},
-            'jantar': {'p': 0.30, 'c': 0.25}
-        }
-    else:  # 6 refeições (padrão)
-        distributions = {
-            'cafe': {'p': 0.15, 'c': 0.20},
-            'lanche1': {'p': 0.10, 'c': 0.10},
-            'almoco': {'p': 0.25, 'c': 0.25},
-            'lanche2': {'p': 0.10, 'c': 0.10},
-            'jantar': {'p': 0.25, 'c': 0.25},
-            'ceia': {'p': 0.15, 'c': 0.10}
-        }
-    
     meals = []
     
-    # ==================== ☀️ CAFÉ DA MANHÃ ====================
-    cafe_dist = distributions.get('cafe', {'p': 0.15, 'c': 0.20})
-    cafe_p = target_p * cafe_dist['p']
-    cafe_c = target_c * cafe_dist['c']
+    # ==================== DISTRIBUIÇÃO BASEADA EM MEAL_COUNT ====================
+    
+    if meal_count == 4:
+        # 4 refeições: Café (25%), Almoço (35%), Lanche Tarde (10%), Jantar (30%)
+        dist_cafe = {'p': 0.25, 'c': 0.25, 'f': 0.10}
+        dist_almoco = {'p': 0.35, 'c': 0.35, 'f': 0.45}
+        dist_lanche_tarde = {'p': 0.10, 'c': 0.10, 'f': 0.15}
+        dist_jantar = {'p': 0.30, 'c': 0.30, 'f': 0.30}
+        
+    elif meal_count == 5:
+        # 5 refeições: Café (20%), Lanche Manhã (10%), Almoço (30%), Lanche Tarde (10%), Jantar (30%)
+        dist_cafe = {'p': 0.20, 'c': 0.20, 'f': 0.10}
+        dist_lanche_manha = {'p': 0.05, 'c': 0.10, 'f': 0.15}
+        dist_almoco = {'p': 0.30, 'c': 0.30, 'f': 0.35}
+        dist_lanche_tarde = {'p': 0.10, 'c': 0.10, 'f': 0.15}
+        dist_jantar = {'p': 0.35, 'c': 0.30, 'f': 0.25}
+        
+    else:  # 6 refeições (padrão)
+        # 6 refeições: Café (15%), Lanche1 (10%), Almoço (25%), Lanche2 (10%), Jantar (25%), Ceia (15%)
+        dist_cafe = {'p': 0.15, 'c': 0.20, 'f': 0.05}
+        dist_lanche_manha = {'p': 0.05, 'c': 0.10, 'f': 0.15}
+        dist_almoco = {'p': 0.25, 'c': 0.25, 'f': 0.30}
+        dist_lanche_tarde = {'p': 0.10, 'c': 0.10, 'f': 0.15}
+        dist_jantar = {'p': 0.25, 'c': 0.25, 'f': 0.30}
+        dist_ceia = {'p': 0.20, 'c': 0.10, 'f': 0.05}
+    
+    # ==================== ☀️ CAFÉ DA MANHÃ (SEMPRE) ====================
+    cafe_p = target_p * dist_cafe['p']
+    cafe_c = target_c * dist_cafe['c']
     
     breakfast_protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
     breakfast_carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
@@ -764,192 +763,159 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     cafe_foods = []
     
     if breakfast_protein and breakfast_protein in FOODS:
-        p_grams = clamp(cafe_p / (FOODS[breakfast_protein]["p"] / 100), 80, 200)
+        p_grams = clamp(cafe_p / (FOODS[breakfast_protein]["p"] / 100), 80, 250)
         cafe_foods.append(calc_food(breakfast_protein, p_grams))
     
     if breakfast_carb and breakfast_carb in FOODS:
-        c_grams = clamp(cafe_c * 0.6 / max(FOODS[breakfast_carb]["c"] / 100, 0.1), 30, 80)
-        # LIMITE ESPECÍFICO: Aveia máximo 80g
+        c_grams = clamp(cafe_c * 0.6 / max(FOODS[breakfast_carb]["c"] / 100, 0.1), 30, 100)
         if breakfast_carb == "aveia":
             c_grams = min(c_grams, 80)
         cafe_foods.append(calc_food(breakfast_carb, c_grams))
     
     if breakfast_fruit and breakfast_fruit in FOODS:
-        fruit_grams = clamp(cafe_c * 0.4 / max(FOODS[breakfast_fruit]["c"] / 100, 0.1), 80, 150)
+        fruit_grams = clamp(cafe_c * 0.4 / max(FOODS[breakfast_fruit]["c"] / 100, 0.1), 80, 200)
         cafe_foods.append(calc_food(breakfast_fruit, fruit_grams))
     
-    # Fallback se vazio
     if not cafe_foods:
-        cafe_foods = [calc_food("ovos", 100), calc_food("aveia", 40), calc_food("banana", 100)]
+        cafe_foods = [calc_food("ovos", 150), calc_food("aveia", 50), calc_food("banana", 120)]
     
     meals.append({"name": "Café da Manhã", "time": "07:00", "foods": cafe_foods})
     
-    # ==================== 🍎 LANCHE MANHÃ (5% P, 10% C, 15% F) ====================
-    # PERMITIDO: frutas + iogurte/cottage + castanhas/amêndoas
-    # PROIBIDO: carnes, arroz, batata, azeite, OVOS, pasta de amendoim, queijo
+    # ==================== 🍎 LANCHE MANHÃ (5 ou 6 refeições) ====================
+    if meal_count >= 5:
+        lanche1_c = target_c * dist_lanche_manha['c']
+        lanche1_f = target_f * dist_lanche_manha['f']
+        
+        snack_fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
+        snack_fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
+        
+        lanche1_foods = []
+        
+        if snack_fruit and snack_fruit in FOODS:
+            fruit_grams = clamp(lanche1_c / max(FOODS[snack_fruit]["c"] / 100, 0.1), 100, 200)
+            lanche1_foods.append(calc_food(snack_fruit, fruit_grams))
+        
+        if snack_fat and snack_fat in FOODS:
+            fat_grams = clamp(lanche1_f / max(FOODS[snack_fat]["f"] / 100, 0.1), 15, 40)
+            lanche1_foods.append(calc_food(snack_fat, fat_grams))
+        
+        if not lanche1_foods:
+            lanche1_foods = [calc_food("banana", 120), calc_food("castanhas", 25)]
+        
+        meals.append({"name": "Lanche Manhã", "time": "10:00", "foods": lanche1_foods})
     
-    lanche1_c = target_c * 0.10
-    lanche1_f = target_f * 0.15
+    # ==================== 🍽️ ALMOÇO (SEMPRE) ====================
+    almoco_p = target_p * dist_almoco['p']
+    almoco_c = target_c * dist_almoco['c']
+    almoco_f = target_f * dist_almoco['f']
     
-    snack_fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
-    snack_fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
-    
-    lanche1_foods = []
-    
-    if snack_fruit and snack_fruit in FOODS:
-        fruit_grams = clamp(lanche1_c / max(FOODS[snack_fruit]["c"] / 100, 0.1), 100, 200)
-        lanche1_foods.append(calc_food(snack_fruit, fruit_grams))
-    
-    if snack_fat and snack_fat in FOODS:
-        fat_grams = clamp(lanche1_f / max(FOODS[snack_fat]["f"] / 100, 0.1), 15, 40)
-        lanche1_foods.append(calc_food(snack_fat, fat_grams))
-    
-    if not lanche1_foods:
-        lanche1_foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
-    
-    meals.append({"name": "Lanche Manhã", "time": "10:00", "foods": lanche1_foods})
-    
-    # ==================== 🍽️ ALMOÇO E JANTAR - DISTRIBUIÇÃO IGUAL ====================
-    # Proteínas e carboidratos são divididos IGUALMENTE entre Almoço e Jantar (50/50)
-    # Isso evita ter 200g em uma refeição e 100g em outra
-    
-    # Calcular total de proteína e carb para Almoço + Jantar
-    total_main_meals_p = target_p * 0.60  # 60% da proteína total vai para almoço+jantar
-    total_main_meals_c = target_c * 0.55  # 55% do carb total vai para almoço+jantar
-    total_main_meals_f = target_f * 0.55  # 55% da gordura total
-    
-    # Dividir IGUALMENTE (50% cada)
-    almoco_p = total_main_meals_p * 0.50
-    almoco_c = total_main_meals_c * 0.50
-    almoco_f = total_main_meals_f * 0.50
-    
-    jantar_p = total_main_meals_p * 0.50
-    jantar_c = total_main_meals_c * 0.50
-    jantar_f = total_main_meals_f * 0.50
-    
-    # Selecionar alimentos para ambas as refeições
     lunch_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
     lunch_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
     
-    # Proteína/carb diferente para jantar se possível
-    used_proteins = {lunch_protein} if lunch_protein else set()
-    used_carbs = {lunch_carb} if lunch_carb else set()
-    
-    dinner_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority, exclude=used_proteins)
-    if not dinner_protein:
-        dinner_protein = lunch_protein  # Usar a mesma se não tiver alternativa
-    
-    dinner_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority, exclude=used_carbs)
-    if not dinner_carb:
-        dinner_carb = lunch_carb
-    
-    # ==================== 🍽️ ALMOÇO ====================
     almoco_foods = []
     
     if lunch_protein and lunch_protein in FOODS:
-        # Limite máximo aumentado para 1000g (1kg)
-        protein_grams = clamp(almoco_p / (FOODS[lunch_protein]["p"] / 100), 80, 1000)
+        protein_grams = clamp(almoco_p / (FOODS[lunch_protein]["p"] / 100), 100, 400)
         almoco_foods.append(calc_food(lunch_protein, protein_grams))
     else:
-        almoco_foods.append(calc_food("frango", 150))
+        almoco_foods.append(calc_food("frango", 200))
     
     if lunch_carb and lunch_carb in FOODS:
-        carb_grams = clamp(almoco_c / max(FOODS[lunch_carb]["c"] / 100, 0.1), 80, 1000)
+        carb_grams = clamp(almoco_c / max(FOODS[lunch_carb]["c"] / 100, 0.1), 100, 400)
         almoco_foods.append(calc_food(lunch_carb, carb_grams))
     else:
-        almoco_foods.append(calc_food("arroz_branco", 150))
+        almoco_foods.append(calc_food("arroz_branco", 200))
     
-    # Legumes (implícito) + Azeite
     almoco_foods.append(calc_food("salada", 100))
     
     if "azeite" in preferred or not preferred:
-        azeite_grams = clamp(almoco_f * 0.3 / 1.0, 5, 30)
+        azeite_grams = clamp(almoco_f * 0.3 / 1.0, 10, 30)
         almoco_foods.append(calc_food("azeite", azeite_grams))
     
     meals.append({"name": "Almoço", "time": "12:30", "foods": almoco_foods})
     
-    # ==================== 🍎 LANCHE TARDE (5% P, 10% C) ====================
-    # PERMITIDO: frutas + iogurte/cottage + castanhas/amêndoas
-    # PROIBIDO: carnes, arroz, batata, azeite, OVOS, pasta de amendoim, queijo
+    # ==================== 🍎 LANCHE TARDE (SEMPRE) ====================
+    lanche2_c = target_c * dist_lanche_tarde['c']
+    lanche2_p = target_p * dist_lanche_tarde['p']
     
-    lanche2_c = target_c * 0.10
-    lanche2_p = target_p * 0.05
-    
-    # Usar fruta diferente se possível
-    used_fruits = {snack_fruit} if snack_fruit else set()
-    snack2_fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority, exclude=used_fruits)
-    if not snack2_fruit:
-        snack2_fruit = snack_fruit
-    
-    # IMPORTANTE: Usar light_protein_priority_lanche (SEM ovos!)
+    snack2_fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
     snack_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
     
     lanche2_foods = []
     
     if snack2_fruit and snack2_fruit in FOODS:
-        fruit_grams = clamp(lanche2_c / max(FOODS[snack2_fruit]["c"] / 100, 0.1), 80, 300)
+        fruit_grams = clamp(lanche2_c / max(FOODS[snack2_fruit]["c"] / 100, 0.1), 100, 300)
         lanche2_foods.append(calc_food(snack2_fruit, fruit_grams))
     
     if snack_protein and snack_protein in FOODS:
-        protein_grams = clamp(lanche2_p / max(FOODS[snack_protein]["p"] / 100, 0.1), 80, 250)
+        protein_grams = clamp(lanche2_p / max(FOODS[snack_protein]["p"] / 100, 0.1), 100, 250)
         lanche2_foods.append(calc_food(snack_protein, protein_grams))
     
     if not lanche2_foods:
-        lanche2_foods = [calc_food("maca", 150), calc_food("iogurte_grego", 170)]
+        lanche2_foods = [calc_food("maca", 150), calc_food("iogurte_grego", 200)]
     
     meals.append({"name": "Lanche Tarde", "time": "16:00", "foods": lanche2_foods})
     
-    # ==================== 🍽️ JANTAR (mesma quantidade que almoço) ====================
+    # ==================== 🍽️ JANTAR (SEMPRE) ====================
+    jantar_p = target_p * dist_jantar['p']
+    jantar_c = target_c * dist_jantar['c']
+    jantar_f = target_f * dist_jantar['f']
+    
+    used_proteins = {lunch_protein} if lunch_protein else set()
+    used_carbs = {lunch_carb} if lunch_carb else set()
+    
+    dinner_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority, exclude=used_proteins)
+    if not dinner_protein:
+        dinner_protein = lunch_protein
+    
+    dinner_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority, exclude=used_carbs)
+    if not dinner_carb:
+        dinner_carb = lunch_carb
+    
     jantar_foods = []
     
     if dinner_protein and dinner_protein in FOODS:
-        # Mesma lógica do almoço - limite de 1kg
-        protein_grams = clamp(jantar_p / (FOODS[dinner_protein]["p"] / 100), 80, 1000)
+        protein_grams = clamp(jantar_p / (FOODS[dinner_protein]["p"] / 100), 100, 400)
         jantar_foods.append(calc_food(dinner_protein, protein_grams))
     else:
-        jantar_foods.append(calc_food("tilapia", 150))
+        jantar_foods.append(calc_food("tilapia", 200))
     
     if dinner_carb and dinner_carb in FOODS:
-        carb_grams = clamp(jantar_c / max(FOODS[dinner_carb]["c"] / 100, 0.1), 80, 1000)
+        carb_grams = clamp(jantar_c / max(FOODS[dinner_carb]["c"] / 100, 0.1), 100, 400)
         jantar_foods.append(calc_food(dinner_carb, carb_grams))
     else:
-        jantar_foods.append(calc_food("arroz_integral", 150))
+        jantar_foods.append(calc_food("arroz_integral", 200))
     
-    # Legumes + Azeite
     jantar_foods.append(calc_food("brocolis", 100))
     
     if "azeite" in preferred or not preferred:
-        azeite_grams = clamp(jantar_f * 0.3 / 1.0, 5, 30)
+        azeite_grams = clamp(jantar_f * 0.3 / 1.0, 10, 30)
         jantar_foods.append(calc_food("azeite", azeite_grams))
     
     meals.append({"name": "Jantar", "time": "19:30", "foods": jantar_foods})
     
-    # ==================== 🌙 CEIA (15% P, 5% C) ====================
-    # PERMITIDO: cottage/iogurte + frutas
-    # PROIBIDO: carnes, carboidratos complexos, gorduras adicionadas, OVOS!
-    # REGRA ABSOLUTA: NUNCA usar ovos na ceia!
-    
-    ceia_p = target_p * 0.15
-    ceia_c = target_c * 0.05
-    
-    # Ceia usa lista SEM OVOS - REGRA ABSOLUTA
-    ceia_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_ceia)
-    ceia_fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
-    
-    ceia_foods = []
-    
-    if ceia_protein and ceia_protein in FOODS:
-        protein_grams = clamp(ceia_p / max(FOODS[ceia_protein]["p"] / 100, 0.1), 100, 200)
-        ceia_foods.append(calc_food(ceia_protein, protein_grams))
-    
-    if ceia_fruit and ceia_fruit in FOODS:
-        fruit_grams = clamp(ceia_c / max(FOODS[ceia_fruit]["c"] / 100, 0.1), 80, 150)
-        ceia_foods.append(calc_food(ceia_fruit, fruit_grams))
-    
-    if not ceia_foods:
-        ceia_foods = [calc_food("cottage", 100), calc_food("morango", 100)]
-    
-    meals.append({"name": "Ceia", "time": "21:30", "foods": ceia_foods})
+    # ==================== 🌙 CEIA (APENAS 6 refeições) ====================
+    if meal_count == 6:
+        ceia_p = target_p * dist_ceia['p']
+        ceia_c = target_c * dist_ceia['c']
+        
+        ceia_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_ceia)
+        ceia_fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
+        
+        ceia_foods = []
+        
+        if ceia_protein and ceia_protein in FOODS:
+            protein_grams = clamp(ceia_p / max(FOODS[ceia_protein]["p"] / 100, 0.1), 100, 250)
+            ceia_foods.append(calc_food(ceia_protein, protein_grams))
+        
+        if ceia_fruit and ceia_fruit in FOODS:
+            fruit_grams = clamp(ceia_c / max(FOODS[ceia_fruit]["c"] / 100, 0.1), 80, 150)
+            ceia_foods.append(calc_food(ceia_fruit, fruit_grams))
+        
+        if not ceia_foods:
+            ceia_foods = [calc_food("cottage", 150), calc_food("morango", 100)]
+        
+        meals.append({"name": "Ceia", "time": "21:30", "foods": ceia_foods})
     
     return meals
 
