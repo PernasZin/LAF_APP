@@ -246,7 +246,7 @@ export const foodTranslations: Record<string, Record<SupportedLanguage, string>>
   'Leite Condensado': { 'pt-BR': 'Leite Condensado', 'en-US': 'Condensed Milk', 'es-ES': 'Leche Condensada' },
   'Whey Protein': { 'pt-BR': 'Whey Protein', 'en-US': 'Whey Protein', 'es-ES': 'Proteína Whey' },
   
-  // Vegetais
+  // Vegetais e Legumes
   'Brócolis': { 'pt-BR': 'Brócolis', 'en-US': 'Broccoli', 'es-ES': 'Brócoli' },
   'Espinafre': { 'pt-BR': 'Espinafre', 'en-US': 'Spinach', 'es-ES': 'Espinaca' },
   'Couve': { 'pt-BR': 'Couve', 'en-US': 'Kale', 'es-ES': 'Col Rizada' },
@@ -255,6 +255,12 @@ export const foodTranslations: Record<string, Record<SupportedLanguage, string>>
   'Pepino': { 'pt-BR': 'Pepino', 'en-US': 'Cucumber', 'es-ES': 'Pepino' },
   'Cenoura': { 'pt-BR': 'Cenoura', 'en-US': 'Carrot', 'es-ES': 'Zanahoria' },
   'Abobrinha': { 'pt-BR': 'Abobrinha', 'en-US': 'Zucchini', 'es-ES': 'Calabacín' },
+  'Rúcula': { 'pt-BR': 'Rúcula', 'en-US': 'Arugula', 'es-ES': 'Rúcula' },
+  'Couve-flor': { 'pt-BR': 'Couve-flor', 'en-US': 'Cauliflower', 'es-ES': 'Coliflor' },
+  'Beterraba': { 'pt-BR': 'Beterraba', 'en-US': 'Beetroot', 'es-ES': 'Remolacha' },
+  'Vagem': { 'pt-BR': 'Vagem', 'en-US': 'Green Beans', 'es-ES': 'Judías Verdes' },
+  'Pimentão': { 'pt-BR': 'Pimentão', 'en-US': 'Bell Pepper', 'es-ES': 'Pimiento' },
+  'Salada Verde': { 'pt-BR': 'Salada Verde', 'en-US': 'Green Salad', 'es-ES': 'Ensalada Verde' },
   'Feijão': { 'pt-BR': 'Feijão', 'en-US': 'Beans', 'es-ES': 'Frijoles' },
   'Lentilha': { 'pt-BR': 'Lentilha', 'en-US': 'Lentils', 'es-ES': 'Lentejas' },
   'Grão de Bico': { 'pt-BR': 'Grão de Bico', 'en-US': 'Chickpeas', 'es-ES': 'Garbanzos' },
