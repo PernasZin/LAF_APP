@@ -716,15 +716,19 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     🌙 Ceia: proteína leve (iogurte/cottage) + frutas - NUNCA OVOS NA CEIA!
     """
     
-    # Prioridades por categoria
-    protein_priority = ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos"]
-    light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage"]
-    light_protein_priority_ceia = ["cottage", "iogurte_grego"]
+    # Prioridades por categoria - MAIS VARIEDADE
+    protein_priority = ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos", 
+                        "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"]
+    light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage", "claras"]
+    light_protein_priority_ceia = ["cottage", "iogurte_grego"]  # NUNCA OVOS NA CEIA!
     light_protein_priority_lanche = ["iogurte_grego", "cottage"]
-    carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", "feijao"]
-    light_carb_priority = ["aveia", "pao_integral"]
-    fat_priority_lanche = ["castanhas", "amendoas"]
-    fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia"]
+    carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", 
+                     "feijao", "lentilha", "quinoa", "cuscuz", "grao_de_bico", "milho"]
+    light_carb_priority = ["aveia", "pao_integral", "tapioca", "cuscuz", "pao"]
+    fat_priority_lanche = ["castanhas", "amendoas", "nozes", "pasta_amendoim"]
+    fat_priority_cafe = ["pasta_amendoim", "chia", "linhaca"]
+    fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
+                      "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"]
     
     meals = []
     
