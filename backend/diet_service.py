@@ -1088,13 +1088,21 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         
         🏆 MODO ATLETA: Filtra alimentos processados em fases PREP e PEAK
         """
+        # Determina qual lista de processados usar baseado na fase
+        if competition_phase == "peak_week":
+            processed_to_filter = PROCESSED_FOODS_PEAK
+        elif competition_phase == "pre_contest":
+            processed_to_filter = PROCESSED_FOODS_PREP
+        else:
+            processed_to_filter = set()  # Nenhum filtro
+        
         # Se é atleta em prep/peak, filtra processados dos defaults
         filtered_defaults = default_list
-        if competition_phase in ["pre_contest", "peak_week"]:
-            filtered_defaults = [d for d in default_list if d not in PROCESSED_FOODS]
-            # Peak week: usa apenas alimentos permitidos
+        if processed_to_filter:
+            filtered_defaults = [d for d in default_list if d not in processed_to_filter]
+            # Peak week: remove também vegetais que causam inchaço
             if competition_phase == "peak_week":
-                filtered_defaults = [d for d in filtered_defaults if d in PEAK_WEEK_ALLOWED or d in FOODS and FOODS[d]["category"] == "fruit"]
+                filtered_defaults = [d for d in filtered_defaults if d not in PEAK_WEEK_AVOID_VEGETABLES]
         
         if not preferred:
             return filtered_defaults if filtered_defaults else default_list
@@ -1106,8 +1114,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if category is None or FOODS[p]["category"] == category:
                     if exclude_complements and p in COMPLEMENT_FOODS:
                         continue
-                    # 🏆 MODO ATLETA: Não adiciona processados em prep/peak
-                    if competition_phase in ["pre_contest", "peak_week"] and p in PROCESSED_FOODS:
+                    # 🏆 MODO ATLETA: Não adiciona processados baseado na fase
+                    if p in processed_to_filter:
+                        continue
+                    # Peak week: remove vegetais que causam inchaço
+                    if competition_phase == "peak_week" and p in PEAK_WEEK_AVOID_VEGETABLES:
                         continue
                     original_in_category.append(p)
         
@@ -1118,8 +1129,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if category is None or FOODS[p]["category"] == category:
                     if exclude_complements and p in COMPLEMENT_FOODS:
                         continue
-                    # 🏆 MODO ATLETA: Não adiciona processados em prep/peak
-                    if competition_phase in ["pre_contest", "peak_week"] and p in PROCESSED_FOODS:
+                    # 🏆 MODO ATLETA: Não adiciona processados baseado na fase
+                    if p in processed_to_filter:
+                        continue
+                    # Peak week: remove vegetais que causam inchaço
+                    if competition_phase == "peak_week" and p in PEAK_WEEK_AVOID_VEGETABLES:
                         continue
                     auto_completed_in_category.append(p)
         
