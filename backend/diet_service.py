@@ -773,24 +773,30 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         foods = []
         
         if meal_type == 'cafe':
-            # Café da Manhã: ovos + aveia + fruta
+            # Café da Manhã: ovos + aveia + fruta + gordura saudável
             protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
             carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
             fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
+            fat = select_best_food("cafe_da_manha", preferred, restrictions, "fat", fat_priority_cafe)
             
             if protein and protein in FOODS:
                 p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 80, 300)
                 foods.append(calc_food(protein, p_grams))
             
             if carb and carb in FOODS:
-                c_grams = clamp(meal_c * 0.5 / max(FOODS[carb]["c"] / 100, 0.1), 40, 120)
+                c_grams = clamp(meal_c * 0.4 / max(FOODS[carb]["c"] / 100, 0.1), 40, 120)
                 if carb == "aveia":
                     c_grams = min(c_grams, 100)
                 foods.append(calc_food(carb, c_grams))
             
             if fruit and fruit in FOODS:
-                fruit_grams = clamp(meal_c * 0.5 / max(FOODS[fruit]["c"] / 100, 0.1), 100, 250)
+                fruit_grams = clamp(meal_c * 0.5 / max(FOODS[fruit]["c"] / 100, 0.1), 100, 300)
                 foods.append(calc_food(fruit, fruit_grams))
+            
+            # Adiciona gordura saudável se disponível
+            if fat and fat in FOODS:
+                fat_grams = clamp(meal_f * 0.5 / max(FOODS[fat]["f"] / 100, 0.1), 10, 30)
+                foods.append(calc_food(fat, fat_grams))
             
             if not foods:
                 foods = [calc_food("ovos", 150), calc_food("aveia", 60), calc_food("banana", 150)]
