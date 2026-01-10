@@ -1129,10 +1129,27 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food("feijao", 100))
                 foods.append(calc_food("farofa", 30))
             
-            # Vegetais
+            # ==================== VEGETAIS E LEGUMES ====================
+            # Acompanhamento para saúde intestinal, micronutrientes e recuperação
+            # NÃO substituem macros - apenas complementam a refeição
+            
+            # Lista de vegetais por categoria (para variar entre almoço e jantar)
+            FOLHAS_VERDES = ["salada", "alface", "rucola", "espinafre", "couve"]
+            LEGUMES_COZIDOS = ["brocolis", "couve_flor", "vagem", "abobrinha", "cenoura"]
+            LEGUMES_CRUS = ["tomate", "pepino", "pimentao", "beterraba"]
+            
+            import random
+            
             if meal_type == 'almoco':
-                foods.append(calc_food("salada", 100))
-            else:
+                # Almoço: Salada fresca (folhas + legume cru) - 100-120g total
+                folha = random.choice(FOLHAS_VERDES)
+                legume_cru = random.choice(LEGUMES_CRUS)
+                foods.append(calc_food(folha, 60))
+                foods.append(calc_food(legume_cru, 60))
+            else:  # jantar
+                # Jantar: Legume cozido (mais fácil digestão à noite) - 100-120g
+                legume_cozido = random.choice(LEGUMES_COZIDOS)
+                foods.append(calc_food(legume_cozido, 100))
                 foods.append(calc_food("brocolis", 100))
             
             # Azeite - limite mais conservador (5-20g)
