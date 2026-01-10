@@ -912,7 +912,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     # Prioridade para lanches (proteínas leves com carbs)
     light_protein_priority_lanche = get_preferred_first(
-        ["iogurte_grego", "iogurte_natural", "cottage"], "protein")
+        ["iogurte_grego", "iogurte_natural"], "protein")
     
     fat_priority_lanche = get_preferred_first(
         ["castanhas", "amendoas", "nozes", "pasta_amendoim"], "fat")
