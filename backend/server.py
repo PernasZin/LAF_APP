@@ -2103,8 +2103,7 @@ class CardioSession(BaseModel):
     exercises: List[CardioExercise]
     total_duration: int
     total_calories: int
-    goal: str  # "cutting", "bulking", "manutencao", "atleta"
-    competition_phase: Optional[str] = None
+    goal: str  # "cutting", "bulking", "manutencao"
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Base de exercícios cardio (SEM CORRIDA - apenas bicicleta, caminhada, escada)
