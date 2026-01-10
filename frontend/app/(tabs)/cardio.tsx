@@ -575,7 +575,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   modalScroll: {
-    maxHeight: 400,
+    maxHeight: 500,
   },
   detailSection: {
     marginBottom: 16,
