@@ -1405,6 +1405,11 @@ class DietAIService:
         
         target_cal_int = max(MIN_DAILY_CALORIES, int(round(target_calories)))
         
+        # DEBUG: Log das preferências sendo usadas
+        import logging
+        logging.info(f"[DIET DEBUG] raw_preferred: {raw_preferred}")
+        logging.info(f"[DIET DEBUG] preferred_foods: {preferred_foods}")
+        
         # Gera dieta com alimentos auto-completados se necessário
         # Passa meal_count para gerar a quantidade correta de refeições
         meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions, meal_count)
