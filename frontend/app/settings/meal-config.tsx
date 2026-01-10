@@ -253,9 +253,10 @@ export default function MealConfigScreen() {
       // Salva localmente
       await AsyncStorage.setItem('mealConfig', JSON.stringify(config));
       
-      // Salva no backend
+      // Salva no backend e regenera dieta
       if (userId && BACKEND_URL) {
         try {
+          // 1. Salva configurações
           await safeFetch(`${BACKEND_URL}/api/user/settings/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -264,16 +265,27 @@ export default function MealConfigScreen() {
               meal_times: config.mealTimes,
             }),
           });
+          
+          // 2. Deleta dieta existente para forçar regeneração
+          await safeFetch(`${BACKEND_URL}/api/diet/${userId}`, {
+            method: 'DELETE',
+          });
+          
+          // 3. Gera nova dieta com as novas configurações
+          await safeFetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
+            method: 'POST',
+          });
+          
         } catch (err) {
-          console.log('Erro ao salvar no backend:', err);
+          console.log('Erro ao salvar/regenerar:', err);
         }
       }
       
       const successMsg = language === 'en-US'
-        ? 'Settings saved! Your diet will be regenerated.'
+        ? 'Settings saved! Your diet has been regenerated.'
         : language === 'es-ES'
-        ? '¡Configuración guardada! Tu dieta será regenerada.'
-        : 'Configurações salvas! Sua dieta será regenerada.';
+        ? '¡Configuración guardada! Tu dieta ha sido regenerada.'
+        : 'Configurações salvas! Sua dieta foi regenerada.';
       
       Alert.alert(
         language === 'en-US' ? 'Success' : language === 'es-ES' ? 'Éxito' : 'Sucesso',
