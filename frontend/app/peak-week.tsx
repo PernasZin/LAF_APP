@@ -105,7 +105,11 @@ export default function PeakWeekScreen() {
     );
   }
 
-  const { protocols, safety_warnings, disclaimer, current_day, days_to_competition, current_weight, target_weight } = peakWeekData || {};
+  const { 
+    protocols, safety_warnings, disclaimer, current_day, days_to_competition, 
+    current_weight, target_weight, has_weigh_in, weigh_in_info,
+    blocked_foods, priority_foods, safety_limits
+  } = peakWeekData || {};
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -128,6 +132,26 @@ export default function PeakWeekScreen() {
           </View>
         </View>
 
+        {/* Weigh-In Strategy Card (if applicable) */}
+        {has_weigh_in && weigh_in_info && (
+          <View style={[styles.weighInCard, { backgroundColor: '#FEF3C7', borderColor: '#D97706' }]}>
+            <View style={styles.weighInHeader}>
+              <Text style={styles.weighInEmoji}>⚖️</Text>
+              <Text style={[styles.weighInTitle, { color: '#92400E' }]}>
+                ESTRATÉGIA COM PESAGEM
+              </Text>
+            </View>
+            <View style={styles.weighInBadge}>
+              <Text style={styles.weighInBadgeText}>{weigh_in_info.strategy}</Text>
+            </View>
+            {weigh_in_info.notes?.map((note: string, index: number) => (
+              <Text key={index} style={[styles.weighInNote, { color: '#78350F' }]}>
+                {note}
+              </Text>
+            ))}
+          </View>
+        )}
+
         {/* Quick Access to Water/Sodium Tracker */}
         <TouchableOpacity 
           style={[styles.trackerButton, { backgroundColor: '#06B6D4' }]}
@@ -147,29 +171,37 @@ export default function PeakWeekScreen() {
               <Text style={styles.dayBadgeText}>D-{days_to_competition}</Text>
             </View>
           </View>
-          {protocols && protocols[current_day - 1] && (
+          {protocols && protocols[0] && (
             <View style={styles.todayStats}>
               <View style={styles.todayStat}>
                 <Text style={styles.todayStatEmoji}>💧</Text>
                 <Text style={[styles.todayStatValue, { color: colors.text }]}>
-                  {protocols[current_day - 1].water_liters}L
+                  {protocols[0].water_liters}L
                 </Text>
                 <Text style={[styles.todayStatLabel, { color: colors.textSecondary }]}>Água</Text>
               </View>
               <View style={styles.todayStat}>
                 <Text style={styles.todayStatEmoji}>🧂</Text>
                 <Text style={[styles.todayStatValue, { color: colors.text }]}>
-                  {protocols[current_day - 1].sodium_mg}mg
+                  {protocols[0].sodium_mg}mg
                 </Text>
                 <Text style={[styles.todayStatLabel, { color: colors.textSecondary }]}>Sódio</Text>
               </View>
               <View style={styles.todayStat}>
                 <Text style={styles.todayStatEmoji}>🍚</Text>
                 <Text style={[styles.todayStatValue, { color: colors.text }]}>
-                  {protocols[current_day - 1].carb_total_grams}g
+                  {protocols[0].carb_total_grams}g
                 </Text>
                 <Text style={[styles.todayStatLabel, { color: colors.textSecondary }]}>Carbs</Text>
               </View>
+            </View>
+          )}
+          {/* Current Phase */}
+          {protocols && protocols[0]?.phase_name && (
+            <View style={[styles.phaseBadgeContainer, { backgroundColor: getPhaseColor(protocols[0].phase) + '20' }]}>
+              <Text style={[styles.phaseBadgeText, { color: getPhaseColor(protocols[0].phase) }]}>
+                {protocols[0].phase_name}
+              </Text>
             </View>
           )}
         </View>
