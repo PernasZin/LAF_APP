@@ -175,23 +175,20 @@ export default function RestrictionsStep({ data, updateData, language }: Props) 
 
   const selectedCount = data.food_preferences?.length || 0;
 
-  // Descrição dinâmica baseada no objetivo
-  const description = isAthlete ? t.foodPreferencesDescAthlete : t.foodPreferencesDescGeneral;
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t.foodPreferences}</Text>
-      <Text style={styles.description}>{description}</Text>
+      <Text style={styles.description}>{t.foodPreferencesDescGeneral}</Text>
 
-      {/* Badge do modo */}
-      <View style={[styles.modeBadge, isAthlete ? styles.modeBadgeAthlete : styles.modeBadgeGeneral]}>
+      {/* Badge do modo flexível */}
+      <View style={[styles.modeBadge, styles.modeBadgeGeneral]}>
         <Ionicons 
-          name={isAthlete ? 'trophy' : 'restaurant'} 
+          name="restaurant" 
           size={16} 
-          color={isAthlete ? '#F59E0B' : '#10B981'} 
+          color="#10B981" 
         />
-        <Text style={[styles.modeBadgeText, { color: isAthlete ? '#F59E0B' : '#10B981' }]}>
-          {isAthlete ? t.athleteMode : t.flexibleMode}
+        <Text style={[styles.modeBadgeText, { color: '#10B981' }]}>
+          {t.flexibleMode}
         </Text>
       </View>
 
