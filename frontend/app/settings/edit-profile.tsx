@@ -303,44 +303,6 @@ export default function EditProfileScreen() {
               </View>
             </View>
 
-            {/* Data do Campeonato - apenas para atletas */}
-            {goal === 'atleta' && (
-              <View style={styles.fieldContainer}>
-                <Text style={[styles.label, { color: colors.text }]}>Data do Campeonato *</Text>
-                <Text style={[styles.sublabel, { color: colors.textSecondary }]}>
-                  A fase será calculada automaticamente com base nas semanas restantes
-                </Text>
-                <TouchableOpacity
-                  style={[styles.dateButton, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }]}
-                  onPress={() => setShowDatePicker(true)}
-                >
-                  <Ionicons name="calendar" size={20} color={colors.primary} />
-                  <Text style={[styles.dateText, { color: competitionDate ? colors.text : colors.inputPlaceholder }]}>
-                    {competitionDate 
-                      ? competitionDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
-                      : 'Selecionar data do campeonato'}
-                  </Text>
-                </TouchableOpacity>
-                {competitionDate && (
-                  <View style={[styles.phaseInfo, { backgroundColor: colors.primary + '15' }]}>
-                    <Ionicons name="trophy" size={16} color={colors.primary} />
-                    <Text style={[styles.phaseText, { color: colors.primary }]}>
-                      {(() => {
-                        const now = new Date();
-                        const days = Math.ceil((competitionDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                        const weeks = Math.floor(days / 7);
-                        if (days < 0) return 'Pós-Show (Recuperação)';
-                        if (weeks < 2) return `Peak Week (${days} dias)`;
-                        if (weeks <= 16) return `Pré-Contest (${weeks} semanas)`;
-                        return `Off-Season (${weeks} semanas)`;
-                      })()}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-
           {/* Save Button */}
           <TouchableOpacity
             style={[styles.saveButton, { backgroundColor: colors.primary }, saving && styles.saveButtonDisabled]}
@@ -365,39 +327,6 @@ export default function EditProfileScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Date Picker Modal - Manual Selection */}
-      {showDatePicker && (
-        <Modal
-          transparent
-          animationType="fade"
-          visible={showDatePicker}
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <View style={datePickerStyles.overlay}>
-            <View style={[datePickerStyles.container, { backgroundColor: colors.backgroundCard }]}>
-              <Text style={[datePickerStyles.title, { color: colors.text }]}>
-                Selecionar Data do Campeonato
-              </Text>
-              
-              <View style={datePickerStyles.pickerRow}>
-                {/* Dia */}
-                <View style={datePickerStyles.pickerColumn}>
-                  <Text style={[datePickerStyles.pickerLabel, { color: colors.textSecondary }]}>Dia</Text>
-                  <ScrollView style={datePickerStyles.pickerScroll} showsVerticalScrollIndicator={false}>
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                      <TouchableOpacity
-                        key={day}
-                        style={[
-                          datePickerStyles.pickerItem,
-                          (competitionDate || new Date()).getDate() === day && { backgroundColor: colors.primary + '20' }
-                        ]}
-                        onPress={() => {
-                          const newDate = new Date(competitionDate || new Date());
-                          newDate.setDate(day);
-                          setCompetitionDate(newDate);
-                        }}
-                      >
                         <Text style={[
                           datePickerStyles.pickerItemText,
                           { color: (competitionDate || new Date()).getDate() === day ? colors.primary : colors.text }
