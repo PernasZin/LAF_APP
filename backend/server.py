@@ -320,30 +320,6 @@ def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[s
     }
 
 # ==================== ROUTES ====================
-    days = delta.days
-    weeks = days // 7
-    
-    # Determina a fase baseado nas semanas
-    if weeks > 16:
-        return "off_season", weeks
-    elif weeks >= 2:
-        return "pre_contest", weeks
-    else:
-        # Menos de 2 semanas (14 dias) = Peak Week
-        return "peak_week", weeks
-
-def derive_phase_from_weeks(weeks: int) -> str:
-    """Derives competition phase from weeks to competition (legacy)"""
-    if weeks < 0:
-        return "post_show"
-    elif weeks > 16:
-        return "off_season"
-    elif weeks >= 2:
-        return "pre_contest"
-    else:
-        return "peak_week"
-
-# ==================== ROUTES ====================
 
 @api_router.post("/user/profile", response_model=UserProfile)
 async def create_or_update_user_profile(profile_data: UserProfileCreate):
