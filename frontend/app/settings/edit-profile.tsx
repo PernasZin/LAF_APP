@@ -55,7 +55,6 @@ export default function EditProfileScreen() {
   
   // Form state
   const [name, setName] = useState('');
-  const [weight, setWeight] = useState('');
   const [goal, setGoal] = useState('bulking');
   const [originalGoal, setOriginalGoal] = useState('bulking');
   const [profileImage, setProfileImage] = useState<string | null>(null);
