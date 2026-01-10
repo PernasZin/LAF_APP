@@ -25,7 +25,6 @@ Notifications.setNotificationHandler({
 // Tipos de notificação
 export type NotificationType = 
   | 'weight_reminder' 
-  | 'peak_week_reminder' 
   | 'water_reminder' 
   | 'sodium_reminder'
   | 'general';
