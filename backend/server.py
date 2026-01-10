@@ -1307,48 +1307,98 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
 
 
 @api_router.get("/progress/weight/{user_id}")
-async def get_weight_history(user_id: str, days: int = 30):
+async def get_weight_history(user_id: str, days: int = 365):
     """
-    Retorna histórico de peso do usuário.
-    Default: últimos 30 dias.
+    Retorna histórico de peso do usuário com questionários e gráficos.
+    Default: último ano (365 dias) para visualização completa.
+    
+    Retorna:
+    - Histórico completo de peso com questionários
+    - Estatísticas de evolução
+    - Médias dos questionários por período
+    - Dados formatados para gráficos
     """
     # Verifica se usuário existe
     user = await db.user_profiles.find_one({"_id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
+    # Determina período de bloqueio baseado no objetivo
+    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    block_days = 7 if is_athlete else 14
+    
     # Busca registros dos últimos N dias
     from_date = datetime.utcnow() - timedelta(days=days)
     
     records = await db.weight_records.find(
         {"user_id": user_id, "recorded_at": {"$gte": from_date}}
-    ).sort("recorded_at", 1).to_list(length=100)
+    ).sort("recorded_at", 1).to_list(length=365)
     
-    # Formata resposta
+    # Formata resposta com dados completos
     history = []
+    questionnaire_totals = {"diet": 0, "training": 0, "cardio": 0, "sleep": 0, "hydration": 0}
+    questionnaire_count = 0
+    
     for r in records:
-        history.append({
+        record_data = {
             "id": r["_id"],
             "weight": r["weight"],
             "recorded_at": r["recorded_at"].isoformat(),
-            "notes": r.get("notes")
-        })
+            "notes": r.get("notes"),
+            "athlete_phase": r.get("athlete_phase"),
+            "questionnaire_average": r.get("questionnaire_average"),
+        }
+        
+        # Inclui questionário se existir
+        if r.get("questionnaire"):
+            q = r["questionnaire"]
+            record_data["questionnaire"] = q
+            
+            # Soma para média geral
+            if isinstance(q, dict):
+                questionnaire_totals["diet"] += q.get("diet", 0)
+                questionnaire_totals["training"] += q.get("training", 0)
+                questionnaire_totals["cardio"] += q.get("cardio", 0)
+                questionnaire_totals["sleep"] += q.get("sleep", 0)
+                questionnaire_totals["hydration"] += q.get("hydration", 0)
+                questionnaire_count += 1
+        
+        history.append(record_data)
     
-    # Calcula estatísticas
+    # Calcula estatísticas de peso
     current_weight = user.get("weight", 0)
-    initial_weight = user.get("weight", current_weight)  # Peso do onboarding
+    target_weight = user.get("target_weight")
     
     if history:
         first_weight = history[0]["weight"]
         last_weight = history[-1]["weight"]
         total_change = round(last_weight - first_weight, 1)
+        
+        # Calcula progresso em relação ao objetivo
+        if target_weight and target_weight != first_weight:
+            progress_percent = round(((first_weight - last_weight) / (first_weight - target_weight)) * 100, 1)
+            progress_percent = max(0, min(100, progress_percent))  # Limita entre 0 e 100
+        else:
+            progress_percent = 0
     else:
         first_weight = current_weight
         last_weight = current_weight
         total_change = 0
+        progress_percent = 0
+    
+    # Calcula médias dos questionários
+    questionnaire_averages = None
+    if questionnaire_count > 0:
+        questionnaire_averages = {
+            "diet": round(questionnaire_totals["diet"] / questionnaire_count, 1),
+            "training": round(questionnaire_totals["training"] / questionnaire_count, 1),
+            "cardio": round(questionnaire_totals["cardio"] / questionnaire_count, 1),
+            "sleep": round(questionnaire_totals["sleep"] / questionnaire_count, 1),
+            "hydration": round(questionnaire_totals["hydration"] / questionnaire_count, 1),
+            "overall": round(sum(questionnaire_totals.values()) / (questionnaire_count * 5), 1)
+        }
     
     # Verifica se pode registrar novo peso
-    # Regra: Usuário só pode registrar peso 14 dias após o cadastro OU 14 dias após o último registro
     last_record = await db.weight_records.find_one(
         {"user_id": user_id},
         sort=[("recorded_at", -1)]
@@ -1356,35 +1406,57 @@ async def get_weight_history(user_id: str, days: int = 30):
     
     can_record = True
     days_until_next = 0
+    next_record_date = None
     
-    # Se já tem registro de peso, verifica 14 dias desde o último registro
     if last_record:
         days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
-        if days_since_last < 14:
+        if days_since_last < block_days:
             can_record = False
-            days_until_next = 14 - days_since_last
+            days_until_next = block_days - days_since_last
+            next_record_date = (last_record["recorded_at"] + timedelta(days=block_days)).isoformat()
     else:
-        # Se não tem registro de peso, verifica 14 dias desde a criação da conta
-        # (peso inicial foi coletado no onboarding)
+        # Primeiro registro - verifica dias desde cadastro
         if user.get("created_at"):
             days_since_creation = (datetime.utcnow() - user["created_at"]).days
-            if days_since_creation < 14:
+            if days_since_creation < block_days:
                 can_record = False
-                days_until_next = 14 - days_since_creation
+                days_until_next = block_days - days_since_creation
+                next_record_date = (user["created_at"] + timedelta(days=block_days)).isoformat()
+    
+    # Dados para gráficos (formato simplificado)
+    chart_data = {
+        "weight": [{"x": r["recorded_at"], "y": r["weight"]} for r in history],
+        "questionnaire": []
+    }
+    
+    # Adiciona dados de questionário para gráfico
+    for r in history:
+        if r.get("questionnaire_average"):
+            chart_data["questionnaire"].append({
+                "x": r["recorded_at"],
+                "y": r["questionnaire_average"]
+            })
     
     return {
         "user_id": user_id,
         "current_weight": current_weight,
-        "target_weight": user.get("target_weight"),
+        "target_weight": target_weight,
+        "is_athlete": is_athlete,
+        "athlete_phase": user.get("competition_phase"),
         "history": history,
         "stats": {
             "total_records": len(history),
             "first_weight": first_weight,
             "last_weight": last_weight,
             "total_change": total_change,
+            "progress_percent": progress_percent,
+            "questionnaire_averages": questionnaire_averages
         },
         "can_record": can_record,
-        "days_until_next_record": days_until_next
+        "days_until_next_record": days_until_next,
+        "next_record_date": next_record_date,
+        "block_period_days": block_days,
+        "chart_data": chart_data
     }
 
 
