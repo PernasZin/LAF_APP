@@ -1767,21 +1767,48 @@ async def mark_notification_read(notification_id: str):
 
 # ==================== PEAK WEEK ENDPOINTS ====================
 
+# Importa regras oficiais de Peak Week
+from peak_week_rules import (
+    generate_full_peak_week_protocol,
+    generate_peak_week_diet,
+    calculate_peak_week_macros,
+    get_water_sodium_protocol,
+    MINIMUM_WATER_LITERS,
+    MINIMUM_SODIUM_MG,
+    PEAK_WEEK_BLOCKED_FOODS,
+    PEAK_WEEK_PRIORITY_FOODS
+)
+
 @api_router.get("/peak-week/{user_id}")
 async def get_peak_week_plan(user_id: str):
     """
-    Gera/retorna o plano de Peak Week para o atleta.
+    🏆 PROTOCOLO OFICIAL DE PEAK WEEK
     
-    ⚠️ SEGURANÇA:
-    - Nunca reduzir água abaixo de 2L/dia
-    - Manter sódio mínimo de 500mg/dia
-    - Este é um protocolo CONSERVADOR e SEGURO
+    Gera o plano completo de Peak Week usando as REGRAS OFICIAIS:
     
-    O plano inclui:
-    - Protocolo de água (sem manipulação extrema)
-    - Protocolo de sódio (sem corte total)
-    - Estratégia de carboidratos (depleção/carga moderada)
-    - Recomendações de treino
+    📋 3 FASES:
+    - DEPLEÇÃO (D-7 → D-4): Controle, depleção leve de glicogênio
+    - TRANSIÇÃO (D-3 → D-2): Enchimento gradual sem retenção
+    - CARB-UP (D-1): Pump visual, enchimento muscular
+    
+    ⚖️ ATLETAS COM PESAGEM:
+    - Se has_weigh_in=true, carb-up é ADIADO até APÓS a pesagem
+    - D-1 antes da pesagem: dieta leve
+    - D-1 após pesagem: carb-up (4-7 g/kg)
+    
+    🚫 ALIMENTOS BLOQUEADOS:
+    - Leguminosas (feijão, lentilha, grão de bico)
+    - Cereais com fibras (aveia, granola, pão integral)
+    - Crucíferos (brócolis, couve-flor, repolho)
+    
+    ✅ ALIMENTOS PRIORITÁRIOS:
+    - Arroz branco, batata doce, batata
+    - Frango, tilápia, claras
+    - Pepino, alface, espinafre
+    
+    ⚠️ SEGURANÇA OBRIGATÓRIA:
+    - Água NUNCA abaixo de 2L/dia
+    - Sódio NUNCA abaixo de 500mg/dia
     """
     # Verifica se usuário existe e é atleta
     user = await db.user_profiles.find_one({"_id": user_id})
@@ -1806,18 +1833,48 @@ async def get_peak_week_plan(user_id: str):
     # Dados do atleta
     current_weight = user.get("weight", 80)
     target_weight = user.get("target_weight", current_weight)
+    has_weigh_in = user.get("has_weigh_in", False)
+    has_weight_class = user.get("has_weight_class", False)
+    weigh_in_hours = user.get("weigh_in_hours_before", 24)
     
-    # Gera protocolo de Peak Week SEGURO
-    protocols = generate_safe_peak_week_protocol(current_weight, target_weight, comp_date)
+    # Preferências alimentares do atleta
+    food_preferences = user.get("food_preferences", [])
     
-    # Avisos de segurança obrigatórios
+    # Gera protocolo OFICIAL de Peak Week
+    full_protocol = generate_full_peak_week_protocol(
+        weight_kg=current_weight,
+        competition_date=comp_date,
+        has_weigh_in=has_weigh_in,
+        meal_count=6,  # Pode ser configurável
+        preferred_foods=food_preferences
+    )
+    
+    # Converte para formato do frontend existente (compatibilidade)
+    protocols = convert_official_protocol_to_legacy(full_protocol, current_weight, comp_date)
+    
+    # Avisos de segurança obrigatórios (REGRAS OFICIAIS)
     safety_warnings = [
-        "⚠️ NUNCA reduza a ingestão de água abaixo de 2 litros por dia",
-        "⚠️ NUNCA corte completamente o sódio da dieta",
-        "⚠️ Monitore sintomas como tontura, fraqueza extrema ou cãibras",
-        "⚠️ Interrompa o protocolo se sentir mal-estar significativo",
+        f"⚠️ NUNCA reduza água abaixo de {MINIMUM_WATER_LITERS}L/dia",
+        f"⚠️ NUNCA reduza sódio abaixo de {MINIMUM_SODIUM_MG}mg/dia",
+        "⚠️ Água zero e sódio zero são PROIBIDOS - causam problemas graves",
+        "⚠️ Se sentir tontura, fraqueza ou cãibras, aumente água e sódio",
         "⚠️ Este protocolo deve ser supervisionado por um profissional",
     ]
+    
+    # Informações sobre pesagem (se aplicável)
+    weigh_in_info = None
+    if has_weigh_in:
+        weigh_in_info = {
+            "has_weigh_in": True,
+            "hours_before": weigh_in_hours,
+            "strategy": "CARB-UP ADIADO",
+            "notes": [
+                "⚖️ Você tem pesagem antes da competição",
+                "🟡 Carb-up será feito APÓS a pesagem oficial",
+                "🔴 D-1 antes da pesagem: dieta leve, controlar peso",
+                "🟢 D-1 após pesagem: carb-up agressivo (4-7g/kg)",
+            ]
+        }
     
     return {
         "user_id": user_id,
@@ -1825,98 +1882,201 @@ async def get_peak_week_plan(user_id: str):
         "days_to_competition": max(0, days_to_comp),
         "current_weight": current_weight,
         "target_weight": target_weight,
-        "current_day": 7 - max(0, min(7, days_to_comp)) + 1,  # Dia atual do protocolo (1-7)
+        "current_day": 7 - max(0, min(7, days_to_comp)) + 1,
+        
+        # Protocolo oficial
         "protocols": protocols,
+        "full_protocol": full_protocol,  # Dados completos para frontend avançado
+        
+        # Informações de pesagem
+        "has_weigh_in": has_weigh_in,
+        "weigh_in_info": weigh_in_info,
+        
+        # Alimentos
+        "blocked_foods": list(PEAK_WEEK_BLOCKED_FOODS),
+        "priority_foods": {
+            "carbs": list(PEAK_WEEK_PRIORITY_FOODS["carbs"]),
+            "protein": list(PEAK_WEEK_PRIORITY_FOODS["protein"]),
+            "vegetables": list(PEAK_WEEK_PRIORITY_FOODS["vegetables"]),
+        },
+        
+        # Segurança
         "safety_warnings": safety_warnings,
-        "disclaimer": "Este protocolo é APENAS informativo e educacional. Consulte sempre um profissional de saúde antes de implementar qualquer estratégia de Peak Week."
+        "safety_limits": {
+            "min_water_liters": MINIMUM_WATER_LITERS,
+            "min_sodium_mg": MINIMUM_SODIUM_MG,
+        },
+        
+        "disclaimer": "Este protocolo segue as REGRAS OFICIAIS de Peak Week. É informativo e educacional. Consulte sempre um profissional de saúde."
     }
 
 
-def generate_safe_peak_week_protocol(weight: float, target_weight: float, comp_date: datetime) -> List[dict]:
+def convert_official_protocol_to_legacy(full_protocol: dict, weight: float, comp_date: datetime) -> List[dict]:
     """
-    Gera protocolo SEGURO de Peak Week.
-    
-    PRINCÍPIOS DE SEGURANÇA:
-    1. Água: Nunca abaixo de 2L/dia (mínimo fisiológico seguro)
-    2. Sódio: Nunca abaixo de 500mg/dia (mínimo para função celular)
-    3. Carboidratos: Ciclos moderados (sem depleção extrema)
-    4. Treino: Leve nas últimas 48h
+    Converte o protocolo oficial para o formato usado pelo frontend existente.
+    Mantém compatibilidade com a UI atual enquanto adiciona novos dados.
     """
-    
-    # Nomes dos dias
     days_of_week = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
-    
-    # Calcular qual dia da semana é a competição
     comp_weekday = comp_date.weekday()
     
     protocols = []
+    days_data = full_protocol.get("days", [])
     
-    for day in range(1, 8):
-        day_offset = day - 7  # -6 a 0 (0 = dia da competição)
+    for day_info in days_data:
+        day_num = day_info.get("day_number", 1) + 1  # Ajusta para 1-7
+        days_remaining = day_info.get("days_to_competition", 0)
         
-        # Calcula o dia da semana
+        # Calcula dia da semana
+        day_offset = day_num - 7
         day_weekday = (comp_weekday + day_offset) % 7
         day_name = days_of_week[day_weekday]
         
-        # Protocolo varia conforme o dia
-        if day <= 3:  # Dias 1-3: Depleção moderada
-            water = 4.0 + (0.5 * (3 - day))  # 5L, 4.5L, 4L
-            sodium = 2000 - (300 * (day - 1))  # 2000mg, 1700mg, 1400mg
-            carb_strategy = "depletion"
-            carb_grams = 1.0 - (0.2 * (day - 1))  # 1.0, 0.8, 0.6 g/kg
-            training = "full_body" if day <= 2 else "light_pump"
-            
-        elif day <= 5:  # Dias 4-5: Transição
-            water = 3.5 if day == 4 else 3.0
-            sodium = 1000 if day == 4 else 800
+        # Pega dados do dia (pode ter split se for dia de pesagem)
+        if day_info.get("has_split"):
+            # Dia com pesagem - mostra dados pré-pesagem por padrão
+            diet = day_info.get("pre_weigh_in", {})
+            post_diet = day_info.get("post_weigh_in", {})
+            has_split = True
+        else:
+            diet = day_info.get("diet", {})
+            post_diet = None
+            has_split = False
+        
+        # Extrai dados de água/sódio
+        water_sodium = diet.get("water_sodium", {})
+        water = water_sodium.get("water_liters", 3.0)
+        sodium = water_sodium.get("sodium_mg", 1500)
+        
+        # Extrai macros
+        macros = diet.get("target_macros", {})
+        carbs_g = macros.get("carbs", 0)
+        carbs_per_kg = round(carbs_g / weight, 1) if weight > 0 else 0
+        
+        # Determina estratégia de carbs
+        phase = diet.get("phase", "depletion")
+        if phase == "carb_up":
+            carb_strategy = "loading"
+        elif phase == "transition":
             carb_strategy = "moderate"
-            carb_grams = 2.0 if day == 4 else 3.0  # Início da recarga
-            training = "light_pump" if day == 4 else "posing"
-            
-        elif day == 6:  # Dia 6: Carga de carbs
-            water = 2.5
-            sodium = 600
-            carb_strategy = "loading"
-            carb_grams = 4.0  # Carga moderada
+        else:
+            carb_strategy = "depletion"
+        
+        # Determina tipo de treino
+        if days_remaining >= 4:
+            training = "full_body"
+        elif days_remaining >= 2:
+            training = "light_pump"
+        elif days_remaining >= 1:
             training = "posing"
-            
-        else:  # Dia 7: Competição
-            water = 2.0  # Mínimo seguro
-            sodium = 500  # Mínimo seguro
-            carb_strategy = "loading"
-            carb_grams = 2.0  # Manutenção
+        else:
             training = "rest"
         
-        # Notas específicas para cada fase
-        water_note = get_water_note(day, water)
-        sodium_note = get_sodium_note(day, sodium)
-        carb_note = get_carb_note(day, carb_strategy, carb_grams, weight)
-        training_note = get_training_note(day, training)
+        # Notas
+        water_note = get_water_note_official(days_remaining, water)
+        sodium_note = get_sodium_note_official(days_remaining, sodium)
+        carb_note = f"{diet.get('phase_name', 'Fase')}: {carbs_g}g de carbs ({carbs_per_kg}g/kg)"
+        training_note = get_training_note(days_remaining, training)
+        general_note = diet.get("phase_description", get_general_note(day_num))
         
-        # Aviso especial para os últimos dias
+        # Aviso especial
         warning = None
-        if day >= 6:
+        if days_remaining <= 1:
             warning = "⚠️ Monitore seu corpo atentamente. Qualquer mal-estar, volte à hidratação normal."
         
-        protocols.append({
-            "day": day,
+        protocol_data = {
+            "day": day_num,
             "day_name": day_name,
-            "days_to_competition": 7 - day,
+            "days_to_competition": days_remaining,
             "water_liters": water,
             "water_note": water_note,
             "sodium_mg": sodium,
             "sodium_note": sodium_note,
             "carb_strategy": carb_strategy,
-            "carb_grams_per_kg": carb_grams,
-            "carb_total_grams": round(carb_grams * weight),
+            "carb_grams_per_kg": carbs_per_kg,
+            "carb_total_grams": carbs_g,
             "carb_note": carb_note,
             "training_type": training,
             "training_note": training_note,
-            "general_notes": get_general_note(day),
-            "warning": warning
-        })
+            "general_notes": general_note,
+            "warning": warning,
+            
+            # Dados extras do protocolo oficial
+            "phase": phase,
+            "phase_name": diet.get("phase_name", ""),
+            "has_split": has_split,
+            "meals": diet.get("meals", []),
+            "macros": macros,
+        }
+        
+        # Se tem dados pós-pesagem, inclui
+        if post_diet:
+            post_macros = post_diet.get("target_macros", {})
+            protocol_data["post_weigh_in"] = {
+                "phase": post_diet.get("phase", "carb_up"),
+                "phase_name": post_diet.get("phase_name", "🔴 CARB-UP"),
+                "carbs_g": post_macros.get("carbs", 0),
+                "carbs_per_kg": round(post_macros.get("carbs", 0) / weight, 1) if weight > 0 else 0,
+                "meals": post_diet.get("meals", []),
+            }
+        
+        protocols.append(protocol_data)
+    
+    # Preenche dias faltantes se necessário
+    while len(protocols) < 7:
+        day_num = len(protocols) + 1
+        protocols.append(generate_fallback_protocol_day(day_num, weight, comp_date))
     
     return protocols
+
+
+def get_water_note_official(days_to_comp: int, liters: float) -> str:
+    """Notas de água baseadas nas regras oficiais"""
+    if days_to_comp >= 5:
+        return f"Hidratação alta ({liters}L). Distribua ao longo do dia."
+    elif days_to_comp >= 3:
+        return f"Transição ({liters}L). Corpo se ajustando."
+    elif days_to_comp >= 1:
+        return f"Controle ({liters}L). NUNCA abaixo de 2L!"
+    else:
+        return f"Dia D ({liters}L mínimo). MANTENHA-SE HIDRATADO!"
+
+
+def get_sodium_note_official(days_to_comp: int, mg: int) -> str:
+    """Notas de sódio baseadas nas regras oficiais"""
+    if days_to_comp >= 5:
+        return f"Sódio normal ({mg}mg). Tempere normalmente."
+    elif days_to_comp >= 3:
+        return f"Redução gradual ({mg}mg). Evite ultraprocessados."
+    elif days_to_comp >= 1:
+        return f"Sódio controlado ({mg}mg). NUNCA zero!"
+    else:
+        return f"Mínimo seguro ({mg}mg). Essencial para músculos!"
+
+
+def generate_fallback_protocol_day(day: int, weight: float, comp_date: datetime) -> dict:
+    """Gera dia de protocolo fallback se dados oficiais não disponíveis"""
+    days_of_week = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+    comp_weekday = comp_date.weekday()
+    day_offset = day - 7
+    day_weekday = (comp_weekday + day_offset) % 7
+    
+    return {
+        "day": day,
+        "day_name": days_of_week[day_weekday],
+        "days_to_competition": 7 - day,
+        "water_liters": max(2.0, 5.0 - (day * 0.4)),
+        "water_note": "Mantenha hidratação adequada",
+        "sodium_mg": max(500, 2000 - (day * 200)),
+        "sodium_note": "Controle de sódio gradual",
+        "carb_strategy": "depletion" if day <= 3 else "moderate" if day <= 5 else "loading",
+        "carb_grams_per_kg": 1.5 if day <= 3 else 2.5 if day <= 5 else 5.0,
+        "carb_total_grams": round((1.5 if day <= 3 else 2.5 if day <= 5 else 5.0) * weight),
+        "carb_note": "Siga o plano de carbs",
+        "training_type": "full_body" if day <= 2 else "light_pump" if day <= 4 else "posing",
+        "training_note": "Siga o plano de treino",
+        "general_notes": get_general_note(day),
+        "warning": None,
+    }
 
 
 def get_water_note(day: int, liters: float) -> str:
