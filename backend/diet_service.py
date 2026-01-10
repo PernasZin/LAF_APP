@@ -903,12 +903,12 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # Distribui carboidratos entre principal (70%) e complemento (30%)
             if carb_main and carb_main in FOODS:
                 # Carboidrato principal (arroz, batata, macarrão, etc) - 70% dos carbs
-                # Distribuição: 50% arroz/batata + 30% feijão/lentilha + 20% outro (ou vegetais)
-                carb_main_ratio = 0.50
-                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 350)
+                # Distribuição: 45% arroz/batata + 35% feijão/lentilha + 20% outro
+                carb_main_ratio = 0.45
+                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 320)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
-                # Carboidrato complementar (feijão, lentilha) - 30% dos carbs
+                # Carboidrato complementar (feijão, lentilha) - 35% dos carbs
                 carb_comp = None
                 for comp in carb_complement:
                     if comp != carb_main and comp in FOODS:
@@ -917,7 +917,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                             break
                 
                 if carb_comp:
-                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 60, 200)
+                    c_comp_grams = clamp((meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 250)
                     foods.append(calc_food(carb_comp, c_comp_grams))
                 
                 # Terceiro carb (20%) - adiciona farofa, polenta ou mandioca para variar
