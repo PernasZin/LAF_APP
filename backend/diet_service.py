@@ -962,9 +962,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     fat_priority_cafe = get_preferred_first(
         ["pasta_amendoim", "chia"], "fat")
     
-    # Extras doces para lanches (MÁXIMO 30g, apenas em lanches/café)
-    extras_priority = ["mel", "leite_condensado"]
-    
     fruit_priority = get_preferred_first(
         ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
          "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"], "fruit")
