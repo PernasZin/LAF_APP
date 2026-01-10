@@ -892,7 +892,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
          "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"], "protein")
     
     light_protein_priority_cafe = get_preferred_first(
-        ["ovos", "iogurte_grego", "iogurte_natural", "cottage", "claras"], "protein")
+        ["ovos", "iogurte_grego", "iogurte_natural", "claras"], "protein")
     
     light_protein_priority_ceia = get_preferred_first(
         ["cottage", "iogurte_grego", "iogurte_natural"], "protein")  # NUNCA OVOS NA CEIA!
