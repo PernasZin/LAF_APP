@@ -135,64 +135,11 @@ class WeightUpdateCheck(BaseModel):
     days_until_next_update: Optional[int] = None
 
 
-# ==================== PEAK WEEK MODELS ====================
-
-class PeakWeekProtocol(BaseModel):
-    """
-    Protocolo de Peak Week para atletas.
-    
-    IMPORTANTE: Este protocolo é APENAS informativo e deve ser
-    supervisionado por um profissional de saúde.
-    
-    SEGURANÇA:
-    - Nunca reduzir água abaixo de 2L/dia
-    - Manter sódio mínimo de 500mg/dia
-    - Monitorar sintomas de desidratação
-    """
-    day: int  # Dia da semana (1-7, onde 7 é o dia da competição)
-    day_name: str  # Ex: "Segunda", "Terça", etc.
-    
-    # Água (em litros) - NUNCA abaixo de 2L
-    water_liters: float = Field(ge=2.0, le=10.0)
-    water_note: str = ""
-    
-    # Sódio (em mg) - NUNCA abaixo de 500mg
-    sodium_mg: int = Field(ge=500, le=5000)
-    sodium_note: str = ""
-    
-    # Carboidratos (estratégia)
-    carb_strategy: str  # "depletion", "loading", "moderate"
-    carb_grams_per_kg: float  # Gramas por kg de peso
-    carb_note: str = ""
-    
-    # Treino
-    training_type: str  # "full_body", "light_pump", "rest", "posing"
-    training_note: str = ""
-    
-    # Observações gerais
-    general_notes: str = ""
-    warning: Optional[str] = None
-
-
-class PeakWeekPlan(BaseModel):
-    """Plano completo de Peak Week (7 dias)"""
-    user_id: str
-    competition_date: datetime
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    current_weight: float
-    target_weight: float
-    protocols: List[PeakWeekProtocol]
-    
-    # Avisos de segurança
-    safety_warnings: List[str] = []
-    disclaimer: str = "Este protocolo é APENAS informativo. Consulte um profissional de saúde."
-
-
 class NotificationReminder(BaseModel):
     """Lembrete/notificação para o usuário"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
-    type: str  # "weight_update", "peak_week", "general"
+    type: str  # "weight_update", "general"
     title: str
     message: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -201,41 +148,7 @@ class NotificationReminder(BaseModel):
     action_url: Optional[str] = None
 
 
-# ==================== ATHLETE PHASE HISTORY MODELS ====================
-
-class AthletePhaseRecord(BaseModel):
-    """Registro histórico de uma fase do atleta"""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    user_id: str
-    phase: str  # "off_season", "pre_contest", "peak_week", "post_show"
-    started_at: datetime
-    ended_at: Optional[datetime] = None
-    competition_date: Optional[datetime] = None
-    competition_name: Optional[str] = None
-    
-    # Dados no início da fase
-    start_weight: float
-    target_weight: Optional[float] = None
-    
-    # Dados no fim da fase (preenchido quando fase termina)
-    end_weight: Optional[float] = None
-    
-    # Notas e observações
-    notes: Optional[str] = None
-    
-    # Estatísticas da fase
-    stats: Optional[dict] = None
-
-
-class AthletePhaseHistoryCreate(BaseModel):
-    """Request para criar registro de fase"""
-    phase: str
-    competition_date: Optional[datetime] = None
-    competition_name: Optional[str] = None
-    notes: Optional[str] = None
-
-
-# ==================== WATER/SODIUM TRACKER MODELS ====================
+# ==================== WATER TRACKER MODELS ====================
 
 class WaterSodiumEntry(BaseModel):
     """Entrada de consumo de água/sódio"""
