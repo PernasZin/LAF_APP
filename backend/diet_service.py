@@ -823,7 +823,7 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
 
 def generate_diet(target_p: int, target_c: int, target_f: int,
                   preferred: Set[str], restrictions: List[str], meal_count: int = 6,
-                  original_preferred: Set[str] = None) -> List[Dict]:
+                  original_preferred: Set[str] = None, goal: str = "manutencao") -> List[Dict]:
     """
     Gera dieta seguindo regras rígidas por tipo de refeição.
     
@@ -845,11 +845,34 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     Parâmetros:
     - original_preferred: Preferências ORIGINAIS do usuário (antes do auto-complete)
                           Esses alimentos têm PRIORIDADE MÁXIMA
+    - goal: Objetivo do atleta (bulking, cutting, manutencao, atleta)
+            Afeta principalmente a quantidade de feijão
     """
     
     # Se não foi passado original_preferred, assume que preferred são as originais
     if original_preferred is None:
         original_preferred = preferred
+    
+    # ==================== QUANTIDADES DE FEIJÃO POR OBJETIVO ====================
+    # Regras específicas para quantidade de feijão baseado no objetivo
+    FEIJAO_POR_OBJETIVO = {
+        # BULK / OFF (ganho de massa): 160-180g por refeição
+        "bulking": {"min": 160, "max": 180},
+        
+        # MANUTENÇÃO: 130-160g por refeição
+        "manutencao": {"min": 130, "max": 160},
+        
+        # CUT / PREP: 100-130g por refeição
+        "cutting": {"min": 100, "max": 130},
+        
+        # ATLETA (peak week): 0-80g por refeição (ou evitar)
+        "atleta": {"min": 0, "max": 80},
+    }
+    
+    # Pega os limites de feijão para o objetivo atual
+    feijao_limits = FEIJAO_POR_OBJETIVO.get(goal, FEIJAO_POR_OBJETIVO["manutencao"])
+    feijao_min = feijao_limits["min"]
+    feijao_max = feijao_limits["max"]
     
     # ==================== PRIORIZAR ALIMENTOS SELECIONADOS ====================
     # Alimentos ORIGINAIS do usuário têm prioridade sobre auto-completados
