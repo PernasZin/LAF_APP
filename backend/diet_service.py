@@ -726,7 +726,10 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     # ==================== PRIORIZAR ALIMENTOS SELECIONADOS ====================
     # Se o usuário selecionou um alimento, ele DEVE aparecer na dieta
     
-    def get_preferred_first(default_list: List[str], category: str = None) -> List[str]:
+    # Alimentos que são complementos (não devem ser confundidos com carboidratos principais)
+    COMPLEMENT_FOODS = {"feijao", "lentilha"}
+    
+    def get_preferred_first(default_list: List[str], category: str = None, exclude_complements: bool = False) -> List[str]:
         """Retorna lista com alimentos preferidos primeiro, depois os defaults"""
         if not preferred:
             return default_list
@@ -736,6 +739,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         for p in preferred:
             if p in FOODS:
                 if category is None or FOODS[p]["category"] == category:
+                    # Se exclude_complements, não inclui feijão/lentilha na lista de carbs principais
+                    if exclude_complements and p in COMPLEMENT_FOODS:
+                        continue
                     pref_in_category.append(p)
         
         # Preferidos primeiro, depois defaults que não estão nos preferidos
@@ -757,16 +763,18 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     light_protein_priority_ceia = get_preferred_first(
         ["cottage", "iogurte_grego", "iogurte_natural"], "protein")  # NUNCA OVOS NA CEIA!
     
-    # Carboidratos principais (para almoço/jantar)
+    # Carboidratos principais (para almoço/jantar) - EXCLUI feijão/lentilha
     carb_priority = get_preferred_first(
-        ["arroz_branco", "arroz_integral", "batata_doce", "macarrao", "macarrao_integral"], "carb")
+        ["arroz_branco", "arroz_integral", "batata_doce", "macarrao", "macarrao_integral"], 
+        "carb", exclude_complements=True)
     
     # Carboidratos complementares (feijão, lentilha - para acompanhar)
     carb_complement = get_preferred_first(["feijao", "lentilha"], "carb")
     
-    # Carboidratos leves (para café da manhã)
+    # Carboidratos leves (para café da manhã) - EXCLUI feijão/lentilha
     light_carb_priority = get_preferred_first(
-        ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "granola"], "carb")
+        ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "granola"], 
+        "carb", exclude_complements=True)
     
     # Prioridade para lanches (proteínas leves com carbs)
     light_protein_priority_lanche = get_preferred_first(
