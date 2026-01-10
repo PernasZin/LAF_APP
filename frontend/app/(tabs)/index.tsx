@@ -419,7 +419,6 @@ export default function HomeScreen() {
                 {profile.goal === 'cutting' && t.home.cutting}
                 {profile.goal === 'bulking' && t.home.bulking}
                 {profile.goal === 'manutencao' && t.home.maintenance}
-                {profile.goal === 'peak' && t.home.peak}
                 {profile.goal === 'atleta' && `${t.home.athlete} - ${profile.competition_phase || 'Prep'}`}
                 {!profile.goal && 'Não definido'}
               </Text>
