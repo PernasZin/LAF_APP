@@ -83,6 +83,15 @@ export default function OnboardingScreen() {
   // Step validation keys for translation matching
   const stepValidationKeys = ['basicInfo', 'physicalData', 'trainingLevel', 'yourGoal', 'mealConfig', 'preferences'];
 
+  // Helper function for cross-platform alerts
+  const showAlert = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      window.alert(`${title}\n\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const validateCurrentStep = () => {
     console.log('Validating step:', currentStep, 'Data:', formData);
     
@@ -91,61 +100,50 @@ export default function OnboardingScreen() {
     switch (currentStepKey) {
       case 'basicInfo':
         if (!formData.name || !formData.age || !formData.sex) {
-          Alert.alert(t.requiredFields, t.fillNameAgeSex);
+          showAlert(t.requiredFields, t.fillNameAgeSex);
           return false;
         }
         if (parseInt(formData.age) < 15 || parseInt(formData.age) > 100) {
-          Alert.alert(t.requiredFields, t.invalidAge);
+          showAlert(t.requiredFields, t.invalidAge);
           return false;
         }
         break;
       
       case 'physicalData':
         if (!formData.height || !formData.weight) {
-          Alert.alert(t.requiredFields, t.fillHeightWeight);
+          showAlert(t.requiredFields, t.fillHeightWeight);
           return false;
         }
         if (parseFloat(formData.height) < 100 || parseFloat(formData.height) > 250) {
-          Alert.alert(t.requiredFields, t.invalidHeight);
+          showAlert(t.requiredFields, t.invalidHeight);
           return false;
         }
         if (parseFloat(formData.weight) < 30 || parseFloat(formData.weight) > 300) {
-          Alert.alert(t.requiredFields, t.invalidWeight);
+          showAlert(t.requiredFields, t.invalidWeight);
           return false;
         }
         break;
       
       case 'trainingLevel':
         if (!formData.training_level || !formData.weekly_training_frequency || !formData.available_time_per_session) {
-          Alert.alert(t.requiredFields, t.fillTrainingFields);
+          showAlert(t.requiredFields, t.fillTrainingFields);
           return false;
         }
         if (parseInt(formData.weekly_training_frequency) < 0 || parseInt(formData.weekly_training_frequency) > 7) {
-          Alert.alert(t.requiredFields, t.invalidFrequency);
+          showAlert(t.requiredFields, t.invalidFrequency);
           return false;
         }
         break;
       
       case 'yourGoal':
+        console.log('Validating goal step - goal:', formData.goal, 'date:', formData.athlete_competition_date);
         if (!formData.goal) {
-          if (Platform.OS === 'web') {
-            window.alert(t.selectGoal);
-          } else {
-            Alert.alert(t.requiredFields, t.selectGoal);
-          }
+          showAlert(t.requiredFields, t.selectGoal);
           return false;
         }
         // Se for atleta, data do campeonato é OBRIGATÓRIA
         if (formData.goal === 'atleta' && !formData.athlete_competition_date) {
-          if (Platform.OS === 'web') {
-            window.alert(t.dateRequiredMessage);
-          } else {
-            Alert.alert(
-              t.dateRequired, 
-              t.dateRequiredMessage,
-              [{ text: 'OK' }]
-            );
-          }
+          showAlert(t.dateRequired, t.dateRequiredMessage);
           return false;
         }
         break;
