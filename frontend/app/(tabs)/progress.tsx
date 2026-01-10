@@ -242,8 +242,6 @@ export default function ProgressScreen() {
   const canRecord = progressData?.can_record ?? true;
   const daysUntilNext = progressData?.days_until_next_record || 0;
   const stats = progressData?.stats || {};
-  const isAthlete = progressData?.is_athlete || false;
-  const athletePhase = progressData?.athlete_phase;
   const blockPeriod = progressData?.block_period_days || 14;
   const questionnaireAverages = stats.questionnaire_averages;
 
@@ -259,19 +257,9 @@ export default function ProgressScreen() {
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{t.progress.title}</Text>
           <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            {isAthlete ? `🏆 Modo Atleta - Registro semanal` : 'Acompanhe sua evolução'}
+            Acompanhe sua evolução
           </Text>
         </View>
-
-        {/* Athlete Phase Badge */}
-        {isAthlete && athletePhase && (
-          <View style={[styles.athletePhaseBadge, { backgroundColor: getPhaseColor(athletePhase) + '20' }]}>
-            <Ionicons name="trophy" size={16} color={getPhaseColor(athletePhase)} />
-            <Text style={[styles.athletePhaseText, { color: getPhaseColor(athletePhase) }]}>
-              {formatPhaseName(athletePhase)}
-            </Text>
-          </View>
-        )}
 
         {/* Notifications Card */}
         {notifications.length > 0 && (
@@ -284,8 +272,6 @@ export default function ProgressScreen() {
                   if (notif.action_url) {
                     if (notif.action_url === '/progress') {
                       handleOpenModal();
-                    } else if (notif.action_url === '/peak-week') {
-                      router.push('/peak-week');
                     }
                   }
                 }}
@@ -302,19 +288,6 @@ export default function ProgressScreen() {
               </TouchableOpacity>
             ))}
           </View>
-        )}
-
-        {/* Peak Week Button (for athletes in peak week) */}
-        {isAthlete && athletePhase === 'peak_week' && (
-          <TouchableOpacity 
-            style={[styles.peakWeekButton, { backgroundColor: '#EF4444' }]}
-            onPress={() => router.push('/peak-week')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="flame" size={20} color="#fff" />
-            <Text style={styles.peakWeekButtonText}>🏆 Ver Protocolo Peak Week</Text>
-            <Ionicons name="chevron-forward" size={20} color="#fff" />
-          </TouchableOpacity>
         )}
 
         {/* Current Weight Card */}
