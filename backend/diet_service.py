@@ -1880,6 +1880,11 @@ class DietAIService:
         - NUNCA retorna alimento com 0g
         - SEMPRE retorna dieta válida e utilizável
         
+        🏆 MODO ATLETA:
+        - Em PREP e PEAK_WEEK: usa apenas alimentos LIMPOS
+        - Remove processados/ultraprocessados
+        - Peak Week: alimentos ultra-selecionados para máximo controle
+        
         Parâmetros:
         - meal_count: 4, 5 ou 6 refeições por dia
         - meal_times: lista opcional com horários personalizados
@@ -1890,6 +1895,10 @@ class DietAIService:
         dietary_restrictions = user_profile.get('dietary_restrictions', [])
         goal = user_profile.get('goal', 'manutencao')
         
+        # ==================== MODO ATLETA - ALIMENTOS LIMPOS ====================
+        competition_phase = user_profile.get('competition_phase')
+        is_athlete = goal == 'atleta' or user_profile.get('athlete_mode', False)
+        
         # Converte preferências para chaves normalizadas
         raw_preferred = get_user_preferred_foods(food_preferences)
         
@@ -1897,6 +1906,20 @@ class DietAIService:
         preferred_foods, auto_completed, auto_message = smart_auto_complete(
             raw_preferred, dietary_restrictions, goal
         )
+        
+        # 🏆 FILTRO DE ATLETA: Remove alimentos processados em fases de preparação
+        if is_athlete and competition_phase:
+            preferred_foods = filter_foods_for_athlete(preferred_foods, competition_phase)
+            
+            # Atualiza mensagem se filtrou alimentos
+            if competition_phase in ["pre_contest", "peak_week"]:
+                phase_name = "Peak Week" if competition_phase == "peak_week" else "Preparação"
+                filter_msg = f"🏆 Modo {phase_name}: Apenas alimentos limpos selecionados para máximo controle."
+                if auto_message:
+                    auto_message = f"{filter_msg}\n{auto_message}"
+                else:
+                    auto_message = filter_msg
+                auto_completed = True
         
         supplements = get_user_supplements(food_preferences)
         
@@ -1919,8 +1942,9 @@ class DietAIService:
         # Passa meal_count para gerar a quantidade correta de refeições
         # IMPORTANTE: Passa raw_preferred (originais do usuário) para priorização
         # IMPORTANTE: Passa goal para ajustar quantidade de feijão
+        # IMPORTANTE: Passa competition_phase para lógicas específicas de atleta
         meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions, meal_count,
-                              original_preferred=raw_preferred, goal=goal)
+                              original_preferred=raw_preferred, goal=goal, competition_phase=competition_phase)
         
         # Fine-tune (múltiplas rodadas se necessário)
         for _ in range(5):  # Aumentado para 5 tentativas
