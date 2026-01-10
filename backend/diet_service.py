@@ -1116,7 +1116,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
             
             if protein and protein in FOODS:
-                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, 300)
+                # LIMITE COTTAGE: Máximo 150g (não 300g que é 1 pote inteiro)
+                max_protein = 150 if protein in ["cottage", "iogurte_grego", "iogurte_natural"] else 200
+                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 80, max_protein)
                 foods.append(calc_food(protein, p_grams))
             
             if fruit and fruit in FOODS:
