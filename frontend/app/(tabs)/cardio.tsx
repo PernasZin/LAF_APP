@@ -353,18 +353,48 @@ export default function CardioScreen() {
                     </View>
                   </View>
 
-                  {/* Substitutos */}
-                  {selectedExercise.substitutes && selectedExercise.substitutes.length > 0 && (
+                  {/* Substitutos com tempo equivalente */}
+                  {selectedExercise.substitutes_detailed && selectedExercise.substitutes_detailed.length > 0 && (
                     <View style={styles.detailSection}>
                       <Text style={[styles.detailLabel, { color: colors.textSecondary }]}>
                         {language === 'en-US' ? 'Can be substituted by:' : 
                          language === 'es-ES' ? 'Puede sustituirse por:' : 
                          'Pode ser substituído por:'}
                       </Text>
-                      {selectedExercise.substitutes.map((sub, idx) => (
-                        <View key={idx} style={[styles.substituteItem, { borderColor: colors.border }]}>
-                          <Ionicons name="swap-horizontal" size={16} color={colors.primary} />
-                          <Text style={[styles.substituteText, { color: colors.text }]}>{sub}</Text>
+                      {selectedExercise.substitutes_detailed.map((sub, idx) => (
+                        <View key={idx} style={[styles.substituteItemDetailed, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}>
+                          <View style={styles.substituteHeader}>
+                            <Ionicons name="swap-horizontal" size={18} color={colors.primary} />
+                            <Text style={[styles.substituteNameText, { color: colors.text }]}>
+                              {getLocalizedText(sub.name, sub.name_en, sub.name_es)}
+                            </Text>
+                          </View>
+                          <View style={styles.substituteTimeRow}>
+                            <View style={[styles.timeBox, { backgroundColor: colors.warning + '20' }]}>
+                              <Text style={[styles.timeBoxLabel, { color: colors.textSecondary }]}>
+                                {language === 'en-US' ? 'Original' : 'Original'}
+                              </Text>
+                              <Text style={[styles.timeBoxValue, { color: colors.warning }]}>
+                                {sub.original_duration} min
+                              </Text>
+                            </View>
+                            <Ionicons name="arrow-forward" size={20} color={colors.textTertiary} />
+                            <View style={[styles.timeBox, { backgroundColor: colors.success + '20' }]}>
+                              <Text style={[styles.timeBoxLabel, { color: colors.textSecondary }]}>
+                                {language === 'en-US' ? 'Equivalent' : language === 'es-ES' ? 'Equivalente' : 'Equivalente'}
+                              </Text>
+                              <Text style={[styles.timeBoxValue, { color: colors.success }]}>
+                                {sub.equivalent_duration} min
+                              </Text>
+                            </View>
+                          </View>
+                          <Text style={[styles.substituteNote, { color: colors.textTertiary }]}>
+                            {language === 'en-US' 
+                              ? `Do ${sub.equivalent_duration} min to burn same calories`
+                              : language === 'es-ES'
+                              ? `Haz ${sub.equivalent_duration} min para quemar las mismas calorías`
+                              : `Faça ${sub.equivalent_duration} min para queimar as mesmas calorias`}
+                          </Text>
                         </View>
                       ))}
                     </View>
