@@ -121,19 +121,45 @@ class UserProfileUpdate(BaseModel):
 
 # ==================== PROGRESS MODELS ====================
 
+class QuestionnaireResponse(BaseModel):
+    """Respostas do questionário de acompanhamento (0-10)"""
+    diet: int = Field(ge=0, le=10, description="Como foi sua dieta? (0-10)")
+    training: int = Field(ge=0, le=10, description="Como foram seus treinos? (0-10)")
+    cardio: int = Field(ge=0, le=10, description="Como foi seu cardio? (0-10)")
+    sleep: int = Field(ge=0, le=10, description="Como foi seu sono? (0-10)")
+    hydration: int = Field(ge=0, le=10, description="Como foi sua hidratação? (0-10)")
+
+
 class WeightRecord(BaseModel):
-    """Registro de peso do usuário"""
+    """Registro de peso do usuário com questionário de acompanhamento"""
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
     weight: float  # em kg
     recorded_at: datetime = Field(default_factory=datetime.utcnow)
     notes: Optional[str] = None
+    # Questionário de acompanhamento
+    questionnaire: Optional[QuestionnaireResponse] = None
+    # Fase do atleta (se aplicável)
+    athlete_phase: Optional[str] = None
+    # Média do questionário
+    questionnaire_average: Optional[float] = None
 
 
 class WeightRecordCreate(BaseModel):
-    """Request para criar registro de peso"""
+    """Request para criar registro de peso com questionário"""
     weight: float  # em kg
     notes: Optional[str] = None
+    # Questionário obrigatório
+    questionnaire: QuestionnaireResponse
+
+
+class WeightUpdateCheck(BaseModel):
+    """Resposta para verificação se pode atualizar peso"""
+    can_update: bool
+    reason: Optional[str] = None
+    last_update: Optional[datetime] = None
+    next_update_allowed: Optional[datetime] = None
+    days_until_next_update: Optional[int] = None
 
 
 # ==================== SETTINGS MODELS ====================
