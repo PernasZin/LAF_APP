@@ -722,36 +722,71 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     🍎 Lanches: frutas + iogurte/cottage + castanhas/amêndoas (SEM carnes, SEM ovos, SEM azeite)
     🍽️ Almoço/Jantar: 1 proteína + carboidratos (pode ter múltiplos) + azeite
     🌙 Ceia: proteína leve (iogurte/cottage) + frutas - NUNCA OVOS NA CEIA!
+    
+    ⭐ REGRA IMPORTANTE: Todos os alimentos selecionados pelo usuário DEVEM aparecer na dieta!
     """
     
-    # Prioridades por categoria - MAIS VARIEDADE
-    protein_priority = ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos", 
-                        "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"]
-    light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage", "claras"]
-    light_protein_priority_ceia = ["cottage", "iogurte_grego"]  # NUNCA OVOS NA CEIA!
+    # ==================== PRIORIZAR ALIMENTOS SELECIONADOS ====================
+    # Se o usuário selecionou um alimento, ele DEVE aparecer na dieta
+    
+    def get_preferred_first(default_list: List[str], category: str = None) -> List[str]:
+        """Retorna lista com alimentos preferidos primeiro, depois os defaults"""
+        if not preferred:
+            return default_list
+        
+        # Filtra preferidos que são da categoria (se especificada) e existem no FOODS
+        pref_in_category = []
+        for p in preferred:
+            if p in FOODS:
+                if category is None or FOODS[p]["category"] == category:
+                    pref_in_category.append(p)
+        
+        # Preferidos primeiro, depois defaults que não estão nos preferidos
+        result = pref_in_category.copy()
+        for d in default_list:
+            if d not in result and d in FOODS:
+                result.append(d)
+        
+        return result if result else default_list
+    
+    # Prioridades por categoria - COM PREFERÊNCIAS DO USUÁRIO PRIMEIRO
+    protein_priority = get_preferred_first(
+        ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos", 
+         "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"], "protein")
+    
+    light_protein_priority_cafe = get_preferred_first(
+        ["ovos", "iogurte_grego", "iogurte_natural", "cottage", "claras"], "protein")
+    
+    light_protein_priority_ceia = get_preferred_first(
+        ["cottage", "iogurte_grego", "iogurte_natural"], "protein")  # NUNCA OVOS NA CEIA!
     
     # Carboidratos principais (para almoço/jantar)
-    carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", 
-                     "macarrao_integral", "quinoa", "cuscuz", "grao_de_bico", "milho"]
+    carb_priority = get_preferred_first(
+        ["arroz_branco", "arroz_integral", "batata_doce", "macarrao", "macarrao_integral"], "carb")
     
     # Carboidratos complementares (feijão, lentilha - para acompanhar)
-    carb_complement = ["feijao", "lentilha", "grao_de_bico"]
+    carb_complement = get_preferred_first(["feijao", "lentilha"], "carb")
     
     # Carboidratos leves (para café da manhã)
-    light_carb_priority = ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "cuscuz", 
-                           "granola", "cereal_integral", "torrada"]
+    light_carb_priority = get_preferred_first(
+        ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "granola"], "carb")
     
     # Prioridade para lanches (proteínas leves com carbs)
-    light_protein_priority_lanche = ["iogurte_grego", "iogurte_natural", "cottage", "leite"]
+    light_protein_priority_lanche = get_preferred_first(
+        ["iogurte_grego", "iogurte_natural", "cottage"], "protein")
     
-    fat_priority_lanche = ["castanhas", "amendoas", "nozes", "pasta_amendoim"]
-    fat_priority_cafe = ["pasta_amendoim", "chia", "linhaca"]
+    fat_priority_lanche = get_preferred_first(
+        ["castanhas", "amendoas", "nozes", "pasta_amendoim"], "fat")
+    
+    fat_priority_cafe = get_preferred_first(
+        ["pasta_amendoim", "chia"], "fat")
     
     # Extras doces para lanches (MÁXIMO 30g, apenas em lanches/café)
     extras_priority = ["mel", "leite_condensado"]
     
-    fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
-                      "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"]
+    fruit_priority = get_preferred_first(
+        ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
+         "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"], "fruit")
     
     meals = []
     
