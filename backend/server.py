@@ -833,7 +833,7 @@ async def get_food_substitutes(diet_id: str, food_key: str):
     
     # Obtém categoria do alimento
     category = original_food.get("category", "")
-    if not category or category not in ["protein", "carb", "fat", "fruit"]:
+    if not category or category not in ["protein", "carb", "fat", "fruit", "vegetable"]:
         raise HTTPException(status_code=400, detail="Categoria do alimento não suporta substituição")
     
     # Busca alimentos da mesma categoria
@@ -857,6 +857,10 @@ async def get_food_substitutes(diet_id: str, food_key: str):
                 # Mantém carboidrato (frutas são fonte de carb)
                 target_macro = original_food.get("carbs", 0)
                 macro_per_100 = food_data.get("c", 1)
+            elif category == "vegetable":
+                # Para vegetais, mantém a mesma quantidade em gramas (não têm macro principal)
+                target_macro = original_food.get("grams", 100)
+                macro_per_100 = 100  # Proporção 1:1 em gramas
             else:
                 continue
             
@@ -864,7 +868,10 @@ async def get_food_substitutes(diet_id: str, food_key: str):
                 continue
             
             # Calcula nova quantidade (múltiplo de 10)
-            new_grams = round((target_macro / macro_per_100) * 100 / 10) * 10
+            if category == "vegetable":
+                new_grams = original_food.get("grams", 100)  # Mantém mesma quantidade
+            else:
+                new_grams = round((target_macro / macro_per_100) * 100 / 10) * 10
             new_grams = max(10, min(500, new_grams))  # Limita entre 10g e 500g
             
             # Calcula novos macros
