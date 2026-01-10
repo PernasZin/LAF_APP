@@ -97,6 +97,139 @@ RESTRICTION_EXCLUSIONS = {
 }
 
 
+# ==================== ALIMENTOS LIMPOS PARA ATLETA ====================
+# Alimentos PROCESSADOS/ULTRAPROCESSADOS que NÃO devem aparecer em dietas de atletas
+# durante as fases de PREP e PEAK_WEEK
+# Filosofia: Atleta em preparação precisa de alimentos LIMPOS para:
+# - Melhor controle de sódio e retenção
+# - Maior previsibilidade de resposta do corpo
+# - Qualidade nutricional superior
+
+PROCESSED_FOODS = {
+    # Carnes processadas
+    "carne_moida",      # Preferir cortes inteiros
+    
+    # Laticínios processados
+    "cream_cheese",     # Alto sódio, aditivos
+    "queijo",           # Preferir cottage ou iogurte grego
+    "cottage",          # Removido por padrão (alto sódio em algumas marcas)
+    "requeijao_light",  # Processado
+    
+    # Pães e massas processados
+    "pao",              # Pão francês - muito sódio e aditivos
+    "pao_forma",        # Pão de forma - conservantes
+    "macarrao",         # Preferir arroz ou batata
+    
+    # Cereais processados
+    "granola",          # Alto açúcar, aditivos
+    "farofa",           # Processado, difícil controle
+    
+    # Extras
+    "leite_condensado", # Ultraprocessado
+    "mel",              # Ok em pequenas quantidades, mas remover para max controle
+}
+
+# Alimentos LIMPOS recomendados para atleta em PREP/PEAK
+CLEAN_FOODS_ATHLETE = {
+    # PROTEÍNAS LIMPAS (preferência)
+    "frango",           # Peito de frango - melhor opção
+    "tilapia",          # Peixe magro
+    "atum",             # Em água, sem conservantes
+    "claras",           # Claras de ovo
+    "ovos",             # Ovos inteiros (com moderação)
+    "patinho",          # Carne magra
+    
+    # CARBOIDRATOS LIMPOS (preferência)
+    "arroz_branco",     # Fácil digestão, controle de porção
+    "arroz_integral",   # Mais fibras
+    "batata_doce",      # Excelente para atletas
+    "aveia",            # Fibras, energia sustentada
+    
+    # GORDURAS LIMPAS (preferência)
+    "azeite",           # Gordura saudável
+    "castanhas",        # Naturais, sem sal
+    "amendoas",         # Naturais, sem sal
+    "pasta_amendoim",   # Apenas amendoim, sem açúcar
+    
+    # VEGETAIS (todos são limpos)
+    "brocolis", "espinafre", "couve", "alface", "rucola",
+    "couve_flor", "cenoura", "abobrinha", "pepino", "tomate",
+    "vagem", "pimentao", "salada", "beterraba",
+    
+    # FRUTAS (naturais)
+    "banana", "maca", "laranja", "morango", "mamao",
+    "melancia", "abacaxi", "melao", "kiwi", "pera",
+}
+
+# ==================== REGRAS ESPECIAIS PEAK WEEK ====================
+# Peak Week: Ajustes finais de água, sódio e carboidratos
+# Características:
+# - Carboidratos MUITO controlados (carb cycling)
+# - Sódio ZERO ou mínimo
+# - Água controlada
+# - Alimentos ultra simples
+
+PEAK_WEEK_ALLOWED = {
+    # Proteínas ultra limpas
+    "frango", "tilapia", "claras",
+    
+    # Carbs simples (para depleção/carga)
+    "arroz_branco", "batata_doce",
+    
+    # Zero gordura adicionada (ou mínimo azeite)
+    "azeite",
+    
+    # Vegetais com baixo sódio
+    "brocolis", "espinafre", "pepino", "abobrinha",
+}
+
+
+def filter_foods_for_athlete(foods: Set[str], competition_phase: str) -> Set[str]:
+    """
+    Filtra alimentos para atletas baseado na fase de competição.
+    
+    REGRAS:
+    - OFF_SEASON: Todos os alimentos permitidos (fase de construção)
+    - PRE_CONTEST: Remove processados, mantém alimentos limpos
+    - PEAK_WEEK: Apenas alimentos ultra-limpos (máximo controle)
+    - POST_SHOW: Todos permitidos (recuperação)
+    
+    Args:
+        foods: Set de alimentos disponíveis
+        competition_phase: Fase atual do atleta
+    
+    Returns:
+        Set de alimentos filtrados para a fase
+    """
+    if not competition_phase:
+        return foods
+    
+    phase = competition_phase.lower()
+    
+    if phase == "off_season" or phase == "post_show":
+        # Fases de construção/recuperação: tudo permitido
+        return foods
+    
+    elif phase == "pre_contest":
+        # Remove alimentos processados
+        filtered = foods - PROCESSED_FOODS
+        # Garante que ainda tem alimentos suficientes
+        if len(filtered) < 10:
+            # Adiciona alimentos limpos básicos
+            filtered.update({"frango", "arroz_branco", "batata_doce", "azeite", "banana", "brocolis"})
+        return filtered
+    
+    elif phase == "peak_week":
+        # Apenas alimentos permitidos na peak week
+        filtered = foods & PEAK_WEEK_ALLOWED
+        # Garante mínimo para gerar dieta
+        if len(filtered) < 6:
+            filtered.update({"frango", "arroz_branco", "batata_doce", "azeite", "brocolis", "claras"})
+        return filtered
+    
+    return foods
+
+
 # ==================== NORMALIZAÇÃO ====================
 
 FOOD_NORMALIZATION = {
