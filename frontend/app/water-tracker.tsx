@@ -484,7 +484,6 @@ const createStyles = (colors: any) => StyleSheet.create({
     borderWidth: 1, 
     alignItems: 'center' 
   },
-  circularProgress: { position: 'absolute', top: 16 },
   progressEmoji: { fontSize: 28, marginTop: 130 },
   progressValue: { fontSize: 24, fontWeight: '700', marginTop: 8 },
   progressTarget: { fontSize: 12, marginTop: 2 },
