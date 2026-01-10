@@ -111,7 +111,6 @@ const GENERAL_FOODS: Record<string, FoodItem[]> = {
     { id: 'walnuts', namePt: 'Nozes', selectable: true },
     { id: 'cheese', namePt: 'Queijo', selectable: true },
     { id: 'chia', namePt: 'Chia', selectable: true },
-    { id: 'flaxseed', namePt: 'Linhaça', selectable: true },
   ],
   fruits: [
     { id: 'banana', namePt: 'Banana', selectable: true },
