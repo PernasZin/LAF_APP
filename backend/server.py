@@ -333,56 +333,60 @@ def calculate_macros(target_calories: float, weight: float, goal: str, competiti
 
 # ==================== HELPER FUNCTIONS ====================
 
-VALID_COMPETITION_PHASES = ["off_season", "pre_prep", "prep", "peak_week", "post_show"]
+VALID_COMPETITION_PHASES = ["off_season", "pre_contest", "peak_week", "post_show"]
 
 def calculate_weeks_to_competition(competition_date: datetime) -> int:
     """Calcula semanas até a competição baseado na data"""
     now = datetime.utcnow()
     if competition_date <= now:
-        return 0  # Competição já passou
+        return -1  # Competição já passou (negativo)
     
     delta = competition_date - now
     weeks = delta.days // 7
-    return max(0, weeks)
+    return weeks
 
 def derive_phase_from_date(competition_date: datetime) -> Tuple[str, int]:
     """
     LÓGICA DE FASES AUTOMÁTICAS baseada na data do campeonato.
     
-    Mapeamento:
-    - > 20 semanas → OFF_SEASON
-    - 16 a 20 semanas → PRE_PREP
-    - 8 a 15 semanas → PREP  
-    - 0 a 7 semanas → PEAK_WEEK
-    - data passou → POST_SHOW
+    Mapeamento CORRIGIDO:
+    - > 16 semanas → OFF_SEASON (construção de massa)
+    - 2 a 16 semanas → PRE_CONTEST (perda de gordura e definição)
+    - 0 a 2 semanas → PEAK_WEEK (ajustes finais de água e carbs)
+    - data passou → POST_SHOW (recuperação)
     
     Returns: (phase, weeks_to_competition)
     """
-    weeks = calculate_weeks_to_competition(competition_date)
+    now = datetime.utcnow()
     
-    if weeks > 20:
+    # Verifica se a competição já passou
+    if competition_date <= now:
+        return "post_show", -1
+    
+    # Calcula dias restantes
+    delta = competition_date - now
+    days = delta.days
+    weeks = days // 7
+    
+    # Determina a fase baseado nas semanas
+    if weeks > 16:
         return "off_season", weeks
-    elif weeks >= 16:
-        return "pre_prep", weeks
-    elif weeks >= 8:
-        return "prep", weeks
-    elif weeks >= 1:
-        return "peak_week", weeks
+    elif weeks >= 2:
+        return "pre_contest", weeks
     else:
-        return "post_show", weeks
+        # Menos de 2 semanas (14 dias) = Peak Week
+        return "peak_week", weeks
 
 def derive_phase_from_weeks(weeks: int) -> str:
     """Derives competition phase from weeks to competition (legacy)"""
-    if weeks > 20:
-        return "off_season"
-    elif weeks >= 16:
-        return "pre_prep"
-    elif weeks >= 8:
-        return "prep"
-    elif weeks >= 1:
-        return "peak_week"
-    else:
+    if weeks < 0:
         return "post_show"
+    elif weeks > 16:
+        return "off_season"
+    elif weeks >= 2:
+        return "pre_contest"
+    else:
+        return "peak_week"
 
 # ==================== ROUTES ====================
 
