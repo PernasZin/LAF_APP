@@ -823,7 +823,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food("frango", 200))
             
             if carb and carb in FOODS:
-                c_grams = clamp(meal_c / max(FOODS[carb]["c"] / 100, 0.1), 150, 500)
+                c_grams = clamp(meal_c / max(FOODS[carb]["c"] / 100, 0.1), 150, 700)
                 foods.append(calc_food(carb, c_grams))
             else:
                 foods.append(calc_food("arroz_branco", 250))
@@ -835,7 +835,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food("brocolis", 100))
             
             # Azeite
-            azeite_grams = clamp(meal_f * 0.5 / 1.0, 10, 40)
+            azeite_grams = clamp(meal_f * 0.5 / 1.0, 10, 50)
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'ceia':
