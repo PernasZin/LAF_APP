@@ -463,13 +463,23 @@ def smart_auto_complete(preferred: Set[str], restrictions: List[str], goal: str 
                     break
     
     # Auto-complete CARBOIDRATOS (mínimo 3)
+    # REGRA: Se já tem um tipo de arroz, não adiciona outro
+    TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
+    tem_arroz = any(c in TIPOS_ARROZ for c in carbs)
+    
     if len(carbs) < MIN_CARBS:
         for default_c in DEFAULT_CARBS:
+            # Se já tem um tipo de arroz, pula outros tipos
+            if tem_arroz and default_c in TIPOS_ARROZ:
+                continue
             if default_c not in filter_by_restrictions({default_c}, restrictions):
                 continue
             if default_c in FOODS and default_c not in final_foods:
                 final_foods.add(default_c)
                 auto_added.append(FOODS[default_c]["name"])
+                # Atualiza flag se adicionou arroz
+                if default_c in TIPOS_ARROZ:
+                    tem_arroz = True
                 if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "carb"]) >= MIN_CARBS:
                     break
     
