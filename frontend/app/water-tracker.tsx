@@ -311,24 +311,6 @@ export default function WaterSodiumTrackerScreen() {
           </View>
         </View>
 
-        {/* Peak Week Protocol Info */}
-        {is_peak_week && peakWeekData && (
-          <TouchableOpacity 
-            style={[styles.peakWeekCard, { backgroundColor: '#EF4444' + '15', borderColor: '#EF4444' }]}
-            onPress={() => router.push('/peak-week')}
-          >
-            <View style={styles.peakWeekHeader}>
-              <Text style={[styles.peakWeekTitle, { color: '#EF4444' }]}>
-                🏆 Protocolo Peak Week - Dia {currentDay}
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color="#EF4444" />
-            </View>
-            <Text style={[styles.peakWeekInfo, { color: colors.textSecondary }]}>
-              Toque para ver o protocolo completo do dia
-            </Text>
-          </TouchableOpacity>
-        )}
-
         {/* History Link */}
         <TouchableOpacity 
           style={[styles.historyButton, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}
