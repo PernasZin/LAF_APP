@@ -1351,9 +1351,9 @@ async def get_weight_history(user_id: str, days: int = 365):
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    # Determina período de bloqueio baseado no objetivo
+    # Bloqueio de 7 dias para todos
+    block_days = 7
     is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
-    block_days = 7 if is_athlete else 14
     
     # Busca registros dos últimos N dias
     from_date = datetime.utcnow() - timedelta(days=days)
