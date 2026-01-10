@@ -289,7 +289,7 @@ export default function RestrictionsStep({ data, updateData, language }: Props) 
       <View style={styles.infoBox}>
         <Ionicons name="information-circle-outline" size={18} color="#6B7280" />
         <Text style={styles.infoText}>
-          {isAthlete ? t.athleteInfoBox : t.generalInfoBox}
+          {t.generalInfoBox}
         </Text>
       </View>
 
