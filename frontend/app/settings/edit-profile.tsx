@@ -82,18 +82,6 @@ export default function EditProfileScreen() {
             setGoal(data.goal || 'bulking');
             setOriginalGoal(data.goal || 'bulking');
             
-            // Carrega data de competição se existir (atleta)
-            if (data.athlete_competition_date || data.competition_date) {
-              const dateStr = data.athlete_competition_date || data.competition_date;
-              try {
-                const parsedDate = new Date(dateStr);
-                if (!isNaN(parsedDate.getTime())) {
-                  setCompetitionDate(parsedDate);
-                }
-              } catch (e) {
-                console.warn('Erro ao parsear data de competição:', e);
-              }
-            }
           }
         } catch (err) {
           const profileData = await AsyncStorage.getItem('userProfile');
@@ -146,29 +134,16 @@ export default function EditProfileScreen() {
       return;
     }
 
-    // Validação específica para atleta
-    if (goal === 'atleta' && !competitionDate) {
-      errorFeedback();
-      showError('Data do campeonato é obrigatória para atletas');
-      return;
-    }
-
     setSaving(true);
     mediumImpact(); // Haptic ao iniciar
     try {
       if (!userId || !BACKEND_URL) throw new Error('Usuário não encontrado');
 
-      // 1. Atualiza perfil com objetivo e data de competição
+      // 1. Atualiza perfil com objetivo
       const profilePayload: any = {
         name: name.trim(),
         goal: goal,
       };
-      
-      // Adiciona data de competição se for atleta
-      if (goal === 'atleta' && competitionDate) {
-        profilePayload.athlete_competition_date = competitionDate.toISOString().split('T')[0];
-        profilePayload.competition_date = competitionDate.toISOString().split('T')[0];
-      }
 
       const profileResponse = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
         method: 'PUT',
