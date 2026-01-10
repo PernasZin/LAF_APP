@@ -1,104 +1,193 @@
 <analysis>
-**original_problem_statement**: The user's initial goal was to achieve full internationalization (i18n) for the application in Portuguese, English, and Spanish. After completing static and dynamic content translations, the user requested the translation of the entire onboarding flow. Upon completion of that task, the user made a new request to add a language selector directly on the login screen so that new users can choose their language before creating an account or logging in.
+
+**original_problem_statement**: The user initially requested a series of improvements and bug fixes for a diet and fitness application. The requests included:
+1.  A visual overhaul of the application.
+2.  Restricting new users from logging their weight for the first 14 days.
+3.  Removing the weight field from the user profile screen.
+4.  Implementing strict business logic for diet generation, including a rule to forbid eggs in the 'Ceia' (supper) meal and specific rules for calculating fat macros based on the user's goal and body weight.
+5.  Changing the names of user goals (e.g., 'bulking' to 'Off-Season'), which was later reverted by the user.
+6.  Adding a feature for users to configure the number of daily meals (4, 5, or 6) and customize their meal times.
+7.  Implementing a complete cardio planning system, including exercise suggestions, substitutions, and progress tracking.
+8.  Fixing numerous bugs related to state management, such as the diet plan not updating when settings are changed, and UI components not rendering correctly.
+9.  Refining the cardio substitution feature to show the equivalent workout time for alternative exercises.
+10. Correcting the logic for determining an athlete's competition phase (e.g., 'Peak Week', 'Off-Season').
 
 **User's preferred language**: Portuguese (Brasil)
 
 **what currently exists?**
-- A full-stack application with a FastAPI backend and a React Native (Expo) frontend.
-- A comprehensive i18n system using  covering:
-    - All static UI elements.
-    - Dynamic content (food, exercises) from the backend.
-    - The entire multi-step onboarding flow.
-- A new language selector component has been added to the login screen (). This component allows users to switch between Portuguese, English, and Spanish, and the change is reflected instantly on the login page UI.
+- A full-stack application with a FastAPI backend and an Expo (React Native) frontend.
+- A comprehensive internationalization (i18n) system.
+- The UI has been visually updated with new colors, fonts, and spacing.
+- The backend has complex, rule-based generation for diet plans (no eggs in supper, specific fat calculations) and cardio plans.
+- A meal configuration system is in place, allowing users to select 4, 5, or 6 meals and set custom times via a dedicated settings screen.
+- A new Cardio tab and screen have been added, which displays a generated cardio plan.
+- The Edit Profile screen has been heavily modified to include an option for Athlete and a competition date selector, although it is currently buggy.
+- The backend logic for athlete competition phases has been corrected to properly calculate the phase based on the time until the competition date.
 
 **Last working item**:
-    - **Last item agent was working**: Implementing and testing a language selector on the login screen. This involved adding a UI element (a button with a flag and language name), a modal for language selection, and the state management and  logic to update the application's language in real-time.
-    - **Status**: USER VERIFICATION PENDING
-    - **Agent Testing Done**: Y (Agent used the screenshot tool to verify the UI element's presence, the modal's functionality, and the successful UI translation after selecting a new language).
-    - **Which testing method agent to use?**: NA. The next step is to ask the user to test and confirm.
-    - **User Testing Done**: N
+    - Last item agent was working: The agent was working on a multi-part task to address several user-reported bugs simultaneously:
+        1.  **Cardio Substitutions**: Implementing the logic to show the equivalent time needed for a substitute cardio exercise (e.g., 30 min Bike is equivalent to 45 min Walk).
+        2.  **Date Picker Fix**: The user reported that the date picker on the Edit Profile screen was broken (only shows confirm). The agent was in the process of replacing the faulty native  with a custom-built manual date picker using  components for day, month, and year.
+        3.  **Diet Compaction**: The user reported that when changing the number of meals, the diet plan becomes empty. The agent's previous fix (deleting the cached diet) caused this. The next step is to adjust the backend to properly redistribute the existing food items across the new number of meals instead of starting from scratch.
+    - Status: IN PROGRESS
+    - Agent Testing Done: N
+    - Which testing method agent to use? both
+    - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - There are no pending or in-progress issues. The agent has addressed all user requests to date.
+  - Issue 1: Date picker on the Edit Profile screen is broken. (P0)
+  - Issue 2: Changing the number of meals in settings causes the diet plan to become empty. (P1)
+  - Issue 3: Changing the user's goal in Edit Profile does not update the macros on the Home screen or the cardio plan. (P2)
+  - Issue 4: Cardio substitution UI needs to display the equivalent workout time. (P3)
+  - Issue 5: A new complex business rule for athlete phase transitions needs to be implemented. (P4)
+
+  Issues Detail:
+  - **Issue 1: Date picker on the Edit Profile screen is broken.**
+     - **Attempted fixes**: The agent identified that the standard  was not working correctly in the web preview environment. The agent started creating a custom, manual date picker component directly within  using s. This work is incomplete.
+     - **Next debug checklist**:
+         1. Complete the implementation of the manual date picker UI in .
+         2. Ensure the state of the custom picker correctly updates the  state variable.
+         3. Verify that the selected date is correctly saved when the user presses Save.
+     - **Why fix this issue and what will be achieved with the fix?**: The Athlete feature is unusable without a working date picker to set the competition date. Fixing this will complete the Edit Profile functionality for athletes.
+     - **Status**: IN PROGRESS
+     - **Is recurring issue?**: N
+     - **Should Test frontend/backend/both after fix?**: Frontend
+     - **Blocked on other issue**: None
+
+  - **Issue 2: Changing the number of meals in settings causes the diet plan to become empty.**
+     - **Attempted fixes**: The agent's previous fix was to delete the cached diet from the database when meal settings are changed, forcing a regeneration. This caused the bug, as the regeneration logic does not compact or redistribute the food but creates a new, often incomplete plan.
+     - **Next debug checklist**:
+         1. Review the  function in .
+         2. Modify the logic so that when  changes, it intelligently redistributes the *total daily food items* across the new meal structure, rather than erasing the plan. This might involve re-running the meal assignment part of the logic without re-calculating the total food amounts.
+     - **Why fix this issue and what will be achieved with the fix?**: This is a major UX issue. Users expect their diet to adjust, not disappear. Fixing this will make the meal configuration feature work as intended.
+     - **Status**: NOT STARTED
+     - **Is recurring issue?**: Y
+     - **Should Test frontend/backend/both after fix?**: Backend
+     - **Blocked on other issue**: None
+
+  - **Issue 3: Changing user's goal does not update Home screen or Cardio plan.**
+     - **Attempted fixes**: The agent added API calls inside the  function in  to delete the diet and cardio caches, intending to force a refresh.
+     - **Next debug checklist**:
+         1. Verify that the API calls to delete the caches are succeeding.
+         2. The core issue is likely client-side state management. The Home and Cardio screens are not aware that their data is stale after the profile is updated.
+         3. Implement a state management solution (e.g., using a global state with Zustand/Redux or a React Context) to signal a refresh, or pass a callback/use navigation events to trigger a re-fetch on the Home and Cardio screens after returning from the profile edit screen.
+     - **Why fix this issue and what will be achieved with the fix?**: The app feels broken when user changes don't reflect immediately. This will ensure a cohesive and responsive user experience.
+     - **Status**: NOT STARTED
+     - **Is recurring issue?**: Y
+     - **Should Test frontend/backend/both after fix?**: Frontend
+     - **Blocked on other issue**: None
+
+  - **Issue 4: Cardio substitution UI needs to display equivalent workout time.**
+     - **Attempted fixes**:
+         - Backend: The agent updated the  endpoint in  to calculate and return .
+         - Frontend: The agent updated the UI in  to display this new data field.
+     - **Next debug checklist**: The implementation seems complete but has not been tested.
+         1. Log in to the app and navigate to the Cardio tab.
+         2. Tap on a cardio exercise to open the details modal.
+         3. Verify that the list of substitutes correctly displays the equivalent time (e.g., Caminhada: 45 min).
+     - **Why fix this issue and what will be achieved with the fix?**: This provides crucial information to the user, allowing them to make informed decisions about their workout.
+     - **Status**: IN PROGRESS (Testing Pending)
+     - **Is recurring issue?**: N
+     - **Should Test frontend/backend/both after fix?**: Frontend
+     - **Blocked on other issue**: None
+
+  - **Issue 5: Automatic athlete phase transition rule.**
+     - **Attempted fixes**: None.
+     - **Next debug checklist**: This is a new feature request from the user (Msg 402: when the athlete user after 2 weeks of creating the account, pass 2 weeks of the preparation phase). This requires significant logic.
+         1. Clarify the exact rule with the user. It's ambiguous.
+         2. Design a stateful logic, likely in the backend  endpoint, that checks both  date of the user and the current competition phase.
+         3. Implement the logic to override the user's goal or phase based on these time-based conditions.
+     - **Why fix this issue and what will be achieved with this?**: Implements a specific business rule requested by the user for athlete progression.
+     - **Status**: NOT STARTED
+     - **Is recurring issue?**: N
+     - **Should Test frontend/backend/both after fix?**: Backend
+     - **Blocked on other issue**: None
 
 **In progress Task List**:
-  - There are no in-progress tasks.
+  - **Task 1: Complete the Edit Profile screen refactor.**
+     - **Where to resume**: . The agent was implementing a custom date picker. This needs to be finished and tested.
+     - **What will be achieved with this?**: A fully functional Edit Profile screen where users (including athletes) can update their goal and competition date. This is a prerequisite for fixing Issue 3.
+     - **Status**: IN PROGRESS
+     - **Should Test frontend/backend/both after fix?**: Frontend
+     - **Blocked on something**: No.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P0 - User Verification**: Ask the user to test and verify the new language selector on the login screen.
+    - **P0**: Fix the diet compaction logic in the backend (Issue 2).
+    - **P1**: Fix the client-side state update issue after changing goals (Issue 3).
 - **Future Tasks**:
-    - **P1 - Backend for Push Notifications**: The current notification system is client-side only. The backend should be updated to store user notification preferences (time, enabled/disabled), and a server-side mechanism (e.g., cron job) should be implemented to trigger them reliably.
+    - **P2**: Implement the automatic phase transition logic for athletes (Issue 5).
+    - **P3**: The original summary mentioned a plan to move push notifications to the backend. This has not been addressed and remains a future task.
 
 **Completed work in this session**
-- **Dynamic Content Translation Verification**: User confirmed that the translations for dynamic content (food and exercises) are working correctly.
-- **Onboarding Flow Translation (DONE)**:
-    - Added all necessary translation keys for the onboarding screens to .
-    - Modified all onboarding components in  to use the  translation function ().
-    - Refactored  to be fully translatable, reusing the existing  from .
-- **Language Selector on Login Screen (DONE)**:
-    - Added a language selector UI to .
-    - The selector opens a modal with language options (Portuguese, English, Spanish), each with its respective flag.
-    - Implemented the logic to change the application's language instantly upon selection.
-    - Verified the complete functionality using the screenshot tool.
-
-**Earlier issues found/mentioned but not fixed**
-   - **Issue 1**: ESLint/TypeScript parsing errors.
-     - **Debug checklist**: When implementing the onboarding translations, the agent ran lint and encountered 7 parsing errors (e.g., ). The agent dismissed these as false positives because the app continued to bundle and run. However, this could indicate a misconfiguration in the ESLint/TypeScript setup (, ) that could cause problems with more complex code later. This should be investigated to ensure code quality and prevent future bugs.
-     - **Why to solve this issue and what will be achieved with this?**: A correctly configured linter is crucial for maintaining code quality, catching potential errors early, and ensuring consistency. Fixing this will provide more reliable static analysis.
-     - **Should Test frontend/backend/both after fix**: Frontend.
-     - **Is recurring issue?**: N
-
-**Known issue recurrence from previous fork**
-- The recurring issue of untranslated dynamic content was successfully resolved and verified by the user in this session.
+- **Visual Overhaul**: Updated app-wide colors, fonts, and component styles for a more modern look.
+- **Weight Update Restriction**: Implemented a 14-day waiting period for new users to log weight and removed the weight field from the profile edit screen.
+- **Diet Generation Rule (No Eggs in Supper)**: Successfully implemented and tested a strict backend rule to prevent eggs from being included in the 'Ceia' meal.
+- **Diet Generation Rule (Fat Calculation)**: Implemented and tested complex backend rules for calculating daily fat intake based on user's goal, weight, and total calories.
+- **Athlete Competition Phase Logic**: Corrected the backend logic to accurately determine an athlete's phase (Peak Week, Pre-Contest, etc.) based on the number of weeks until their competition date.
+- **Meal Configuration System**: Created a new UI for users to select 4, 5, or 6 meals and customize times. The backend was updated to support dynamic meal generation based on these settings.
+- **Cardio Feature**: Implemented a new Cardio tab and screen, with backend logic to generate cardio plans and provide substitution options.
+- **Bug Fix (Meal Config Screen)**: Fixed critical import path errors that were causing the  screen to crash.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Reactive UI Feature**: The agent built a language selector that updates the app's UI language in real-time using  and React state, providing instant feedback to the user.
-- **Comprehensive I18n Implementation**: The agent successfully extended the existing i18n system to cover a complex, multi-step feature (onboarding), demonstrating the scalability of the initial setup.
-- **Code Refactoring for I18n**: Instead of simply replacing strings, the agent refactored the  component to properly integrate with the existing dynamic translation dictionary, which is a more robust and maintainable approach.
-- **Interactive Visual Testing**: The agent effectively used the 's interactive capabilities (clicking elements) to perform a multi-step test of the new language selector feature without needing to write a formal test script.
+- **Rule-Based Generation**: The backend uses complex, hard-coded business rules in  and  to generate dynamic diet and cardio plans.
+- **Client-Side State Desynchronization**: A recurring problem where changes made in one part of the app (Settings) are not reflected in other parts (Home, Cardio) without a manual refresh. This indicates a need for a more robust state management strategy.
+- **API-Driven UI**: The application relies heavily on fetching all its content from the backend, including UI text for athlete phases and entire plans for diet/cardio.
+- **Conditional UI Rendering**: The  screen uses conditional rendering to show/hide the competition date picker based on whether the Athlete goal is selected.
 
 **key DB schema**
-- No changes were made to the database schema in this session.
+- No new collections were added, but the  document structure was extended to include:
+    - 
+    - 
+- The  collection was extended to include:
+    - 
 
 **All files of reference**
-- : **CRITICAL**. This file was modified to add the new language selector feature as per the latest user request.
-- : **CRITICAL**. This file was significantly expanded to include all translation keys for the entire onboarding flow.
-- : This file was completely rewritten to correctly use the i18n system for its complex content.
-- All files under : The entire directory was modified to implement translations.
+- : **CRITICAL**. This file is the epicenter of several current bugs and the ongoing refactor. It controls goal selection and competition date.
+- : **CRITICAL**. Contains the API logic for diet/cardio generation triggers, athlete phase calculation, and user settings.
+- : **CRITICAL**. Contains the core business logic for how diets are constructed. It will need to be modified to fix the diet compaction issue.
+- : The new cardio screen. Will need verification for the equivalent time feature.
+- : The meal configuration screen. Its save function is what triggers the diet disappearing bug.
 
 **Critical Info for New Agent**
-1.  **Immediate Priority: User Verification**: Your first action should be to inform the user that the language selector on the login screen has been implemented and tested. Ask them to verify it and provide feedback.
-2.  **Onboarding is Complete**: The large task of translating the onboarding flow is finished. The app's i18n coverage is now very high.
-3.  **Potential Linting Issue**: Be aware that the agent bypassed several ESLint/TypeScript parsing errors, classifying them as false positives. If you encounter strange behavior or build issues, investigating the ESLint configuration should be an early step.
-
-**documents created in this job**
-- None.
+1.  **Top Priority is Fixing User-Reported Bugs**: The user has reported a chain of related bugs. Your immediate focus should be the **Pending/In progress Issue list**, starting with the broken date picker (P0), as it blocks other testing.
+2.  **State Management is the Root Cause**: The problem of the Home screen and Cardio plan not updating (Issue 3) is a classic client-side state management issue. Simply deleting the cache on the backend is not enough. You must implement a way for the frontend screens to know they need to re-fetch their data after a profile update.
+3.  **Diet Compaction is a Backend Logic Problem**: Do not try to fix the disappearing diet (Issue 2) on the frontend. The logic in  must be enhanced to intelligently redistribute food items into a different number of meals, not just create a blank slate.
+4.  ** is Mid-Refactor**: You are inheriting a file () that is in the middle of a major change (replacing a native date picker with a custom one). You must complete this implementation before you can fully test the athlete features.
 
 **Last 10 User Messages and any pending HUMAN messages**
-- **User (Msg 74)**: quero a opção de escolher a lingua na tela de login pois se nao o gringo vai entrar e nao vai entender nada (I want the option to choose the language on the login screen, otherwise a foreigner will log in and won't understand anything) - **(COMPLETED/PENDING VERIFICATION)**. This was the last feature request and it has been implemented.
-- **User (Msg 5)**: 1 sim 2.sim 3nao prossiga (1 yes 2. yes 3. no proceed). This was the user confirming the previous work on dynamic translations was successful, allowing the agent to move on to the onboarding task.
+- **(LATEST) User (Msg 437)**: Reports 3 bugs: 1) Cardio substitutions don't show equivalent time, 2) Changing meal count makes diet disappear, 3) Date picker is broken. **(IN PROGRESS)**
+- **User (Msg 402)**: Reports 5 issues: 1) Cardio subs need time, 2) Meal config not working, 3) Missing athlete goal in profile, 4) Goal change doesn't update app, 5) New rule for athlete phase progression. **(IN PROGRESS)**
+- **User (Msg 373)**: Reports 2 issues: 1) Meal config doesn't update diet, 2) Requests cardio system. **(Partially addressed, new bugs introduced)**
+- **User (Msg 350)**: Reports bug in athlete phase calculation and requests  be extended to 16 weeks. **(COMPLETED)**
+- **User (Msg 323)**: Corrects the agent, stating that the original goals (Bulking, Cutting) should remain and athlete-specific names are for a separate feature. **(COMPLETED)**
+- **User (Msg 286)**: erro na tela (error on screen) - reporting the crash on the new meal config screen. **(COMPLETED)**
+- **User (Msg 225)**: Requests the meal configuration system. **(COMPLETED)**
+- **User (Msg 178)**: Requests to change the names of the diet phases. **(COMPLETED, then REVERTED per Msg 323)**
+- **User (Msg 161)**: Provides strict rules for calculating fat in the diet. **(COMPLETED)**
+- **User (Msg 122)**: Provides strict rule: NO EGGS in the 'Ceia' meal. **(COMPLETED)**
 
 **Project Health Check:**
-- **Broken**: None.
-- **Mocked**: The Push Notification feature remains client-side only.
-- **Potential Issue**: Linting configuration may be incorrect, as it produced parsing errors that were ignored by the previous agent.
+- **Broken**:
+    - The  screen is partially broken due to the in-progress date picker implementation.
+    - The data flow for updating user goals is broken, leading to a stale UI on other screens.
+    - The diet plan disappears when meal settings are changed, making the feature unusable.
+- **Mocked**: None.
 
 **3rd Party Integrations**
 -  / : For internationalization.
-- : For scheduling local push notifications.
-- : Used for charts.
+- : For scheduling local push notifications (backend integration is a future task).
 
 **Testing status**
-- **Testing agent used after significant changes**: NO. Agent used  for visual verification.
-- **Troubleshoot agent used after agent stuck in loop**: NO.
-- **Test files created**: None.
-- **Known regressions**: None.
+- **Testing agent used after significant changes**: NO
+- **Troubleshoot agent used after agent stuck in loop**: NO
+- **Test files created**: The previous agent created temporary test scripts (e.g., , ) but did not commit them to the repository. No permanent test files exist.
+- **Known regressions**: The fix for meal settings not updating diet introduced a new, worse bug where the diet disappears entirely.
 
 **What agent forgot to execute**
-- The agent did not forget to execute any requested tasks. It did, however, choose to ignore linting errors, which could be a potential issue to address for project health.
+- The agent has not yet addressed the user's request from message 402 for a new, complex, time-based rule for athlete phase progression (when the athlete user after 2 weeks of creating the account, pass 2 weeks of the preparation phase). This has been deferred and listed as a future task.
 
 </analysis>
