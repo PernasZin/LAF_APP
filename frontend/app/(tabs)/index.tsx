@@ -250,6 +250,340 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
+// ==================== WATER TRACKER COMPONENT ====================
+interface WaterTrackerProps {
+  weight: number;
+  colors: any;
+  t: any;
+  onUpdate: () => void;
+}
+
+function WaterTracker({ weight, colors, t, onUpdate }: WaterTrackerProps) {
+  const { lightImpact, successFeedback, warningFeedback } = useHaptics();
+  const [waterConsumed, setWaterConsumed] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Cálculo: 35ml por kg de peso corporal
+  const waterGoal = Math.round(weight * 35); // em ml
+  const waterGoalLiters = (waterGoal / 1000).toFixed(1);
+  const waterConsumedLiters = (waterConsumed / 1000).toFixed(1);
+  const progress = Math.min((waterConsumed / waterGoal) * 100, 100);
+  const cupsConsumed = Math.floor(waterConsumed / 250);
+  const totalCups = Math.ceil(waterGoal / 250);
+  
+  // Carrega consumo de água do dia
+  useEffect(() => {
+    loadWaterData();
+  }, []);
+  
+  const loadWaterData = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `water_${today}`;
+      const savedData = await AsyncStorage.getItem(key);
+      if (savedData) {
+        setWaterConsumed(parseInt(savedData, 10));
+      } else {
+        setWaterConsumed(0);
+      }
+    } catch (error) {
+      console.error('Error loading water data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const saveWaterData = async (amount: number) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const key = `water_${today}`;
+      await AsyncStorage.setItem(key, amount.toString());
+    } catch (error) {
+      console.error('Error saving water data:', error);
+    }
+  };
+  
+  const addWater = async (ml: number) => {
+    lightImpact();
+    const newAmount = Math.min(waterConsumed + ml, waterGoal + 1000); // Permite +1L além da meta
+    setWaterConsumed(newAmount);
+    await saveWaterData(newAmount);
+    
+    // Feedback de sucesso ao atingir a meta
+    if (waterConsumed < waterGoal && newAmount >= waterGoal) {
+      successFeedback();
+    }
+    onUpdate();
+  };
+  
+  const removeWater = async () => {
+    if (waterConsumed >= 250) {
+      warningFeedback();
+      const newAmount = waterConsumed - 250;
+      setWaterConsumed(newAmount);
+      await saveWaterData(newAmount);
+      onUpdate();
+    }
+  };
+  
+  const resetWater = async () => {
+    warningFeedback();
+    setWaterConsumed(0);
+    await saveWaterData(0);
+    onUpdate();
+  };
+  
+  if (isLoading) {
+    return null;
+  }
+  
+  return (
+    <View style={[waterStyles.container, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+      {/* Header */}
+      <View style={waterStyles.header}>
+        <View style={waterStyles.headerLeft}>
+          <Ionicons name="water" size={24} color="#3B82F6" />
+          <Text style={[waterStyles.title, { color: colors.text }]}>
+            {t?.home?.waterTracker || 'Hidratação'}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={resetWater} style={waterStyles.resetButton}>
+          <Ionicons name="refresh-outline" size={18} color={colors.textTertiary} />
+        </TouchableOpacity>
+      </View>
+      
+      {/* Meta e progresso */}
+      <View style={waterStyles.progressSection}>
+        <View style={waterStyles.progressInfo}>
+          <Text style={[waterStyles.consumed, { color: colors.text }]}>
+            {waterConsumedLiters}L
+          </Text>
+          <Text style={[waterStyles.goal, { color: colors.textSecondary }]}>
+            / {waterGoalLiters}L
+          </Text>
+        </View>
+        <Text style={[waterStyles.cups, { color: colors.textTertiary }]}>
+          {cupsConsumed} de {totalCups} copos (250ml)
+        </Text>
+      </View>
+      
+      {/* Barra de progresso */}
+      <View style={[waterStyles.progressBar, { backgroundColor: colors.border }]}>
+        <View 
+          style={[
+            waterStyles.progressFill, 
+            { 
+              width: `${progress}%`,
+              backgroundColor: progress >= 100 ? '#10B981' : '#3B82F6'
+            }
+          ]} 
+        />
+      </View>
+      
+      {/* Visual de copos */}
+      <View style={waterStyles.cupsContainer}>
+        {Array.from({ length: Math.min(totalCups, 12) }).map((_, index) => (
+          <View 
+            key={index}
+            style={[
+              waterStyles.cupIcon,
+              {
+                backgroundColor: index < cupsConsumed 
+                  ? (progress >= 100 ? '#10B981' : '#3B82F6') 
+                  : colors.border,
+                opacity: index < cupsConsumed ? 1 : 0.3
+              }
+            ]}
+          >
+            <Ionicons 
+              name="water" 
+              size={14} 
+              color={index < cupsConsumed ? '#FFFFFF' : colors.textTertiary} 
+            />
+          </View>
+        ))}
+        {totalCups > 12 && (
+          <Text style={[waterStyles.moreCups, { color: colors.textTertiary }]}>
+            +{totalCups - 12}
+          </Text>
+        )}
+      </View>
+      
+      {/* Botões de ação */}
+      <View style={waterStyles.buttonsContainer}>
+        <TouchableOpacity 
+          style={[waterStyles.subtractButton, { backgroundColor: colors.border }]}
+          onPress={removeWater}
+          disabled={waterConsumed < 250}
+        >
+          <Ionicons name="remove" size={20} color={waterConsumed >= 250 ? colors.text : colors.textTertiary} />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[waterStyles.addButton, { backgroundColor: '#3B82F6' }]}
+          onPress={() => addWater(250)}
+        >
+          <Ionicons name="add" size={22} color="#FFFFFF" />
+          <Text style={waterStyles.addButtonText}>250ml</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[waterStyles.addButtonLarge, { backgroundColor: '#2563EB' }]}
+          onPress={() => addWater(500)}
+        >
+          <Ionicons name="add" size={22} color="#FFFFFF" />
+          <Text style={waterStyles.addButtonText}>500ml</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Mensagem motivacional */}
+      {progress >= 100 && (
+        <View style={[waterStyles.successBanner, { backgroundColor: '#10B98120' }]}>
+          <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+          <Text style={[waterStyles.successText, { color: '#10B981' }]}>
+            {t?.home?.waterGoalReached || 'Meta de hidratação atingida! 🎉'}
+          </Text>
+        </View>
+      )}
+      
+      {progress < 50 && waterConsumed > 0 && (
+        <Text style={[waterStyles.tipText, { color: colors.textTertiary }]}>
+          💧 Beba água regularmente ao longo do dia
+        </Text>
+      )}
+    </View>
+  );
+}
+
+const waterStyles = StyleSheet.create({
+  container: {
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  resetButton: {
+    padding: 4,
+  },
+  progressSection: {
+    marginBottom: 10,
+  },
+  progressInfo: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  consumed: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -1,
+  },
+  goal: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  cups: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  cupsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 14,
+  },
+  cupIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moreCups: {
+    fontSize: 12,
+    fontWeight: '600',
+    alignSelf: 'center',
+    marginLeft: 4,
+  },
+  buttonsContainer: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  subtractButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButton: {
+    flex: 1,
+    flexDirection: 'row',
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  addButtonLarge: {
+    flex: 1,
+    flexDirection: 'row',
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  addButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  successBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 12,
+  },
+  successText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  tipText: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+});
+
 export default function HomeScreen() {
   const { colors, isDark } = useTheme();
   const { t } = useTranslation();
