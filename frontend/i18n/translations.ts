@@ -49,6 +49,8 @@ export interface Translations {
     tdee: string;
     comingSoon: string;
     comingSoonText: string;
+    waterTracker: string;
+    waterGoalReached: string;
   };
   // Diet screen
   diet: {
