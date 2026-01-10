@@ -1661,8 +1661,6 @@ async def get_water_sodium_tracker(user_id: str, date: str = None):
         "sodium_mg": sodium_mg,
         "sodium_target_mg": sodium_target,
         "sodium_percent": sodium_percent,
-        "is_peak_week": competition_phase == "peak_week",
-        "peak_week_day": 7 - max(0, min(7, (comp_date - datetime.utcnow()).days)) if competition_phase == "peak_week" and 'comp_date' in dir() and comp_date else None,
         "warnings": warnings,
         "entries_log": entries_log,
         "notes": entry.get("notes")
