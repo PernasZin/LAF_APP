@@ -346,8 +346,7 @@ export default function SettingsScreen() {
                   </Text>
                   <Text style={[styles.profileMeta, { color: colors.textSecondary }]}>
                     {profile?.goal === 'bulking' ? t.home.bulking :
-                     profile?.goal === 'cutting' ? t.home.cutting :
-                     profile?.goal === 'atleta' ? t.home.athlete : t.home.maintenance}
+                     profile?.goal === 'cutting' ? t.home.cutting : t.home.maintenance}
                   </Text>
                 </View>
               </View>
