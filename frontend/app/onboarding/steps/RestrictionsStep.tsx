@@ -98,6 +98,7 @@ const GENERAL_FOODS: Record<string, FoodItem[]> = {
     { id: 'turkey', namePt: 'Peru', selectable: true },
     { id: 'greek_yogurt', namePt: 'Iogurte Grego', selectable: true },
     { id: 'natural_yogurt', namePt: 'Iogurte Natural', selectable: true },
+    { id: 'light_cream_cheese', namePt: 'Requeijão Light', selectable: true },
   ],
   carbs: [
     { id: 'white_rice', namePt: 'Arroz Branco', selectable: true },
