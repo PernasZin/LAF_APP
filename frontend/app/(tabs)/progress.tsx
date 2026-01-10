@@ -435,7 +435,6 @@ export default function ProgressScreen() {
                   </View>
                   <Text style={[styles.historyDate, { color: colors.textSecondary }]}>
                     {formatDate(record.recorded_at)}
-                    {record.athlete_phase && ` • ${formatPhaseName(record.athlete_phase)}`}
                   </Text>
                 </View>
                 {index < history.length - 1 && (
