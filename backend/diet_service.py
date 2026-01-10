@@ -851,8 +851,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             else:
                 foods.append(calc_food("brocolis", 100))
             
-            # Azeite
-            azeite_grams = clamp(meal_f * 0.5 / 1.0, 10, 50)
+            # Azeite - limite mais conservador (5-25g)
+            azeite_grams = clamp(meal_f * 0.35 / 1.0, 5, 25)
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'ceia':
