@@ -943,9 +943,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 fruit_grams = clamp(meal_c * 0.5 / max(FOODS[fruit]["c"] / 100, 0.1), 100, 300)
                 foods.append(calc_food(fruit, fruit_grams))
             
-            # Adiciona gordura saudável se disponível (limite mais conservador)
-            if fat and fat in FOODS:
-                fat_grams = clamp(meal_f * 0.4 / max(FOODS[fat]["f"] / 100, 0.1), 10, 25)
+            # Adiciona gordura saudável APENAS se target de gordura for suficiente
+            # e com limite BEM conservador para dar espaço ao fine_tune
+            if fat and fat in FOODS and meal_f > 8:
+                # Usa apenas 25% do target de gordura da refeição aqui
+                fat_grams = clamp(meal_f * 0.25 / max(FOODS[fat]["f"] / 100, 0.1), 5, 15)
                 foods.append(calc_food(fat, fat_grams))
             
             if not foods:
@@ -980,9 +982,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     extra_grams = clamp(carbs_remaining / max(FOODS[extra]["c"] / 100, 0.1), 10, 30)
                     foods.append(calc_food(extra, extra_grams))
             
-            # Castanhas/amêndoas para gordura - LIMITA
-            if fat and fat in FOODS:
-                f_grams = clamp(meal_f / max(FOODS[fat]["f"] / 100, 0.1), 10, 25)
+            # NÃO adiciona gordura extra nos lanches por padrão
+            # O iogurte já tem gordura suficiente e o fine_tune adicionará azeite se precisar
                 foods.append(calc_food(fat, f_grams))
             
             if not foods:
