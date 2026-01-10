@@ -302,6 +302,7 @@ export default function EditProfileScreen() {
                 ))}
               </View>
             </View>
+          </View>
 
           {/* Save Button */}
           <TouchableOpacity
