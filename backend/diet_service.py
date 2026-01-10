@@ -61,10 +61,11 @@ class DietGenerateRequest(BaseModel):
 TOL_PERCENT = 0.05  # ±5%
 
 # ==================== LIMITES DE SEGURANÇA ====================
-MIN_FOOD_GRAMS = 10      # Mínimo 10g por alimento
-MAX_FOOD_GRAMS = 500     # Máximo 500g por alimento
-MIN_MEAL_CALORIES = 50   # Mínimo 50kcal por refeição
-MIN_DAILY_CALORIES = 800 # Mínimo 800kcal por dia (segurança)
+MIN_FOOD_GRAMS = 10       # Mínimo 10g por alimento
+MAX_FOOD_GRAMS = 800      # Máximo 800g por alimento (aumentado para permitir dietas altas)
+MAX_CARB_GRAMS = 1200     # Máximo específico para carboidratos (arroz, batata)
+MIN_MEAL_CALORIES = 50    # Mínimo 50kcal por refeição
+MIN_DAILY_CALORIES = 800  # Mínimo 800kcal por dia (segurança)
 
 
 # ==================== MÍNIMOS NECESSÁRIOS ====================
