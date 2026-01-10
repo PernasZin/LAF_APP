@@ -158,11 +158,9 @@ FOODS = {
     "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "unit": "colher sopa", "unit_g": 30},
     "iogurte_grego": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "category": "protein", "unit": "pote", "unit_g": 170},
     "iogurte_natural": {"name": "Iogurte Natural", "p": 4.0, "c": 6.0, "f": 3.0, "category": "protein", "unit": "pote", "unit_g": 170},
-    "iogurte_desnatado": {"name": "Iogurte Desnatado", "p": 4.5, "c": 7.0, "f": 0.5, "category": "protein", "unit": "pote", "unit_g": 170},
     "leite": {"name": "Leite Integral", "p": 3.2, "c": 4.8, "f": 3.5, "category": "protein", "unit": "copo", "unit_g": 200},
     "leite_desnatado": {"name": "Leite Desnatado", "p": 3.4, "c": 5.0, "f": 0.1, "category": "protein", "unit": "copo", "unit_g": 200},
-    "queijo_minas": {"name": "Queijo Minas", "p": 17.0, "c": 3.0, "f": 20.0, "category": "protein", "unit": "fatia", "unit_g": 30},
-    "requeijao": {"name": "Requeijão", "p": 5.0, "c": 2.5, "f": 22.0, "category": "protein", "unit": "colher sopa", "unit_g": 30},
+    "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "unit": "colher sopa", "unit_g": 30},
     "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
     
     # === CARBOIDRATOS ===
@@ -183,33 +181,22 @@ FOODS = {
     "feijao": {"name": "Feijão", "p": 6.0, "c": 14.0, "f": 0.5, "category": "carb", "unit": "concha média", "unit_g": 100},
     "lentilha": {"name": "Lentilha", "p": 9.0, "c": 20.0, "f": 0.4, "category": "carb", "unit": "concha média", "unit_g": 100},
     "grao_de_bico": {"name": "Grão de Bico", "p": 9.0, "c": 27.0, "f": 2.6, "category": "carb", "unit": "concha média", "unit_g": 100},
-    # Novos carboidratos
-    "mandioca": {"name": "Mandioca/Aipim", "p": 1.4, "c": 36.0, "f": 0.3, "category": "carb", "unit": "pedaço médio", "unit_g": 100},
-    "inhame": {"name": "Inhame", "p": 2.0, "c": 28.0, "f": 0.1, "category": "carb", "unit": "pedaço médio", "unit_g": 100},
-    "cara": {"name": "Cará", "p": 2.0, "c": 24.0, "f": 0.1, "category": "carb", "unit": "pedaço médio", "unit_g": 100},
-    "polenta": {"name": "Polenta", "p": 2.0, "c": 13.0, "f": 0.5, "category": "carb", "unit": "fatia média", "unit_g": 100},
     "farofa": {"name": "Farofa", "p": 1.5, "c": 46.0, "f": 2.0, "category": "carb", "unit": "colher sopa", "unit_g": 20},
     "granola": {"name": "Granola", "p": 10.0, "c": 64.0, "f": 15.0, "category": "carb", "unit": "xícara", "unit_g": 40},
     "cereal_integral": {"name": "Cereal Integral", "p": 8.0, "c": 75.0, "f": 3.0, "category": "carb", "unit": "xícara", "unit_g": 30},
     "torrada": {"name": "Torrada Integral", "p": 10.0, "c": 68.0, "f": 5.0, "category": "carb", "unit": "unidade", "unit_g": 10},
-    "wrap_integral": {"name": "Wrap Integral", "p": 8.0, "c": 45.0, "f": 4.0, "category": "carb", "unit": "unidade", "unit_g": 60},
-    "batata_baroa": {"name": "Batata Baroa/Mandioquinha", "p": 1.0, "c": 23.0, "f": 0.2, "category": "carb", "unit": "unidade média", "unit_g": 100},
-    "ervilha": {"name": "Ervilha", "p": 5.0, "c": 14.0, "f": 0.4, "category": "carb", "unit": "colher sopa", "unit_g": 30},
-    "banana_da_terra": {"name": "Banana da Terra", "p": 1.3, "c": 32.0, "f": 0.4, "category": "carb", "unit": "unidade média", "unit_g": 150},
     
     # === GORDURAS ===
     "azeite": {"name": "Azeite de Oliva", "p": 0.0, "c": 0.0, "f": 100.0, "category": "fat", "unit": "colher sopa", "unit_g": 13},
     "pasta_amendoim": {"name": "Pasta de Amendoim", "p": 25.0, "c": 20.0, "f": 50.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
     "pasta_amendoa": {"name": "Pasta de Amêndoa", "p": 21.0, "c": 19.0, "f": 56.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
     "oleo_coco": {"name": "Óleo de Coco", "p": 0.0, "c": 0.0, "f": 100.0, "category": "fat", "unit": "colher sopa", "unit_g": 13},
-    "manteiga": {"name": "Manteiga", "p": 0.9, "c": 0.1, "f": 81.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
     "castanhas": {"name": "Castanhas", "p": 14.0, "c": 30.0, "f": 44.0, "category": "fat", "unit": "unidades", "unit_g": 10},
     "amendoas": {"name": "Amêndoas", "p": 21.0, "c": 22.0, "f": 49.0, "category": "fat", "unit": "unidades", "unit_g": 5},
     "nozes": {"name": "Nozes", "p": 15.0, "c": 14.0, "f": 65.0, "category": "fat", "unit": "unidade", "unit_g": 8},
     "chia": {"name": "Chia", "p": 17.0, "c": 42.0, "f": 31.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
     "linhaca": {"name": "Linhaça", "p": 18.0, "c": 29.0, "f": 42.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
     "queijo": {"name": "Queijo", "p": 23.0, "c": 1.3, "f": 33.0, "category": "fat", "unit": "fatia média", "unit_g": 30},
-    "cream_cheese": {"name": "Cream Cheese", "p": 6.0, "c": 4.0, "f": 34.0, "category": "fat", "unit": "colher sopa", "unit_g": 20},
     
     # === FRUTAS ===
     "banana": {"name": "Banana", "p": 1.1, "c": 23.0, "f": 0.3, "category": "fruit", "unit": "unidade média", "unit_g": 120},
@@ -233,15 +220,10 @@ FOODS = {
     "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "category": "vegetable", "unit": "prato cheio", "unit_g": 100},
     "brocolis": {"name": "Brócolis", "p": 2.8, "c": 7.0, "f": 0.4, "category": "vegetable", "unit": "xícara cozido", "unit_g": 100},
     
-    # === EXTRAS/DOCES (para lanches) ===
+    # === EXTRAS/DOCES (APENAS para café da manhã e lanches - MÁXIMO 30g) ===
     "leite_condensado": {"name": "Leite Condensado", "p": 8.0, "c": 55.0, "f": 8.0, "category": "extra", "unit": "colher sopa", "unit_g": 20},
     "mel": {"name": "Mel", "p": 0.3, "c": 82.0, "f": 0.0, "category": "extra", "unit": "colher sopa", "unit_g": 21},
-    "geleia": {"name": "Geleia de Frutas", "p": 0.3, "c": 68.0, "f": 0.1, "category": "extra", "unit": "colher sopa", "unit_g": 20},
-    "chocolate_amargo": {"name": "Chocolate Amargo 70%", "p": 8.0, "c": 33.0, "f": 42.0, "category": "extra", "unit": "quadrado", "unit_g": 10},
     "whey_protein": {"name": "Whey Protein", "p": 80.0, "c": 5.0, "f": 3.0, "category": "extra", "unit": "scoop", "unit_g": 30},
-    "pasta_amendoim_doce": {"name": "Pasta de Amendoim c/ Mel", "p": 22.0, "c": 20.0, "f": 45.0, "category": "extra", "unit": "colher sopa", "unit_g": 20},
-    "cream_cheese": {"name": "Cream Cheese", "p": 6.0, "c": 4.0, "f": 34.0, "category": "extra", "unit": "colher sopa", "unit_g": 30},
-    "manteiga": {"name": "Manteiga", "p": 0.9, "c": 0.1, "f": 81.0, "category": "fat", "unit": "colher chá", "unit_g": 10},
 }
 
 
