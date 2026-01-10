@@ -210,14 +210,14 @@ PEAK_WEEK_ALLOWED = {
     "melao",            # Alto em água
 }
 
-# Vegetais que podem causar gases/inchaço - EVITAR na Peak Week
+# Vegetais que devem ser evitados na Peak Week - CONTROLE DE FIBRAS E DIGESTIBILIDADE
 PEAK_WEEK_AVOID_VEGETABLES = {
-    "brocolis",         # Alta fermentação
-    "couve_flor",       # Alta fermentação
-    "couve",            # Alta fermentação
-    "repolho",          # Alta fermentação
-    "beterraba",        # Alto em fibras
-    "cenoura",          # Pode causar gases em alguns
+    "brocolis",         # Alta fermentação intestinal
+    "couve_flor",       # Alta fermentação intestinal
+    "couve",            # Alta fermentação intestinal
+    "repolho",          # Alta fermentação intestinal
+    "beterraba",        # Alto teor de fibras, digestão mais lenta
+    "cenoura",          # Alto teor de fibras, pode dificultar definição
 }
 
 
