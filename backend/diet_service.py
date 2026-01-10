@@ -768,11 +768,18 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     carb_complement = ["feijao", "lentilha", "ervilha", "grao_de_bico"]
     
     # Carboidratos leves (para café da manhã)
-    light_carb_priority = ["aveia", "pao_integral", "pao_forma", "tapioca", "cuscuz", 
-                           "pao", "granola", "cereal_integral", "torrada"]
+    light_carb_priority = ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "cuscuz", 
+                           "granola", "cereal_integral", "torrada", "wrap_integral"]
+    
+    # Prioridade para lanches (proteínas leves com carbs)
+    light_protein_priority_lanche = ["iogurte_grego", "iogurte_natural", "iogurte_desnatado", "cottage", "leite"]
     
     fat_priority_lanche = ["castanhas", "amendoas", "nozes", "pasta_amendoim"]
-    fat_priority_cafe = ["pasta_amendoim", "chia", "linhaca"]
+    fat_priority_cafe = ["pasta_amendoim", "manteiga", "requeijao", "cream_cheese"]
+    
+    # Extras doces para lanches (pequenas quantidades)
+    extras_priority = ["mel", "leite_condensado", "geleia", "chocolate_amargo"]
+    
     fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
                       "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"]
     
