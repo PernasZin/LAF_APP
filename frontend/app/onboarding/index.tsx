@@ -128,16 +128,24 @@ export default function OnboardingScreen() {
       
       case 'yourGoal':
         if (!formData.goal) {
-          Alert.alert(t.requiredFields, t.selectGoal);
+          if (Platform.OS === 'web') {
+            window.alert(t.selectGoal);
+          } else {
+            Alert.alert(t.requiredFields, t.selectGoal);
+          }
           return false;
         }
         // Se for atleta, data do campeonato é OBRIGATÓRIA
         if (formData.goal === 'atleta' && !formData.athlete_competition_date) {
-          Alert.alert(
-            t.dateRequired, 
-            t.dateRequiredMessage,
-            [{ text: 'OK' }]
-          );
+          if (Platform.OS === 'web') {
+            window.alert(t.dateRequiredMessage);
+          } else {
+            Alert.alert(
+              t.dateRequired, 
+              t.dateRequiredMessage,
+              [{ text: 'OK' }]
+            );
+          }
           return false;
         }
         break;
