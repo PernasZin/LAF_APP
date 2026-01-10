@@ -1223,8 +1223,6 @@ async def get_weight_history(user_id: str, days: int = 365):
         "user_id": user_id,
         "current_weight": current_weight,
         "target_weight": target_weight,
-        "is_athlete": is_athlete,
-        "athlete_phase": user.get("competition_phase"),
         "history": history,
         "stats": {
             "total_records": len(history),
