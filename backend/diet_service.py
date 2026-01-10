@@ -819,14 +819,15 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     meals.append({"name": "Jantar", "time": "19:30", "foods": jantar_foods})
     
     # ==================== 🌙 CEIA (15% P, 5% C) ====================
-    # PERMITIDO: cottage/iogurte/ovos + frutas
-    # PROIBIDO: carnes, carboidratos complexos, gorduras adicionadas
+    # PERMITIDO: cottage/iogurte + frutas
+    # PROIBIDO: carnes, carboidratos complexos, gorduras adicionadas, OVOS!
+    # REGRA ABSOLUTA: NUNCA usar ovos na ceia!
     
     ceia_p = target_p * 0.15
     ceia_c = target_c * 0.05
     
-    # Ceia usa a mesma lista de proteínas do café (inclui ovos)
-    ceia_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_cafe)
+    # Ceia usa lista SEM OVOS - REGRA ABSOLUTA
+    ceia_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_ceia)
     ceia_fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
     
     ceia_foods = []
