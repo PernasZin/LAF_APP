@@ -75,9 +75,12 @@ export default function CardioScreen() {
   const [selectedExercise, setSelectedExercise] = useState<CardioExercise | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  // Recarrega quando a tela ganha foco
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [])
+  );
 
   const loadData = async () => {
     try {
