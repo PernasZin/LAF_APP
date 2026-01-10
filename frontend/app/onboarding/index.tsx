@@ -214,7 +214,7 @@ export default function OnboardingScreen() {
       console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
       console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
 
-      // Call backend - uses UPSERT (idempotent)
+      // 1. Call backend to save profile - uses UPSERT (idempotent)
       const response = await fetch(`${BACKEND_URL}/api/user/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -231,6 +231,35 @@ export default function OnboardingScreen() {
 
       const data = await response.json();
       console.log('✅ Profile saved:', data.id);
+
+      // 2. Save meal settings to backend
+      const MEAL_NAMES_PT: Record<number, string[]> = {
+        4: ['Café da Manhã', 'Almoço', 'Lanche Tarde', 'Jantar'],
+        5: ['Café da Manhã', 'Lanche Manhã', 'Almoço', 'Lanche Tarde', 'Jantar'],
+        6: ['Café da Manhã', 'Lanche Manhã', 'Almoço', 'Lanche Tarde', 'Jantar', 'Ceia'],
+      };
+      
+      const mealTimesFormatted = formData.meal_times.map((time: string, idx: number) => ({
+        name: MEAL_NAMES_PT[formData.meal_count][idx],
+        time: time,
+      }));
+
+      try {
+        const settingsResponse = await fetch(`${BACKEND_URL}/api/user/settings/${userId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            meal_count: formData.meal_count,
+            meal_times: mealTimesFormatted,
+          }),
+        });
+        
+        if (settingsResponse.ok) {
+          console.log('✅ Meal settings saved');
+        }
+      } catch (settingsErr) {
+        console.warn('⚠️ Could not save meal settings:', settingsErr);
+      }
 
       // SUCCESS: Update auth store - profileCompleted = true
       await setProfileCompleted(true);
