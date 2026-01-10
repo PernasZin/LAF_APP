@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,14 +22,16 @@ import * as ImagePicker from 'expo-image-picker';
 import { Toast } from '../../components';
 import { useToast } from '../../hooks/useToast';
 import { useHaptics } from '../../hooks/useHaptics';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 // Objetivos disponíveis
 const GOALS = [
-  { value: 'cutting', label: 'Cutting', description: 'Perda de gordura' },
+  { value: 'cutting', label: 'Cutting', description: 'Perda de gordura e definição' },
   { value: 'manutencao', label: 'Manutenção', description: 'Manter peso atual' },
-  { value: 'bulking', label: 'Bulking', description: 'Ganho de massa' },
+  { value: 'bulking', label: 'Bulking', description: 'Ganho de massa muscular' },
+  { value: 'atleta', label: 'Atleta/Competição', description: 'Preparação para campeonato' },
 ];
 
 const safeFetch = async (url: string, options?: RequestInit) => {
@@ -58,6 +61,10 @@ export default function EditProfileScreen() {
   const [goal, setGoal] = useState('bulking');
   const [originalGoal, setOriginalGoal] = useState('bulking');
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  
+  // Athlete/Competition state
+  const [competitionDate, setCompetitionDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     loadProfile();
