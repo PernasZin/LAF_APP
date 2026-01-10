@@ -1300,7 +1300,7 @@ class DietAIService:
     def __init__(self):
         self.api_key = os.environ.get('EMERGENT_LLM_KEY')
     
-    def generate_diet_plan(self, user_profile: Dict, target_calories: float, target_macros: Dict[str, float]) -> DietPlan:
+    def generate_diet_plan(self, user_profile: Dict, target_calories: float, target_macros: Dict[str, float], meal_count: int = 6, meal_times: List[Dict] = None) -> DietPlan:
         """
         Gera plano de dieta personalizado.
         
@@ -1310,6 +1310,10 @@ class DietAIService:
         - NUNCA retorna refeição vazia
         - NUNCA retorna alimento com 0g
         - SEMPRE retorna dieta válida e utilizável
+        
+        Parâmetros:
+        - meal_count: 4, 5 ou 6 refeições por dia
+        - meal_times: lista opcional com horários personalizados
         """
         
         # Obtém preferências e restrições
@@ -1343,7 +1347,8 @@ class DietAIService:
         target_cal_int = max(MIN_DAILY_CALORIES, int(round(target_calories)))
         
         # Gera dieta com alimentos auto-completados se necessário
-        meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions)
+        # Passa meal_count para gerar a quantidade correta de refeições
+        meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions, meal_count)
         
         # Fine-tune (múltiplas rodadas se necessário)
         for _ in range(5):  # Aumentado para 5 tentativas
@@ -1355,6 +1360,20 @@ class DietAIService:
         # ✅ VALIDAÇÃO BULLETPROOF FINAL
         # Garante que NUNCA retorna dieta inválida
         meals = validate_and_fix_diet(meals, target_p, target_c, target_f, preferred_foods)
+        
+        # Ajusta para o número de refeições configurado
+        if len(meals) > meal_count:
+            meals = meals[:meal_count]
+        elif len(meals) < meal_count:
+            # Adiciona refeições extras se necessário
+            while len(meals) < meal_count:
+                meals.append(meals[-1].copy() if meals else {
+                    "name": f"Refeição {len(meals) + 1}",
+                    "time": "12:00",
+                    "foods": [calc_food("frango", 100)],
+                    "total_calories": 100,
+                    "macros": {"protein": 20, "carbs": 0, "fat": 2}
+                })
         
         # Formata resultado
         final_meals = []
