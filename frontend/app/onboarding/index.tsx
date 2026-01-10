@@ -139,11 +139,6 @@ export default function OnboardingScreen() {
           showAlert(t.requiredFields, t.selectGoal);
           return false;
         }
-        // Se for atleta, data do campeonato é OBRIGATÓRIA
-        if (formData.goal === 'atleta' && !formData.athlete_competition_date) {
-          showAlert(t.dateRequired, t.dateRequiredMessage);
-          return false;
-        }
         break;
       
       case 'mealConfig':
