@@ -228,6 +228,70 @@ class NotificationReminder(BaseModel):
     action_url: Optional[str] = None
 
 
+# ==================== ATHLETE PHASE HISTORY MODELS ====================
+
+class AthletePhaseRecord(BaseModel):
+    """Registro histórico de uma fase do atleta"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    phase: str  # "off_season", "pre_contest", "peak_week", "post_show"
+    started_at: datetime
+    ended_at: Optional[datetime] = None
+    competition_date: Optional[datetime] = None
+    competition_name: Optional[str] = None
+    
+    # Dados no início da fase
+    start_weight: float
+    target_weight: Optional[float] = None
+    
+    # Dados no fim da fase (preenchido quando fase termina)
+    end_weight: Optional[float] = None
+    
+    # Notas e observações
+    notes: Optional[str] = None
+    
+    # Estatísticas da fase
+    stats: Optional[dict] = None
+
+
+class AthletePhaseHistoryCreate(BaseModel):
+    """Request para criar registro de fase"""
+    phase: str
+    competition_date: Optional[datetime] = None
+    competition_name: Optional[str] = None
+    notes: Optional[str] = None
+
+
+# ==================== WATER/SODIUM TRACKER MODELS ====================
+
+class WaterSodiumEntry(BaseModel):
+    """Entrada de consumo de água/sódio"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    date: datetime = Field(default_factory=datetime.utcnow)
+    
+    # Água consumida (em ml)
+    water_ml: int = 0
+    water_target_ml: int = 3000  # Meta diária padrão
+    
+    # Sódio consumido (em mg)
+    sodium_mg: int = 0
+    sodium_target_mg: int = 2000  # Meta diária padrão
+    
+    # Flags de segurança
+    water_below_minimum: bool = False  # Abaixo de 2L
+    sodium_below_minimum: bool = False  # Abaixo de 500mg
+    
+    notes: Optional[str] = None
+
+
+class WaterSodiumEntryCreate(BaseModel):
+    """Request para adicionar água/sódio"""
+    water_ml: Optional[int] = None
+    sodium_mg: Optional[int] = None
+    notes: Optional[str] = None
+
+
 # ==================== SETTINGS MODELS ====================
 
 class MealTimeConfig(BaseModel):
