@@ -1051,9 +1051,19 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         """
         Retorna lista com alimentos preferidos primeiro, depois os defaults.
         PRIORIDADE: Originais do usuário > Auto-completados > Defaults
+        
+        🏆 MODO ATLETA: Filtra alimentos processados em fases PREP e PEAK
         """
+        # Se é atleta em prep/peak, filtra processados dos defaults
+        filtered_defaults = default_list
+        if competition_phase in ["pre_contest", "peak_week"]:
+            filtered_defaults = [d for d in default_list if d not in PROCESSED_FOODS]
+            # Peak week: usa apenas alimentos permitidos
+            if competition_phase == "peak_week":
+                filtered_defaults = [d for d in filtered_defaults if d in PEAK_WEEK_ALLOWED or d in FOODS and FOODS[d]["category"] == "fruit"]
+        
         if not preferred:
-            return default_list
+            return filtered_defaults if filtered_defaults else default_list
         
         # Primeiro: Alimentos ORIGINAIS do usuário (escolha explícita)
         original_in_category = []
@@ -1061,6 +1071,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if p in FOODS:
                 if category is None or FOODS[p]["category"] == category:
                     if exclude_complements and p in COMPLEMENT_FOODS:
+                        continue
+                    # 🏆 MODO ATLETA: Não adiciona processados em prep/peak
+                    if competition_phase in ["pre_contest", "peak_week"] and p in PROCESSED_FOODS:
                         continue
                     original_in_category.append(p)
         
@@ -1070,6 +1083,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if p not in original_preferred and p in FOODS:
                 if category is None or FOODS[p]["category"] == category:
                     if exclude_complements and p in COMPLEMENT_FOODS:
+                        continue
+                    # 🏆 MODO ATLETA: Não adiciona processados em prep/peak
+                    if competition_phase in ["pre_contest", "peak_week"] and p in PROCESSED_FOODS:
                         continue
                     auto_completed_in_category.append(p)
         
@@ -1085,14 +1101,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 result.append(ac)
         
         # Adiciona defaults que não estão na lista
-        for d in default_list:
+        for d in filtered_defaults:
             if d not in result and d in FOODS:
                 # Se já tem um tipo de arroz, não adiciona outro
                 if d in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
                     continue
                 result.append(d)
         
-        return result if result else default_list
+        return result if result else filtered_defaults if filtered_defaults else default_list
     
     # Prioridades por categoria - COM PREFERÊNCIAS DO USUÁRIO PRIMEIRO
     protein_priority = get_preferred_first(
