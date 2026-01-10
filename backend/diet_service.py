@@ -875,21 +875,21 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     jantar_foods = []
     
     if dinner_protein and dinner_protein in FOODS:
-        protein_grams = clamp(jantar_p / (FOODS[dinner_protein]["p"] / 100), 100, 400)
+        protein_grams = clamp(jantar_p / (FOODS[dinner_protein]["p"] / 100), 100, 500)
         jantar_foods.append(calc_food(dinner_protein, protein_grams))
     else:
         jantar_foods.append(calc_food("tilapia", 200))
     
     if dinner_carb and dinner_carb in FOODS:
-        carb_grams = clamp(jantar_c / max(FOODS[dinner_carb]["c"] / 100, 0.1), 100, 400)
+        carb_grams = clamp(jantar_c / max(FOODS[dinner_carb]["c"] / 100, 0.1), 100, 600)
         jantar_foods.append(calc_food(dinner_carb, carb_grams))
     else:
-        jantar_foods.append(calc_food("arroz_integral", 200))
+        jantar_foods.append(calc_food("arroz_integral", 250))
     
     jantar_foods.append(calc_food("brocolis", 100))
     
     if "azeite" in preferred or not preferred:
-        azeite_grams = clamp(jantar_f * 0.3 / 1.0, 10, 30)
+        azeite_grams = clamp(jantar_f * 0.4 / 1.0, 10, 40)
         jantar_foods.append(calc_food("azeite", azeite_grams))
     
     meals.append({"name": "Jantar", "time": "19:30", "foods": jantar_foods})
