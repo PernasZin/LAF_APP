@@ -1512,6 +1512,323 @@ async def get_workout_history(user_id: str, days: int = 30, limit: int = 50):
         }
     }
 
+# ==================== CARDIO SYSTEM ====================
+
+class CardioExercise(BaseModel):
+    """Modelo de exercício cardio"""
+    id: str
+    name: str
+    name_en: str
+    name_es: str
+    duration_minutes: int
+    intensity: str  # "low", "moderate", "high"
+    calories_burned: int
+    heart_rate_zone: str  # "Zone 2 (60-70%)", etc.
+    description: str
+    description_en: str
+    description_es: str
+    how_to_feel: str  # Como saber se está funcionando
+    how_to_feel_en: str
+    how_to_feel_es: str
+    substitutes: List[str]  # IDs dos exercícios substitutos
+
+class CardioSession(BaseModel):
+    """Sessão de cardio do usuário"""
+    user_id: str
+    exercises: List[CardioExercise]
+    total_duration: int
+    total_calories: int
+    goal: str  # "cutting", "bulking", "manutencao", "atleta"
+    competition_phase: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+# Base de exercícios cardio (SEM CORRIDA - apenas bicicleta, caminhada, escada)
+CARDIO_EXERCISES = {
+    "caminhada_leve": {
+        "id": "caminhada_leve",
+        "name": "Caminhada Leve",
+        "name_en": "Light Walk",
+        "name_es": "Caminata Ligera",
+        "duration_minutes": 30,
+        "intensity": "low",
+        "calories_per_min": 4,
+        "heart_rate_zone": "Zona 2 (60-70% FCM)",
+        "description": "Caminhada em ritmo tranquilo, consegue conversar normalmente",
+        "description_en": "Walking at a relaxed pace, can talk normally",
+        "description_es": "Caminata a ritmo tranquilo, puede conversar normalmente",
+        "how_to_feel": "Respiração leve, sem suor excessivo. Você deve conseguir falar frases completas sem ficar ofegante. Sensação de relaxamento.",
+        "how_to_feel_en": "Light breathing, no excessive sweating. You should be able to speak complete sentences without getting breathless.",
+        "how_to_feel_es": "Respiración ligera, sin sudor excesivo. Deberías poder hablar oraciones completas sin quedarte sin aliento.",
+        "substitutes": ["bicicleta_leve"]
+    },
+    "caminhada_moderada": {
+        "id": "caminhada_moderada",
+        "name": "Caminhada Moderada",
+        "name_en": "Moderate Walk",
+        "name_es": "Caminata Moderada",
+        "duration_minutes": 40,
+        "intensity": "moderate",
+        "calories_per_min": 6,
+        "heart_rate_zone": "Zona 3 (70-80% FCM)",
+        "description": "Caminhada em ritmo acelerado, consegue falar com algum esforço",
+        "description_en": "Brisk walking pace, can talk with some effort",
+        "description_es": "Caminata a ritmo acelerado, puede hablar con algo de esfuerzo",
+        "how_to_feel": "Respiração mais pesada, suor leve. Consegue falar mas precisa pausar entre frases. Batimentos cardíacos elevados mas controlados.",
+        "how_to_feel_en": "Heavier breathing, light sweating. Can talk but need to pause between sentences. Elevated but controlled heart rate.",
+        "how_to_feel_es": "Respiración más pesada, sudor ligero. Puede hablar pero necesita pausar entre oraciones.",
+        "substitutes": ["bicicleta_moderada", "escada_leve"]
+    },
+    "caminhada_inclinada": {
+        "id": "caminhada_inclinada",
+        "name": "Caminhada Inclinada (Esteira)",
+        "name_en": "Incline Walking (Treadmill)",
+        "name_es": "Caminata Inclinada (Cinta)",
+        "duration_minutes": 25,
+        "intensity": "moderate",
+        "calories_per_min": 8,
+        "heart_rate_zone": "Zona 3-4 (70-85% FCM)",
+        "description": "Caminhada em esteira com inclinação de 10-15%",
+        "description_en": "Treadmill walking with 10-15% incline",
+        "description_es": "Caminata en cinta con inclinación del 10-15%",
+        "how_to_feel": "Queimação nas pernas (glúteos e panturrilhas), suor moderado. Respiração controlada mas intensa. Sente os músculos trabalhando.",
+        "how_to_feel_en": "Burning sensation in legs (glutes and calves), moderate sweating. Controlled but intense breathing.",
+        "how_to_feel_es": "Sensación de ardor en las piernas, sudoración moderada. Respiración controlada pero intensa.",
+        "substitutes": ["escada_moderada", "bicicleta_moderada"]
+    },
+    "bicicleta_leve": {
+        "id": "bicicleta_leve",
+        "name": "Bicicleta Ergométrica Leve",
+        "name_en": "Light Stationary Bike",
+        "name_es": "Bicicleta Estática Ligera",
+        "duration_minutes": 30,
+        "intensity": "low",
+        "calories_per_min": 5,
+        "heart_rate_zone": "Zona 2 (60-70% FCM)",
+        "description": "Pedalada leve, resistência baixa, ritmo constante",
+        "description_en": "Light pedaling, low resistance, steady pace",
+        "description_es": "Pedaleo ligero, resistencia baja, ritmo constante",
+        "how_to_feel": "Movimento fluido, sem esforço nas pernas. Respiração tranquila. Ótimo para recuperação ativa ou aquecimento.",
+        "how_to_feel_en": "Fluid movement, no strain on legs. Calm breathing. Great for active recovery or warm-up.",
+        "how_to_feel_es": "Movimiento fluido, sin esfuerzo en las piernas. Respiración tranquila.",
+        "substitutes": ["caminhada_leve"]
+    },
+    "bicicleta_moderada": {
+        "id": "bicicleta_moderada",
+        "name": "Bicicleta Ergométrica Moderada",
+        "name_en": "Moderate Stationary Bike",
+        "name_es": "Bicicleta Estática Moderada",
+        "duration_minutes": 35,
+        "intensity": "moderate",
+        "calories_per_min": 8,
+        "heart_rate_zone": "Zona 3 (70-80% FCM)",
+        "description": "Pedalada com resistência média, ritmo constante",
+        "description_en": "Pedaling with medium resistance, steady pace",
+        "description_es": "Pedaleo con resistencia media, ritmo constante",
+        "how_to_feel": "Coxas trabalhando, suor aparecendo. Respiração mais rápida mas controlada. Consegue manter por 30+ minutos.",
+        "how_to_feel_en": "Thighs working, sweating starting. Faster but controlled breathing. Can maintain for 30+ minutes.",
+        "how_to_feel_es": "Muslos trabajando, sudoración comenzando. Respiración más rápida pero controlada.",
+        "substitutes": ["caminhada_moderada", "escada_leve"]
+    },
+    "bicicleta_intensa": {
+        "id": "bicicleta_intensa",
+        "name": "Bicicleta HIIT",
+        "name_en": "HIIT Bike",
+        "name_es": "Bicicleta HIIT",
+        "duration_minutes": 20,
+        "intensity": "high",
+        "calories_per_min": 12,
+        "heart_rate_zone": "Zona 4-5 (80-95% FCM)",
+        "description": "Intervalos de alta intensidade: 30s forte / 30s leve",
+        "description_en": "High intensity intervals: 30s hard / 30s easy",
+        "description_es": "Intervalos de alta intensidad: 30s fuerte / 30s ligero",
+        "how_to_feel": "Nos picos: pernas pegando fogo, respiração ofegante. Na recuperação: alívio mas ainda elevado. Suor intenso.",
+        "how_to_feel_en": "At peaks: legs burning, heavy breathing. In recovery: relief but still elevated. Intense sweating.",
+        "how_to_feel_es": "En los picos: piernas ardiendo, respiración pesada. En recuperación: alivio pero aún elevado.",
+        "substitutes": ["escada_intensa"]
+    },
+    "escada_leve": {
+        "id": "escada_leve",
+        "name": "Escada/StairMaster Leve",
+        "name_en": "Light StairMaster",
+        "name_es": "Escaladora Ligera",
+        "duration_minutes": 20,
+        "intensity": "moderate",
+        "calories_per_min": 7,
+        "heart_rate_zone": "Zona 3 (70-80% FCM)",
+        "description": "Subida de escada em ritmo constante, velocidade baixa",
+        "description_en": "Stair climbing at steady pace, low speed",
+        "description_es": "Subida de escalera a ritmo constante, velocidad baja",
+        "how_to_feel": "Glúteos e quadríceps aquecendo, respiração controlada. Sensação de trabalho muscular contínuo.",
+        "how_to_feel_en": "Glutes and quads warming up, controlled breathing. Feeling of continuous muscle work.",
+        "how_to_feel_es": "Glúteos y cuádriceps calentando, respiración controlada.",
+        "substitutes": ["caminhada_inclinada", "bicicleta_moderada"]
+    },
+    "escada_moderada": {
+        "id": "escada_moderada",
+        "name": "Escada/StairMaster Moderada",
+        "name_en": "Moderate StairMaster",
+        "name_es": "Escaladora Moderada",
+        "duration_minutes": 25,
+        "intensity": "moderate",
+        "calories_per_min": 10,
+        "heart_rate_zone": "Zona 3-4 (75-85% FCM)",
+        "description": "Subida de escada com velocidade média",
+        "description_en": "Stair climbing at medium speed",
+        "description_es": "Subida de escalera a velocidad media",
+        "how_to_feel": "Pernas trabalhando forte, suor visível. Respiração pesada mas consegue manter o ritmo. Queimação muscular.",
+        "how_to_feel_en": "Legs working hard, visible sweating. Heavy breathing but can maintain pace. Muscle burn.",
+        "how_to_feel_es": "Piernas trabajando fuerte, sudoración visible. Respiración pesada pero puede mantener el ritmo.",
+        "substitutes": ["caminhada_inclinada", "bicicleta_intensa"]
+    },
+    "escada_intensa": {
+        "id": "escada_intensa",
+        "name": "Escada/StairMaster Intensa",
+        "name_en": "Intense StairMaster",
+        "name_es": "Escaladora Intensa",
+        "duration_minutes": 15,
+        "intensity": "high",
+        "calories_per_min": 14,
+        "heart_rate_zone": "Zona 4-5 (85-95% FCM)",
+        "description": "Subida rápida com velocidade alta",
+        "description_en": "Fast climbing at high speed",
+        "description_es": "Subida rápida a alta velocidad",
+        "how_to_feel": "Pernas em chamas, suor escorrendo. Respiração muito pesada, difícil falar. Sensação de exaustão produtiva.",
+        "how_to_feel_en": "Legs on fire, sweat dripping. Very heavy breathing, hard to talk. Feeling of productive exhaustion.",
+        "how_to_feel_es": "Piernas en llamas, sudor goteando. Respiración muy pesada, difícil hablar.",
+        "substitutes": ["bicicleta_intensa"]
+    }
+}
+
+def generate_cardio_for_goal(goal: str, weight: float, competition_phase: Optional[str] = None) -> List[dict]:
+    """
+    Gera sessão de cardio baseada no objetivo.
+    
+    REGRAS:
+    - Cutting/Pre-Contest: Mais cardio (4-6x/semana), foco em queima
+    - Bulking/Off-Season: Cardio mínimo (2-3x/semana), preservar massa
+    - Manutenção: Cardio moderado (3-4x/semana)
+    - Peak Week: LISS leve apenas (recuperação)
+    """
+    exercises = []
+    
+    if goal == "cutting" or competition_phase == "pre_contest":
+        # Cutting: foco em queima calórica
+        exercises = [
+            {**CARDIO_EXERCISES["caminhada_inclinada"], "sessions_per_week": 3},
+            {**CARDIO_EXERCISES["bicicleta_moderada"], "sessions_per_week": 2},
+            {**CARDIO_EXERCISES["escada_moderada"], "sessions_per_week": 1},
+        ]
+    elif goal == "bulking" or competition_phase == "off_season":
+        # Bulking: cardio mínimo para saúde cardiovascular
+        exercises = [
+            {**CARDIO_EXERCISES["caminhada_leve"], "sessions_per_week": 2},
+            {**CARDIO_EXERCISES["bicicleta_leve"], "sessions_per_week": 1},
+        ]
+    elif competition_phase == "peak_week":
+        # Peak Week: apenas LISS leve
+        exercises = [
+            {**CARDIO_EXERCISES["caminhada_leve"], "sessions_per_week": 2},
+        ]
+    elif competition_phase == "post_show":
+        # Post-Show: cardio moderado para transição
+        exercises = [
+            {**CARDIO_EXERCISES["bicicleta_leve"], "sessions_per_week": 2},
+            {**CARDIO_EXERCISES["caminhada_moderada"], "sessions_per_week": 1},
+        ]
+    else:  # manutencao
+        # Manutenção: equilíbrio
+        exercises = [
+            {**CARDIO_EXERCISES["caminhada_moderada"], "sessions_per_week": 2},
+            {**CARDIO_EXERCISES["bicicleta_moderada"], "sessions_per_week": 1},
+            {**CARDIO_EXERCISES["escada_leve"], "sessions_per_week": 1},
+        ]
+    
+    # Calcula calorias estimadas por exercício
+    for ex in exercises:
+        ex["calories_burned"] = ex["calories_per_min"] * ex["duration_minutes"]
+        # Converte substitutes para lista de exercícios completos
+        ex["substitutes"] = [CARDIO_EXERCISES.get(s, {}).get("name", s) for s in ex.get("substitutes", [])]
+    
+    return exercises
+
+@api_router.get("/cardio/{user_id}")
+async def get_user_cardio(user_id: str):
+    """
+    Retorna plano de cardio do usuário baseado no objetivo.
+    """
+    # Busca perfil do usuário
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    goal = user.get("goal", "manutencao")
+    weight = user.get("weight", 70)
+    competition_phase = user.get("competition_phase")
+    
+    # Gera cardio
+    exercises = generate_cardio_for_goal(goal, weight, competition_phase)
+    
+    # Calcula totais
+    total_duration = sum(ex["duration_minutes"] * ex["sessions_per_week"] for ex in exercises)
+    total_calories = sum(ex["calories_burned"] * ex["sessions_per_week"] for ex in exercises)
+    total_sessions = sum(ex["sessions_per_week"] for ex in exercises)
+    
+    return {
+        "user_id": user_id,
+        "goal": goal,
+        "competition_phase": competition_phase,
+        "exercises": exercises,
+        "weekly_summary": {
+            "total_sessions": total_sessions,
+            "total_duration_minutes": total_duration,
+            "total_calories_burned": total_calories
+        },
+        "tips": {
+            "pt": "Faça o cardio em qualquer horário do dia. O importante é a consistência!",
+            "en": "Do cardio at any time of day. Consistency is key!",
+            "es": "Haz cardio a cualquier hora del día. ¡La consistencia es clave!"
+        }
+    }
+
+@api_router.post("/cardio/{user_id}/substitute")
+async def substitute_cardio_exercise(user_id: str, exercise_id: str, substitute_id: str):
+    """
+    Substitui um exercício de cardio por outro.
+    """
+    if exercise_id not in CARDIO_EXERCISES:
+        raise HTTPException(status_code=404, detail="Exercício não encontrado")
+    
+    if substitute_id not in CARDIO_EXERCISES:
+        raise HTTPException(status_code=404, detail="Substituto não encontrado")
+    
+    original = CARDIO_EXERCISES[exercise_id]
+    substitute = CARDIO_EXERCISES[substitute_id]
+    
+    # Verifica se é um substituto válido
+    if substitute_id not in original.get("substitutes", []):
+        raise HTTPException(status_code=400, detail="Este não é um substituto válido para este exercício")
+    
+    return {
+        "success": True,
+        "original": original,
+        "substitute": substitute,
+        "message": f"Substituído {original['name']} por {substitute['name']}"
+    }
+
+@api_router.get("/cardio/exercises/all")
+async def get_all_cardio_exercises():
+    """
+    Retorna todos os exercícios de cardio disponíveis.
+    """
+    return {
+        "exercises": list(CARDIO_EXERCISES.values()),
+        "categories": {
+            "caminhada": ["caminhada_leve", "caminhada_moderada", "caminhada_inclinada"],
+            "bicicleta": ["bicicleta_leve", "bicicleta_moderada", "bicicleta_intensa"],
+            "escada": ["escada_leve", "escada_moderada", "escada_intensa"]
+        }
+    }
+
 # ==================== SETTINGS ENDPOINTS ====================
 
 @api_router.get("/user/settings/{user_id}", response_model=UserSettings)
