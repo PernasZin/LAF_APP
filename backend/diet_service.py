@@ -1126,7 +1126,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 carb_main_e_arroz = carb_main in TIPOS_ARROZ
                 
                 # Verifica se pode adicionar complemento (feijão/lentilha)
-                if feijao_nas_preferencias or not carb_main_e_arroz:
+                # REGRA ATLETA: Se objetivo é "atleta" e feijão_max <= 0, não adiciona feijão
+                if (feijao_nas_preferencias or not carb_main_e_arroz) and feijao_max > 0:
                     for comp in carb_complement:
                         if comp != carb_main and comp in FOODS:
                             # NÃO adiciona outro tipo de arroz!
@@ -1136,8 +1137,18 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                                 carb_comp = comp
                                 break
                 
-                if carb_comp:
-                    c_comp_grams = clamp((meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 250)
+                if carb_comp and carb_comp in ["feijao", "lentilha"]:
+                    # ==================== QUANTIDADE DE FEIJÃO POR OBJETIVO ====================
+                    # BULK: 160-180g | MANUTENÇÃO: 130-160g | CUT: 100-130g | ATLETA: 0-80g
+                    c_comp_grams = clamp(
+                        (meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 
+                        feijao_min,  # Mínimo baseado no objetivo
+                        feijao_max   # Máximo baseado no objetivo
+                    )
+                    foods.append(calc_food(carb_comp, c_comp_grams))
+                elif carb_comp:
+                    # Outros complementos (não feijão/lentilha)
+                    c_comp_grams = clamp((meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 200)
                     foods.append(calc_food(carb_comp, c_comp_grams))
                 
                 # Farofa (15%) - complemento clássico brasileiro (opcional)
@@ -1148,9 +1159,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     foods.append(calc_food("farofa", farofa_grams))
                     
             else:
-                # Fallback: arroz + feijão padrão
+                # Fallback: arroz + feijão padrão (respeitando limites do objetivo)
                 foods.append(calc_food("arroz_branco", 200))
-                foods.append(calc_food("feijao", 100))
+                if feijao_max > 0:
+                    fallback_feijao = clamp(130, feijao_min, feijao_max)
+                    foods.append(calc_food("feijao", fallback_feijao))
                 foods.append(calc_food("farofa", 30))
             
             # ==================== VEGETAIS E LEGUMES ====================
