@@ -355,6 +355,18 @@ const createStyles = (colors: any) => StyleSheet.create({
   headerTitle: { fontSize: 28, fontWeight: '700' },
   headerSubtitle: { fontSize: 14, marginTop: 2 },
   
+  // Tracker Button
+  trackerButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 8, 
+    paddingVertical: 14, 
+    borderRadius: 12, 
+    marginBottom: 16 
+  },
+  trackerButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  
   // Current Day Card
   currentDayCard: { padding: 16, borderRadius: 16, borderWidth: 2, marginBottom: 16 },
   currentDayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
