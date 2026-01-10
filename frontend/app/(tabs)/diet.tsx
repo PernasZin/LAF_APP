@@ -122,6 +122,24 @@ export default function DietScreen() {
       if (response.ok) {
         const data = await response.json();
         setDietPlan(data);
+      } else if (response.status === 404) {
+        // Dieta não existe - tenta gerar automaticamente
+        console.log('Dieta não encontrada, gerando automaticamente...');
+        setDietPlan(null);
+        // Gera nova dieta automaticamente
+        try {
+          const genResponse = await safeFetch(
+            `${BACKEND_URL}/api/diet/generate?user_id=${uid}`,
+            { method: 'POST' }
+          );
+          if (genResponse.ok) {
+            const newDiet = await genResponse.json();
+            setDietPlan(newDiet);
+            console.log('✅ Nova dieta gerada automaticamente');
+          }
+        } catch (genErr) {
+          console.log('Erro ao gerar dieta automaticamente:', genErr);
+        }
       }
     } catch (error: any) {
       console.log('Diet not loaded (may not exist yet)');
