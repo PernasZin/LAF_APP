@@ -256,7 +256,7 @@ def calc_food(food_key: str, grams: float) -> Dict:
     - SEMPRE retorna um dict válido (nunca None)
     - grams SEMPRE >= MIN_FOOD_GRAMS (10g)
     - grams SEMPRE <= MAX_FOOD_GRAMS (800g) ou MAX_CARB_GRAMS (1200g) para carbs
-    - grams SEMPRE múltiplo de 10
+    - Alimentos CONTÁVEIS (ovos, pão, iogurte) são ajustados para unidades inteiras
     - TODOS os campos obrigatórios preenchidos
     
     Formato: "Nome – Xg (≈ Y medida caseira)"
@@ -270,13 +270,83 @@ def calc_food(food_key: str, grams: float) -> Dict:
     # Determina limite máximo baseado na categoria
     max_grams = MAX_CARB_GRAMS if f["category"] == "carb" else MAX_FOOD_GRAMS
     
-    # GARANTIA: Múltiplo de 10, mínimo 10g, máximo baseado na categoria
-    g = round_to_10(grams)
-    g = max(MIN_FOOD_GRAMS, min(max_grams, g))
+    # ========== ALIMENTOS CONTÁVEIS ==========
+    # Estes alimentos devem ser em unidades INTEIRAS (1, 2, 3...)
+    # Não faz sentido "1.5 ovos" ou "0.6 pote de iogurte"
+    COUNTABLE_FOODS = {
+        # Ovos - sempre em unidades inteiras
+        "ovos": 50,           # 1 ovo = ~50g
+        "claras": 33,         # 1 clara = ~33g
+        
+        # Pães - sempre em fatias/unidades inteiras
+        "pao": 50,            # 1 pão francês = ~50g
+        "pao_integral": 30,   # 1 fatia = ~30g
+        "pao_forma": 25,      # 1 fatia = ~25g
+        
+        # Iogurtes - sempre em potes inteiros
+        "iogurte_grego": 170,     # 1 pote = 170g
+        "iogurte_natural": 170,   # 1 pote = 170g
+        
+        # Frutas unitárias
+        "banana": 120,        # 1 unidade = ~120g
+        "maca": 150,          # 1 unidade = ~150g
+        "laranja": 180,       # 1 unidade = ~180g
+        "kiwi": 75,           # 1 unidade = ~75g
+        "pera": 180,          # 1 unidade = ~180g
+    }
     
-    # GARANTIA: Sempre > 0
-    if g <= 0:
-        g = MIN_FOOD_GRAMS
+    unit = f.get("unit", "porção")
+    unit_g = f.get("unit_g", 100)
+    
+    # Se é alimento contável, ajusta para unidades inteiras
+    if food_key in COUNTABLE_FOODS:
+        unit_weight = COUNTABLE_FOODS[food_key]
+        # Calcula quantas unidades seriam necessárias
+        units_needed = grams / unit_weight
+        # Arredonda para o inteiro mais próximo (mínimo 1)
+        units_int = max(1, round(units_needed))
+        # Limita a um máximo razoável
+        max_units = 10 if food_key in ["ovos", "claras"] else 4
+        units_int = min(units_int, max_units)
+        # Recalcula gramas baseado em unidades inteiras
+        g = units_int * unit_weight
+        unit_qty = units_int
+        
+        # Formato especial para contáveis
+        if units_int == 1:
+            unit_str = f"= {units_int} {unit}"
+        else:
+            # Pluraliza
+            unit_plural = unit
+            if unit.endswith("a"):
+                unit_plural = unit + "s"  # fatia -> fatias
+            elif unit.endswith("e"):
+                unit_plural = unit + "s"  # unidade -> unidades
+            elif not unit.endswith("s"):
+                unit_plural = unit + "s"
+            unit_str = f"= {units_int} {unit_plural}"
+    else:
+        # Alimentos não-contáveis: usa lógica normal (múltiplos de 10g)
+        g = round_to_10(grams)
+        g = max(MIN_FOOD_GRAMS, min(max_grams, g))
+        
+        # GARANTIA: Sempre > 0
+        if g <= 0:
+            g = MIN_FOOD_GRAMS
+        
+        # Calcula equivalente em medida caseira
+        if unit_g > 0:
+            unit_qty = g / unit_g
+            # Formata quantidade de unidades
+            if unit_qty >= 1:
+                if unit_qty == int(unit_qty):
+                    unit_str = f"≈ {int(unit_qty)} {unit}"
+                else:
+                    unit_str = f"≈ {unit_qty:.1f} {unit}"
+            else:
+                unit_str = f"≈ {unit_qty:.1f} {unit}"
+        else:
+            unit_str = "porção"
     
     ratio = g / 100
     
@@ -286,24 +356,7 @@ def calc_food(food_key: str, grams: float) -> Dict:
     fat = max(0, round(f["f"] * ratio))
     calories = max(1, round((f["p"] * 4 + f["c"] * 4 + f["f"] * 9) * ratio))
     
-    # Calcula equivalente em medida caseira
-    unit = f.get("unit", "porção")
-    unit_g = f.get("unit_g", 100)
-    
-    if unit_g > 0:
-        unit_qty = g / unit_g
-        # Formata quantidade de unidades
-        if unit_qty >= 1:
-            if unit_qty == int(unit_qty):
-                unit_str = f"≈ {int(unit_qty)} {unit}"
-            else:
-                unit_str = f"≈ {unit_qty:.1f} {unit}"
-        else:
-            unit_str = f"≈ {unit_qty:.1f} {unit}"
-    else:
-        unit_str = "porção"
-    
-    # Formato completo: "150g (≈ 1 filé médio)"
+    # Formato completo: "150g (≈ 1 filé médio)" ou "100g (= 2 ovos)"
     quantity_display = f"{g}g ({unit_str})"
     
     # RETORNA ESTRUTURA OBRIGATÓRIA COMPLETA
