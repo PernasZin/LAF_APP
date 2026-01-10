@@ -142,6 +142,10 @@ export default function OnboardingScreen() {
         }
         break;
       
+      case 'mealConfig':
+        // meal_count sempre tem valor padrão, não precisa validar
+        break;
+      
       case 'preferences':
         // Optional step
         break;
