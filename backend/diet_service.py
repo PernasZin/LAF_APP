@@ -739,28 +739,26 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                         "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"]
     light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage", "claras"]
     light_protein_priority_ceia = ["cottage", "iogurte_grego"]  # NUNCA OVOS NA CEIA!
-    light_protein_priority_lanche = ["iogurte_grego", "cottage"]
     
     # Carboidratos principais (para almoço/jantar)
     carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", 
-                     "mandioca", "inhame", "cara", "macarrao_integral", "quinoa", 
-                     "batata_baroa", "polenta", "cuscuz", "grao_de_bico", "milho"]
+                     "macarrao_integral", "quinoa", "cuscuz", "grao_de_bico", "milho"]
     
     # Carboidratos complementares (feijão, lentilha - para acompanhar)
-    carb_complement = ["feijao", "lentilha", "ervilha", "grao_de_bico"]
+    carb_complement = ["feijao", "lentilha", "grao_de_bico"]
     
     # Carboidratos leves (para café da manhã)
     light_carb_priority = ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "cuscuz", 
-                           "granola", "cereal_integral", "torrada", "wrap_integral"]
+                           "granola", "cereal_integral", "torrada"]
     
     # Prioridade para lanches (proteínas leves com carbs)
-    light_protein_priority_lanche = ["iogurte_grego", "iogurte_natural", "iogurte_desnatado", "cottage", "leite"]
+    light_protein_priority_lanche = ["iogurte_grego", "iogurte_natural", "cottage", "leite"]
     
     fat_priority_lanche = ["castanhas", "amendoas", "nozes", "pasta_amendoim"]
-    fat_priority_cafe = ["pasta_amendoim", "manteiga", "requeijao", "cream_cheese"]
+    fat_priority_cafe = ["pasta_amendoim", "chia", "linhaca"]
     
-    # Extras doces para lanches (pequenas quantidades)
-    extras_priority = ["mel", "leite_condensado", "geleia", "chocolate_amargo"]
+    # Extras doces para lanches (MÁXIMO 30g, apenas em lanches/café)
+    extras_priority = ["mel", "leite_condensado"]
     
     fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
                       "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"]
