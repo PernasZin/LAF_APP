@@ -931,7 +931,12 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             fat = select_best_food("cafe_da_manha", preferred, restrictions, "fat", fat_priority_cafe)
             
             if protein and protein in FOODS:
-                p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 80, 300)
+                # LIMITAÇÃO ESPECIAL: Ovos máximo 3 unidades (150g) no café
+                # para controlar gordura (ovos = 11g gordura/100g)
+                if protein == "ovos":
+                    p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 50, 150)
+                else:
+                    p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 80, 200)
                 foods.append(calc_food(protein, p_grams))
             
             if carb and carb in FOODS:
