@@ -1007,33 +1007,51 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             else:
                 foods.append(calc_food("frango", 200))
             
-            # Distribui carboidratos entre principal (70%) e complemento (30%)
+            # ==================== CARBOIDRATOS ====================
+            # REGRA: Apenas 1 tipo de arroz por dieta (não misturar branco com integral)
+            # Arroz + Feijão é permitido se feijão estiver nas preferências
+            
             if carb_main and carb_main in FOODS:
-                # Distribuição: 50% arroz/batata + 35% feijão/lentilha + 15% farofa
-                carb_main_ratio = 0.50
+                # Carboidrato principal (arroz OU batata doce OU macarrão) - 50-60%
+                carb_main_ratio = 0.55
                 c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 350)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
-                # Carboidrato complementar (feijão, lentilha) - 35% dos carbs
+                # Lista de tipos de arroz (não misturar)
+                TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
+                
+                # Carboidrato complementar: feijão/lentilha
+                # SÓ adiciona se estiver nas preferências OU se o carb principal não for arroz
                 carb_comp = None
-                for comp in carb_complement:
-                    if comp != carb_main and comp in FOODS:
-                        if not any(comp in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
-                            carb_comp = comp
-                            break
+                feijao_nas_preferencias = "feijao" in preferred or "lentilha" in preferred
+                carb_main_e_arroz = carb_main in TIPOS_ARROZ
+                
+                # Verifica se pode adicionar complemento (feijão/lentilha)
+                if feijao_nas_preferencias or not carb_main_e_arroz:
+                    for comp in carb_complement:
+                        if comp != carb_main and comp in FOODS:
+                            # NÃO adiciona outro tipo de arroz!
+                            if comp in TIPOS_ARROZ:
+                                continue
+                            if not any(comp in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
+                                carb_comp = comp
+                                break
                 
                 if carb_comp:
-                    c_comp_grams = clamp((meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 250)
+                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 60, 200)
                     foods.append(calc_food(carb_comp, c_comp_grams))
                 
-                # Farofa (15%) - complemento clássico brasileiro
-                if "farofa" in FOODS and meal_c * 0.15 > 10:
-                    farofa_grams = clamp((meal_c * 0.15) / max(FOODS["farofa"]["c"] / 100, 0.1), 20, 80)
+                # Farofa (15%) - complemento clássico brasileiro (opcional)
+                carbs_so_far = sum(f.get("carbs", 0) for f in foods)
+                carbs_remaining = meal_c - carbs_so_far
+                if "farofa" in FOODS and carbs_remaining > 15:
+                    farofa_grams = clamp(carbs_remaining * 0.5 / max(FOODS["farofa"]["c"] / 100, 0.1), 15, 50)
                     foods.append(calc_food("farofa", farofa_grams))
                     
             else:
+                # Fallback: arroz + feijão padrão
                 foods.append(calc_food("arroz_branco", 200))
-                foods.append(calc_food("feijao", 120))
+                foods.append(calc_food("feijao", 100))
                 foods.append(calc_food("farofa", 30))
             
             # Vegetais
