@@ -549,7 +549,11 @@ async def get_user_profile(user_id: str):
 @api_router.put("/user/profile/{user_id}", response_model=UserProfile)
 async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
     """
-    Atualiza perfil do usuário e recalcula métricas
+    Atualiza perfil do usuário e recalcula métricas.
+    
+    MODO ATLETA AUTOMÁTICO:
+    - Se athlete_competition_date for atualizada, recalcula a fase automaticamente
+    - Fase é derivada da data do campeonato, não precisa ser informada manualmente
     """
     # Busca perfil existente
     existing_profile = await db.user_profiles.find_one({"_id": user_id})
@@ -560,22 +564,50 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
     update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
     
     if update_dict:
-        # Se peso, goal ou competition_phase mudou, recalcula tudo
-        if "weight" in update_dict or "goal" in update_dict or "competition_phase" in update_dict:
-            current_profile = UserProfile(**existing_profile)
+        current_profile = UserProfile(**existing_profile)
+        
+        # ==================== MODO ATLETA - DATA DO CAMPEONATO ====================
+        # Se a data de competição foi atualizada, recalcula a fase automaticamente
+        comp_date_str = update_dict.get("athlete_competition_date") or update_dict.get("competition_date")
+        new_goal = update_dict.get("goal", current_profile.goal)
+        
+        if comp_date_str or new_goal == "atleta":
+            # Se tem nova data, parseia e calcula fase
+            if comp_date_str:
+                try:
+                    if isinstance(comp_date_str, str):
+                        parsed_date = datetime.fromisoformat(comp_date_str.replace('Z', '+00:00'))
+                    else:
+                        parsed_date = comp_date_str
+                    
+                    # Calcula fase e semanas AUTOMATICAMENTE
+                    competition_phase, weeks_to_competition = derive_phase_from_date(parsed_date)
+                    
+                    update_dict["athlete_competition_date"] = parsed_date
+                    update_dict["competition_date"] = parsed_date
+                    update_dict["competition_phase"] = competition_phase
+                    update_dict["weeks_to_competition"] = weeks_to_competition
+                    update_dict["athlete_mode"] = True
+                    
+                    logger.info(f"ATLETA {user_id}: Data atualizada para {parsed_date.date()}, Fase={competition_phase}, Semanas={weeks_to_competition}")
+                    
+                except (ValueError, TypeError) as e:
+                    logger.warning(f"Erro ao parsear data de competição: {e}")
             
+            # Se é atleta e tem data existente mas não nova, recalcula fase
+            elif new_goal == "atleta" and not comp_date_str:
+                existing_date = existing_profile.get("athlete_competition_date") or existing_profile.get("competition_date")
+                if existing_date:
+                    competition_phase, weeks_to_competition = derive_phase_from_date(existing_date)
+                    update_dict["competition_phase"] = competition_phase
+                    update_dict["weeks_to_competition"] = weeks_to_competition
+        
+        # Se peso, goal ou competition_phase mudou, recalcula macros
+        if "weight" in update_dict or "goal" in update_dict or "competition_phase" in update_dict:
             # Usa novos valores ou mantém existentes
             new_weight = update_dict.get("weight", current_profile.weight)
-            new_goal = update_dict.get("goal", current_profile.goal)
             new_frequency = update_dict.get("weekly_training_frequency", current_profile.weekly_training_frequency)
             new_phase = update_dict.get("competition_phase", current_profile.competition_phase)
-            
-            # Validação: atleta requer fase
-            if new_goal == "atleta" and not new_phase:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Atletas devem especificar competition_phase: 'offseason' ou 'prep'"
-                )
             
             # Recalcula
             bmr = calculate_bmr(
