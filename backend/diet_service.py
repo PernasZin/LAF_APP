@@ -252,7 +252,7 @@ def calc_food(food_key: str, grams: float) -> Dict:
     ✅ GARANTIAS:
     - SEMPRE retorna um dict válido (nunca None)
     - grams SEMPRE >= MIN_FOOD_GRAMS (10g)
-    - grams SEMPRE <= MAX_FOOD_GRAMS (500g)
+    - grams SEMPRE <= MAX_FOOD_GRAMS (800g) ou MAX_CARB_GRAMS (1200g) para carbs
     - grams SEMPRE múltiplo de 10
     - TODOS os campos obrigatórios preenchidos
     
@@ -264,9 +264,12 @@ def calc_food(food_key: str, grams: float) -> Dict:
     
     f = FOODS[food_key]
     
-    # GARANTIA: Múltiplo de 10, mínimo 10g, máximo 500g
+    # Determina limite máximo baseado na categoria
+    max_grams = MAX_CARB_GRAMS if f["category"] == "carb" else MAX_FOOD_GRAMS
+    
+    # GARANTIA: Múltiplo de 10, mínimo 10g, máximo baseado na categoria
     g = round_to_10(grams)
-    g = max(MIN_FOOD_GRAMS, min(MAX_FOOD_GRAMS, g))
+    g = max(MIN_FOOD_GRAMS, min(max_grams, g))
     
     # GARANTIA: Sempre > 0
     if g <= 0:
