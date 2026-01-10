@@ -636,6 +636,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       tdee: 'TDEE',
       comingSoon: 'Coming Soon',
       comingSoonText: 'Personalized diet and AI-powered workout plans',
+      waterTracker: 'Hydration',
+      waterGoalReached: 'Hydration goal reached! 🎉',
     },
     diet: {
       title: 'Your Diet Plan',
