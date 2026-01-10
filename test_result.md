@@ -116,6 +116,9 @@ backend:
       - working: true
         agent: "main"
         comment: "Implemented POST /api/user/profile endpoint with TDEE and macros calculation. Tested successfully with curl - returns correct calculations."
+      - working: true
+        agent: "testing"
+        comment: "✅ AUDITORIA COMPLETA VALIDADA - Testados todos os 3 objetivos conforme revisão: (1) CUTTING: TDEE=2788kcal, Target=2286kcal (déficit 18.0% exato), (2) BULKING: TDEE=3069kcal, Target=3437kcal (superávit 12.0% exato), (3) MANUTENÇÃO: TDEE=2067kcal, Target=2067kcal (diferença 0kcal). CRÍTICO: Confirmado que NÃO existem referências a 'athlete', 'peak_week', 'competition_date' em nenhuma resposta. Modo atleta foi COMPLETAMENTE REMOVIDO conforme solicitação da revisão."
   
   - task: "User Profile API - Get Profile"
     implemented: true
