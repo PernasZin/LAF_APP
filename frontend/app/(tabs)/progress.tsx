@@ -273,6 +273,50 @@ export default function ProgressScreen() {
           </View>
         )}
 
+        {/* Notifications Card */}
+        {notifications.length > 0 && (
+          <View style={[styles.notificationsCard, { backgroundColor: colors.warning + '15', borderColor: colors.warning }]}>
+            {notifications.slice(0, 2).map((notif, index) => (
+              <TouchableOpacity 
+                key={notif.id || index}
+                style={styles.notificationItem}
+                onPress={() => {
+                  if (notif.action_url) {
+                    if (notif.action_url === '/progress') {
+                      handleOpenModal();
+                    } else if (notif.action_url === '/peak-week') {
+                      router.push('/peak-week');
+                    }
+                  }
+                }}
+              >
+                <View style={styles.notificationContent}>
+                  <Text style={[styles.notificationTitle, { color: colors.text }]}>
+                    {notif.title}
+                  </Text>
+                  <Text style={[styles.notificationMessage, { color: colors.textSecondary }]} numberOfLines={2}>
+                    {notif.message}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Peak Week Button (for athletes in peak week) */}
+        {isAthlete && athletePhase === 'peak_week' && (
+          <TouchableOpacity 
+            style={[styles.peakWeekButton, { backgroundColor: '#EF4444' }]}
+            onPress={() => router.push('/peak-week')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="flame" size={20} color="#fff" />
+            <Text style={styles.peakWeekButtonText}>🏆 Ver Protocolo Peak Week</Text>
+            <Ionicons name="chevron-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+
         {/* Current Weight Card */}
         <View style={[styles.weightCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
           <View style={styles.weightCardHeader}>
