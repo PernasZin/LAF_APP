@@ -353,6 +353,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       tdee: 'TDEE',
       comingSoon: 'Em Breve',
       comingSoonText: 'Sistema de dieta personalizada e treinos sob medida com IA',
+      waterTracker: 'Hidratação',
+      waterGoalReached: 'Meta de hidratação atingida! 🎉',
     },
     diet: {
       title: 'Seu Plano de Dieta',
