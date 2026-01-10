@@ -397,6 +397,33 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Diet Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            {language === 'en-US' ? 'DIET' : language === 'es-ES' ? 'DIETA' : 'DIETA'}
+          </Text>
+          <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
+            <TouchableOpacity style={styles.legalItem} onPress={() => router.push('/settings/meal-config')}>
+              <View style={styles.legalItemContent}>
+                <Ionicons name="restaurant-outline" size={20} color={colors.primary} />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={[styles.legalText, { color: colors.text }]}>
+                    {language === 'en-US' ? 'Meal Configuration' : 
+                     language === 'es-ES' ? 'Configuración de Comidas' : 
+                     'Configuração de Refeições'}
+                  </Text>
+                  <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                    {language === 'en-US' ? 'Number of meals and times' : 
+                     language === 'es-ES' ? 'Número de comidas y horarios' : 
+                     'Quantidade de refeições e horários'}
+                  </Text>
+                </View>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         {/* Appearance Section */}
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.settings.appearance.toUpperCase()}</Text>
