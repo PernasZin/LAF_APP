@@ -118,15 +118,20 @@ PROCESSED_FOODS = {
     # Pães e massas processados
     "pao",              # Pão francês - muito sódio e aditivos
     "pao_forma",        # Pão de forma - conservantes
+    "pao_integral",     # Pão integral - conservantes (preferir arroz/batata)
     "macarrao",         # Preferir arroz ou batata
+    "macarrao_integral", # Mesmo integral, preferir arroz/batata
+    "tapioca",          # Ok, mas preferir arroz/batata para atleta
     
     # Cereais processados
     "granola",          # Alto açúcar, aditivos
     "farofa",           # Processado, difícil controle
+    "cuscuz",           # Menos processado, mas preferir arroz/batata
     
     # Extras
     "leite_condensado", # Ultraprocessado
     "mel",              # Ok em pequenas quantidades, mas remover para max controle
+    "whey_protein",     # Preferir proteínas inteiras durante prep
 }
 
 # Alimentos LIMPOS recomendados para atleta em PREP/PEAK
