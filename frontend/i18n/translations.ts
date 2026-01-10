@@ -1145,6 +1145,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       fatsDesc: 'Grasas saludables',
       fruits: 'Frutas',
       fruitsDesc: 'Vitaminas y fibra',
+      vegetables: 'Vegetales y Verduras',
+      vegetablesDesc: 'Fibra y micronutrientes',
       supplements: 'Suplementos',
       supplementsDesc: 'No reemplaza comidas',
       separate: 'SEPARADO',
