@@ -136,12 +136,6 @@ const translateFoodName = (namePt: string, language: SupportedLanguage): string 
 
 export default function RestrictionsStep({ data, updateData, language }: Props) {
   const t = translations[language].onboarding;
-  
-  // Determina se é atleta
-  const isAthlete = data.goal === 'atleta';
-  
-  // Seleciona o banco de dados baseado no objetivo
-  const FOOD_DATABASE = isAthlete ? ATHLETE_FOODS : GENERAL_FOODS;
 
   // Categories with translations
   const CATEGORIES = [
