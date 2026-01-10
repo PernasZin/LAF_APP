@@ -1566,6 +1566,567 @@ async def delete_weight_record(record_id: str):
     
     return {"message": "Registro deletado com sucesso"}
 
+
+# ==================== NOTIFICATIONS ENDPOINTS ====================
+
+@api_router.get("/notifications/{user_id}")
+async def get_user_notifications(user_id: str, unread_only: bool = False):
+    """
+    Retorna notificações/lembretes do usuário.
+    
+    Inclui:
+    - Lembretes de atualização de peso
+    - Alertas de Peak Week
+    - Notificações gerais
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca notificações
+    query = {"user_id": user_id}
+    if unread_only:
+        query["read"] = False
+    
+    notifications = await db.notifications.find(query).sort("created_at", -1).to_list(50)
+    
+    # Gera notificações dinâmicas baseadas no contexto
+    dynamic_notifications = []
+    
+    # 1. Verificar se precisa atualizar peso
+    last_weight = await db.weight_records.find_one(
+        {"user_id": user_id},
+        sort=[("recorded_at", -1)]
+    )
+    
+    if last_weight:
+        days_since_last = (datetime.utcnow() - last_weight["recorded_at"]).days
+        if days_since_last >= 7:
+            dynamic_notifications.append({
+                "id": "weight_reminder",
+                "type": "weight_update",
+                "title": "📊 Hora de atualizar seu peso!",
+                "message": f"Já se passaram {days_since_last} dias desde seu último registro. Registre seu peso para acompanhar seu progresso.",
+                "created_at": datetime.utcnow().isoformat(),
+                "read": False,
+                "action_url": "/progress",
+                "priority": "high"
+            })
+        elif days_since_last >= 5:
+            dynamic_notifications.append({
+                "id": "weight_reminder_soon",
+                "type": "weight_update",
+                "title": "⏰ Atualização de peso em breve",
+                "message": f"Em {7 - days_since_last} dia(s) você poderá registrar seu novo peso.",
+                "created_at": datetime.utcnow().isoformat(),
+                "read": False,
+                "action_url": "/progress",
+                "priority": "low"
+            })
+    
+    # 2. Verificar Peak Week para atletas
+    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    if is_athlete:
+        comp_date = user.get("athlete_competition_date") or user.get("competition_date")
+        if comp_date:
+            days_to_comp = (comp_date - datetime.utcnow()).days
+            
+            if 0 < days_to_comp <= 7:
+                dynamic_notifications.append({
+                    "id": "peak_week_active",
+                    "type": "peak_week",
+                    "title": "🏆 PEAK WEEK ATIVA!",
+                    "message": f"Faltam {days_to_comp} dia(s) para a competição. Siga o protocolo de Peak Week com atenção.",
+                    "created_at": datetime.utcnow().isoformat(),
+                    "read": False,
+                    "action_url": "/peak-week",
+                    "priority": "critical"
+                })
+            elif 7 < days_to_comp <= 14:
+                dynamic_notifications.append({
+                    "id": "peak_week_approaching",
+                    "type": "peak_week",
+                    "title": "⚡ Peak Week se aproximando",
+                    "message": f"Em {days_to_comp - 7} dia(s) começa sua Peak Week. Prepare-se!",
+                    "created_at": datetime.utcnow().isoformat(),
+                    "read": False,
+                    "action_url": "/peak-week",
+                    "priority": "medium"
+                })
+    
+    # Formata notificações do banco
+    db_notifications = []
+    for n in notifications:
+        db_notifications.append({
+            "id": n["_id"],
+            "type": n.get("type", "general"),
+            "title": n.get("title", ""),
+            "message": n.get("message", ""),
+            "created_at": n.get("created_at", datetime.utcnow()).isoformat() if isinstance(n.get("created_at"), datetime) else n.get("created_at"),
+            "read": n.get("read", False),
+            "action_url": n.get("action_url"),
+            "priority": n.get("priority", "normal")
+        })
+    
+    return {
+        "user_id": user_id,
+        "notifications": dynamic_notifications + db_notifications,
+        "unread_count": len([n for n in dynamic_notifications + db_notifications if not n.get("read", False)])
+    }
+
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str):
+    """Marca uma notificação como lida"""
+    result = await db.notifications.update_one(
+        {"_id": notification_id},
+        {"$set": {"read": True, "read_at": datetime.utcnow()}}
+    )
+    
+    return {"success": result.modified_count > 0}
+
+
+# ==================== PEAK WEEK ENDPOINTS ====================
+
+@api_router.get("/peak-week/{user_id}")
+async def get_peak_week_plan(user_id: str):
+    """
+    Gera/retorna o plano de Peak Week para o atleta.
+    
+    ⚠️ SEGURANÇA:
+    - Nunca reduzir água abaixo de 2L/dia
+    - Manter sódio mínimo de 500mg/dia
+    - Este é um protocolo CONSERVADOR e SEGURO
+    
+    O plano inclui:
+    - Protocolo de água (sem manipulação extrema)
+    - Protocolo de sódio (sem corte total)
+    - Estratégia de carboidratos (depleção/carga moderada)
+    - Recomendações de treino
+    """
+    # Verifica se usuário existe e é atleta
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    if not is_athlete:
+        raise HTTPException(status_code=400, detail="Peak Week disponível apenas para atletas")
+    
+    comp_date = user.get("athlete_competition_date") or user.get("competition_date")
+    if not comp_date:
+        raise HTTPException(status_code=400, detail="Data de competição não definida")
+    
+    days_to_comp = (comp_date - datetime.utcnow()).days
+    if days_to_comp > 14:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Peak Week disponível apenas 14 dias antes da competição. Faltam {days_to_comp} dias."
+        )
+    
+    # Dados do atleta
+    current_weight = user.get("weight", 80)
+    target_weight = user.get("target_weight", current_weight)
+    
+    # Gera protocolo de Peak Week SEGURO
+    protocols = generate_safe_peak_week_protocol(current_weight, target_weight, comp_date)
+    
+    # Avisos de segurança obrigatórios
+    safety_warnings = [
+        "⚠️ NUNCA reduza a ingestão de água abaixo de 2 litros por dia",
+        "⚠️ NUNCA corte completamente o sódio da dieta",
+        "⚠️ Monitore sintomas como tontura, fraqueza extrema ou cãibras",
+        "⚠️ Interrompa o protocolo se sentir mal-estar significativo",
+        "⚠️ Este protocolo deve ser supervisionado por um profissional",
+    ]
+    
+    return {
+        "user_id": user_id,
+        "competition_date": comp_date.isoformat(),
+        "days_to_competition": max(0, days_to_comp),
+        "current_weight": current_weight,
+        "target_weight": target_weight,
+        "current_day": 7 - max(0, min(7, days_to_comp)) + 1,  # Dia atual do protocolo (1-7)
+        "protocols": protocols,
+        "safety_warnings": safety_warnings,
+        "disclaimer": "Este protocolo é APENAS informativo e educacional. Consulte sempre um profissional de saúde antes de implementar qualquer estratégia de Peak Week."
+    }
+
+
+def generate_safe_peak_week_protocol(weight: float, target_weight: float, comp_date: datetime) -> List[dict]:
+    """
+    Gera protocolo SEGURO de Peak Week.
+    
+    PRINCÍPIOS DE SEGURANÇA:
+    1. Água: Nunca abaixo de 2L/dia (mínimo fisiológico seguro)
+    2. Sódio: Nunca abaixo de 500mg/dia (mínimo para função celular)
+    3. Carboidratos: Ciclos moderados (sem depleção extrema)
+    4. Treino: Leve nas últimas 48h
+    """
+    
+    # Nomes dos dias
+    days_of_week = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+    
+    # Calcular qual dia da semana é a competição
+    comp_weekday = comp_date.weekday()
+    
+    protocols = []
+    
+    for day in range(1, 8):
+        day_offset = day - 7  # -6 a 0 (0 = dia da competição)
+        
+        # Calcula o dia da semana
+        day_weekday = (comp_weekday + day_offset) % 7
+        day_name = days_of_week[day_weekday]
+        
+        # Protocolo varia conforme o dia
+        if day <= 3:  # Dias 1-3: Depleção moderada
+            water = 4.0 + (0.5 * (3 - day))  # 5L, 4.5L, 4L
+            sodium = 2000 - (300 * (day - 1))  # 2000mg, 1700mg, 1400mg
+            carb_strategy = "depletion"
+            carb_grams = 1.0 - (0.2 * (day - 1))  # 1.0, 0.8, 0.6 g/kg
+            training = "full_body" if day <= 2 else "light_pump"
+            
+        elif day <= 5:  # Dias 4-5: Transição
+            water = 3.5 if day == 4 else 3.0
+            sodium = 1000 if day == 4 else 800
+            carb_strategy = "moderate"
+            carb_grams = 2.0 if day == 4 else 3.0  # Início da recarga
+            training = "light_pump" if day == 4 else "posing"
+            
+        elif day == 6:  # Dia 6: Carga de carbs
+            water = 2.5
+            sodium = 600
+            carb_strategy = "loading"
+            carb_grams = 4.0  # Carga moderada
+            training = "posing"
+            
+        else:  # Dia 7: Competição
+            water = 2.0  # Mínimo seguro
+            sodium = 500  # Mínimo seguro
+            carb_strategy = "loading"
+            carb_grams = 2.0  # Manutenção
+            training = "rest"
+        
+        # Notas específicas para cada fase
+        water_note = get_water_note(day, water)
+        sodium_note = get_sodium_note(day, sodium)
+        carb_note = get_carb_note(day, carb_strategy, carb_grams, weight)
+        training_note = get_training_note(day, training)
+        
+        # Aviso especial para os últimos dias
+        warning = None
+        if day >= 6:
+            warning = "⚠️ Monitore seu corpo atentamente. Qualquer mal-estar, volte à hidratação normal."
+        
+        protocols.append({
+            "day": day,
+            "day_name": day_name,
+            "days_to_competition": 7 - day,
+            "water_liters": water,
+            "water_note": water_note,
+            "sodium_mg": sodium,
+            "sodium_note": sodium_note,
+            "carb_strategy": carb_strategy,
+            "carb_grams_per_kg": carb_grams,
+            "carb_total_grams": round(carb_grams * weight),
+            "carb_note": carb_note,
+            "training_type": training,
+            "training_note": training_note,
+            "general_notes": get_general_note(day),
+            "warning": warning
+        })
+    
+    return protocols
+
+
+def get_water_note(day: int, liters: float) -> str:
+    notes = {
+        1: f"Hidratação alta ({liters}L). Beba consistentemente ao longo do dia.",
+        2: f"Mantenha {liters}L. Distribua uniformemente.",
+        3: f"Redução gradual para {liters}L. Evite beber muito de uma vez.",
+        4: f"Transição ({liters}L). Corpo começando a ajustar.",
+        5: f"Redução moderada ({liters}L). Monitore cor da urina.",
+        6: f"Dia de carga ({liters}L). Hidrate junto com os carboidratos.",
+        7: f"Dia D ({liters}L mínimo). NUNCA fique desidratado!"
+    }
+    return notes.get(day, f"{liters}L de água")
+
+
+def get_sodium_note(day: int, mg: int) -> str:
+    notes = {
+        1: f"Sódio normal ({mg}mg). Tempere normalmente.",
+        2: f"Leve redução ({mg}mg). Evite alimentos ultraprocessados.",
+        3: f"Redução moderada ({mg}mg). Prefira temperos naturais.",
+        4: f"Sódio baixo ({mg}mg). Cuidado com fontes escondidas.",
+        5: f"Sódio reduzido ({mg}mg). Monitore cãibras.",
+        6: f"Sódio mínimo seguro ({mg}mg). Não corte totalmente!",
+        7: f"Mínimo fisiológico ({mg}mg). Essencial para função muscular."
+    }
+    return notes.get(day, f"{mg}mg de sódio")
+
+
+def get_carb_note(day: int, strategy: str, grams_kg: float, weight: float) -> str:
+    total = round(grams_kg * weight)
+    
+    if strategy == "depletion":
+        return f"Depleção: {total}g de carbs ({grams_kg}g/kg). Foque em treino e esgote glicogênio."
+    elif strategy == "moderate":
+        return f"Transição: {total}g de carbs ({grams_kg}g/kg). Corpo se preparando para carga."
+    else:  # loading
+        return f"Carga: {total}g de carbs ({grams_kg}g/kg). Fontes limpas: arroz, batata doce."
+
+
+def get_training_note(day: int, training_type: str) -> str:
+    notes = {
+        "full_body": "Treino full body de alto volume. Objetivo: deplecionar glicogênio muscular.",
+        "light_pump": "Treino leve de pump. Séries altas, cargas baixas. Apenas para fluxo sanguíneo.",
+        "posing": "Apenas prática de poses. Economize energia.",
+        "rest": "Descanso total. Apenas poses se necessário."
+    }
+    return notes.get(training_type, "Siga o plano de treino")
+
+
+def get_general_note(day: int) -> str:
+    notes = {
+        1: "Início da semana. Foco total na depleção. Mantenha rotina de sono.",
+        2: "Continue deplecando. Sua energia pode cair - é normal.",
+        3: "Último dia de depleção intensa. Prepare-se para a transição.",
+        4: "Transição. Corpo pode parecer 'flat' - é temporário.",
+        5: "Início da carga. Músculos começam a encher. Monitore o visual.",
+        6: "Carga principal. Coma carboidratos limpos a cada 2-3 horas.",
+        7: "DIA DA COMPETIÇÃO! Confie no processo. Você está pronto! 🏆"
+    }
+    return notes.get(day, "Siga o protocolo com atenção")
+
+
+# ==================== PERFORMANCE CHART ENDPOINT ====================
+
+@api_router.get("/progress/performance/{user_id}")
+async def get_performance_chart_data(user_id: str, days: int = 90):
+    """
+    Retorna dados formatados para gráfico de desempenho.
+    
+    Inclui:
+    - Evolução do peso ao longo do tempo
+    - Linha de desempenho (média do questionário)
+    - Tendências e projeções
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca registros
+    from_date = datetime.utcnow() - timedelta(days=days)
+    
+    records = await db.weight_records.find(
+        {"user_id": user_id, "recorded_at": {"$gte": from_date}}
+    ).sort("recorded_at", 1).to_list(length=100)
+    
+    if not records:
+        return {
+            "user_id": user_id,
+            "has_data": False,
+            "message": "Nenhum registro encontrado no período"
+        }
+    
+    # Formata dados para gráfico
+    weight_data = []
+    performance_data = []
+    
+    for r in records:
+        date_str = r["recorded_at"].strftime("%Y-%m-%d")
+        
+        weight_data.append({
+            "date": date_str,
+            "value": r["weight"],
+            "phase": r.get("athlete_phase")
+        })
+        
+        if r.get("questionnaire_average"):
+            performance_data.append({
+                "date": date_str,
+                "value": r["questionnaire_average"],
+                "breakdown": r.get("questionnaire", {})
+            })
+    
+    # Calcula tendências
+    if len(weight_data) >= 2:
+        first_weight = weight_data[0]["value"]
+        last_weight = weight_data[-1]["value"]
+        weight_change = last_weight - first_weight
+        days_elapsed = (records[-1]["recorded_at"] - records[0]["recorded_at"]).days
+        
+        if days_elapsed > 0:
+            weekly_rate = (weight_change / days_elapsed) * 7
+        else:
+            weekly_rate = 0
+    else:
+        weight_change = 0
+        weekly_rate = 0
+    
+    # Calcula média de desempenho
+    if performance_data:
+        avg_performance = sum(p["value"] for p in performance_data) / len(performance_data)
+        
+        # Breakdown por categoria
+        category_totals = {"diet": 0, "training": 0, "cardio": 0, "sleep": 0, "hydration": 0}
+        category_count = 0
+        
+        for p in performance_data:
+            bd = p.get("breakdown", {})
+            if bd:
+                for key in category_totals:
+                    category_totals[key] += bd.get(key, 0)
+                category_count += 1
+        
+        if category_count > 0:
+            category_averages = {k: round(v / category_count, 1) for k, v in category_totals.items()}
+        else:
+            category_averages = category_totals
+    else:
+        avg_performance = 0
+        category_averages = {}
+    
+    # Identifica a categoria mais fraca
+    weakest_category = None
+    if category_averages:
+        weakest_category = min(category_averages, key=category_averages.get)
+    
+    # Sugestões baseadas nos dados
+    suggestions = generate_performance_suggestions(
+        weight_change, weekly_rate, avg_performance, category_averages, user.get("goal")
+    )
+    
+    return {
+        "user_id": user_id,
+        "has_data": True,
+        "period_days": days,
+        "total_records": len(records),
+        
+        # Dados para gráficos
+        "weight_chart": {
+            "data": weight_data,
+            "min": min(d["value"] for d in weight_data) - 1,
+            "max": max(d["value"] for d in weight_data) + 1
+        },
+        "performance_chart": {
+            "data": performance_data,
+            "average": round(avg_performance, 1)
+        },
+        
+        # Estatísticas
+        "stats": {
+            "weight_change": round(weight_change, 1),
+            "weekly_rate": round(weekly_rate, 2),
+            "avg_performance": round(avg_performance, 1),
+            "category_averages": category_averages,
+            "weakest_category": weakest_category,
+            "target_weight": user.get("target_weight"),
+            "current_weight": user.get("weight")
+        },
+        
+        # Sugestões
+        "suggestions": suggestions
+    }
+
+
+def generate_performance_suggestions(weight_change: float, weekly_rate: float, 
+                                    avg_performance: float, categories: dict, goal: str) -> List[dict]:
+    """Gera sugestões personalizadas baseadas nos dados de desempenho"""
+    
+    suggestions = []
+    
+    # Sugestões baseadas no peso
+    if goal == "cutting" and weekly_rate > 0:
+        suggestions.append({
+            "type": "weight",
+            "icon": "⚖️",
+            "title": "Ajuste no déficit calórico",
+            "message": "Você está ganhando peso em um período de cutting. Considere aumentar o déficit ou a atividade física."
+        })
+    elif goal == "bulking" and weekly_rate < 0:
+        suggestions.append({
+            "type": "weight",
+            "icon": "⚖️",
+            "title": "Aumente a ingestão calórica",
+            "message": "Você está perdendo peso em um período de bulking. Aumente gradualmente as calorias."
+        })
+    elif abs(weekly_rate) > 1.0:
+        suggestions.append({
+            "type": "weight",
+            "icon": "⚠️",
+            "title": "Mudança de peso acelerada",
+            "message": f"Você está {'perdendo' if weekly_rate < 0 else 'ganhando'} mais de 1kg por semana. Isso pode não ser sustentável."
+        })
+    
+    # Sugestões baseadas nas categorias
+    if categories:
+        weakest = min(categories, key=categories.get)
+        weakest_score = categories[weakest]
+        
+        category_suggestions = {
+            "diet": {
+                "icon": "🍽️",
+                "title": "Melhore a adesão à dieta",
+                "message": "Sua pontuação de dieta está baixa. Tente preparar as refeições com antecedência."
+            },
+            "training": {
+                "icon": "🏋️",
+                "title": "Consistência no treino",
+                "message": "Seus treinos podem melhorar. Defina horários fixos para treinar."
+            },
+            "cardio": {
+                "icon": "🏃",
+                "title": "Aumente o cardio",
+                "message": "O cardio está abaixo do ideal. Tente adicionar caminhadas diárias."
+            },
+            "sleep": {
+                "icon": "😴",
+                "title": "Priorize o sono",
+                "message": "Seu sono precisa de atenção. Estabeleça uma rotina noturna consistente."
+            },
+            "hydration": {
+                "icon": "💧",
+                "title": "Beba mais água",
+                "message": "Hidratação baixa afeta performance e recuperação. Use lembretes para beber água."
+            }
+        }
+        
+        if weakest_score < 6:
+            suggestion = category_suggestions.get(weakest, {
+                "icon": "📊",
+                "title": f"Melhore {weakest}",
+                "message": f"Esta é sua área mais fraca (média: {weakest_score})."
+            })
+            suggestions.append({
+                "type": "category",
+                **suggestion,
+                "category": weakest,
+                "score": weakest_score
+            })
+    
+    # Sugestão de consistência
+    if avg_performance >= 8:
+        suggestions.append({
+            "type": "positive",
+            "icon": "🌟",
+            "title": "Excelente consistência!",
+            "message": "Sua média de desempenho está ótima. Continue assim!"
+        })
+    elif avg_performance < 5:
+        suggestions.append({
+            "type": "warning",
+            "icon": "⚡",
+            "title": "Foco na consistência",
+            "message": "Sua média geral está baixa. Escolha UMA área para melhorar esta semana."
+        })
+    
+    return suggestions
+
+
 # ==================== WORKOUT ENDPOINTS ====================
 
 @api_router.post("/workout/generate")
