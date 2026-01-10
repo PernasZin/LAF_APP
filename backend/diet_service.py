@@ -717,7 +717,7 @@ MEAL_RULES = {
     },
     "lanche": {
         # PERMITIDOS: Frutas + Cottage, Iogurte Grego + Castanhas, Amêndoas, Nozes
-        "proteins": {"iogurte_grego", "cottage"},  # OVOS PROIBIDOS em lanches!
+        "proteins": {"iogurte_grego"},  # OVOS PROIBIDOS em lanches!
         "carbs": {"aveia"},  # Aveia também pode ser lanche
         "fats": {"castanhas", "amendoas", "nozes", "pasta_amendoim"},
         "fruits": True,
