@@ -1089,9 +1089,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
     MAX_DEFICIT = 5  # Máximo 5g abaixo do target (mais rígido)
     
     # Tolerância para baixo agora é também 5g (mais rígida)
-    tol_p_below = max(10, target_p * 0.05)
-    tol_c_below = max(15, target_c * 0.05)
-    tol_f_below = max(5, target_f * 0.05)
+    tol_p_below = MAX_DEFICIT
+    tol_c_below = MAX_DEFICIT
+    tol_f_below = MAX_DEFICIT
     
     num_meals = len(meals)
     
