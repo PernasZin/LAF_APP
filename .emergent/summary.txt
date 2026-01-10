@@ -2,129 +2,127 @@
 
 **original_problem_statement**: The user wants to build a comprehensive diet and fitness application. The core feature revolves around dynamic, rule-based generation of diet and cardio plans.
 
-Initial & ongoing requests include:
-1.  **Diet Generation Logic**:
-    *   Implement strict business rules (e.g., no eggs in supper, specific fat calculations).
-    *   Allow users to configure 4, 5, or 6 meals per day.
-    *   **Crucial Clarification**: When changing the number of meals, the *total daily food and macronutrients* must remain the same; only the distribution across meals should change. The current implementation is failing this, leading to significant calorie/macro deficits on 4/5 meal plans.
-    *   The diet generation must be robust enough to meet high-calorie targets (e.g., >3700 kcal) by generating sufficient food quantities, especially carbohydrates.
-2.  **Onboarding Flow**: The meal configuration (number of meals) should be part of the initial user profile setup (onboarding).
-3.  **Cardio Plan**: Implement a full cardio planning system, including substitutions with equivalent workout times.
-4.  **Athlete Features**:
-    *   Allow users to identify as athletes and set a competition date.
-    *   Calculate the athlete's current training phase (e.g., 'Peak Week', 'Off-Season') based on the competition date.
-5.  **Bug Fixes**:
-    *   Fix a broken date picker on the Edit Profile screen.
-    *   Ensure UI updates correctly across the app when settings (like user goal) are changed.
+The main requests during this session were:
+1.  **Fix Core Diet Logic**: The initial problem was that diets with 4 or 5 meals had significantly fewer calories/macros than 6-meal plans. The user's goal is for the *total daily food amount to be constant*, with only the distribution changing based on the meal count.
+2.  **Add Food Variety**: The user requested adding more carbohydrate options (like sweet potato, beans, cassava) to avoid excessively large portions of rice.
+3.  **Add Snack/Breakfast Variety**: The user asked for more realistic snack and breakfast options, including yogurt, bread, condensed milk, and honey.
+4.  **Food Customization/Rules**: The user provided several lists of foods to remove from the generation pool. They also added specific rules, such as limiting certain treat foods (like condensed milk) to 30g and restricting them to lighter meals (snacks/breakfast).
+5.  **Must-Include Rule**: The user mandated that if a food is selected in their preferences, it **must** appear in the generated diet.
+6.  **Whole Unit Portions**: The user requested that countable foods (eggs, slices of bread, pots of yogurt) be generated in whole units, not fractions or grams (e.g., 2 eggs instead of 130g of eggs).
+7.  **Strict Macro Adherence**: The user specified that the final generated macros should not exceed the target by more than 5g for any macronutrient (protein, carbs, fat).
 
-**User's preferred language**: Portuguese (Brasil)
+**User's preferred language**: Portuguese (Brasil). The next agent MUST respond in Portuguese.
 
 **what currently exists?**
-- A full-stack application with a FastAPI backend and an Expo (React Native) frontend.
-- The backend features a complex, rule-based service () for generating diet and cardio plans.
-- The user can select their preferred number of meals (4, 5, or 6) during an updated onboarding flow and in the settings.
-- The frontend includes a Cardio tab with exercise details and substitutions, a settings area for profile and meal configuration, and a home screen to view the diet.
-- The Edit Profile screen has a working, custom-built date picker for athletes to set their competition date.
-- State management on the frontend has been improved with  to refetch data when a screen becomes active, ensuring changes made in settings are reflected on other tabs.
+- A FastAPI backend with a highly complex, rule-based diet generation service in .
+- The initial critical bug, where changing the number of meals drastically reduced total calories, has been **fixed**. The generation now correctly hits high-calorie targets by allowing larger food portions.
+- A significantly expanded food database ( dictionary in ) including new carbs (beans, sweet potato, farofa), proteins, fruits, and snacks (yogurt, condensed milk, honey).
+- The meal generation logic has been updated to create more varied meals, such as combining rice, beans, and farofa for lunch/dinner to reduce the portion of a single carb.
+- A system to handle countable foods has been implemented. The  function now rounds quantities of items like eggs, bread, and yogurt to the nearest whole unit and displays a user-friendly quantity (e.g., 1 pote, 2 fatias).
+- Many foods requested by the user have been removed from the generation pool and frontend selection lists.
+- Rules to limit certain foods (e.g., ) to 30g and restrict them to specific meal types (e.g., snacks) are in place.
 
 **Last working item**:
-    - Last item agent was working: The agent was debugging the core diet generation logic in . The user reported that diets with 4 or 5 meals have significantly lower calories and macros than the 6-meal diet. The user's expectation is that the total food quantity for the day remains constant, regardless of the meal count, with only the distribution changing. The agent rewrote the logic to first calculate total daily food and then distribute it, but the generated diet still failed to meet the macro targets (especially carbohydrates).
+    - Last item agent was working: The agent was attempting to implement the user's request for strict macro adherence (not exceeding targets by more than +5g). This failed because the previously implemented whole unit feature causes the initial diet generation to have a large macro surplus. For example, the logic might ask for 100g of yogurt, which is rounded up to a 170g pot, uncontrollably adding extra macros. The  function is unable to correct such a large, non-reducible surplus. The agent's last action was to try to mitigate this by manually limiting the quantity of yogurt in snacks.
     - Status: IN PROGRESS
-    - Agent Testing Done: N (Local tests showed promise, but live tests failed)
-    - Which testing method agent to use? backend testing agent
+    - Agent Testing Done: N
+    - Which testing method agent to use? backend testing agent (to validate macro targets after the fix).
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Diet generation is incorrect for 4 and 5 meal plans (P0)
-
+  - Issue 1: Strict macro adherence (+5g limit) is broken by the whole units feature. (P0)
+  - Issue 2: The All selected foods must appear in the diet rule is not fully implemented. (P1)
+  
   Issues Detail:
-  - **Issue 1: Diet generation is incorrect for 4 and 5 meal plans**
-     - **Attempted fixes**: The agent correctly identified that the logic shouldn't generate fewer food items but rather redistribute the same total amount. The agent refactored  to generate total daily food first and then partition it into meals. However, the result was still incorrect, with major carbohydrate and calorie deficits. The agent identified two likely causes:
-        1.  Hardcoded limits on food quantities (e.g., ) are too low for high-calorie targets, preventing the  function from adding enough food.
-        2.  A suspected backend module caching/reloading issue. Local tests of the function showed correct behavior, but the API endpoint returned results from what seemed to be an older version of the code, even after service restarts.
+  - **Issue 1: Strict macro adherence (+5g limit) is broken by the whole units feature.**
+     - **Attempted fixes**: The agent rewrote the  function to be more aggressive. This failed because the root cause is not the tuning function, but the initial generation. The rounding of countable foods (e.g., 100g of yogurt becomes a 170g pot) creates a large, uncontrollable macro surplus from the start. The last attempt was to manually clamp the grams of yogurt in the generation logic.
      - **Next debug checklist**:
-         1.  **Resolve the backend reload issue**: Confirm that changes to  are active after a backend: stopped
-backend: started. Add a version number or timestamp to a log message in the diet generation function to definitively verify which code version is running.
-         2.  **Increase Food Generation Limits**: Review and increase the  values and  constants in , especially for carbohydrate sources like arroz (rice) and aveia (oats), to allow for larger portions required by high-calorie diets.
-         3.  **Test Generation**: After confirming the code is reloading correctly, run a test for a high-calorie user (e.g., 3783 kcal target) with 5 meals and verify if the generated carbs/calories are much closer to the target.
-     - **Why fix this issue and what will be achieved with the fix?**: This is the application's core feature and is fundamentally broken from the user's perspective. Fixing it will make the meal configuration feature usable and deliver the primary value proposition of the app.
-     - **Status**: IN PROGRESS
+         1.  **Refactor Initial Generation**: The initial meal generation logic (in ) needs to be aware of countable foods. Instead of calculating gram targets and then rounding, it should perhaps calculate *unit* targets first.
+         2.  **Smarter **: The  function needs to know which foods are countable and cannot be incrementally adjusted. It should prioritize adjusting non-countable foods first.
+         3.  **Two-Pass Generation**: Consider a two-pass approach. First pass places the required countable items. The second pass fills the remaining macro gaps with non-countable, easily adjustable foods.
+     - **Why fix this issue and what will be achieved with the fix?**: The user explicitly requested this precision. Fixing it will make the diet generation meet the user's final requirement for accuracy.
+     - **Status**:  IN PROGRESS
+     - **Is recurring issue?**: N (It's a new issue caused by a feature interaction).
+     - **Should Test frontend/backend/both after fix?**: Backend
+     - **Blocked on other issue**: None
+
+  - **Issue 2: The All selected foods must appear in the diet rule is not fully implemented.**
+     - **Attempted fixes**: The agent modified the  function to prioritize preferred foods. While this improved results, it's not foolproof. Some preferred foods are still being replaced by others from the priority list (e.g.,  appearing instead of  even if both are preferred). This is because the logic picks the *first available* preferred food for a slot, it doesn't try to fit *all* of them throughout the day.
+     - **Next debug checklist**:
+         1.  **Create a Must-Include Set**: At the start of , create a set of all preferred foods.
+         2.  **Iterate and Place**: As each meal is generated, try to use a food from this set. Once a food is used, remove it from the set.
+         3.  **Final Pass**: Before returning the diet, check if the must-include set is empty. If not, iterate through the remaining foods and try to substitute them into an appropriate meal, replacing a non-preferred food.
+     - **Why fix this issue and what will be achieved with the fix?**: This is a direct user command and a key part of personalization. It will give the user confidence that their selections are being respected.
+     - **Status**:  IN PROGRESS
      - **Is recurring issue?**: Y
      - **Should Test frontend/backend/both after fix?**: Backend
      - **Blocked on other issue**: None
 
 **In progress Task List**:
-  - Task 1: Refactor diet generation logic (same as Issue 1)
-     - Where to resume: 
-     - What will be achieved with this?: A working diet generation system that correctly adjusts to the user's chosen number of meals.
-     - Status: IN PROGRESS
-     - Should Test frontend/backend/both after fix?: Backend
-     - Blocked on something: Potential backend service reload/caching issue.
+- The pending issues above are the current in-progress tasks.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P1**: Once the diet generation is fixed, a full end-to-end test is needed: create a new user, select 4 meals in onboarding, and verify the diet is generated correctly on the home screen.
-- **Future Tasks**:
-    - **P2**: Implement the automatic athlete phase transition rule (from original summary, when the athlete user after 2 weeks of creating the account, pass 2 weeks of the preparation phase). This complex business rule has not been started.
-    - **P3**: Move push notifications to the backend for more robust scheduling.
+    - **P0**: Resolve the conflict between whole units and strict macro limits (Issue 1).
+    - **P1**: Fully implement the must-include logic for preferred foods (Issue 2).
+    - **P2**: User mentioned a future desire to ensure all preferred foods appear over the course of a *week*. This is a logical next step after the daily implementation is working.
 
 **Completed work in this session**
-- **Date Picker Fix (P0 COMPLETED)**: Fully repaired the broken date picker in  by completing the custom -based implementation. Tested and verified it correctly saves the competition date and triggers the athlete phase calculation.
-- **Cardio Substitution Time (P3 COMPLETED)**: Fixed the UI in  to correctly display the equivalent time for substitute exercises. The root cause was a missing  and a  style issue, both of which were resolved.
-- **State Management Refresh (P2 COMPLETED)**: Ensured that the Home, Diet, and Cardio tabs refresh their data when the user navigates back to them after making changes in settings by implementing .
-- **Onboarding Meal Configuration**: Successfully added a new Meal Plan step to the onboarding flow in , allowing users to set their meal count during initial setup. A new file  was created.
-- **Backend Diet Deletion Endpoint**: Added a  endpoint to  to allow the frontend to clear a user's diet cache.
-
-**Earlier issues found/mentioned but not fixed**
-- The core issue of the diet losing food has been the primary focus and is still being worked on. No other known issues were mentioned and ignored.
+- **Core Diet Generation Bug (FIXED)**: Corrected the logic that caused calorie deficits on 4/5 meal plans. The system now correctly hits high-calorie targets by increasing hardcoded food portion limits.
+- **Excess Fat Generation (FIXED)**: Reduced the amount of fat in the initial diet generation, bringing the final fat macros much closer to their target.
+- **Food Database Expansion (DONE)**: Added a wide variety of Brazilian food items for carbs, snacks, and breakfast as requested by the user.
+- **Meal Variety (DONE)**: Reworked the lunch/dinner generation to use a combination of carbs (e.g., rice + beans + farofa), creating more realistic and varied meals.
+- **Food Removal and Rules (DONE)**: Removed multiple food items from the backend and frontend lists. Implemented rules to limit portion sizes (e.g., 30g max) and meal types for specific foods like .
+- **Whole Unit Portions (DONE)**: Implemented logic to convert gram-based quantities of countable foods (eggs, yogurt, bread) into whole, user-friendly units (e.g., 1 pote, 2 fatias). This included correcting pluralization in the display string.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Rule-Based Diet Generation**: The backend in  uses a complex set of rules, food definitions, and distribution percentages to construct daily meal plans. The current challenge is making this system flexible for different meal counts while maintaining macro-nutrient targets.
-- **Backend Module Caching**: The agent strongly suspects that Python's module caching is preventing changes in  from being reflected immediately after a service restart. This is a common issue in development environments with some WSGI servers.
-- **Client-Side State Synchronization**: The use of  was a key fix to ensure that screens refetch data from the backend when they become visible, solving the problem of stale data after profile edits.
-
-**key DB schema**
-- No schema changes were made in this session. Existing fields in  () and  () were utilized.
+- **Rule-Based Generation Conflict**: The session highlights a classic problem where two business rules (use whole units and be within 5g of macro target) are in direct conflict. The rounding required by the first rule makes the precision required by the second rule impossible with the current architecture.
+- **Stateful Diet Generation**: The generation process is highly stateful, building meals sequentially. The  function attempts to correct the final state, but it's ineffective if the initial state is too far off, especially with non-reducible (countable) items.
+- **Priority-Based Selection**: The code uses prioritized lists (, ) to select foods. The must-include feature requires moving beyond simple priority to a guarantee of inclusion.
 
 **All files of reference**
-- : **CRITICAL**. This file contains the entire diet generation logic. It is the locus of the main pending issue and will be the primary focus for the next agent.
-- : The main onboarding flow, modified to include the new meal configuration step.
-- : The new UI component for selecting meal count during onboarding.
-- : The file where the cardio substitution UI was successfully fixed.
-- : The file where the date picker was successfully fixed.
+- : **CRITICAL**. This is the only file modified in the session and contains the entire logic for diet generation. The next agent must work exclusively within this file to address the pending issues.
+- : This file's  constant was updated to reflect the food removals requested by the user.
+- : This file was updated to add translations for newly added foods.
 
 **Critical Info for New Agent**
-1.  **User's Core Requirement**: The user has been very clear: changing from 6 to 5 or 4 meals should *not* reduce the total amount of food for the day, only redistribute it. The total calories and macros should be as close as possible across all plans.
-2.  **Suspected Backend Caching Issue**: You are likely to face an issue where your changes to  do not apply, even after restarting the backend. **Your first action should be to verify you can reliably deploy changes to this file.** Add a unique log message or a print statement with a version number inside the  function and check the logs after a restart to confirm the new code is running. If it's not, you must resolve this before debugging the logic further.
-3.  **Food Limits are a Bottleneck**: The current logic is failing for high-calorie targets (>3700 kcal) because the  function is constrained by hardcoded maximums for food portions (e.g., 500g of rice). You will likely need to increase these limits in  to allow the algorithm to hit the targets.
+1.  **The Whole Unit vs Strict Macro Conflict**: Your highest priority is to resolve the conflict between these two features. You cannot simply tweak the  function. You must make the **initial generation logic** smarter. It needs to account for the macro impact of rounding up a countable item *as it's being added*, not as an afterthought.
+2.  **Must-Include Logic is Tricky**: The current  approach is insufficient. You need to implement a more robust system that tracks which preferred foods have been used and ensures any remaining ones are placed in the diet, potentially by replacing other non-preferred foods.
+3.  **The Code Works, The API is the Truth**: The previous agent noted discrepancies between local script execution and API results, likely due to caching or state issues. Always test your changes through the API (using  or the testing agent) after restarting the backend (backend: ERROR (not running)
+backend: ERROR (abnormal termination)). Do not trust standalone function tests alone.
 
-**Last 10 User Messages and any pending HUMAN messages**
-- **(LATEST) User (Msg 248)**: Clarified the core requirement: 4 or 5 meal plans should have the SAME total food/macros as the 6-meal plan, just distributed differently. **(IN PROGRESS)**
-- **User (Msg 173)**: Reports that the diet is losing a lot of calories, carbs, and fats, and provides a screenshot showing a large calorie deficit. **(IN PROGRESS)**
-- **User (Msg 146)**: Reports that the diet is being cut when using 4 or 5 meals and provides a screenshot. **(IN PROGRESS)**
-- **User (Msg 115)**: Reports the diet is still losing food and requests the meal configuration screen be moved to the onboarding flow. **(Onboarding part COMPLETED, diet bug IN PROGRESS)**
-- **User (Msg 43)**: Confirms to proceed with the proposed 3-step fix plan. **(COMPLETED)**
-- **User (Msg 5)**: Confirms the initial plan. **(COMPLETED)**
+**documents created in this job**
+-  was updated for the backend testing agent.
+
+**Last 10 User Messages and any pending HUMAN messages** 
+1.  **LATEST (Msg 325)**: I want the diet to respect the macro limits, the maximum acceptable above the macro goal is 5g, more than that should be recalculated. example seen now: FATS: 106g/85g **(IN PROGRESS - THIS IS P0 ISSUE)**
+2.  **(Msg 302)**: I want units of things like eggs to be just 1,2,3...10. A person cant put 1.5 eggs in their food, just like 2.7 slices of bread... a 100g of greek yogurt = 0.6 of the pot, the person has to at least eat the whole pot so it doesnt spoil. **(COMPLETED)**
+3.  **(Msg 213)**: remove skim milk, whole milk, etc. RULE: ALL SELECTED FOODS MUST BE IN THE DIET **(Food removal COMPLETED, must-include rule IN PROGRESS)**
+4.  **(Msg 170)**: you forgot to put the foods you added in the preferences, remove dark chocolate 70%, cream cheese... CONDENSED MILK, HONEY, LIGHT CREAM CHEESE, MUST BE LIMITED TO 30G, AND MUST ONLY BE PLACED IN LIGHTER MEALS, NEVER IN DINNER OR LUNCH. **(COMPLETED)**
+5.  **(Msg 131)**: the portions are being poorly divided, there is still a lot of rice, maybe a normal yogurt in the snacks, a little condensed milk, slices of bread **(COMPLETED)**
+6.  **(Msg 96)**: add more carbohydrates, and foods that can be used in a diet, to be able to complete it without weighing so heavily on rice **(COMPLETED)**
+7.  **(Msg 5)**: confirmo (confirming the initial plan) **(COMPLETED)**
 
 **Project Health Check:**
 - **Broken**:
-    - The core diet generation logic () is not functional as per user requirements for 4 and 5-meal plans. This is the highest priority issue.
-- **Mocked**: None.
+    - The diet generation's macro accuracy is broken. It frequently violates the user's new +5g rule due to the conflict with the whole units feature. This makes the generated diets unreliable from a macro-tracking perspective.
 
 **3rd Party Integrations**
--  / : For internationalization.
-- : For scheduling local push notifications.
+- No new integrations were added.
 
 **Testing status**
-  - Testing agent used after significant changes: NO
+  - Testing agent used after significant changes: YES (The backend agent was used to validate the initial bug fix).
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None
-  - Known regressions: None (The diet generation was flawed from the start of this specific feature, so it's a persistent bug rather than a regression).
+  - Test files created: None. Tests were done via  and ad-hoc scripts.
+  - Known regressions: The implementation of the whole units feature caused a regression in macro accuracy.
+
+**Credentials to test flow:**
+- N/A
 
 **What agent forgot to execute**
-- The agent correctly prioritized the user's immediate and repeated feedback on the diet generation logic. The longer-term future task of implementing a new athlete phase transition rule was appropriately deferred and has not been forgotten.
+- The agent correctly identified the complexity of the must-include rule and deferred its complete implementation, which was a reasonable decision. However, it did not fully anticipate the regression that the whole units feature would cause on macro accuracy.
 
 </analysis>
