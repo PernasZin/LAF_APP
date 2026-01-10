@@ -1150,7 +1150,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 # Jantar: Legume cozido (mais fácil digestão à noite) - 100-120g
                 legume_cozido = random.choice(LEGUMES_COZIDOS)
                 foods.append(calc_food(legume_cozido, 100))
-                foods.append(calc_food("brocolis", 100))
             
             # Azeite - limite mais conservador (5-20g)
             azeite_grams = clamp(meal_f * 0.30 / 1.0, 5, 20)
