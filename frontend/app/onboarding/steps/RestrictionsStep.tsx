@@ -326,9 +326,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 20,
   },
-  modeBadgeAthlete: {
-    backgroundColor: '#FEF3C7',
-  },
   modeBadgeGeneral: {
     backgroundColor: '#D1FAE5',
   },
