@@ -1506,9 +1506,9 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
             # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
             foods = [calc_food("tilapia", 150), calc_food("arroz_integral", 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
         else:  # Ceia
-            # PERMITIDO: iogurte/cottage + frutas | PROIBIDO: carnes, carbs complexos, OVOS!
+            # PERMITIDO: iogurte + frutas | PROIBIDO: carnes, carbs complexos, OVOS!
             # REGRA ABSOLUTA: NUNCA OVOS NA CEIA!
-            foods = [calc_food("cottage", 100), calc_food("morango", 100)]
+            foods = [calc_food("iogurte_grego", 170), calc_food("morango", 100)]
     
     # Valida cada alimento
     validated_foods = []
