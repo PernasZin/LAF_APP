@@ -1068,12 +1068,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if category is None or FOODS[p]["category"] == category:
                     if exclude_complements and p in COMPLEMENT_FOODS:
                         continue
-                    # 🏆 MODO ATLETA: Não adiciona processados baseado na fase
-                    if p in processed_to_filter:
-                        continue
-                    # Peak week: remove vegetais que causam inchaço
-                    if competition_phase == "peak_week" and p in PEAK_WEEK_AVOID_VEGETABLES:
-                        continue
                     original_in_category.append(p)
         
         # Segundo: Alimentos auto-completados (não originais)
@@ -1082,12 +1076,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if p not in original_preferred and p in FOODS:
                 if category is None or FOODS[p]["category"] == category:
                     if exclude_complements and p in COMPLEMENT_FOODS:
-                        continue
-                    # 🏆 MODO ATLETA: Não adiciona processados baseado na fase
-                    if p in processed_to_filter:
-                        continue
-                    # Peak week: remove vegetais que causam inchaço
-                    if competition_phase == "peak_week" and p in PEAK_WEEK_AVOID_VEGETABLES:
                         continue
                     auto_completed_in_category.append(p)
         
@@ -1103,14 +1091,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 result.append(ac)
         
         # Adiciona defaults que não estão na lista
-        for d in filtered_defaults:
+        for d in default_list:
             if d not in result and d in FOODS:
                 # Se já tem um tipo de arroz, não adiciona outro
                 if d in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
                     continue
                 result.append(d)
         
-        return result if result else filtered_defaults if filtered_defaults else default_list
+        return result if result else default_list
     
     # Prioridades por categoria - COM PREFERÊNCIAS DO USUÁRIO PRIMEIRO
     protein_priority = get_preferred_first(
