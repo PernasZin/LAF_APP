@@ -877,20 +877,20 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 carb_comp = None
                 for comp in carb_complement:
                     if comp != carb_main and comp in FOODS:
-                        if not preferred or comp in preferred:
-                            # Verifica restrições
-                            if not any(comp in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
-                                carb_comp = comp
-                                break
+                        # Adiciona complemento independente de preferências (feijão é essencial)
+                        # Apenas verifica restrições
+                        if not any(comp in RESTRICTION_EXCLUSIONS.get(r, set()) for r in restrictions):
+                            carb_comp = comp
+                            break
                 
                 if carb_comp:
-                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 300)
+                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 250)
                     foods.append(calc_food(carb_comp, c_comp_grams))
                 else:
-                    # Se não tem complemento, aumenta o principal
+                    # Se não tem complemento (todas opções bloqueadas), aumenta o principal
                     c_extra = clamp((meal_c * 0.30) / max(FOODS[carb_main]["c"] / 100, 0.1), 50, 300)
                     # Atualiza o carboidrato principal já adicionado
-                    if foods and foods[-1].get("key") == carb_main:
+                    if foods and len(foods) >= 2 and foods[-1].get("key") == carb_main:
                         new_grams = foods[-1]["grams"] + c_extra
                         foods[-1] = calc_food(carb_main, min(new_grams, 800))
             else:
