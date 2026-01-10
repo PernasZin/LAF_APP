@@ -22,7 +22,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { Toast } from '../../components';
 import { useToast } from '../../hooks/useToast';
 import { useHaptics } from '../../hooks/useHaptics';
-import DateTimePicker from '@react-native-community/datetimepicker';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
