@@ -852,29 +852,41 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(fat, fat_grams))
             
             if not foods:
-                foods = [calc_food("ovos", 150), calc_food("aveia", 60), calc_food("banana", 150)]
+                foods = [calc_food("pao_integral", 60), calc_food("ovos", 100), calc_food("banana", 120)]
                 
         elif meal_type == 'lanche':
-            # Lanche: fruta + proteína leve + gordura boa
-            fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
+            # Lanche: iogurte/cottage + fruta + opcionalmente extra doce (mel/leite condensado)
             protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
+            fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
             
-            if fruit and fruit in FOODS:
-                fruit_grams = clamp(meal_c * 0.7 / max(FOODS[fruit]["c"] / 100, 0.1), 100, 300)
-                foods.append(calc_food(fruit, fruit_grams))
-            
+            # Iogurte ou cottage primeiro
             if protein and protein in FOODS:
                 p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, 250)
                 foods.append(calc_food(protein, p_grams))
             
+            # Fruta
+            if fruit and fruit in FOODS:
+                fruit_grams = clamp(meal_c * 0.5 / max(FOODS[fruit]["c"] / 100, 0.1), 80, 200)
+                foods.append(calc_food(fruit, fruit_grams))
+            
+            # Extra doce (mel ou leite condensado) - pequena quantidade para completar carbs
+            carbs_so_far = sum(f.get("carbs", 0) for f in foods)
+            carbs_remaining = meal_c - carbs_so_far
+            if carbs_remaining > 5:
+                # Adiciona mel ou leite condensado (20-40g)
+                extra = "mel" if carbs_remaining < 20 else "leite_condensado"
+                if extra in FOODS:
+                    extra_grams = clamp(carbs_remaining / max(FOODS[extra]["c"] / 100, 0.1), 10, 40)
+                    foods.append(calc_food(extra, extra_grams))
+            
+            # Castanhas/amêndoas para gordura
             if fat and fat in FOODS:
-                # Limite mais conservador para gorduras em lanches (máx 30g)
                 f_grams = clamp(meal_f / max(FOODS[fat]["f"] / 100, 0.1), 10, 30)
                 foods.append(calc_food(fat, f_grams))
             
             if not foods:
-                foods = [calc_food("banana", 150), calc_food("iogurte_grego", 170), calc_food("castanhas", 25)]
+                foods = [calc_food("iogurte_natural", 170), calc_food("banana", 120), calc_food("mel", 20)]
                 
         elif meal_type in ['almoco', 'jantar']:
             # Almoço/Jantar: proteína principal + carboidratos (principal + complemento) + vegetais + azeite
