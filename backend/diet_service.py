@@ -105,7 +105,8 @@ RESTRICTION_EXCLUSIONS = {
 # - Maior previsibilidade de resposta do corpo
 # - Qualidade nutricional superior
 
-PROCESSED_FOODS = {
+# Alimentos bloqueados em PREP E PEAK
+PROCESSED_FOODS_PREP = {
     # Carnes processadas
     "carne_moida",      # Preferir cortes inteiros
     
@@ -121,7 +122,6 @@ PROCESSED_FOODS = {
     "pao_integral",     # Pão integral - conservantes (preferir arroz/batata)
     "macarrao",         # Preferir arroz ou batata
     "macarrao_integral", # Mesmo integral, preferir arroz/batata
-    "tapioca",          # Ok, mas preferir arroz/batata para atleta
     
     # Cereais processados
     "granola",          # Alto açúcar, aditivos
@@ -131,8 +131,19 @@ PROCESSED_FOODS = {
     # Extras
     "leite_condensado", # Ultraprocessado
     "mel",              # Ok em pequenas quantidades, mas remover para max controle
-    "whey_protein",     # Preferir proteínas inteiras durante prep
 }
+
+# Alimentos adicionais bloqueados APENAS na PEAK WEEK (além dos acima)
+PROCESSED_FOODS_PEAK_ONLY = {
+    "tapioca",          # Permitido no PREP, bloqueado na PEAK
+    "whey_protein",     # Permitido no PREP, bloqueado na PEAK (preferir proteínas inteiras)
+    "feijao",           # Alto em fibras, pode causar gases/inchaço
+    "lentilha",         # Alto em fibras, pode causar gases/inchaço
+    "aveia",            # Fibras podem causar inchaço
+}
+
+# Combinação completa para PEAK WEEK
+PROCESSED_FOODS_PEAK = PROCESSED_FOODS_PREP | PROCESSED_FOODS_PEAK_ONLY
 
 # Alimentos LIMPOS recomendados para atleta em PREP/PEAK
 CLEAN_FOODS_ATHLETE = {
