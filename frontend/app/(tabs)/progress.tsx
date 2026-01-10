@@ -70,6 +70,10 @@ export default function ProgressScreen() {
     sleep: 5,
     hydration: 5,
   });
+  
+  // Notificações e performance
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [performanceData, setPerformanceData] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -83,7 +87,11 @@ export default function ProgressScreen() {
       setUserId(id);
       
       if (id && BACKEND_URL) {
-        await loadProgress(id);
+        await Promise.all([
+          loadProgress(id),
+          loadNotifications(id),
+          loadPerformance(id),
+        ]);
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
