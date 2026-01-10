@@ -78,18 +78,7 @@ class UserProfileCreate(BaseModel):
     training_level: str
     weekly_training_frequency: int
     available_time_per_session: int
-    goal: str
-    # ==================== MODO ATLETA ====================
-    # Apenas precisa da DATA do campeonato - sistema calcula tudo automaticamente
-    athlete_competition_date: Optional[str] = None  # ISO date string YYYY-MM-DD
-    # Campos legados (mantidos por compatibilidade, mas não usados)
-    competition_phase: Optional[str] = None  # Calculado automaticamente
-    weeks_to_competition: Optional[int] = None  # Calculado automaticamente
-    competition_date: Optional[str] = None  # Alias para athlete_competition_date
-    # ==================== PEAK WEEK - REGRAS OFICIAIS ====================
-    has_weight_class: bool = False  # Se compete em categoria de peso
-    has_weigh_in: bool = False  # Se há pesagem antes da competição
-    weigh_in_hours_before: int = 24  # Horas antes (ex: 24h)
+    goal: str  # "cutting", "bulking", "manutencao"
     dietary_restrictions: List[str] = Field(default_factory=list)
     food_preferences: List[str] = Field(default_factory=list)
     injury_history: List[str] = Field(default_factory=list)
