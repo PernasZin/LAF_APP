@@ -17,10 +17,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../theme/ThemeContext';
 import { getColors } from '../../theme/colors';
 import { translations, SupportedLanguage } from '../../i18n/translations';
-import { safeFetch } from '../../utils/networkUtils';
 import Constants from 'expo-constants';
 
 const BACKEND_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
+
+// Safe fetch with timeout
+const safeFetch = async (url: string, options?: RequestInit) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timeout);
+    return response;
+  } catch (error) {
+    clearTimeout(timeout);
+    throw error;
+  }
+};
 
 // Horários padrão por número de refeições
 const DEFAULT_MEAL_TIMES: Record<number, { name: string; time: string }[]> = {
