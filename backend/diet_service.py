@@ -1174,8 +1174,8 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     # VALIDAÇÃO FINAL: Todos os alimentos devem ter campos obrigatórios
     required_fields = ["key", "name", "grams", "quantity", "protein", "carbs", "fat", "calories", "category"]
     
-    for meal in validated_meals:
-        for food in meal.get("foods", []):
+    for meal_idx, meal in enumerate(validated_meals):
+        for food_idx, food in enumerate(meal.get("foods", [])):
             for field in required_fields:
                 if field not in food:
                     # Campo faltando - recalcula o alimento
@@ -1183,6 +1183,16 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
                     grams = food.get("grams", 100)
                     recalc = calc_food(food_key, grams)
                     food.update(recalc)
+            
+            # REGRA ABSOLUTA FINAL: NUNCA OVOS NA CEIA (índice 5)
+            if meal_idx == 5 and food.get("key") == "ovos":
+                # Substitui ovos por cottage na ceia
+                grams = food.get("grams", 100)
+                validated_meals[meal_idx]["foods"][food_idx] = calc_food("cottage", grams)
+                # Recalcula totais da refeição
+                mp, mc, mf, mcal = sum_foods(validated_meals[meal_idx]["foods"])
+                validated_meals[meal_idx]["total_calories"] = mcal
+                validated_meals[meal_idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
     
     return validated_meals
 
