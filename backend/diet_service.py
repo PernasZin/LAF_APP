@@ -129,6 +129,13 @@ FOOD_NORMALIZATION = {
     "pineapple": "abacaxi", "melon": "melao", "kiwi": "kiwi",
     "pear": "pera", "peach": "pessego", "blueberry": "mirtilo", "açai": "acai",
     
+    # VEGETAIS E LEGUMES
+    "broccoli": "brocolis", "spinach": "espinafre", "kale": "couve",
+    "lettuce": "alface", "arugula": "rucola", "cauliflower": "couve_flor",
+    "carrot": "cenoura", "zucchini": "abobrinha", "tomato": "tomate",
+    "cucumber": "pepino", "beetroot": "beterraba", "green_beans": "vagem",
+    "bell_pepper": "pimentao", "salad": "salada",
+    
     # SUPLEMENTOS
     "creatine": "creatina", "multivitamin": "multivitaminico",
     "omega3": "omega3", "caffeine": "cafeina",
