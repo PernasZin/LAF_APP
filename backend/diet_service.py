@@ -708,7 +708,7 @@ def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
 MEAL_RULES = {
     "cafe_da_manha": {
         # PERMITIDOS: Ovos, Cottage, Iogurte Grego + Aveia, Pão Integral, Tapioca + Frutas
-        "proteins": {"ovos", "iogurte_grego", "cottage", "claras"},
+        "proteins": {"ovos", "iogurte_grego", "claras"},
         "carbs": {"aveia", "pao_integral", "tapioca", "cuscuz", "pao"},
         "fats": {"pasta_amendoim", "chia", "linhaca"},  # Gorduras saudáveis para café
         "fruits": True,
