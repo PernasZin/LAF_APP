@@ -20,74 +20,8 @@ interface FoodItem {
 // BANCO DE DADOS DE ALIMENTOS
 // ============================================
 
-// ATLETA: Lista restrita de alimentos limpos
-const ATHLETE_FOODS: Record<string, FoodItem[]> = {
-  proteins: [
-    { id: 'chicken_breast', namePt: 'Peito de Frango', selectable: true },
-    { id: 'lean_beef', namePt: 'Patinho', selectable: true },
-    { id: 'eggs', namePt: 'Ovos Inteiros', selectable: true },
-    { id: 'tilapia', namePt: 'Tilápia', selectable: true },
-    { id: 'tuna', namePt: 'Atum', selectable: true },
-    { id: 'salmon', namePt: 'Salmão', selectable: true },
-    { id: 'greek_yogurt', namePt: 'Iogurte Grego', selectable: true },
-  ],
-  carbs: [
-    { id: 'white_rice', namePt: 'Arroz Branco', selectable: true },
-    { id: 'brown_rice', namePt: 'Arroz Integral', selectable: true },
-    { id: 'sweet_potato', namePt: 'Batata Doce', selectable: true },
-    { id: 'oats', namePt: 'Aveia', selectable: true },
-    { id: 'pasta', namePt: 'Macarrão', selectable: true },
-    { id: 'whole_pasta', namePt: 'Macarrão Integral', selectable: true },
-    { id: 'whole_bread', namePt: 'Pão Integral', selectable: true },
-    { id: 'bread_slice', namePt: 'Pão de Forma', selectable: true },
-    { id: 'beans', namePt: 'Feijão', selectable: true },
-  ],
-  fats: [
-    { id: 'olive_oil', namePt: 'Azeite de Oliva', selectable: true },
-    { id: 'peanut_butter', namePt: 'Pasta de Amendoim', selectable: true },
-    { id: 'nuts', namePt: 'Castanha', selectable: true },
-    { id: 'almonds', namePt: 'Amêndoas', selectable: true },
-  ],
-  fruits: [
-    { id: 'banana', namePt: 'Banana', selectable: true },
-    { id: 'apple', namePt: 'Maçã', selectable: true },
-    { id: 'orange', namePt: 'Laranja', selectable: true },
-    { id: 'strawberry', namePt: 'Morango', selectable: true },
-    { id: 'papaya', namePt: 'Mamão', selectable: true },
-    { id: 'mango', namePt: 'Manga', selectable: true },
-    { id: 'watermelon', namePt: 'Melancia', selectable: true },
-    { id: 'avocado', namePt: 'Abacate', selectable: true },
-  ],
-  vegetables: [
-    { id: 'broccoli', namePt: 'Brócolis', selectable: true },
-    { id: 'spinach', namePt: 'Espinafre', selectable: true },
-    { id: 'kale', namePt: 'Couve', selectable: true },
-    { id: 'lettuce', namePt: 'Alface', selectable: true },
-    { id: 'arugula', namePt: 'Rúcula', selectable: true },
-    { id: 'cauliflower', namePt: 'Couve-flor', selectable: true },
-    { id: 'carrot', namePt: 'Cenoura', selectable: true },
-    { id: 'zucchini', namePt: 'Abobrinha', selectable: true },
-    { id: 'tomato', namePt: 'Tomate', selectable: true },
-    { id: 'cucumber', namePt: 'Pepino', selectable: true },
-    { id: 'beetroot', namePt: 'Beterraba', selectable: true },
-    { id: 'green_beans', namePt: 'Vagem', selectable: true },
-    { id: 'bell_pepper', namePt: 'Pimentão', selectable: true },
-  ],
-  extras: [
-    { id: 'honey', namePt: 'Mel', selectable: true },
-    { id: 'condensed_milk', namePt: 'Leite Condensado', selectable: true },
-  ],
-  supplements: [
-    { id: 'creatine', namePt: 'Creatina', selectable: true },
-    { id: 'multivitamin', namePt: 'Multivitamínico', selectable: true },
-    { id: 'omega3', namePt: 'Ômega 3', selectable: true },
-    { id: 'caffeine', namePt: 'Cafeína', selectable: true },
-    { id: 'whey', namePt: 'Whey Protein', selectable: true },
-  ],
-};
-
-// GERAL: Lista de alimentos ATIVOS no sistema
-const GENERAL_FOODS: Record<string, FoodItem[]> = {
+// Lista de alimentos ATIVOS no sistema
+const FOOD_DATABASE: Record<string, FoodItem[]> = {
   proteins: [
     { id: 'chicken_breast', namePt: 'Peito de Frango', selectable: true },
     { id: 'lean_beef', namePt: 'Patinho', selectable: true },
