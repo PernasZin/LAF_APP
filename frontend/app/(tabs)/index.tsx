@@ -13,40 +13,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-// Configuração das fases do atleta
-const PHASE_CONFIG: { [key: string]: { label: string; color: string; icon: string; description: string } } = {
-  off_season: {
-    label: 'OFF-SEASON',
-    color: '#10B981',
-    icon: 'trending-up',
-    description: 'Ganho de massa controlado'
-  },
-  pre_prep: {
-    label: 'PRÉ-PREP',
-    color: '#3B82F6',
-    icon: 'time',
-    description: 'Transição para cutting'
-  },
-  prep: {
-    label: 'PREP',
-    color: '#F59E0B',
-    icon: 'flame',
-    description: 'Definição muscular'
-  },
-  peak_week: {
-    label: 'PEAK WEEK',
-    color: '#EF4444',
-    icon: 'flash',
-    description: 'Ajustes finais'
-  },
-  post_show: {
-    label: 'PÓS-SHOW',
-    color: '#8B5CF6',
-    icon: 'refresh',
-    description: 'Recuperação metabólica'
-  }
-};
-
 // Componente do Card de Fase do Atleta
 function AthletePhaseCard({ phase, weeksToCompetition, competitionDate, colors }: any) {
   const config = PHASE_CONFIG[phase] || PHASE_CONFIG.prep;
