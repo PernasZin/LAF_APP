@@ -126,6 +126,10 @@ class UserProfileUpdate(BaseModel):
     competition_phase: Optional[str] = None
     weeks_to_competition: Optional[int] = None
     competition_date: Optional[str] = None
+    # ==================== PEAK WEEK - REGRAS OFICIAIS ====================
+    has_weight_class: Optional[bool] = None
+    has_weigh_in: Optional[bool] = None
+    weigh_in_hours_before: Optional[int] = None
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
 
