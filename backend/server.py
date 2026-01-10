@@ -2263,41 +2263,29 @@ CARDIO_EXERCISES = {
     }
 }
 
-def generate_cardio_for_goal(goal: str, weight: float, competition_phase: Optional[str] = None) -> List[dict]:
+def generate_cardio_for_goal(goal: str, weight: float) -> List[dict]:
     """
     Gera sessão de cardio baseada no objetivo.
     
     REGRAS:
-    - Cutting/Pre-Contest: Mais cardio (4-6x/semana), foco em queima
-    - Bulking/Off-Season: Cardio mínimo (2-3x/semana), preservar massa
+    - Cutting: Mais cardio (4-6x/semana), foco em queima
+    - Bulking: Cardio mínimo (2-3x/semana), preservar massa
     - Manutenção: Cardio moderado (3-4x/semana)
-    - Peak Week: LISS leve apenas (recuperação)
     """
     exercises = []
     
-    if goal == "cutting" or competition_phase == "pre_contest":
+    if goal == "cutting":
         # Cutting: foco em queima calórica
         exercises = [
             {**CARDIO_EXERCISES["caminhada_inclinada"], "sessions_per_week": 3},
             {**CARDIO_EXERCISES["bicicleta_moderada"], "sessions_per_week": 2},
             {**CARDIO_EXERCISES["escada_moderada"], "sessions_per_week": 1},
         ]
-    elif goal == "bulking" or competition_phase == "off_season":
+    elif goal == "bulking":
         # Bulking: cardio mínimo para saúde cardiovascular
         exercises = [
             {**CARDIO_EXERCISES["caminhada_leve"], "sessions_per_week": 2},
             {**CARDIO_EXERCISES["bicicleta_leve"], "sessions_per_week": 1},
-        ]
-    elif competition_phase == "peak_week":
-        # Peak Week: apenas LISS leve
-        exercises = [
-            {**CARDIO_EXERCISES["caminhada_leve"], "sessions_per_week": 2},
-        ]
-    elif competition_phase == "post_show":
-        # Post-Show: cardio moderado para transição
-        exercises = [
-            {**CARDIO_EXERCISES["bicicleta_leve"], "sessions_per_week": 2},
-            {**CARDIO_EXERCISES["caminhada_moderada"], "sessions_per_week": 1},
         ]
     else:  # manutencao
         # Manutenção: equilíbrio
