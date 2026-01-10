@@ -1057,27 +1057,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         """
         Retorna lista com alimentos preferidos primeiro, depois os defaults.
         PRIORIDADE: Originais do usuário > Auto-completados > Defaults
-        
-        🏆 MODO ATLETA: Filtra alimentos processados em fases PREP e PEAK
         """
-        # Determina qual lista de processados usar baseado na fase
-        if competition_phase == "peak_week":
-            processed_to_filter = PROCESSED_FOODS_PEAK
-        elif competition_phase == "pre_contest":
-            processed_to_filter = PROCESSED_FOODS_PREP
-        else:
-            processed_to_filter = set()  # Nenhum filtro
-        
-        # Se é atleta em prep/peak, filtra processados dos defaults
-        filtered_defaults = default_list
-        if processed_to_filter:
-            filtered_defaults = [d for d in default_list if d not in processed_to_filter]
-            # Peak week: remove também vegetais que causam inchaço
-            if competition_phase == "peak_week":
-                filtered_defaults = [d for d in filtered_defaults if d not in PEAK_WEEK_AVOID_VEGETABLES]
-        
         if not preferred:
-            return filtered_defaults if filtered_defaults else default_list
+            return default_list
         
         # Primeiro: Alimentos ORIGINAIS do usuário (escolha explícita)
         original_in_category = []
