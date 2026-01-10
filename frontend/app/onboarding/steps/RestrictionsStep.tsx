@@ -85,8 +85,6 @@ const GENERAL_FOODS: Record<string, FoodItem[]> = {
     { id: 'cottage', namePt: 'Queijo Cottage', selectable: true },
     { id: 'greek_yogurt', namePt: 'Iogurte Grego', selectable: true },
     { id: 'natural_yogurt', namePt: 'Iogurte Natural', selectable: true },
-    { id: 'milk', namePt: 'Leite Integral', selectable: true },
-    { id: 'skim_milk', namePt: 'Leite Desnatado', selectable: true },
     { id: 'light_cream_cheese', namePt: 'Requeijão Light', selectable: true },
   ],
   carbs: [
