@@ -969,7 +969,7 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     Registra peso do usuário COM questionário obrigatório de acompanhamento.
     
     RESTRIÇÕES:
-    - TODOS: Bloqueio semanal (7 dias) para melhor acompanhamento
+    - Bloqueio de 14 dias (2 semanas) para melhor acompanhamento
     
     QUESTIONÁRIO (0-10):
     - Dieta: Como seguiu a dieta?
@@ -977,23 +977,16 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     - Cardio: Como foi o cardio?
     - Sono: Como foi o sono?
     - Hidratação: Como foi a hidratação?
-    
-    MODO ATLETA AUTOMÁTICO:
-    - Verifica se athlete_mode = true
-    - Calcula fase atual baseada na data do campeonato
-    - Ajusta APENAS quantidades da dieta existente
-    - NUNCA gera nova dieta ou troca alimentos
     """
-    from diet_service import evaluate_progress, evaluate_athlete_progress, adjust_diet_quantities
+    from diet_service import evaluate_progress, adjust_diet_quantities
     
     # Verifica se usuário existe
     user = await db.user_profiles.find_one({"_id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    # Bloqueio de 7 dias para todos
-    block_days = 7
-    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    # Bloqueio de 14 dias (2 semanas)
+    block_days = 14
     
     # Verifica último registro
     last_record = await db.weight_records.find_one(
@@ -1007,7 +1000,7 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
             days_remaining = block_days - days_since_last
             raise HTTPException(
                 status_code=400,
-                detail=f"Aguarde mais {days_remaining} dias para o próximo registro. Registro semanal."
+                detail=f"Aguarde mais {days_remaining} dias para o próximo registro. Atualização a cada 2 semanas."
             )
     
     # Valida peso
@@ -1018,22 +1011,12 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     q = record.questionnaire
     questionnaire_avg = round((q.diet + q.training + q.cardio + q.sleep + q.hydration) / 5, 1)
     
-    # Determina fase do atleta (se aplicável)
-    athlete_phase = None
-    if is_athlete:
-        comp_date = user.get("athlete_competition_date") or user.get("competition_date")
-        if comp_date:
-            athlete_phase, _ = derive_phase_from_date(comp_date)
-        else:
-            athlete_phase = user.get("competition_phase", "off_season")
-    
     # Cria registro completo
     weight_record = WeightRecord(
         user_id=user_id,
         weight=round(record.weight, 1),
         notes=record.notes,
         questionnaire=record.questionnaire,
-        athlete_phase=athlete_phase,
         questionnaire_average=questionnaire_avg
     )
     
@@ -1053,7 +1036,6 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     # ==================== AVALIAÇÃO DE PROGRESSO ====================
     diet_adjusted = False
     adjustment_message = None
-    phase = None
     adjustment_percent = None
     
     # Só avalia se tiver registro anterior para comparar
@@ -1061,54 +1043,15 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
         previous_weight = last_record.get("weight", record.weight)
         current_weight = record.weight
         goal = user.get("goal", "manutencao")
-        athlete_mode = user.get("athlete_mode", False)
         
-        # ==================== MODO ATLETA ====================
-        if athlete_mode or goal == "atleta":
-            # Recalcula fase atual baseado na data do campeonato
-            comp_date = user.get("athlete_competition_date") or user.get("competition_date")
-            
-            if comp_date:
-                # Calcula fase atual
-                current_phase, weeks_remaining = derive_phase_from_date(comp_date)
-                
-                # Atualiza fase no perfil se mudou
-                old_phase = user.get("competition_phase")
-                if current_phase != old_phase:
-                    await db.user_profiles.update_one(
-                        {"_id": user_id},
-                        {"$set": {
-                            "competition_phase": current_phase,
-                            "last_competition_phase": old_phase,
-                            "weeks_to_competition": weeks_remaining,
-                            "updated_at": datetime.utcnow()
-                        }}
-                    )
-                    logger.info(f"ATLETA {user_id}: Fase mudou de {old_phase} para {current_phase} ({weeks_remaining} semanas)")
-                
-                phase = current_phase
-            else:
-                # Sem data = usa fase salva ou off_season
-                phase = user.get("competition_phase", "off_season")
-            
-            # Avalia progresso com lógica de ATLETA
-            progress_eval = evaluate_athlete_progress(
-                phase=phase,
-                previous_weight=previous_weight,
-                current_weight=current_weight
-            )
-            
-            logger.info(f"ATLETA progress evaluation for {user_id}: {progress_eval}")
-            
-        else:
-            # Avalia progresso normal (não atleta)
-            progress_eval = evaluate_progress(
-                goal=goal,
-                previous_weight=previous_weight,
-                current_weight=current_weight
-            )
-            
-            logger.info(f"Progress evaluation for {user_id}: {progress_eval}")
+        # Avalia progresso
+        progress_eval = evaluate_progress(
+            goal=goal,
+            previous_weight=previous_weight,
+            current_weight=current_weight
+        )
+        
+        logger.info(f"Progress evaluation for {user_id}: {progress_eval}")
         
         # Se precisa ajustar, atualiza a dieta
         if progress_eval.get("needs_adjustment"):
@@ -1126,8 +1069,6 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
                 # Salva dieta ajustada (overwrite)
                 adjusted_diet["adjusted_at"] = datetime.utcnow()
                 adjusted_diet["adjustment_reason"] = progress_eval["reason"]
-                if phase:
-                    adjusted_diet["athlete_phase"] = phase
                 
                 await db.diet_plans.replace_one(
                     {"_id": current_diet["_id"]},
@@ -1145,7 +1086,6 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     return {
         "record": weight_record,
         "diet_adjusted": diet_adjusted,
-        "phase": phase,
         "adjustment_percent": adjustment_percent,
         "message": adjustment_message or "Peso registrado com sucesso"
     }
