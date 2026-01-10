@@ -214,6 +214,7 @@ export default function RestrictionsStep({ data, updateData, language }: Props) 
     { key: 'carbs', label: t.carbs, icon: 'leaf-outline', color: '#F59E0B', description: t.carbsDesc },
     { key: 'fats', label: t.fats, icon: 'water-outline', color: '#3B82F6', description: t.fatsDesc },
     { key: 'fruits', label: t.fruits, icon: 'nutrition-outline', color: '#EC4899', description: t.fruitsDesc },
+    { key: 'vegetables', label: t.vegetables || 'Vegetais', icon: 'leaf-outline', color: '#10B981', description: t.vegetablesDesc || 'Fonte de fibras e micronutrientes' },
     { key: 'supplements', label: t.supplements, icon: 'flask-outline', color: '#8B5CF6', description: t.supplementsDesc },
   ];
 
