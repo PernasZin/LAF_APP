@@ -1002,8 +1002,7 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
 
 def generate_diet(target_p: int, target_c: int, target_f: int,
                   preferred: Set[str], restrictions: List[str], meal_count: int = 6,
-                  original_preferred: Set[str] = None, goal: str = "manutencao",
-                  competition_phase: str = None) -> List[Dict]:
+                  original_preferred: Set[str] = None, goal: str = "manutencao") -> List[Dict]:
     """
     Gera dieta seguindo regras rígidas por tipo de refeição.
     
@@ -1022,17 +1021,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     ⭐ REGRA IMPORTANTE: Todos os alimentos selecionados pelo usuário DEVEM aparecer na dieta!
     
-    🏆 MODO ATLETA (PREP/PEAK):
-    - Apenas alimentos limpos
-    - Sem processados
-    - Peak Week: controle máximo de sódio/água
-    
     Parâmetros:
     - original_preferred: Preferências ORIGINAIS do usuário (antes do auto-complete)
                           Esses alimentos têm PRIORIDADE MÁXIMA
-    - goal: Objetivo do atleta (bulking, cutting, manutencao, atleta)
+    - goal: Objetivo (bulking, cutting, manutencao)
             Afeta principalmente a quantidade de feijão
-    - competition_phase: Fase do atleta (off_season, pre_contest, peak_week, post_show)
     """
     
     # Se não foi passado original_preferred, assume que preferred são as originais
@@ -1041,31 +1034,16 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     # ==================== QUANTIDADES DE FEIJÃO POR OBJETIVO ====================
     # Regras específicas para quantidade de feijão baseado no objetivo
-    # AJUSTADO: Peak Week remove feijão completamente
     FEIJAO_POR_OBJETIVO = {
-        # BULK / OFF (ganho de massa): 160-180g por refeição
+        # BULK (ganho de massa): 160-180g por refeição
         "bulking": {"min": 160, "max": 180},
         
         # MANUTENÇÃO: 130-160g por refeição
         "manutencao": {"min": 130, "max": 160},
         
-        # CUT / PREP: 100-130g por refeição
+        # CUT (perda de gordura): 100-130g por refeição
         "cutting": {"min": 100, "max": 130},
-        
-        # ATLETA (depende da fase): Ajustado abaixo
-        "atleta": {"min": 0, "max": 80},
     }
-    
-    # 🏆 AJUSTE POR FASE DO ATLETA
-    if competition_phase == "peak_week":
-        # Peak Week: SEM feijão (controle máximo de sódio e gás)
-        FEIJAO_POR_OBJETIVO["atleta"] = {"min": 0, "max": 0}
-    elif competition_phase == "pre_contest":
-        # Pre-Contest: feijão reduzido
-        FEIJAO_POR_OBJETIVO["atleta"] = {"min": 50, "max": 100}
-    elif competition_phase == "off_season":
-        # Off-Season: feijão normal para construção
-        FEIJAO_POR_OBJETIVO["atleta"] = {"min": 130, "max": 160}
     
     # Pega os limites de feijão para o objetivo atual
     feijao_limits = FEIJAO_POR_OBJETIVO.get(goal, FEIJAO_POR_OBJETIVO["manutencao"])
