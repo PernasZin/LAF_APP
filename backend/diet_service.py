@@ -731,7 +731,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     REGRAS OBRIGATÓRIAS:
     ☀️ Café da Manhã: proteínas leves + carbs leves + frutas (SEM carnes, SEM azeite)
     🍎 Lanches: frutas + iogurte/cottage + castanhas/amêndoas (SEM carnes, SEM ovos, SEM azeite)
-    🍽️ Almoço/Jantar: EXATAMENTE 1 proteína + 1 carboidrato + azeite
+    🍽️ Almoço/Jantar: 1 proteína + carboidratos (pode ter múltiplos) + azeite
     🌙 Ceia: proteína leve (iogurte/cottage) + frutas - NUNCA OVOS NA CEIA!
     """
     
@@ -741,9 +741,19 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage", "claras"]
     light_protein_priority_ceia = ["cottage", "iogurte_grego"]  # NUNCA OVOS NA CEIA!
     light_protein_priority_lanche = ["iogurte_grego", "cottage"]
+    
+    # Carboidratos principais (para almoço/jantar)
     carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", 
-                     "feijao", "lentilha", "quinoa", "cuscuz", "grao_de_bico", "milho"]
-    light_carb_priority = ["aveia", "pao_integral", "tapioca", "cuscuz", "pao"]
+                     "mandioca", "inhame", "cara", "macarrao_integral", "quinoa", 
+                     "batata_baroa", "polenta", "cuscuz", "grao_de_bico", "milho"]
+    
+    # Carboidratos complementares (feijão, lentilha - para acompanhar)
+    carb_complement = ["feijao", "lentilha", "ervilha", "grao_de_bico"]
+    
+    # Carboidratos leves (para café da manhã)
+    light_carb_priority = ["aveia", "pao_integral", "pao_forma", "tapioca", "cuscuz", 
+                           "pao", "granola", "cereal_integral", "torrada"]
+    
     fat_priority_lanche = ["castanhas", "amendoas", "nozes", "pasta_amendoim"]
     fat_priority_cafe = ["pasta_amendoim", "chia", "linhaca"]
     fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
