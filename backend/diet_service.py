@@ -1079,7 +1079,8 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
             # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
             foods = [calc_food("tilapia", 150), calc_food("arroz_integral", 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
         else:  # Ceia
-            # PERMITIDO: ovos/iogurte/cottage + frutas | PROIBIDO: carnes, carbs complexos
+            # PERMITIDO: iogurte/cottage + frutas | PROIBIDO: carnes, carbs complexos, OVOS!
+            # REGRA ABSOLUTA: NUNCA OVOS NA CEIA!
             foods = [calc_food("cottage", 100), calc_food("morango", 100)]
     
     # Valida cada alimento
@@ -1087,12 +1088,17 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     for food in foods:
         validated_food = validate_and_fix_food(food, preferred)
         if validated_food:
+            # REGRA ABSOLUTA: Se for CEIA, NUNCA permite ovos
+            if meal_index == 5 and validated_food.get("key") == "ovos":
+                validated_food = calc_food("cottage", validated_food.get("grams", 100))
             validated_foods.append(validated_food)
     
     # Garante que tem pelo menos 1 alimento (RESPEITANDO regras da refeição)
     if len(validated_foods) == 0:
-        if meal_index in [0, 5]:  # Café ou Ceia - proteína leve
+        if meal_index == 0:  # Café - proteína leve
             validated_foods = [calc_food("ovos", 100)]
+        elif meal_index == 5:  # Ceia - NUNCA OVOS!
+            validated_foods = [calc_food("cottage", 100)]
         elif meal_index in [1, 3]:  # Lanches - fruta
             validated_foods = [calc_food("banana", 150)]
         else:  # Almoço/Jantar - proteína principal
