@@ -139,29 +139,49 @@ export default function EditProfileScreen() {
       return;
     }
 
+    // Validação específica para atleta
+    if (goal === 'atleta' && !competitionDate) {
+      errorFeedback();
+      showError('Data do campeonato é obrigatória para atletas');
+      return;
+    }
+
     setSaving(true);
     mediumImpact(); // Haptic ao iniciar
     try {
       if (!userId || !BACKEND_URL) throw new Error('Usuário não encontrado');
 
-      // 1. Atualiza perfil (sem peso - peso só pode ser alterado na aba Progresso)
+      // 1. Atualiza perfil com objetivo e data de competição
+      const profilePayload: any = {
+        name: name.trim(),
+        goal: goal,
+      };
+      
+      // Adiciona data de competição se for atleta
+      if (goal === 'atleta' && competitionDate) {
+        profilePayload.competition_date = competitionDate.toISOString();
+      }
+
       const profileResponse = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          goal: goal,
-        }),
+        body: JSON.stringify(profilePayload),
       });
 
       if (!profileResponse.ok) {
         throw new Error('Falha ao atualizar perfil');
       }
 
-      // 2. Se objetivo mudou, recalcula a dieta (overwrite)
+      // 2. Se objetivo mudou, recalcula a dieta e dados
       if (goal !== originalGoal) {
-        console.log('🔄 Objetivo mudou, recalculando dieta...');
+        console.log('🔄 Objetivo mudou, recalculando dieta e macros...');
         
+        // Deleta dieta existente
+        await safeFetch(`${BACKEND_URL}/api/diet/${userId}`, {
+          method: 'DELETE',
+        });
+        
+        // Gera nova dieta
         const dietResponse = await safeFetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
           method: 'POST',
         });
