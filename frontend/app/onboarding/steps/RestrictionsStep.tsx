@@ -36,7 +36,6 @@ const ATHLETE_FOODS: Record<string, FoodItem[]> = {
     { id: 'white_rice', namePt: 'Arroz Branco', selectable: true },
     { id: 'brown_rice', namePt: 'Arroz Integral', selectable: true },
     { id: 'sweet_potato', namePt: 'Batata Doce', selectable: true },
-    { id: 'potato', namePt: 'Batata Inglesa', selectable: true },
     { id: 'oats', namePt: 'Aveia', selectable: true },
     { id: 'pasta', namePt: 'Macarrão', selectable: true },
     { id: 'whole_pasta', namePt: 'Macarrão Integral', selectable: true },
