@@ -286,6 +286,8 @@ export interface Translations {
     fatsDesc: string;
     fruits: string;
     fruitsDesc: string;
+    vegetables: string;
+    vegetablesDesc: string;
     supplements: string;
     supplementsDesc: string;
     separate: string;
