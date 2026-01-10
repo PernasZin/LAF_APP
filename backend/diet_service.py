@@ -629,12 +629,13 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     ☀️ Café da Manhã: proteínas leves + carbs leves + frutas (SEM carnes, SEM azeite)
     🍎 Lanches: frutas + iogurte/cottage + castanhas/amêndoas (SEM carnes, SEM ovos, SEM azeite)
     🍽️ Almoço/Jantar: EXATAMENTE 1 proteína + 1 carboidrato + azeite
-    🌙 Ceia: proteína leve (ovos/iogurte/cottage) + frutas
+    🌙 Ceia: proteína leve (iogurte/cottage) + frutas - NUNCA OVOS NA CEIA!
     """
     
     # Prioridades por categoria (APENAS alimentos ativos)
     protein_priority = ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos"]
-    light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage"]  # Para café e ceia
+    light_protein_priority_cafe = ["ovos", "iogurte_grego", "cottage"]  # Para café da manhã
+    light_protein_priority_ceia = ["cottage", "iogurte_grego"]  # Para CEIA - NUNCA OVOS!
     light_protein_priority_lanche = ["iogurte_grego", "cottage"]  # Para lanches (SEM ovos!)
     carb_priority = ["arroz_branco", "arroz_integral", "batata_doce", "batata", "macarrao", "feijao"]
     light_carb_priority = ["aveia", "pao_integral"]  # Removido: tapioca
