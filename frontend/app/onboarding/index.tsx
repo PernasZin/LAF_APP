@@ -81,7 +81,7 @@ export default function OnboardingScreen() {
   };
 
   // Step validation keys for translation matching
-  const stepValidationKeys = ['basicInfo', 'physicalData', 'trainingLevel', 'yourGoal', 'preferences'];
+  const stepValidationKeys = ['basicInfo', 'physicalData', 'trainingLevel', 'yourGoal', 'mealConfig', 'preferences'];
 
   const validateCurrentStep = () => {
     console.log('Validating step:', currentStep, 'Data:', formData);
