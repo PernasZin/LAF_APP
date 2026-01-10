@@ -383,7 +383,7 @@ export default function EditProfileScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Date Picker Modal */}
+      {/* Date Picker Modal - Manual Selection */}
       {showDatePicker && (
         <Modal
           transparent
@@ -396,21 +396,102 @@ export default function EditProfileScreen() {
               <Text style={[datePickerStyles.title, { color: colors.text }]}>
                 Selecionar Data do Campeonato
               </Text>
-              <DateTimePicker
-                value={competitionDate || new Date()}
-                mode="date"
-                display="spinner"
-                onChange={(event, selectedDate) => {
-                  if (event.type === 'set' && selectedDate) {
-                    setCompetitionDate(selectedDate);
-                  }
-                  if (Platform.OS === 'android') {
-                    setShowDatePicker(false);
-                  }
-                }}
-                minimumDate={new Date()}
-                textColor={colors.text}
-              />
+              
+              <View style={datePickerStyles.pickerRow}>
+                {/* Dia */}
+                <View style={datePickerStyles.pickerColumn}>
+                  <Text style={[datePickerStyles.pickerLabel, { color: colors.textSecondary }]}>Dia</Text>
+                  <ScrollView style={datePickerStyles.pickerScroll} showsVerticalScrollIndicator={false}>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                      <TouchableOpacity
+                        key={day}
+                        style={[
+                          datePickerStyles.pickerItem,
+                          (competitionDate || new Date()).getDate() === day && { backgroundColor: colors.primary + '20' }
+                        ]}
+                        onPress={() => {
+                          const newDate = new Date(competitionDate || new Date());
+                          newDate.setDate(day);
+                          setCompetitionDate(newDate);
+                        }}
+                      >
+                        <Text style={[
+                          datePickerStyles.pickerItemText,
+                          { color: (competitionDate || new Date()).getDate() === day ? colors.primary : colors.text }
+                        ]}>
+                          {day.toString().padStart(2, '0')}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+                
+                {/* Mês */}
+                <View style={datePickerStyles.pickerColumn}>
+                  <Text style={[datePickerStyles.pickerLabel, { color: colors.textSecondary }]}>Mês</Text>
+                  <ScrollView style={datePickerStyles.pickerScroll} showsVerticalScrollIndicator={false}>
+                    {['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'].map((month, idx) => (
+                      <TouchableOpacity
+                        key={month}
+                        style={[
+                          datePickerStyles.pickerItem,
+                          (competitionDate || new Date()).getMonth() === idx && { backgroundColor: colors.primary + '20' }
+                        ]}
+                        onPress={() => {
+                          const newDate = new Date(competitionDate || new Date());
+                          newDate.setMonth(idx);
+                          setCompetitionDate(newDate);
+                        }}
+                      >
+                        <Text style={[
+                          datePickerStyles.pickerItemText,
+                          { color: (competitionDate || new Date()).getMonth() === idx ? colors.primary : colors.text }
+                        ]}>
+                          {month}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+                
+                {/* Ano */}
+                <View style={datePickerStyles.pickerColumn}>
+                  <Text style={[datePickerStyles.pickerLabel, { color: colors.textSecondary }]}>Ano</Text>
+                  <ScrollView style={datePickerStyles.pickerScroll} showsVerticalScrollIndicator={false}>
+                    {[2025, 2026, 2027, 2028, 2029, 2030].map((year) => (
+                      <TouchableOpacity
+                        key={year}
+                        style={[
+                          datePickerStyles.pickerItem,
+                          (competitionDate || new Date()).getFullYear() === year && { backgroundColor: colors.primary + '20' }
+                        ]}
+                        onPress={() => {
+                          const newDate = new Date(competitionDate || new Date());
+                          newDate.setFullYear(year);
+                          setCompetitionDate(newDate);
+                        }}
+                      >
+                        <Text style={[
+                          datePickerStyles.pickerItemText,
+                          { color: (competitionDate || new Date()).getFullYear() === year ? colors.primary : colors.text }
+                        ]}>
+                          {year}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
+              
+              {/* Preview da data selecionada */}
+              <View style={[datePickerStyles.preview, { backgroundColor: colors.backgroundSecondary }]}>
+                <Text style={[datePickerStyles.previewText, { color: colors.text }]}>
+                  {competitionDate 
+                    ? competitionDate.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+                    : 'Selecione uma data'}
+                </Text>
+              </View>
+              
               <View style={datePickerStyles.buttons}>
                 <TouchableOpacity 
                   style={[datePickerStyles.button, { backgroundColor: colors.backgroundSecondary }]}
