@@ -488,29 +488,105 @@ def calculate_tdee(weight: float, height: float, age: int, gender: str,
 
 
 def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
-    """Calcula macros baseado no objetivo"""
+    """
+    Calcula macros baseado no objetivo.
+    
+    REGRAS OBRIGATÓRIAS PARA GORDURAS:
+    
+    1️⃣ POR PESO CORPORAL (método principal):
+       - Manutenção: 1g/kg
+       - Cutting: 0.4g a 1g/kg (máx 1g/kg)
+       - Bulking: 1g a 1.5g/kg (máx 1.5g/kg)
+    
+    2️⃣ LIMITE POR PERCENTUAL DE CALORIAS:
+       - Mínimo: 20% das calorias
+       - Máximo: 35% das calorias
+       - Se ultrapassar → ajusta automaticamente
+    """
+    # Configurações por objetivo
     goal_adjustments = {
-        'cutting': {'cal_mult': 0.85, 'p_mult': 2.4},
-        'manutencao': {'cal_mult': 1.0, 'p_mult': 2.0},
-        'bulking': {'cal_mult': 1.15, 'p_mult': 2.2},
-        'atleta': {'cal_mult': 1.0, 'p_mult': 2.4}
+        'cutting': {
+            'cal_mult': 0.85, 
+            'p_mult': 2.4,
+            'fat_min_per_kg': 0.6,   # Mínimo 0.6g/kg em cutting
+            'fat_max_per_kg': 1.0    # Máximo 1g/kg em cutting
+        },
+        'manutencao': {
+            'cal_mult': 1.0, 
+            'p_mult': 2.0,
+            'fat_min_per_kg': 0.9,   # ~1g/kg para manutenção
+            'fat_max_per_kg': 1.0    # Máximo 1g/kg
+        },
+        'bulking': {
+            'cal_mult': 1.15, 
+            'p_mult': 2.2,
+            'fat_min_per_kg': 1.0,   # Mínimo 1g/kg em bulking
+            'fat_max_per_kg': 1.5    # Máximo 1.5g/kg em bulking
+        },
+        'atleta': {
+            'cal_mult': 1.0, 
+            'p_mult': 2.4,
+            'fat_min_per_kg': 0.8,
+            'fat_max_per_kg': 1.2
+        }
     }
     
     adj = goal_adjustments.get(goal.lower(), goal_adjustments['manutencao'])
     
+    # Cálculo base de calorias
     target_calories = tdee * adj['cal_mult']
-    protein = weight * adj['p_mult']
-    fat = weight * 0.8
     
+    # Proteína baseada no peso
+    protein = weight * adj['p_mult']
+    
+    # ==================== CÁLCULO DE GORDURA ====================
+    # Método 1: Por peso corporal (principal)
+    fat_by_weight = weight * adj['fat_max_per_kg']  # Usa o máximo da faixa
+    fat_min_by_weight = weight * adj['fat_min_per_kg']
+    
+    # Método 2: Por percentual de calorias (validação)
+    fat_min_by_percent = (target_calories * 0.20) / 9  # 20% das calorias
+    fat_max_by_percent = (target_calories * 0.35) / 9  # 35% das calorias
+    
+    # Usa o valor por peso, mas valida contra percentual
+    fat = fat_by_weight
+    
+    # Validação: não pode ultrapassar 35% das calorias
+    if fat > fat_max_by_percent:
+        fat = fat_max_by_percent
+    
+    # Validação: não pode ser menos que 20% das calorias (exceto se respeitar mínimo por kg)
+    if fat < fat_min_by_percent and fat < fat_min_by_weight:
+        fat = max(fat_min_by_percent, fat_min_by_weight)
+    
+    # Garante que está dentro dos limites por peso corporal
+    fat = max(fat_min_by_weight, min(fat, weight * adj['fat_max_per_kg']))
+    
+    # Cálculo final de calorias
     protein_cal = protein * 4
     fat_cal = fat * 9
     carbs_cal = target_calories - protein_cal - fat_cal
     carbs = carbs_cal / 4
     
+    # Garante mínimo de carboidratos
     if carbs < 100:
         carbs = 100
         carbs_cal = carbs * 4
         target_calories = protein_cal + fat_cal + carbs_cal
+    
+    # VALIDAÇÃO FINAL: Verifica se gordura está dentro dos limites
+    fat_percent = (fat * 9) / target_calories * 100
+    
+    # Se ainda estiver fora dos limites, ajusta
+    if fat_percent > 35:
+        fat = (target_calories * 0.35) / 9
+    elif fat_percent < 20:
+        fat = (target_calories * 0.20) / 9
+    
+    # Recalcula carboidratos após ajuste de gordura
+    fat_cal = fat * 9
+    carbs_cal = target_calories - protein_cal - fat_cal
+    carbs = max(100, carbs_cal / 4)
     
     return {
         'calories': round(target_calories),
