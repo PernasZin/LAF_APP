@@ -49,6 +49,9 @@ export default function OnboardingScreen() {
     goal: '',
     // Atleta/Competição - NOVO: apenas data, sistema calcula o resto
     athlete_competition_date: '', // ISO date string YYYY-MM-DD
+    // Configuração de Refeições
+    meal_count: 5,
+    meal_times: ['07:00', '10:00', '13:00', '16:00', '20:00'],
     // Restrições
     dietary_restrictions: [] as string[],
     food_preferences: [] as string[],
