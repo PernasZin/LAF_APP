@@ -138,6 +138,11 @@ class WeightRecordCreate(BaseModel):
 
 # ==================== SETTINGS MODELS ====================
 
+class MealTimeConfig(BaseModel):
+    """Configuration for a single meal time"""
+    name: str
+    time: str  # Format: "HH:MM"
+
 class UserSettings(BaseModel):
     """User settings for theme and privacy"""
     user_id: str
@@ -147,6 +152,8 @@ class UserSettings(BaseModel):
     privacy_notifications: bool = True
     notifications_enabled: bool = True
     language: str = "pt-BR"  # "pt-BR", "en-US", "es-ES"
+    meal_count: int = 6  # 4, 5, or 6 meals per day
+    meal_times: List[MealTimeConfig] = []
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 class UserSettingsUpdate(BaseModel):
@@ -157,6 +164,8 @@ class UserSettingsUpdate(BaseModel):
     privacy_notifications: Optional[bool] = None
     notifications_enabled: Optional[bool] = None
     language: Optional[str] = None
+    meal_count: Optional[int] = None
+    meal_times: Optional[List[MealTimeConfig]] = None
 
 # ==================== CÁLCULOS TDEE ====================
 
