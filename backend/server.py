@@ -1542,10 +1542,25 @@ async def update_user_settings(user_id: str, update_data: UserSettingsUpdate):
             detail="theme_preference deve ser 'system', 'light' ou 'dark'"
         )
     
+    # Valida meal_count
+    if update_data.meal_count and update_data.meal_count not in [4, 5, 6]:
+        raise HTTPException(
+            status_code=400,
+            detail="meal_count deve ser 4, 5 ou 6"
+        )
+    
     # Busca settings existentes ou cria
     settings = await db.user_settings.find_one({"user_id": user_id})
     
-    update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
+    update_dict = {}
+    for k, v in update_data.dict().items():
+        if v is not None:
+            if k == "meal_times" and v:
+                # Converte lista de MealTimeConfig para dict
+                update_dict[k] = [{"name": m["name"], "time": m["time"]} for m in v]
+            else:
+                update_dict[k] = v
+    
     update_dict["updated_at"] = datetime.utcnow()
     
     if settings:
@@ -1561,6 +1576,13 @@ async def update_user_settings(user_id: str, update_data: UserSettingsUpdate):
     # Retorna settings atualizado
     updated = await db.user_settings.find_one({"user_id": user_id})
     return UserSettings(**updated)
+
+@api_router.put("/user/settings/{user_id}", response_model=UserSettings)
+async def update_user_settings_put(user_id: str, update_data: UserSettingsUpdate):
+    """
+    PUT endpoint para atualizar configurações (compatibilidade frontend)
+    """
+    return await update_user_settings(user_id, update_data)
 
 # Include router
 app.include_router(api_router)
