@@ -1124,7 +1124,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 carb_main_e_arroz = carb_main in TIPOS_ARROZ
                 
                 # Verifica se pode adicionar complemento (feijão/lentilha)
-                # REGRA ATLETA: Se objetivo é "atleta" e feijão_max <= 0, não adiciona feijão
                 if (feijao_nas_preferencias or not carb_main_e_arroz) and feijao_max > 0:
                     for comp in carb_complement:
                         if comp != carb_main and comp in FOODS:
