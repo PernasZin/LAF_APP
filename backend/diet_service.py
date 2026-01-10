@@ -1276,8 +1276,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                             continue
         
         # ========== PRIORIDADE 2: REDUZIR PROTEÍNA EM EXCESSO ==========
-        if excess_p > MAX_EXCESS and not adjusted:
-            reduce_needed = excess_p - MAX_EXCESS + 2
+        # NOTA: Usa MAX_PROTEIN_EXCESS que é mais permissivo para não reduzir demais o frango
+        if excess_p > MAX_PROTEIN_EXCESS and not adjusted:
+            reduce_needed = excess_p - MAX_PROTEIN_EXCESS + 2
             
             for m_idx in main_meal_indices:
                 if m_idx >= num_meals or adjusted:
@@ -1288,9 +1289,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         current_g = food["grams"]
                         p_per_100 = FOODS[food_key]["p"]
                         reduce_grams = reduce_needed / (p_per_100 / 100)
-                        # Limite mínimo razoável: 100g para proteínas principais
-                        # Isso garante que o frango não fique com porção muito pequena
-                        new_g = max(100, current_g - reduce_grams)
+                        # Limite mínimo: 150g para frango (proteína principal)
+                        min_protein = 150 if food_key == "frango" else 100
+                        new_g = max(min_protein, current_g - reduce_grams)
                         # Condição menos restritiva (qualquer redução >= 5g)
                         if current_g - new_g >= 5:
                             meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
