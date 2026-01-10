@@ -672,12 +672,11 @@ def get_allowed_foods(meal_type: str, preferred: Set[str], restrictions: List[st
     if not allowed_in_meal:
         return []
     
-    # Intersecção: permitido na refeição + existe no banco + preferência do usuário
+    # REGRA: Se o usuário tem preferências, prioriza elas, mas usa outros se necessário
     available = []
     for food_key in allowed_in_meal:
         if food_key in FOODS:
-            if not preferred or food_key in preferred:
-                available.append(food_key)
+            available.append(food_key)
     
     return list(filter_by_restrictions(set(available), restrictions))
 
