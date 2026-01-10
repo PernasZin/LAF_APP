@@ -1205,7 +1205,8 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         excess_f = curr_f - target_f
         
         # Verifica se está dentro dos limites
-        p_ok = excess_p <= MAX_EXCESS and excess_p >= -tol_p_below
+        # NOTA: Proteína tem tolerância maior para não sacrificar o frango
+        p_ok = excess_p <= MAX_PROTEIN_EXCESS and excess_p >= -tol_p_below
         c_ok = excess_c <= MAX_EXCESS and excess_c >= -tol_c_below
         f_ok = excess_f <= MAX_EXCESS and excess_f >= -tol_f_below
         
