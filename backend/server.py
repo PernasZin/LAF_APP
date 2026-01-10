@@ -1744,11 +1744,35 @@ def generate_cardio_for_goal(goal: str, weight: float, competition_phase: Option
             {**CARDIO_EXERCISES["escada_leve"], "sessions_per_week": 1},
         ]
     
-    # Calcula calorias estimadas por exercício
+    # Calcula calorias estimadas por exercício e substitutos com tempo equivalente
     for ex in exercises:
         ex["calories_burned"] = ex["calories_per_min"] * ex["duration_minutes"]
-        # Converte substitutes para lista de exercícios completos
-        ex["substitutes"] = [CARDIO_EXERCISES.get(s, {}).get("name", s) for s in ex.get("substitutes", [])]
+        
+        # Converte substitutes para lista de exercícios com tempo equivalente
+        original_calories = ex["calories_burned"]
+        substitutes_with_time = []
+        
+        for sub_id in ex.get("substitutes", []):
+            sub_exercise = CARDIO_EXERCISES.get(sub_id)
+            if sub_exercise:
+                # Calcula tempo equivalente para queimar as mesmas calorias
+                sub_calories_per_min = sub_exercise.get("calories_per_min", 5)
+                equivalent_minutes = round(original_calories / sub_calories_per_min)
+                
+                substitutes_with_time.append({
+                    "id": sub_id,
+                    "name": sub_exercise["name"],
+                    "name_en": sub_exercise["name_en"],
+                    "name_es": sub_exercise["name_es"],
+                    "original_duration": ex["duration_minutes"],
+                    "equivalent_duration": equivalent_minutes,
+                    "intensity": sub_exercise["intensity"],
+                    "calories_per_min": sub_calories_per_min
+                })
+        
+        ex["substitutes_detailed"] = substitutes_with_time
+        # Mantém lista simples para compatibilidade
+        ex["substitutes"] = [s["name"] for s in substitutes_with_time]
     
     return exercises
 
