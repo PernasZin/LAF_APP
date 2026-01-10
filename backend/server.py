@@ -2339,10 +2339,9 @@ async def get_user_cardio(user_id: str):
     
     goal = user.get("goal", "manutencao")
     weight = user.get("weight", 70)
-    competition_phase = user.get("competition_phase")
     
     # Gera cardio
-    exercises = generate_cardio_for_goal(goal, weight, competition_phase)
+    exercises = generate_cardio_for_goal(goal, weight)
     
     # Calcula totais
     total_duration = sum(ex["duration_minutes"] * ex["sessions_per_week"] for ex in exercises)
@@ -2352,7 +2351,6 @@ async def get_user_cardio(user_id: str):
     return {
         "user_id": user_id,
         "goal": goal,
-        "competition_phase": competition_phase,
         "exercises": exercises,
         "weekly_summary": {
             "total_sessions": total_sessions,
