@@ -176,13 +176,8 @@ export default function WaterSodiumTrackerScreen() {
     sodium_mg = 0, 
     sodium_target_mg = 2000, 
     sodium_percent = 0,
-    is_peak_week = false,
-    peak_week_day = null,
     warnings = []
   } = trackerData || {};
-
-  const currentDay = peakWeekData?.current_day || peak_week_day;
-  const daysToComp = peakWeekData?.days_to_competition;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -199,11 +194,9 @@ export default function WaterSodiumTrackerScreen() {
           </TouchableOpacity>
           <View style={styles.headerContent}>
             <Text style={[styles.headerTitle, { color: colors.text }]}>💧🧂 Tracker</Text>
-            {is_peak_week && (
-              <Text style={[styles.headerSubtitle, { color: colors.warning }]}>
-                Peak Week - Dia {currentDay} | D-{daysToComp}
-              </Text>
-            )}
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              Controle de água e sódio
+            </Text>
           </View>
         </View>
 
