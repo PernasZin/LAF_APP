@@ -1061,9 +1061,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # Arroz + Feijão é permitido se feijão estiver nas preferências
             
             if carb_main and carb_main in FOODS:
-                # Carboidrato principal (arroz OU batata doce OU macarrão) - 50-60%
-                carb_main_ratio = 0.55
-                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 350)
+                # Carboidrato principal (arroz OU batata doce OU macarrão)
+                # LIMITE MÁXIMO 300g de arroz para evitar porções excessivas
+                carb_main_ratio = 0.50
+                max_carb_main = 300 if carb_main in {"arroz_branco", "arroz_integral"} else 350
+                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, max_carb_main)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
                 # Lista de tipos de arroz (não misturar)
@@ -1087,7 +1089,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                                 break
                 
                 if carb_comp:
-                    c_comp_grams = clamp((meal_c * 0.30) / max(FOODS[carb_comp]["c"] / 100, 0.1), 60, 200)
+                    c_comp_grams = clamp((meal_c * 0.35) / max(FOODS[carb_comp]["c"] / 100, 0.1), 80, 250)
                     foods.append(calc_food(carb_comp, c_comp_grams))
                 
                 # Farofa (15%) - complemento clássico brasileiro (opcional)
