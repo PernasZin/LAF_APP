@@ -262,15 +262,13 @@ def calculate_tdee(bmr: float, training_frequency: int, training_level: str) -> 
     factor = activity_factors.get(training_level, activity_factors["intermediario"]).get(training_frequency, 1.5)
     return bmr * factor
 
-def calculate_target_calories(tdee: float, goal: str, weight: float, competition_phase: Optional[str] = None) -> float:
+def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
     """
-    Ajusta calorias baseado no objetivo e fase de competição.
+    Ajusta calorias baseado no objetivo.
     
-    REGRAS PARA ATLETA/COMPETIÇÃO:
-    - off_season: superávit de +7.5% (lean bulk, >16 semanas)
-    - pre_contest: déficit progressivo (-15 a -20%, 2-16 semanas)
-    - peak_week: déficit muito agressivo (-25%) + manipulação (<2 semanas)
-    - post_show: superávit moderado (+10%) para recuperação
+    - cutting: déficit de 18%
+    - bulking: superávit de 12%
+    - manutencao: manutenção
     """
     if goal == "cutting":
         # Déficit de 15-20% para perda de gordura
