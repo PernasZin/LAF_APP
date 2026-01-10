@@ -61,11 +61,18 @@ export default function OnboardingScreen() {
   console.log('🎯 OnboardingScreen - userId:', userId);
 
   // Steps - translated titles
+  const getMealConfigTitle = () => {
+    if (language === 'en-US') return 'Meal Plan';
+    if (language === 'es-ES') return 'Plan de Comidas';
+    return 'Plano de Refeições';
+  };
+
   const steps = [
     { title: t.steps.basicInfo, component: BasicInfoStep },
     { title: t.steps.physicalData, component: PhysicalDataStep },
     { title: t.steps.trainingLevel, component: TrainingLevelStep },
     { title: t.steps.yourGoal, component: GoalStep },
+    { title: getMealConfigTitle(), component: MealConfigStep },
     { title: t.steps.preferences, component: RestrictionsStep },
   ];
 
