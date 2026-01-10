@@ -905,7 +905,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 # Carboidrato principal (arroz, batata, macarrão, etc) - 70% dos carbs
                 # Distribuição: 50% arroz/batata + 30% feijão/lentilha + 20% outro (ou vegetais)
                 carb_main_ratio = 0.50
-                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 400)
+                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, 350)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
                 # Carboidrato complementar (feijão, lentilha) - 30% dos carbs
