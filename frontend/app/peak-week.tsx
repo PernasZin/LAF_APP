@@ -128,6 +128,17 @@ export default function PeakWeekScreen() {
           </View>
         </View>
 
+        {/* Quick Access to Water/Sodium Tracker */}
+        <TouchableOpacity 
+          style={[styles.trackerButton, { backgroundColor: '#06B6D4' }]}
+          onPress={() => router.push('/water-tracker')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="water" size={20} color="#fff" />
+          <Text style={styles.trackerButtonText}>💧🧂 Tracker de Água e Sódio</Text>
+          <Ionicons name="chevron-forward" size={20} color="#fff" />
+        </TouchableOpacity>
+
         {/* Current Day Highlight */}
         <View style={[styles.currentDayCard, { backgroundColor: colors.primary + '15', borderColor: colors.primary }]}>
           <View style={styles.currentDayHeader}>
