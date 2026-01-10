@@ -947,14 +947,17 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
             
-            # Iogurte ou cottage primeiro
+            # Iogurte ou cottage - MÁXIMO 1 POTE (170g)
             if protein and protein in FOODS:
-                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, 250)
+                # Limita a 170g (1 pote) para evitar desperdício
+                max_protein_grams = 170 if protein in ["iogurte_grego", "iogurte_natural"] else 200
+                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
                 foods.append(calc_food(protein, p_grams))
             
-            # Fruta
+            # Fruta - MÁXIMO 1 UNIDADE
             if fruit and fruit in FOODS:
-                fruit_grams = clamp(meal_c * 0.6 / max(FOODS[fruit]["c"] / 100, 0.1), 80, 200)
+                max_fruit_grams = 150  # Limita para não ter fruta demais
+                fruit_grams = clamp(meal_c * 0.6 / max(FOODS[fruit]["c"] / 100, 0.1), 80, max_fruit_grams)
                 foods.append(calc_food(fruit, fruit_grams))
             
             # Extra doce (mel ou leite condensado) - MÁXIMO 30g, apenas em lanches/café
@@ -967,9 +970,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     extra_grams = clamp(carbs_remaining / max(FOODS[extra]["c"] / 100, 0.1), 10, 30)
                     foods.append(calc_food(extra, extra_grams))
             
-            # Castanhas/amêndoas para gordura
+            # Castanhas/amêndoas para gordura - LIMITA
             if fat and fat in FOODS:
-                f_grams = clamp(meal_f / max(FOODS[fat]["f"] / 100, 0.1), 10, 30)
+                f_grams = clamp(meal_f / max(FOODS[fat]["f"] / 100, 0.1), 10, 25)
                 foods.append(calc_food(fat, f_grams))
             
             if not foods:
