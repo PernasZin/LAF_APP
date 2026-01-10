@@ -820,7 +820,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(protein, p_grams))
             
             if fat and fat in FOODS:
-                f_grams = clamp(meal_f / max(FOODS[fat]["f"] / 100, 0.1), 15, 50)
+                # Limite mais conservador para gorduras em lanches (máx 30g)
+                f_grams = clamp(meal_f / max(FOODS[fat]["f"] / 100, 0.1), 10, 30)
                 foods.append(calc_food(fat, f_grams))
             
             if not foods:
