@@ -187,16 +187,37 @@ CLEAN_FOODS_ATHLETE = {
 
 PEAK_WEEK_ALLOWED = {
     # Proteínas ultra limpas
-    "frango", "tilapia", "claras",
+    "frango", "tilapia", "claras", "atum", "patinho",
     
     # Carbs simples (para depleção/carga)
-    "arroz_branco", "batata_doce",
+    "arroz_branco", "batata_doce", "batata",
     
     # Zero gordura adicionada (ou mínimo azeite)
     "azeite",
     
-    # Vegetais com baixo sódio
-    "brocolis", "espinafre", "pepino", "abobrinha",
+    # Vegetais com baixo sódio e pouca fibra (evitar inchaço)
+    "pepino",           # Baixíssimo sódio, alto em água
+    "abobrinha",        # Leve, fácil digestão
+    "alface",           # Folha leve
+    "rucola",           # Folha leve
+    "espinafre",        # Folha leve (cozido perde volume)
+    "vagem",            # Baixa fermentação
+    "tomate",           # Leve (com moderação)
+    
+    # Frutas leves (digestão fácil)
+    "banana",           # Potássio, fácil digestão
+    "melancia",         # Alto em água, baixo em fibra
+    "melao",            # Alto em água
+}
+
+# Vegetais que podem causar gases/inchaço - EVITAR na Peak Week
+PEAK_WEEK_AVOID_VEGETABLES = {
+    "brocolis",         # Alta fermentação
+    "couve_flor",       # Alta fermentação
+    "couve",            # Alta fermentação
+    "repolho",          # Alta fermentação
+    "beterraba",        # Alto em fibras
+    "cenoura",          # Pode causar gases em alguns
 }
 
 
@@ -227,8 +248,8 @@ def filter_foods_for_athlete(foods: Set[str], competition_phase: str) -> Set[str
         return foods
     
     elif phase == "pre_contest":
-        # Remove alimentos processados
-        filtered = foods - PROCESSED_FOODS
+        # Remove alimentos processados básicos
+        filtered = foods - PROCESSED_FOODS_PREP
         # Garante que ainda tem alimentos suficientes
         if len(filtered) < 10:
             # Adiciona alimentos limpos básicos
@@ -236,11 +257,13 @@ def filter_foods_for_athlete(foods: Set[str], competition_phase: str) -> Set[str
         return filtered
     
     elif phase == "peak_week":
-        # Apenas alimentos permitidos na peak week
-        filtered = foods & PEAK_WEEK_ALLOWED
+        # Remove TODOS os processados (PREP + PEAK específicos)
+        filtered = foods - PROCESSED_FOODS_PEAK
+        # Remove vegetais que causam inchaço
+        filtered = filtered - PEAK_WEEK_AVOID_VEGETABLES
         # Garante mínimo para gerar dieta
         if len(filtered) < 6:
-            filtered.update({"frango", "arroz_branco", "batata_doce", "azeite", "brocolis", "claras"})
+            filtered.update({"frango", "arroz_branco", "batata_doce", "azeite", "pepino", "claras"})
         return filtered
     
     return foods
