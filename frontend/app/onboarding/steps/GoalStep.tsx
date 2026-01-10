@@ -1,13 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Modal, Pressable, TextInput } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { translations, SupportedLanguage } from '../../../i18n/translations';
-
-// DateTimePicker só funciona em iOS/Android, não na web
-let DateTimePicker: any = null;
-if (Platform.OS !== 'web') {
-  DateTimePicker = require('@react-native-community/datetimepicker').default;
-}
 
 interface Props {
   data: any;
@@ -16,7 +10,6 @@ interface Props {
 }
 
 export default function GoalStep({ data, updateData, language }: Props) {
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const t = translations[language].onboarding;
   
   const goals = [
@@ -41,61 +34,10 @@ export default function GoalStep({ data, updateData, language }: Props) {
       desc: t.maintenanceDesc,
       color: '#3B82F6',
     },
-    {
-      value: 'atleta',
-      label: t.athlete,
-      icon: 'trophy' as any,
-      desc: t.athleteDesc,
-      color: '#F59E0B',
-    },
   ];
 
   const handleGoalSelect = (goalValue: string) => {
     updateData({ goal: goalValue });
-    // Se selecionou atleta, não precisa mais de campos extras
-    // A data será selecionada abaixo
-  };
-
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    
-    if (selectedDate) {
-      // Formata para ISO string (YYYY-MM-DD)
-      const isoDate = selectedDate.toISOString().split('T')[0];
-      updateData({ athlete_competition_date: isoDate });
-    }
-  };
-
-  const formatDateDisplay = (dateStr: string) => {
-    if (!dateStr) return t.selectDate;
-    const date = new Date(dateStr);
-    // Use appropriate locale based on language
-    const locale = language === 'pt-BR' ? 'pt-BR' : language === 'es-ES' ? 'es-ES' : 'en-US';
-    return date.toLocaleDateString(locale, {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
-
-  const getWeeksToCompetition = (dateStr: string) => {
-    if (!dateStr) return null;
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diff = date.getTime() - now.getTime();
-    const weeks = Math.floor(diff / (1000 * 60 * 60 * 24 * 7));
-    return weeks > 0 ? weeks : 0;
-  };
-
-  const getPhaseFromWeeks = (weeks: number | null) => {
-    if (weeks === null) return null;
-    if (weeks > 20) return { phase: 'OFF-SEASON', color: '#10B981' };
-    if (weeks >= 16) return { phase: 'PRÉ-PREP', color: '#3B82F6' };
-    if (weeks >= 8) return { phase: 'PREP', color: '#F59E0B' };
-    if (weeks >= 1) return { phase: 'PEAK WEEK', color: '#EF4444' };
-    return { phase: 'PÓS-SHOW', color: '#8B5CF6' };
   };
 
   const weeks = getWeeksToCompetition(data.athlete_competition_date);
