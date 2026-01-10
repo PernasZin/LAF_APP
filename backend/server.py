@@ -1383,8 +1383,7 @@ async def get_performance_chart_data(user_id: str, days: int = 90):
         
         weight_data.append({
             "date": date_str,
-            "value": r["weight"],
-            "phase": r.get("athlete_phase")
+            "value": r["weight"]
         })
         
         if r.get("questionnaire_average"):
