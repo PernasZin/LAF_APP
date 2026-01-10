@@ -21,30 +21,23 @@ export default function GoalStep({ data, updateData, language }: Props) {
   
   const goals = [
     {
-      value: 'bulking',
-      label: t.bulking,
-      icon: 'barbell' as any,
-      desc: t.bulkingDesc,
-      color: '#10B981',
-    },
-    {
       value: 'cutting',
       label: t.cutting,
-      icon: 'fitness' as any,
+      icon: 'trending-down' as any,
       desc: t.cuttingDesc,
       color: '#EF4444',
     },
     {
-      value: 'peak',
-      label: t.peak,
-      icon: 'flash' as any,
-      desc: t.peakDesc,
-      color: '#8B5CF6',
+      value: 'bulking',
+      label: t.bulking,
+      icon: 'trending-up' as any,
+      desc: t.bulkingDesc,
+      color: '#10B981',
     },
     {
       value: 'manutencao',
       label: t.maintenance,
-      icon: 'swap-horizontal' as any,
+      icon: 'remove' as any,
       desc: t.maintenanceDesc,
       color: '#3B82F6',
     },
