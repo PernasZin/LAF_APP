@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
 import { useTheme } from '../../theme/ThemeContext';
 import Svg, { Path, Circle, Line, Text as SvgText, Rect } from 'react-native-svg';
 import { Toast, ProgressSkeleton } from '../../components';
