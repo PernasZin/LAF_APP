@@ -293,6 +293,11 @@ def calc_food(food_key: str, grams: float) -> Dict:
         "laranja": 180,       # 1 unidade = ~180g
         "kiwi": 75,           # 1 unidade = ~75g
         "pera": 180,          # 1 unidade = ~180g
+        "mamao": 150,         # 1 fatia = ~150g
+        "manga": 200,         # 1 unidade = ~200g
+        
+        # Batatas - sempre em unidades inteiras
+        "batata_doce": 150,   # 1 unidade = ~150g
     }
     
     unit = f.get("unit", "porção")
