@@ -1332,11 +1332,13 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     foods.append(calc_food(carb_comp, c_comp_grams))
                 
                 # Farofa (15%) - complemento clássico brasileiro (opcional)
-                carbs_so_far = sum(f.get("carbs", 0) for f in foods)
-                carbs_remaining = meal_c - carbs_so_far
-                if "farofa" in FOODS and carbs_remaining > 15:
-                    farofa_grams = clamp(carbs_remaining * 0.5 / max(FOODS["farofa"]["c"] / 100, 0.1), 15, 50)
-                    foods.append(calc_food("farofa", farofa_grams))
+                # 🏆 ATLETA EM PREP/PEAK: Não adiciona farofa (processado)
+                if competition_phase not in ["pre_contest", "peak_week"]:
+                    carbs_so_far = sum(f.get("carbs", 0) for f in foods)
+                    carbs_remaining = meal_c - carbs_so_far
+                    if "farofa" in FOODS and carbs_remaining > 15:
+                        farofa_grams = clamp(carbs_remaining * 0.5 / max(FOODS["farofa"]["c"] / 100, 0.1), 15, 50)
+                        foods.append(calc_food("farofa", farofa_grams))
                     
             else:
                 # Fallback: arroz + feijão padrão (respeitando limites do objetivo)
@@ -1344,7 +1346,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if feijao_max > 0:
                     fallback_feijao = clamp(130, feijao_min, feijao_max)
                     foods.append(calc_food("feijao", fallback_feijao))
-                foods.append(calc_food("farofa", 30))
+                # 🏆 ATLETA EM PREP/PEAK: Não adiciona farofa no fallback
+                if competition_phase not in ["pre_contest", "peak_week"]:
+                    foods.append(calc_food("farofa", 30))
             
             # ==================== VEGETAIS E LEGUMES ====================
             # Acompanhamento para saúde intestinal, micronutrientes e recuperação
