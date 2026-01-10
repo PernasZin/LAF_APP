@@ -785,6 +785,19 @@ async def get_user_diet(user_id: str):
     return diet_plan
 
 
+@api_router.delete("/diet/{user_id}")
+async def delete_user_diet(user_id: str):
+    """
+    Deleta a dieta do usuário para permitir regeneração.
+    Usado quando as configurações de refeições mudam.
+    """
+    result = await db.diet_plans.delete_many({"user_id": user_id})
+    
+    logger.info(f"Deleted {result.deleted_count} diet plans for user {user_id}")
+    
+    return {"message": "Dieta deletada com sucesso", "deleted_count": result.deleted_count}
+
+
 class FoodSubstitutionRequest(BaseModel):
     """Request para substituir alimento na dieta"""
     meal_index: int  # Índice da refeição (0-4)
