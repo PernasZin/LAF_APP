@@ -331,13 +331,6 @@ export default function DietScreen() {
               {Math.round(totalMealCalories)} / {Math.round(targetCalories)} kcal
             </Text>
           </View>
-          {/* Athlete Phase Badge */}
-          {userProfile?.athlete_mode && (
-            <AthletePhaseBadge 
-              phase={userProfile.competition_phase || userProfile.last_competition_phase} 
-              colors={colors}
-            />
-          )}
         </View>
 
         {/* Macros Summary */}
