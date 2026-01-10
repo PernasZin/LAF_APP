@@ -316,14 +316,16 @@ def calc_food(food_key: str, grams: float) -> Dict:
         if units_int == 1:
             unit_str = f"= {units_int} {unit}"
         else:
-            # Pluraliza
+            # Pluraliza corretamente
             unit_plural = unit
-            if unit.endswith("a"):
-                unit_plural = unit + "s"  # fatia -> fatias
+            if unit.endswith("ção"):
+                unit_plural = unit[:-3] + "ções"  # porção -> porções
             elif unit.endswith("e"):
                 unit_plural = unit + "s"  # unidade -> unidades
+            elif unit.endswith("a"):
+                unit_plural = unit + "s"  # fatia -> fatias
             elif not unit.endswith("s"):
-                unit_plural = unit + "s"
+                unit_plural = unit + "s"  # pote -> potes
             unit_str = f"= {units_int} {unit_plural}"
     else:
         # Alimentos não-contáveis: usa lógica normal (múltiplos de 10g)
