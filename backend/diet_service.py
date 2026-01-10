@@ -157,6 +157,12 @@ FOODS = {
     "peru": {"name": "Peru", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "fatias finas", "unit_g": 50},
     "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "unit": "colher sopa", "unit_g": 30},
     "iogurte_grego": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "category": "protein", "unit": "pote", "unit_g": 170},
+    "iogurte_natural": {"name": "Iogurte Natural", "p": 4.0, "c": 6.0, "f": 3.0, "category": "protein", "unit": "pote", "unit_g": 170},
+    "iogurte_desnatado": {"name": "Iogurte Desnatado", "p": 4.5, "c": 7.0, "f": 0.5, "category": "protein", "unit": "pote", "unit_g": 170},
+    "leite": {"name": "Leite Integral", "p": 3.2, "c": 4.8, "f": 3.5, "category": "protein", "unit": "copo", "unit_g": 200},
+    "leite_desnatado": {"name": "Leite Desnatado", "p": 3.4, "c": 5.0, "f": 0.1, "category": "protein", "unit": "copo", "unit_g": 200},
+    "queijo_minas": {"name": "Queijo Minas", "p": 17.0, "c": 3.0, "f": 20.0, "category": "protein", "unit": "fatia", "unit_g": 30},
+    "requeijao": {"name": "Requeijão", "p": 5.0, "c": 2.5, "f": 22.0, "category": "protein", "unit": "colher sopa", "unit_g": 30},
     "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
     
     # === CARBOIDRATOS ===
