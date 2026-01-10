@@ -1151,10 +1151,11 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
     Ajuste fino ULTRA-AGRESSIVO para atingir macros.
     
     REGRA ABSOLUTA: Macros NUNCA podem exceder o target em mais de 5g!
+    EXCEÇÃO: Proteína pode ter até +15% de variação se necessário para manter frango adequado
     
     ESTRATÉGIA:
     1. Gordura em excesso → Remove azeite, castanhas primeiro
-    2. Proteína em excesso → Reduz carnes nas refeições principais
+    2. Proteína em excesso → Reduz carnes nas refeições principais (mínimo 150g frango)
     3. Carbs em excesso → Reduz arroz, batata
     
     IMPORTANTE: Esta função assume que alimentos contáveis já estão fixos.
@@ -1162,6 +1163,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
     """
     MAX_EXCESS = 5  # Máximo 5g acima do target
     MAX_DEFICIT = 5  # Máximo 5g abaixo do target (mais rígido)
+    
+    # Tolerância especial para proteína (para não reduzir demais o frango)
+    MAX_PROTEIN_EXCESS = max(5, int(target_p * 0.15))  # Até 15% acima do target
     
     # Tolerância para baixo agora é também 5g (mais rígida)
     tol_p_below = MAX_DEFICIT
