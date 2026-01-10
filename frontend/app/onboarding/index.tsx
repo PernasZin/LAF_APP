@@ -134,7 +134,7 @@ export default function OnboardingScreen() {
         break;
       
       case 'yourGoal':
-        console.log('Validating goal step - goal:', formData.goal, 'date:', formData.athlete_competition_date);
+        console.log('Validating goal step - goal:', formData.goal);
         if (!formData.goal) {
           showAlert(t.requiredFields, t.selectGoal);
           return false;
