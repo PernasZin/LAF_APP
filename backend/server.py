@@ -50,26 +50,8 @@ class UserProfile(BaseModel):
     weekly_training_frequency: int  # dias por semana
     available_time_per_session: int  # minutos
     
-    # Objetivo
-    goal: str  # "cutting", "bulking", "manutencao", "atleta"
-    
-    # ==================== MODO ATLETA AUTOMÁTICO ====================
-    # Baseado em DATA do campeonato (não semanas manuais)
-    athlete_mode: bool = False  # True se goal == "atleta"
-    athlete_competition_date: Optional[datetime] = None  # Data do campeonato (YYYY-MM-DD)
-    last_competition_phase: Optional[str] = None  # Última fase calculada
-    
-    # Campos legados (calculados automaticamente, não preenchidos pelo usuário)
-    competition_phase: Optional[str] = None  # Fase atual calculada automaticamente
-    weeks_to_competition: Optional[int] = None  # Calculado automaticamente
-    competition_date: Optional[datetime] = None  # Alias para athlete_competition_date
-    phase_start_date: Optional[datetime] = None  # Quando a fase atual começou
-    
-    # ==================== PEAK WEEK - REGRAS OFICIAIS ====================
-    # Campos para atletas com categoria de peso e pesagem
-    has_weight_class: bool = False  # Se compete em categoria de peso
-    has_weigh_in: bool = False  # Se há pesagem antes da competição
-    weigh_in_hours_before: int = 24  # Horas antes da competição (ex: 24h)
+    # Objetivo (3 opções apenas)
+    goal: str  # "cutting", "bulking", "manutencao"
     
     # Restrições e Preferências
     dietary_restrictions: List[str] = Field(default_factory=list)  # ["vegetariano", "lactose", etc]
