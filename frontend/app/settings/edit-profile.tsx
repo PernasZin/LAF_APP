@@ -78,7 +78,6 @@ export default function EditProfileScreen() {
           if (response.ok) {
             const data = await response.json();
             setName(data.name || '');
-            setWeight(data.weight?.toString() || '');
             setGoal(data.goal || 'bulking');
             setOriginalGoal(data.goal || 'bulking');
           }
@@ -87,7 +86,6 @@ export default function EditProfileScreen() {
           if (profileData) {
             const profile = JSON.parse(profileData);
             setName(profile.name || '');
-            setWeight(profile.weight?.toString() || '');
             setGoal(profile.goal || 'bulking');
             setOriginalGoal(profile.goal || 'bulking');
           }
