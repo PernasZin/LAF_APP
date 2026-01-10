@@ -1047,12 +1047,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             carb_main = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
             
             # Adiciona proteína - FRANGO como principal
-            # Limite máximo 250g para evitar porções excessivas
+            # Frango pode ir até 300g em dietas de alto volume
+            # Outras proteínas: até 200g
             if protein and protein in FOODS:
-                # Frango: limite de 150-250g (porção adequada)
-                # Outras proteínas: até 200g
-                max_protein_grams = 250 if protein == "frango" else 200
-                p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 100, max_protein_grams)
+                max_protein_grams = 300 if protein == "frango" else 200
+                p_grams = clamp(meal_p / (FOODS[protein]["p"] / 100), 120, max_protein_grams)
                 foods.append(calc_food(protein, p_grams))
             else:
                 foods.append(calc_food("frango", 180))
