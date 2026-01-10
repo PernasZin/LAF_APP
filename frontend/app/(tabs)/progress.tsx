@@ -112,6 +112,30 @@ export default function ProgressScreen() {
     }
   };
 
+  const loadNotifications = async (uid: string) => {
+    try {
+      const response = await safeFetch(`${BACKEND_URL}/api/notifications/${uid}`);
+      if (response.ok) {
+        const data = await response.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar notificações:', error);
+    }
+  };
+
+  const loadPerformance = async (uid: string) => {
+    try {
+      const response = await safeFetch(`${BACKEND_URL}/api/progress/performance/${uid}?days=90`);
+      if (response.ok) {
+        const data = await response.json();
+        setPerformanceData(data);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar performance:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
