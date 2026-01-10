@@ -65,6 +65,12 @@ class UserProfile(BaseModel):
     competition_date: Optional[datetime] = None  # Alias para athlete_competition_date
     phase_start_date: Optional[datetime] = None  # Quando a fase atual começou
     
+    # ==================== PEAK WEEK - REGRAS OFICIAIS ====================
+    # Campos para atletas com categoria de peso e pesagem
+    has_weight_class: bool = False  # Se compete em categoria de peso
+    has_weigh_in: bool = False  # Se há pesagem antes da competição
+    weigh_in_hours_before: int = 24  # Horas antes da competição (ex: 24h)
+    
     # Restrições e Preferências
     dietary_restrictions: List[str] = Field(default_factory=list)  # ["vegetariano", "lactose", etc]
     food_preferences: List[str] = Field(default_factory=list)
