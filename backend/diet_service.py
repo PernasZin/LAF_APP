@@ -1054,90 +1054,207 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
 
 def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int) -> List[Dict]:
     """
-    Ajuste fino iterativo para atingir macros dentro de ±5%.
+    Ajuste fino RIGOROSO para atingir macros.
     
-    Funciona com 4, 5 ou 6 refeições.
+    REGRA: Macros NUNCA podem exceder o target em mais de 5g!
+    - Se acima: REDUZ alimentos
+    - Se abaixo (dentro de tolerância): OK
+    - Se muito abaixo: AUMENTA alimentos
+    
+    Tolerância máxima: +5g ou -5% do target (o que for maior)
     """
-    tol_p = target_p * TOL_PERCENT
-    tol_c = target_c * TOL_PERCENT
-    tol_f = target_f * TOL_PERCENT
+    MAX_EXCESS = 5  # Máximo 5g acima do target
+    
+    # Tolerância para baixo é mais flexível (5% do target)
+    tol_p_below = target_p * 0.05
+    tol_c_below = target_c * 0.05
+    tol_f_below = target_f * 0.05
     
     num_meals = len(meals)
     
     # Determina índices das refeições principais baseado no número de refeições
     if num_meals == 4:
-        # Café(0), Almoço(1), Lanche(2), Jantar(3)
         main_meal_indices = [1, 3]  # Almoço, Jantar
-        carb_indices = [1, 3, 0]  # Almoço, Jantar, Café
-        fat_indices = [1, 3, 2]  # Almoço, Jantar, Lanche
+        carb_indices = [1, 3, 0]
+        fat_indices = [1, 3, 2]
+        lanche_indices = [2]
     elif num_meals == 5:
-        # Café(0), LancheManhã(1), Almoço(2), LancheTarde(3), Jantar(4)
         main_meal_indices = [2, 4]  # Almoço, Jantar
-        carb_indices = [2, 4, 0]  # Almoço, Jantar, Café
-        fat_indices = [2, 4, 1, 3]  # Almoço, Jantar, Lanches
+        carb_indices = [2, 4, 0]
+        fat_indices = [2, 4, 1, 3]
+        lanche_indices = [1, 3]
     else:  # 6 refeições
-        # Café(0), LancheManhã(1), Almoço(2), LancheTarde(3), Jantar(4), Ceia(5)
         main_meal_indices = [2, 4]  # Almoço, Jantar
-        carb_indices = [2, 4, 0]  # Almoço, Jantar, Café
-        fat_indices = [2, 4, 1, 3]  # Almoço, Jantar, Lanches
+        carb_indices = [2, 4, 0]
+        fat_indices = [2, 4, 1, 3]
+        lanche_indices = [1, 3, 5]
     
-    for iteration in range(500):
+    for iteration in range(100):
         all_foods = [f for m in meals for f in m["foods"]]
         curr_p, curr_c, curr_f, curr_cal = sum_foods(all_foods)
         
-        gap_p = target_p - curr_p
-        gap_c = target_c - curr_c
-        gap_f = target_f - curr_f
+        # Calcula excesso (positivo = acima do target)
+        excess_p = curr_p - target_p
+        excess_c = curr_c - target_c
+        excess_f = curr_f - target_f
         
-        # Se todos dentro da tolerância, retorna
-        if abs(gap_p) <= tol_p and abs(gap_c) <= tol_c and abs(gap_f) <= tol_f:
+        # Verifica se está dentro dos limites
+        p_ok = excess_p <= MAX_EXCESS and excess_p >= -tol_p_below
+        c_ok = excess_c <= MAX_EXCESS and excess_c >= -tol_c_below
+        f_ok = excess_f <= MAX_EXCESS and excess_f >= -tol_f_below
+        
+        if p_ok and c_ok and f_ok:
             return meals
         
         adjusted = False
         
-        # Ajusta proteínas - nas refeições principais
-        if abs(gap_p) > tol_p and not adjusted:
+        # ========== REDUZ SE ACIMA DO LIMITE ==========
+        
+        # GORDURA acima do limite - PRIORIDADE MÁXIMA
+        if excess_f > MAX_EXCESS and not adjusted:
+            reduce_needed = excess_f - MAX_EXCESS + 2  # Reduz um pouco mais para garantir
+            
+            # Primeiro tenta reduzir azeite
+            for m_idx in fat_indices:
+                if m_idx >= num_meals or adjusted:
+                    break
+                for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                    if food.get("key") == "azeite":
+                        f_per_100 = FOODS["azeite"]["f"]
+                        reduce_grams = reduce_needed / (f_per_100 / 100)
+                        new_g = max(5, food["grams"] - reduce_grams)
+                        if food["grams"] - new_g >= 3:
+                            meals[m_idx]["foods"][f_idx] = calc_food("azeite", new_g)
+                            adjusted = True
+                            break
+            
+            # Se ainda precisa, reduz castanhas/amendoas nos lanches
+            if not adjusted:
+                for m_idx in lanche_indices:
+                    if m_idx >= num_meals or adjusted:
+                        break
+                    for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                        if food.get("category") == "fat" and food.get("key") != "azeite":
+                            food_key = food["key"]
+                            f_per_100 = FOODS[food_key]["f"]
+                            reduce_grams = reduce_needed / (f_per_100 / 100)
+                            new_g = max(10, food["grams"] - reduce_grams)
+                            if food["grams"] - new_g >= 5:
+                                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                                adjusted = True
+                                break
+            
+            # Se ainda precisa, remove azeite completamente
+            if not adjusted:
+                for m_idx in fat_indices:
+                    if m_idx >= num_meals or adjusted:
+                        break
+                    for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                        if food.get("key") == "azeite" and food["grams"] > 5:
+                            meals[m_idx]["foods"][f_idx] = calc_food("azeite", 5)
+                            adjusted = True
+                            break
+        
+        # PROTEÍNA acima do limite
+        if excess_p > MAX_EXCESS and not adjusted:
+            reduce_needed = excess_p - MAX_EXCESS + 2
+            
             for m_idx in main_meal_indices:
-                if m_idx >= num_meals:
-                    continue
+                if m_idx >= num_meals or adjusted:
+                    break
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
                     if food.get("category") == "protein":
                         food_key = food["key"]
                         p_per_100 = FOODS[food_key]["p"]
-                        delta = (gap_p / len(main_meal_indices)) / (p_per_100 / 100)
-                        new_g = clamp(food["grams"] + delta, 80, 600)
-                        if abs(new_g - food["grams"]) >= 10:
+                        reduce_grams = reduce_needed / (p_per_100 / 100)
+                        new_g = max(80, food["grams"] - reduce_grams)
+                        if food["grams"] - new_g >= 10:
                             meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                             adjusted = True
                             break
-                if adjusted:
-                    break
-            
-            # Se ainda precisar, usa Café
-            if not adjusted and num_meals > 0:
-                for f_idx, food in enumerate(meals[0]["foods"]):
-                    if food.get("category") == "protein":
-                        food_key = food["key"]
-                        p_per_100 = FOODS[food_key]["p"]
-                        delta = gap_p / (p_per_100 / 100)
-                        new_g = clamp(food["grams"] + delta, 80, 400)
-                        if abs(new_g - food["grams"]) >= 10:
-                            meals[0]["foods"][f_idx] = calc_food(food_key, new_g)
-                            adjusted = True
-                            break
         
-        # Ajusta carboidratos - nas refeições com carbs
-        if abs(gap_c) > tol_c and not adjusted:
+        # CARBOIDRATO acima do limite
+        if excess_c > MAX_EXCESS and not adjusted:
+            reduce_needed = excess_c - MAX_EXCESS + 2
+            
             for m_idx in carb_indices:
-                if m_idx >= num_meals:
-                    continue
+                if m_idx >= num_meals or adjusted:
+                    break
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
                     if food.get("category") == "carb":
                         food_key = food["key"]
                         c_per_100 = FOODS[food_key]["c"]
                         if c_per_100 > 0:
-                            # Distribui o ajuste entre as refeições
-                            delta = (gap_c / 2) / (c_per_100 / 100)
+                            reduce_grams = reduce_needed / (c_per_100 / 100)
+                            new_g = max(50, food["grams"] - reduce_grams)
+                            if food["grams"] - new_g >= 10:
+                                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                                adjusted = True
+                                break
+        
+        # ========== AUMENTA SE MUITO ABAIXO ==========
+        
+        # PROTEÍNA muito abaixo
+        if excess_p < -tol_p_below and not adjusted:
+            increase_needed = abs(excess_p) - tol_p_below + 5
+            
+            for m_idx in main_meal_indices:
+                if m_idx >= num_meals or adjusted:
+                    break
+                for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                    if food.get("category") == "protein":
+                        food_key = food["key"]
+                        p_per_100 = FOODS[food_key]["p"]
+                        increase_grams = increase_needed / (p_per_100 / 100)
+                        new_g = min(500, food["grams"] + increase_grams)
+                        if new_g - food["grams"] >= 10:
+                            meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                            adjusted = True
+                            break
+        
+        # CARBOIDRATO muito abaixo
+        if excess_c < -tol_c_below and not adjusted:
+            increase_needed = abs(excess_c) - tol_c_below + 5
+            
+            for m_idx in carb_indices:
+                if m_idx >= num_meals or adjusted:
+                    break
+                for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                    if food.get("category") == "carb":
+                        food_key = food["key"]
+                        c_per_100 = FOODS[food_key]["c"]
+                        if c_per_100 > 0:
+                            increase_grams = increase_needed / (c_per_100 / 100)
+                            new_g = min(MAX_CARB_GRAMS, food["grams"] + increase_grams)
+                            if new_g - food["grams"] >= 10:
+                                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                                adjusted = True
+                                break
+        
+        # GORDURA muito abaixo
+        if excess_f < -tol_f_below and not adjusted:
+            increase_needed = abs(excess_f) - tol_f_below + 3
+            
+            for m_idx in fat_indices:
+                if m_idx >= num_meals or adjusted:
+                    break
+                for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                    if food.get("key") == "azeite" or food.get("category") == "fat":
+                        food_key = food["key"]
+                        f_per_100 = FOODS[food_key]["f"]
+                        increase_grams = increase_needed / (f_per_100 / 100)
+                        max_fat = 30 if food_key == "azeite" else 50
+                        new_g = min(max_fat, food["grams"] + increase_grams)
+                        if new_g - food["grams"] >= 3:
+                            meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                            adjusted = True
+                            break
+        
+        # Se não conseguiu ajustar, sai do loop
+        if not adjusted:
+            break
+    
+    return meals
                             # Limite específico para aveia (menor), maior para arroz/batata
                             max_grams = 120 if food_key == "aveia" else MAX_CARB_GRAMS
                             new_g = clamp(food["grams"] + delta, 50, max_grams)
