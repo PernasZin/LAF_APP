@@ -266,19 +266,6 @@ export default function EditProfileScreen() {
               />
             </View>
 
-            {/* Peso */}
-            <View style={styles.fieldContainer}>
-              <Text style={[styles.label, { color: colors.text }]}>Peso Atual (kg)</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.inputText }]}
-                value={weight}
-                onChangeText={setWeight}
-                placeholder="80"
-                placeholderTextColor={colors.inputPlaceholder}
-                keyboardType="decimal-pad"
-              />
-            </View>
-
             {/* Objetivo */}
             <View style={styles.fieldContainer}>
               <Text style={[styles.label, { color: colors.text }]}>Objetivo</Text>
