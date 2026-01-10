@@ -86,6 +86,19 @@ export default function EditProfileScreen() {
             setName(data.name || '');
             setGoal(data.goal || 'bulking');
             setOriginalGoal(data.goal || 'bulking');
+            
+            // Carrega data de competição se existir (atleta)
+            if (data.athlete_competition_date || data.competition_date) {
+              const dateStr = data.athlete_competition_date || data.competition_date;
+              try {
+                const parsedDate = new Date(dateStr);
+                if (!isNaN(parsedDate.getTime())) {
+                  setCompetitionDate(parsedDate);
+                }
+              } catch (e) {
+                console.warn('Erro ao parsear data de competição:', e);
+              }
+            }
           }
         } catch (err) {
           const profileData = await AsyncStorage.getItem('userProfile');
