@@ -531,6 +531,7 @@ const datePickerStyles = StyleSheet.create({
   },
   container: {
     width: '90%',
+    maxWidth: 400,
     borderRadius: 16,
     padding: 20,
   },
@@ -539,6 +540,46 @@ const datePickerStyles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 16,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  pickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  pickerLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  pickerScroll: {
+    height: 180,
+    width: '100%',
+  },
+  pickerItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 2,
+  },
+  pickerItemText: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  preview: {
+    marginTop: 16,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  previewText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   buttons: {
     flexDirection: 'row',
