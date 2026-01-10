@@ -1255,43 +1255,6 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
             break
     
     return meals
-                            # Limite específico para aveia (menor), maior para arroz/batata
-                            max_grams = 120 if food_key == "aveia" else MAX_CARB_GRAMS
-                            new_g = clamp(food["grams"] + delta, 50, max_grams)
-                            if abs(new_g - food["grams"]) >= 10:
-                                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
-                                adjusted = True
-                                break
-                if adjusted:
-                    break
-        
-        # Ajusta gorduras - nas refeições com gordura
-        if abs(gap_f) > tol_f and not adjusted:
-            for m_idx in fat_indices:
-                if m_idx >= num_meals:
-                    continue
-                for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    if food.get("key") == "azeite" or food.get("category") == "fat":
-                        food_key = food["key"]
-                        f_per_100 = FOODS[food_key]["f"]
-                        if f_per_100 > 0:
-                            delta = gap_f / (f_per_100 / 100)
-                            # Se gap_f < 0 (excesso), permite reduzir até 5g
-                            # Se gap_f > 0 (falta), permite aumentar até 60g
-                            min_g = 5 if gap_f < 0 else 10
-                            max_g = 60 if gap_f > 0 else food["grams"]  # Não aumenta se já em excesso
-                            new_g = clamp(food["grams"] + delta, min_g, max_g)
-                            if abs(new_g - food["grams"]) >= 5:
-                                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
-                                adjusted = True
-                                break
-                if adjusted:
-                    break
-        
-        if not adjusted:
-            break
-    
-    return meals
 
 
 def validate_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int) -> Tuple[bool, str]:
