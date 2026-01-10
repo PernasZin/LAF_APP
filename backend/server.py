@@ -1050,11 +1050,87 @@ async def substitute_food(diet_id: str, request: FoodSubstitutionRequest):
 
 # ==================== PROGRESS ENDPOINTS ====================
 
+@api_router.get("/progress/weight/{user_id}/can-update")
+async def check_can_update_weight(user_id: str):
+    """
+    Verifica se o usuário pode atualizar o peso.
+    
+    REGRAS:
+    - ATLETAS: Bloqueio semanal (7 dias) - precisam de controle mais frequente
+    - OUTROS OBJETIVOS: Bloqueio quinzenal (14 dias)
+    
+    Retorna informações sobre quando pode atualizar novamente.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Determina período de bloqueio baseado no objetivo
+    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    block_days = 7 if is_athlete else 14  # Atletas: semanal, outros: quinzenal
+    
+    # Busca último registro
+    last_record = await db.weight_records.find_one(
+        {"user_id": user_id},
+        sort=[("recorded_at", -1)]
+    )
+    
+    if not last_record:
+        # Primeiro registro - verifica dias desde cadastro
+        if user.get("created_at"):
+            days_since_creation = (datetime.utcnow() - user["created_at"]).days
+            if days_since_creation < block_days:
+                days_remaining = block_days - days_since_creation
+                next_update = user["created_at"] + timedelta(days=block_days)
+                return WeightUpdateCheck(
+                    can_update=False,
+                    reason=f"Aguarde {days_remaining} dia(s) para o primeiro registro de progresso",
+                    last_update=user["created_at"],
+                    next_update_allowed=next_update,
+                    days_until_next_update=days_remaining
+                )
+        return WeightUpdateCheck(can_update=True, reason="Primeiro registro disponível")
+    
+    # Calcula dias desde último registro
+    days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
+    
+    if days_since_last < block_days:
+        days_remaining = block_days - days_since_last
+        next_update = last_record["recorded_at"] + timedelta(days=block_days)
+        period_text = "semanal" if is_athlete else "quinzenal"
+        return WeightUpdateCheck(
+            can_update=False,
+            reason=f"Registro {period_text}. Aguarde {days_remaining} dia(s)",
+            last_update=last_record["recorded_at"],
+            next_update_allowed=next_update,
+            days_until_next_update=days_remaining
+        )
+    
+    return WeightUpdateCheck(
+        can_update=True,
+        reason="Pode registrar novo peso",
+        last_update=last_record["recorded_at"],
+        next_update_allowed=datetime.utcnow(),
+        days_until_next_update=0
+    )
+
+
 @api_router.post("/progress/weight/{user_id}")
 async def record_weight(user_id: str, record: WeightRecordCreate):
     """
-    Registra peso do usuário.
-    Restrição: mínimo 14 dias entre registros.
+    Registra peso do usuário COM questionário obrigatório de acompanhamento.
+    
+    RESTRIÇÕES:
+    - ATLETAS: Bloqueio semanal (7 dias) para controle preciso
+    - OUTROS: Bloqueio quinzenal (14 dias)
+    
+    QUESTIONÁRIO (0-10):
+    - Dieta: Como seguiu a dieta?
+    - Treino: Como foram os treinos?
+    - Cardio: Como foi o cardio?
+    - Sono: Como foi o sono?
+    - Hidratação: Como foi a hidratação?
     
     MODO ATLETA AUTOMÁTICO:
     - Verifica se athlete_mode = true
@@ -1069,7 +1145,11 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
-    # Verifica último registro (mínimo 14 dias)
+    # Determina período de bloqueio baseado no objetivo
+    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
+    block_days = 7 if is_athlete else 14
+    
+    # Verifica último registro
     last_record = await db.weight_records.find_one(
         {"user_id": user_id},
         sort=[("recorded_at", -1)]
@@ -1077,22 +1157,39 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     
     if last_record:
         days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
-        if days_since_last < 14:
-            days_remaining = 14 - days_since_last
+        if days_since_last < block_days:
+            days_remaining = block_days - days_since_last
+            period_text = "semanal" if is_athlete else "quinzenal"
             raise HTTPException(
                 status_code=400,
-                detail=f"Aguarde mais {days_remaining} dias para o próximo registro. Registro a cada 2 semanas."
+                detail=f"Aguarde mais {days_remaining} dias para o próximo registro. Registro {period_text}."
             )
     
     # Valida peso
     if record.weight < 30 or record.weight > 300:
         raise HTTPException(status_code=400, detail="Peso deve estar entre 30kg e 300kg")
     
-    # Cria registro
+    # Calcula média do questionário
+    q = record.questionnaire
+    questionnaire_avg = round((q.diet + q.training + q.cardio + q.sleep + q.hydration) / 5, 1)
+    
+    # Determina fase do atleta (se aplicável)
+    athlete_phase = None
+    if is_athlete:
+        comp_date = user.get("athlete_competition_date") or user.get("competition_date")
+        if comp_date:
+            athlete_phase, _ = derive_phase_from_date(comp_date)
+        else:
+            athlete_phase = user.get("competition_phase", "off_season")
+    
+    # Cria registro completo
     weight_record = WeightRecord(
         user_id=user_id,
         weight=round(record.weight, 1),
-        notes=record.notes
+        notes=record.notes,
+        questionnaire=record.questionnaire,
+        athlete_phase=athlete_phase,
+        questionnaire_average=questionnaire_avg
     )
     
     # Salva no banco
