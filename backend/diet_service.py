@@ -737,7 +737,7 @@ MEAL_RULES = {
     },
     "ceia": {
         # PERMITIDOS: Cottage, Iogurte Grego + Frutas - NUNCA OVOS!
-        "proteins": {"iogurte_grego", "cottage"},  # OVOS REMOVIDOS DA CEIA!
+        "proteins": {"iogurte_grego"},  # OVOS REMOVIDOS DA CEIA!
         "carbs": set(),  # PROIBIDO: Arroz, Batatas, Massas, Leguminosas
         "fats": {"castanhas", "amendoas"},  # Gorduras leves permitidas na ceia
         "fruits": True,
