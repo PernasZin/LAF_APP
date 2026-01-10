@@ -40,15 +40,6 @@ export default function GoalStep({ data, updateData, language }: Props) {
     updateData({ goal: goalValue });
   };
 
-  const weeks = getWeeksToCompetition(data.athlete_competition_date);
-  const phaseInfo = getPhaseFromWeeks(weeks);
-
-  // Data mínima: hoje
-  const minDate = new Date();
-  // Data máxima: 2 anos no futuro
-  const maxDate = new Date();
-  maxDate.setFullYear(maxDate.getFullYear() + 2);
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t.goalTitle}</Text>
@@ -96,116 +87,6 @@ export default function GoalStep({ data, updateData, language }: Props) {
           </TouchableOpacity>
         ))}
       </View>
-
-      {/* Campo de Data do Campeonato - APENAS para Atleta */}
-      {data.goal === 'atleta' && (
-        <View style={styles.athleteSection}>
-          <View style={styles.divider} />
-          
-          <Text style={styles.athleteTitle}>
-            <Ionicons name="calendar" size={20} color="#F59E0B" /> {t.competitionDate}
-          </Text>
-          <Text style={styles.athleteDesc}>
-            {t.competitionDateDesc}
-          </Text>
-
-          {/* Input de Data - WEB */}
-          {Platform.OS === 'web' ? (
-            <View style={styles.webDateContainer}>
-              <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
-              <input
-                type="date"
-                value={data.athlete_competition_date || ''}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  updateData({ athlete_competition_date: value });
-                }}
-                min={new Date().toISOString().split('T')[0]}
-                max={new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  background: 'transparent',
-                  fontSize: 16,
-                  fontWeight: '500',
-                  color: '#92400E',
-                  marginLeft: 12,
-                  outline: 'none',
-                }}
-              />
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Ionicons name="calendar-outline" size={24} color="#F59E0B" />
-              <Text style={styles.dateButtonText}>
-                {formatDateDisplay(data.athlete_competition_date)}
-              </Text>
-              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
-
-          {/* Mostra informação de fase calculada */}
-          {data.athlete_competition_date && weeks !== null && phaseInfo && (
-            <View style={styles.phaseInfoContainer}>
-              <View style={[styles.phaseBadge, { backgroundColor: phaseInfo.color + '20' }]}>
-                <Text style={[styles.phaseBadgeText, { color: phaseInfo.color }]}>
-                  {phaseInfo.phase}
-                </Text>
-              </View>
-              <Text style={styles.weeksText}>
-                {weeks > 0 ? `${weeks} ${t.weeksToCompetition}` : t.competitionPassed}
-              </Text>
-            </View>
-          )}
-
-          {/* Date Picker Modal para iOS */}
-          {Platform.OS === 'ios' && showDatePicker && DateTimePicker && (
-            <Modal
-              transparent
-              animationType="slide"
-              visible={showDatePicker}
-              onRequestClose={() => setShowDatePicker(false)}
-            >
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>{t.competitionDate.replace(' *', '')}</Text>
-                    <Pressable onPress={() => setShowDatePicker(false)}>
-                      <Text style={styles.modalDone}>OK</Text>
-                    </Pressable>
-                  </View>
-                  <DateTimePicker
-                    value={data.athlete_competition_date ? new Date(data.athlete_competition_date) : new Date()}
-                    mode="date"
-                    display="spinner"
-                    onChange={handleDateChange}
-                    minimumDate={minDate}
-                    maximumDate={maxDate}
-                    locale="pt-BR"
-                    themeVariant="light"
-                    textColor="#000000"
-                  />
-                </View>
-              </View>
-            </Modal>
-          )}
-
-          {/* Date Picker inline para Android */}
-          {Platform.OS === 'android' && showDatePicker && DateTimePicker && (
-            <DateTimePicker
-              value={data.athlete_competition_date ? new Date(data.athlete_competition_date) : new Date()}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-              minimumDate={minDate}
-              maximumDate={maxDate}
-            />
-          )}
-        </View>
-      )}
     </View>
   );
 }
