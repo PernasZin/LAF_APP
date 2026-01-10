@@ -171,7 +171,8 @@ export default function EditProfileScreen() {
       
       // Adiciona data de competição se for atleta
       if (goal === 'atleta' && competitionDate) {
-        profilePayload.competition_date = competitionDate.toISOString();
+        profilePayload.athlete_competition_date = competitionDate.toISOString().split('T')[0];
+        profilePayload.competition_date = competitionDate.toISOString().split('T')[0];
       }
 
       const profileResponse = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
