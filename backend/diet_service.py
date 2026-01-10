@@ -703,9 +703,15 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
 # ==================== GERAÇÃO DE DIETA ====================
 
 def generate_diet(target_p: int, target_c: int, target_f: int,
-                  preferred: Set[str], restrictions: List[str]) -> List[Dict]:
+                  preferred: Set[str], restrictions: List[str], meal_count: int = 6) -> List[Dict]:
     """
-    Gera dieta em 6 REFEIÇÕES seguindo regras rígidas por tipo de refeição.
+    Gera dieta seguindo regras rígidas por tipo de refeição.
+    
+    DISTRIBUIÇÃO DE MACROS POR NÚMERO DE REFEIÇÕES:
+    
+    4 refeições: Café (20%), Almoço (35%), Lanche (15%), Jantar (30%)
+    5 refeições: Café (15%), Lanche1 (10%), Almoço (30%), Lanche2 (15%), Jantar (30%)
+    6 refeições: Café (15%), Lanche1 (10%), Almoço (25%), Lanche2 (10%), Jantar (25%), Ceia (15%)
     
     REGRAS OBRIGATÓRIAS:
     ☀️ Café da Manhã: proteínas leves + carbs leves + frutas (SEM carnes, SEM azeite)
@@ -724,14 +730,38 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     fat_priority_lanche = ["castanhas", "amendoas"]  # Removido: pasta_amendoim
     fruit_priority = ["banana", "maca", "laranja", "mamao", "morango", "melancia"]
     
+    # Distribuição de macros baseada no número de refeições
+    if meal_count == 4:
+        distributions = {
+            'cafe': {'p': 0.20, 'c': 0.25},
+            'almoco': {'p': 0.35, 'c': 0.35},
+            'lanche': {'p': 0.15, 'c': 0.15},
+            'jantar': {'p': 0.30, 'c': 0.25}
+        }
+    elif meal_count == 5:
+        distributions = {
+            'cafe': {'p': 0.15, 'c': 0.20},
+            'lanche1': {'p': 0.10, 'c': 0.10},
+            'almoco': {'p': 0.30, 'c': 0.30},
+            'lanche2': {'p': 0.15, 'c': 0.15},
+            'jantar': {'p': 0.30, 'c': 0.25}
+        }
+    else:  # 6 refeições (padrão)
+        distributions = {
+            'cafe': {'p': 0.15, 'c': 0.20},
+            'lanche1': {'p': 0.10, 'c': 0.10},
+            'almoco': {'p': 0.25, 'c': 0.25},
+            'lanche2': {'p': 0.10, 'c': 0.10},
+            'jantar': {'p': 0.25, 'c': 0.25},
+            'ceia': {'p': 0.15, 'c': 0.10}
+        }
+    
     meals = []
     
-    # ==================== ☀️ CAFÉ DA MANHÃ (15% P, 20% C, 10% F) ====================
-    # PERMITIDO: ovos/iogurte/cottage + aveia/pão integral + frutas
-    # PROIBIDO: carnes, arroz, batata, azeite
-    
-    cafe_p = target_p * 0.15
-    cafe_c = target_c * 0.20
+    # ==================== ☀️ CAFÉ DA MANHÃ ====================
+    cafe_dist = distributions.get('cafe', {'p': 0.15, 'c': 0.20})
+    cafe_p = target_p * cafe_dist['p']
+    cafe_c = target_c * cafe_dist['c']
     
     breakfast_protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
     breakfast_carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
