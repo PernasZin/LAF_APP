@@ -797,9 +797,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 fruit_grams = clamp(meal_c * 0.5 / max(FOODS[fruit]["c"] / 100, 0.1), 100, 300)
                 foods.append(calc_food(fruit, fruit_grams))
             
-            # Adiciona gordura saudável se disponível
+            # Adiciona gordura saudável se disponível (limite mais conservador)
             if fat and fat in FOODS:
-                fat_grams = clamp(meal_f * 0.5 / max(FOODS[fat]["f"] / 100, 0.1), 10, 30)
+                fat_grams = clamp(meal_f * 0.4 / max(FOODS[fat]["f"] / 100, 0.1), 10, 25)
                 foods.append(calc_food(fat, fat_grams))
             
             if not foods:
