@@ -47,8 +47,6 @@ export default function OnboardingScreen() {
     available_time_per_session: '',
     // Objetivo
     goal: '',
-    // Atleta/Competição - NOVO: apenas data, sistema calcula o resto
-    athlete_competition_date: '', // ISO date string YYYY-MM-DD
     // Configuração de Refeições
     meal_count: 5,
     meal_times: ['07:00', '10:00', '13:00', '16:00', '20:00'],
