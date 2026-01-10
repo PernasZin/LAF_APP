@@ -1139,8 +1139,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             LEGUMES_COZIDOS = ["brocolis", "couve_flor", "vagem", "abobrinha", "cenoura"]
             LEGUMES_CRUS = ["tomate", "pepino", "pimentao", "beterraba"]
             
-            import random
-            
             if meal_type == 'almoco':
                 # Almoço: Salada fresca (folhas + legume cru) - 100-120g total
                 folha = random.choice(FOLHAS_VERDES)
