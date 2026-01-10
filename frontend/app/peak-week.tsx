@@ -368,6 +368,16 @@ function getCarbColor(strategy: string): string {
   }
 }
 
+function getPhaseColor(phase: string): string {
+  switch (phase) {
+    case 'depletion': return '#EAB308';  // Amarelo
+    case 'transition': return '#F97316'; // Laranja
+    case 'weigh_in_day': return '#8B5CF6'; // Roxo
+    case 'carb_up': return '#EF4444';    // Vermelho
+    default: return '#6B7280';
+  }
+}
+
 const createStyles = (colors: any) => StyleSheet.create({
   container: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
