@@ -627,6 +627,50 @@ const styles = StyleSheet.create({
   substituteText: {
     fontSize: 14,
   },
+  substituteItemDetailed: {
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  substituteHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  substituteNameText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  substituteTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 10,
+  },
+  timeBox: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: 'center',
+    minWidth: 90,
+  },
+  timeBoxLabel: {
+    fontSize: 10,
+    textTransform: 'uppercase',
+    marginBottom: 2,
+  },
+  timeBoxValue: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  substituteNote: {
+    fontSize: 12,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
   closeButton: {
     paddingVertical: 14,
     borderRadius: 12,
