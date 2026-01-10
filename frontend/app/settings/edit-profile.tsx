@@ -134,26 +134,18 @@ export default function EditProfileScreen() {
       showError('Nome é obrigatório');
       return;
     }
-    
-    const weightNum = parseFloat(weight);
-    if (isNaN(weightNum) || weightNum < 30 || weightNum > 300) {
-      errorFeedback();
-      showError('Peso deve estar entre 30kg e 300kg');
-      return;
-    }
 
     setSaving(true);
     mediumImpact(); // Haptic ao iniciar
     try {
       if (!userId || !BACKEND_URL) throw new Error('Usuário não encontrado');
 
-      // 1. Atualiza perfil
+      // 1. Atualiza perfil (sem peso - peso só pode ser alterado na aba Progresso)
       const profileResponse = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
-          weight: weightNum,
           goal: goal,
         }),
       });
