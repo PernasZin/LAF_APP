@@ -1135,7 +1135,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(fruit, fruit_grams))
             
             if not foods:
-                foods = [calc_food("cottage", 150), calc_food("morango", 120)]
+                foods = [calc_food("iogurte_grego", 170), calc_food("morango", 120)]
         
         meals.append({
             "name": meal_info['name'],
