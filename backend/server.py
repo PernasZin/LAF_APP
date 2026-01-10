@@ -1605,35 +1605,9 @@ async def get_water_sodium_tracker(user_id: str, date: str = None):
         "date": {"$gte": day_start, "$lt": day_end}
     })
     
-    # Determina metas baseadas na fase (Peak Week tem metas específicas)
-    is_athlete = user.get("goal") == "atleta" or user.get("athlete_mode", False)
-    competition_phase = user.get("competition_phase")
-    
     # Metas padrão
     water_target = 3000  # 3L em ml
     sodium_target = 2000  # 2000mg
-    
-    # Ajusta metas para Peak Week
-    if is_athlete and competition_phase == "peak_week":
-        comp_date = user.get("athlete_competition_date") or user.get("competition_date")
-        if comp_date:
-            days_to_comp = (comp_date - datetime.utcnow()).days
-            peak_day = 7 - max(0, min(7, days_to_comp))
-            
-            # Metas por dia da Peak Week
-            peak_week_targets = {
-                1: {"water": 5000, "sodium": 2000},
-                2: {"water": 4500, "sodium": 1700},
-                3: {"water": 4000, "sodium": 1400},
-                4: {"water": 3500, "sodium": 1000},
-                5: {"water": 3000, "sodium": 800},
-                6: {"water": 2500, "sodium": 600},
-                7: {"water": 2000, "sodium": 500},
-            }
-            
-            targets = peak_week_targets.get(peak_day, {"water": 3000, "sodium": 2000})
-            water_target = targets["water"]
-            sodium_target = targets["sodium"]
     
     # Se não tem entrada, retorna valores zerados
     if not entry:
@@ -1646,8 +1620,6 @@ async def get_water_sodium_tracker(user_id: str, date: str = None):
             "sodium_mg": 0,
             "sodium_target_mg": sodium_target,
             "sodium_percent": 0,
-            "is_peak_week": competition_phase == "peak_week",
-            "peak_week_day": 7 - max(0, min(7, (comp_date - datetime.utcnow()).days)) if competition_phase == "peak_week" and comp_date else None,
             "warnings": [],
             "entries": []
         }
