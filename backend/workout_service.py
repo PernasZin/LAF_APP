@@ -124,6 +124,7 @@ EXERCISES = {
     ],
     
     # ============ OMBROS ============
+    # REGRA: Sempre 3 exercícios - Desenvolvimento, Elevação Lateral, Voador (Posterior)
     "ombros": [
         {
             "name": "Desenvolvimento Máquina",
@@ -136,14 +137,9 @@ EXERCISES = {
             "notes": "Cotovelos apoiados nas almofadas. Eleve até altura dos ombros. Desça controlado."
         },
         {
-            "name": "Elevação Lateral Halteres",
-            "focus": "Deltóide Lateral",
-            "notes": "Sentado para mais estabilidade. Cotovelos levemente flexionados. Eleve até altura dos ombros."
-        },
-        {
-            "name": "Face Pull (Polia)",
-            "focus": "Deltóide Posterior/Rotadores",
-            "notes": "Polia na altura do rosto. Puxe a corda em direção ao rosto, abrindo cotovelos. Aperte escápulas no final."
+            "name": "Voador Invertido (Peck Deck)",
+            "focus": "Deltóide Posterior",
+            "notes": "Sente de frente para o encosto. Abra os braços para trás contraindo as escápulas. Retorne controlado."
         },
     ],
     
