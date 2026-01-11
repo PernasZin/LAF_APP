@@ -891,6 +891,9 @@ async def substitute_food(user_id: str, request: FoodSubstitutionRequest):
     total_fat = sum(m.get("macros", {}).get("fat", 0) for m in meals)
     total_calories = sum(m.get("total_calories", 0) for m in meals)
     
+    # Obtém o _id da dieta para atualizar
+    diet_id = diet_plan.get("_id")
+    
     # Atualiza no banco
     await db.diet_plans.update_one(
         {"_id": diet_id},
