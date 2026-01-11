@@ -275,8 +275,10 @@ def get_split_for_frequency(freq: int) -> List[Dict]:
     splits = {
         1: [{"name": "Full Body", "muscles": ["peito", "costas", "quadriceps", "ombros", "biceps", "triceps"]}],
         2: [
-            {"name": "Upper", "muscles": ["peito", "costas", "ombros", "biceps", "triceps"]},
-            {"name": "Lower", "muscles": ["quadriceps", "posterior", "panturrilha", "abdomen"]},
+            # Upper/Lower com distribuição específica
+            # Upper: 2 peito, 2 costas, 2 ombro, 1 biceps, 1 triceps, 1 abdomen = 10 exercícios
+            {"name": "Upper", "muscles": ["peito", "costas", "ombros", "biceps", "triceps", "abdomen"], "is_upper_lower": True},
+            {"name": "Lower", "muscles": ["quadriceps", "posterior", "panturrilha"]},
         ],
         3: [
             {"name": "A - Push", "muscles": ["peito", "ombros", "triceps"]},
@@ -318,6 +320,36 @@ def get_split_for_frequency(freq: int) -> List[Dict]:
         ],
     }
     return splits.get(freq, splits[3])
+
+# ==================== UPPER BODY ESPECÍFICO ====================
+# Configuração fixa para treino Upper (2x/semana)
+
+UPPER_BODY_EXERCISES = [
+    # 2 de Peito
+    {"name": "Supino Reto na Máquina", "muscle_group": "Peito", "focus": "Peitoral Médio", 
+     "notes": "Sente com costas apoiadas. Empurre as manoplas para frente até extensão quase completa."},
+    {"name": "Crucifixo na Máquina (Peck Deck)", "muscle_group": "Peito", "focus": "Peitoral Médio - Adução",
+     "notes": "Cotovelos na altura dos ombros. Junte os braços à frente contraindo o peitoral."},
+    # 2 de Costas
+    {"name": "Puxada Frontal Pegada Aberta", "muscle_group": "Costas", "focus": "Dorsal (Largura)",
+     "notes": "Pegada pronada mais larga que os ombros. Puxe a barra até o queixo."},
+    {"name": "Remada Baixa Polia (Triângulo)", "muscle_group": "Costas", "focus": "Dorsal Inferior",
+     "notes": "Sente com pernas levemente flexionadas. Puxe o triângulo até o abdômen baixo."},
+    # 2 de Ombro
+    {"name": "Desenvolvimento Máquina", "muscle_group": "Ombros", "focus": "Deltóide Anterior/Médio",
+     "notes": "Costas totalmente apoiadas. Empurre até quase estender os cotovelos."},
+    {"name": "Elevação Lateral Máquina", "muscle_group": "Ombros", "focus": "Deltóide Lateral",
+     "notes": "Cotovelos apoiados nas almofadas. Eleve até altura dos ombros."},
+    # 1 de Bíceps
+    {"name": "Rosca Direta Barra", "muscle_group": "Bíceps", "focus": "Bíceps Completo",
+     "notes": "Cotovelos fixos ao lado do corpo. Suba a barra até a altura dos ombros."},
+    # 1 de Tríceps
+    {"name": "Tríceps Corda (Polia Alta)", "muscle_group": "Tríceps", "focus": "Tríceps Completo",
+     "notes": "Cotovelos fixos ao lado do corpo. Estenda completamente e separe as pontas da corda."},
+    # 1 de Abdômen
+    {"name": "Abdominal Máquina", "muscle_group": "Abdômen", "focus": "Reto Abdominal",
+     "notes": "Segure as manoplas, flexione o tronco para baixo contraindo o abdômen."},
+]
 
 
 def parse_rest_seconds(rest_str: str) -> int:
