@@ -216,6 +216,12 @@ export default function SignupScreen() {
                 onChangeText={setName}
                 placeholder="Seu nome"
                 field="name"
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                focusedField={focusedField}
+                setFocusedField={setFocusedField}
+                theme={theme}
+                isDark={isDark}
               />
 
               <InputField
