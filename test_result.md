@@ -457,9 +457,13 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Complete Onboarding Flow (all steps)"
-    - "Profile creation and data persistence"
-  stuck_tasks: []
+    - "Authentication Integration"
+    - "Diet Screen - Calories Display"
+    - "Diet Screen - Food Substitution"
+  stuck_tasks:
+    - "Authentication Integration"
+    - "Diet Screen - Calories Display"
+    - "Diet Screen - Food Substitution"
   test_all: false
   test_priority: "high_first"
 
