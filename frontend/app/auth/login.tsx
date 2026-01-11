@@ -1,33 +1,41 @@
 /**
  * LAF Premium Login Screen
  * ========================
- * Glassmorphism + Gradientes + Animações
+ * Com seletor de idioma
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
-  KeyboardAvoidingView, Platform, ScrollView, Alert, Keyboard
+  KeyboardAvoidingView, Platform, ScrollView, Alert, Keyboard, Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Animated, { 
-  FadeInDown, FadeInUp, useSharedValue, 
-  useAnimatedStyle, withSpring 
-} from 'react-native-reanimated';
-import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, Sparkles } from 'lucide-react-native';
+import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, Sparkles, Globe, Check } from 'lucide-react-native';
 
-import { useSettingsStore } from '../../stores/settingsStore';
+import { useSettingsStore, LanguagePreference } from '../../stores/settingsStore';
+import { useAuthStore } from '../../stores/authStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
+import { translations, SupportedLanguage } from '../../i18n/translations';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
+const LANGUAGES = [
+  { code: 'pt-BR' as LanguagePreference, label: 'Português', flag: '🇧🇷' },
+  { code: 'en-US' as LanguagePreference, label: 'English', flag: '🇺🇸' },
+  { code: 'es-ES' as LanguagePreference, label: 'Español', flag: '🇪🇸' },
+];
+
 export default function LoginScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const setLanguage = useSettingsStore((state) => state.setLanguage);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  const t = translations[language]?.auth || translations['pt-BR'].auth;
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,6 +43,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [showLangModal, setShowLangModal] = useState(false);
   
   const buttonScale = useSharedValue(1);
   
@@ -46,7 +55,7 @@ export default function LoginScreen() {
     Keyboard.dismiss();
     
     if (!email || !password) {
-      Alert.alert('Campos obrigatórios', 'Por favor, preencha email e senha.');
+      Alert.alert(t.email, language === 'en-US' ? 'Please fill email and password.' : language === 'es-ES' ? 'Por favor, complete email y contraseña.' : 'Por favor, preencha email e senha.');
       return;
     }
 
@@ -63,19 +72,31 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok && data.user_id) {
+        // Salvar dados
         await AsyncStorage.setItem('userId', data.user_id);
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
+        await AsyncStorage.setItem('token', data.access_token || '');
+        
+        // Atualizar authStore
+        await useAuthStore.getState().login(
+          data.user_id, 
+          data.access_token || '', 
+          data.has_profile || false
+        );
         
         if (data.has_profile) {
+          await AsyncStorage.setItem('profileCompleted', 'true');
+          await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
           router.replace('/(tabs)');
         } else {
+          await AsyncStorage.setItem('profileCompleted', 'false');
           router.replace('/onboarding');
         }
       } else {
-        Alert.alert('Erro', data.message || 'Email ou senha incorretos');
+        Alert.alert('Erro', data.detail || data.message || (language === 'en-US' ? 'Invalid email or password' : language === 'es-ES' ? 'Email o contraseña incorrectos' : 'Email ou senha incorretos'));
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      Alert.alert('Erro', language === 'en-US' ? 'Could not connect to server' : language === 'es-ES' ? 'No se pudo conectar al servidor' : 'Não foi possível conectar ao servidor');
     } finally {
       setIsLoading(false);
       buttonScale.value = withSpring(1, animations.spring.gentle);
@@ -84,7 +105,6 @@ export default function LoginScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      {/* Background Gradient */}
       <LinearGradient
         colors={isDark 
           ? ['rgba(16, 185, 129, 0.08)', 'transparent', 'rgba(59, 130, 246, 0.08)']
@@ -104,8 +124,21 @@ export default function LoginScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Logo/Brand Section */}
-            <Animated.View entering={FadeInDown.springify()} style={styles.brandSection}>
+            {/* Language Button */}
+            <Animated.View entering={FadeInDown.springify()} style={styles.langButtonContainer}>
+              <TouchableOpacity 
+                style={[styles.langButton, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)' }]}
+                onPress={() => setShowLangModal(true)}
+              >
+                <Globe size={18} color={theme.text} />
+                <Text style={[styles.langButtonText, { color: theme.text }]}>
+                  {LANGUAGES.find(l => l.code === language)?.flag} {LANGUAGES.find(l => l.code === language)?.label}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Logo Section */}
+            <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.logoSection}>
               <View style={styles.logoContainer}>
                 <LinearGradient
                   colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
@@ -116,59 +149,54 @@ export default function LoginScreen() {
                   <Sparkles size={36} color="#FFF" strokeWidth={2} />
                 </LinearGradient>
               </View>
-              <Text style={[styles.brandTitle, { color: theme.text }]}>LAF</Text>
-              <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
-                Seu assistente de nutrição inteligente
+              <Text style={[styles.appName, { color: theme.text }]}>LAF</Text>
+              <Text style={[styles.tagline, { color: theme.textSecondary }]}>
+                {language === 'en-US' ? 'Your fitness journey starts here' : language === 'es-ES' ? 'Tu viaje fitness comienza aquí' : 'Sua jornada fitness começa aqui'}
               </Text>
             </Animated.View>
 
             {/* Form Card */}
             <Animated.View 
-              entering={FadeInUp.delay(200).springify()} 
-              style={[styles.formCard, { 
+              entering={FadeInUp.delay(200).springify()}
+              style={[styles.formCard, {
                 backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
                 borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(255, 255, 255, 0.5)',
               }]}
             >
-              <Text style={[styles.formTitle, { color: theme.text }]}>Entrar</Text>
-              <Text style={[styles.formSubtitle, { color: theme.textSecondary }]}>
-                Bem-vindo de volta! Entre para continuar.
-              </Text>
-
               {/* Email Input */}
               <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Email</Text>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{t.email}</Text>
                 <View style={[
                   styles.inputContainer,
                   { 
                     backgroundColor: theme.input.background,
-                    borderColor: emailFocused ? premiumColors.primary : theme.input.border,
+                    borderColor: emailFocused ? premiumColors.primary : theme.input.border 
                   }
                 ]}>
                   <Mail size={20} color={emailFocused ? premiumColors.primary : theme.textTertiary} />
                   <TextInput
                     style={[styles.input, { color: theme.text }]}
-                    placeholder="seu@email.com"
+                    placeholder={language === 'en-US' ? 'your@email.com' : 'seu@email.com'}
                     placeholderTextColor={theme.input.placeholder}
                     value={email}
                     onChangeText={setEmail}
                     onFocus={() => setEmailFocused(true)}
                     onBlur={() => setEmailFocused(false)}
-                    keyboardType="email-address"
                     autoCapitalize="none"
-                    autoComplete="email"
+                    keyboardType="email-address"
+                    autoCorrect={false}
                   />
                 </View>
               </View>
 
               {/* Password Input */}
               <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Senha</Text>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{t.password}</Text>
                 <View style={[
                   styles.inputContainer,
                   { 
                     backgroundColor: theme.input.background,
-                    borderColor: passwordFocused ? premiumColors.primary : theme.input.border,
+                    borderColor: passwordFocused ? premiumColors.primary : theme.input.border 
                   }
                 ]}>
                   <Lock size={20} color={passwordFocused ? premiumColors.primary : theme.textTertiary} />
@@ -181,24 +209,21 @@ export default function LoginScreen() {
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
                     secureTextEntry={!showPassword}
-                    autoComplete="password"
+                    autoCorrect={false}
                   />
                   <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                    {showPassword 
-                      ? <EyeOff size={20} color={theme.textTertiary} />
-                      : <Eye size={20} color={theme.textTertiary} />
-                    }
+                    {showPassword ? (
+                      <EyeOff size={20} color={theme.textTertiary} />
+                    ) : (
+                      <Eye size={20} color={theme.textTertiary} />
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Login Button */}
               <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
-                <TouchableOpacity 
-                  onPress={handleLogin} 
-                  disabled={isLoading}
-                  activeOpacity={0.9}
-                >
+                <TouchableOpacity onPress={handleLogin} disabled={isLoading} activeOpacity={0.9}>
                   <LinearGradient
                     colors={isLoading 
                       ? ['#9CA3AF', '#6B7280']
@@ -210,31 +235,56 @@ export default function LoginScreen() {
                   >
                     <LogIn size={20} color="#FFF" />
                     <Text style={styles.loginButtonText}>
-                      {isLoading ? 'Entrando...' : 'Entrar'}
+                      {isLoading ? (language === 'en-US' ? 'Entering...' : language === 'es-ES' ? 'Entrando...' : 'Entrando...') : t.enterAccount}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>
             </Animated.View>
 
-            {/* Sign Up Link */}
-            <Animated.View entering={FadeInUp.delay(400).springify()} style={styles.signUpSection}>
-              <Text style={[styles.signUpText, { color: theme.textSecondary }]}>
-                Não tem uma conta?
+            {/* Signup Link */}
+            <Animated.View entering={FadeInUp.delay(400).springify()} style={styles.signupSection}>
+              <Text style={[styles.signupText, { color: theme.textSecondary }]}>
+                {t.noAccount}
               </Text>
-              <TouchableOpacity 
-                onPress={() => router.push('/auth/signup')}
-                style={styles.signUpButton}
-              >
-                <UserPlus size={18} color={premiumColors.primary} />
-                <Text style={[styles.signUpLink, { color: premiumColors.primary }]}>
-                  Criar conta
+              <TouchableOpacity onPress={() => router.push('/auth/signup')}>
+                <Text style={[styles.signupLink, { color: premiumColors.primary }]}>
+                  {t.createAccount}
                 </Text>
               </TouchableOpacity>
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* Language Modal */}
+      <Modal visible={showLangModal} transparent animationType="fade">
+        <TouchableOpacity 
+          style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}
+          activeOpacity={1}
+          onPress={() => setShowLangModal(false)}
+        >
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundCardSolid }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
+              {language === 'en-US' ? 'Select Language' : language === 'es-ES' ? 'Seleccionar Idioma' : 'Selecionar Idioma'}
+            </Text>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[styles.langOption, { borderBottomColor: theme.border }]}
+                onPress={() => {
+                  setLanguage(lang.code);
+                  setShowLangModal(false);
+                }}
+              >
+                <Text style={styles.langFlag}>{lang.flag}</Text>
+                <Text style={[styles.langLabel, { color: theme.text }]}>{lang.label}</Text>
+                {language === lang.code && <Check size={20} color={premiumColors.primary} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -243,24 +293,18 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   keyboardView: { flex: 1 },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  
-  // Brand Section
-  brandSection: {
-    alignItems: 'center',
-    marginBottom: spacing['2xl'],
-  },
-  logoContainer: {
-    marginBottom: spacing.lg,
-  },
+  scrollContent: { flexGrow: 1, padding: spacing.xl, justifyContent: 'center' },
+
+  langButtonContainer: { position: 'absolute', top: 0, right: 0 },
+  langButton: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.full },
+  langButtonText: { fontSize: 13, fontWeight: '600' },
+
+  logoSection: { alignItems: 'center', marginBottom: spacing['2xl'] },
+  logoContainer: { marginBottom: spacing.md },
   logoGradient: {
     width: 80,
     height: 80,
-    borderRadius: radius['2xl'],
+    borderRadius: radius.xl,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: premiumColors.primary,
@@ -269,18 +313,9 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 12,
   },
-  brandTitle: {
-    fontSize: 42,
-    fontWeight: '800',
-    letterSpacing: -1.5,
-  },
-  brandSubtitle: {
-    fontSize: 15,
-    marginTop: spacing.xs,
-    fontWeight: '500',
-  },
-  
-  // Form Card
+  appName: { fontSize: 42, fontWeight: '900', letterSpacing: -2 },
+  tagline: { fontSize: 15, marginTop: spacing.xs, textAlign: 'center' },
+
   formCard: {
     borderRadius: radius['2xl'],
     padding: spacing.xl,
@@ -291,27 +326,9 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 12,
   },
-  formTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    marginBottom: spacing.xs,
-  },
-  formSubtitle: {
-    fontSize: 14,
-    marginBottom: spacing.xl,
-  },
-  
-  // Input
-  inputGroup: {
-    marginBottom: spacing.lg,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    marginBottom: spacing.sm,
-    letterSpacing: 0.3,
-  },
+
+  inputGroup: { marginBottom: spacing.lg },
+  inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, letterSpacing: 0.3 },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -321,16 +338,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.base,
     gap: spacing.md,
   },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  
-  // Button
-  buttonContainer: {
-    marginTop: spacing.md,
-  },
+  input: { flex: 1, fontSize: 16, fontWeight: '500' },
+
+  buttonContainer: { marginTop: spacing.md },
   loginButton: {
     height: 56,
     borderRadius: radius.lg,
@@ -344,31 +354,22 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  loginButtonText: {
-    color: '#FFF',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  },
-  
-  // Sign Up
-  signUpSection: {
+  loginButtonText: { color: '#FFF', fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
+
+  signupSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.xl,
     gap: spacing.sm,
   },
-  signUpText: {
-    fontSize: 15,
-  },
-  signUpButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  signUpLink: {
-    fontSize: 15,
-    fontWeight: '700',
-  },
+  signupText: { fontSize: 15 },
+  signupLink: { fontSize: 15, fontWeight: '700' },
+
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: '80%', borderRadius: radius.xl, padding: spacing.lg },
+  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: spacing.lg, textAlign: 'center' },
+  langOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, gap: spacing.md },
+  langFlag: { fontSize: 24 },
+  langLabel: { flex: 1, fontSize: 16, fontWeight: '600' },
 });

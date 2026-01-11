@@ -1,95 +1,41 @@
 /**
  * LAF Premium Signup Screen
  * ==========================
- * Apenas Email e Senha
+ * Com seletor de idioma
  */
 
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  KeyboardAvoidingView, Platform, ScrollView, Alert, Keyboard
+  KeyboardAvoidingView, Platform, ScrollView, Alert, Keyboard, Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowLeft, Sparkles } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowLeft, Sparkles, Globe, Check } from 'lucide-react-native';
 
-import { useSettingsStore } from '../../stores/settingsStore';
+import { useSettingsStore, LanguagePreference } from '../../stores/settingsStore';
 import { useAuthStore } from '../../stores/authStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
+import { translations, SupportedLanguage } from '../../i18n/translations';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-// Input Field Component
-const InputField = ({ 
-  icon: Icon, 
-  label, 
-  value, 
-  onChangeText, 
-  placeholder, 
-  secureTextEntry, 
-  field, 
-  showToggle,
-  showPassword,
-  setShowPassword,
-  focusedField,
-  setFocusedField,
-  theme,
-  isDark
-}: any) => (
-  <View style={inputStyles.inputGroup}>
-    <Text style={[inputStyles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
-    <View style={[
-      inputStyles.inputContainer,
-      {
-        backgroundColor: theme.input.background,
-        borderColor: focusedField === field ? premiumColors.primary : theme.input.border,
-      }
-    ]}>
-      <Icon size={20} color={focusedField === field ? premiumColors.primary : theme.textTertiary} />
-      <TextInput
-        style={[inputStyles.input, { color: theme.text }]}
-        placeholder={placeholder}
-        placeholderTextColor={theme.input.placeholder}
-        value={value}
-        onChangeText={onChangeText}
-        onFocus={() => setFocusedField(field)}
-        onBlur={() => setFocusedField(null)}
-        secureTextEntry={secureTextEntry && !showPassword}
-        autoCapitalize="none"
-        keyboardType={field === 'email' ? 'email-address' : 'default'}
-        autoCorrect={false}
-      />
-      {showToggle && (
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          {showPassword ? <EyeOff size={20} color={theme.textTertiary} /> : <Eye size={20} color={theme.textTertiary} />}
-        </TouchableOpacity>
-      )}
-    </View>
-  </View>
-);
-
-const inputStyles = StyleSheet.create({
-  inputGroup: { marginBottom: spacing.lg },
-  inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, letterSpacing: 0.3 },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 56,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    paddingHorizontal: spacing.base,
-    gap: spacing.md,
-  },
-  input: { flex: 1, fontSize: 16, fontWeight: '500' },
-});
+const LANGUAGES = [
+  { code: 'pt-BR' as LanguagePreference, label: 'Português', flag: '🇧🇷' },
+  { code: 'en-US' as LanguagePreference, label: 'English', flag: '🇺🇸' },
+  { code: 'es-ES' as LanguagePreference, label: 'Español', flag: '🇪🇸' },
+];
 
 export default function SignupScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const setLanguage = useSettingsStore((state) => state.setLanguage);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  const t = translations[language]?.auth || translations['pt-BR'].auth;
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -97,6 +43,7 @@ export default function SignupScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showLangModal, setShowLangModal] = useState(false);
 
   const buttonScale = useSharedValue(1);
 
@@ -108,17 +55,17 @@ export default function SignupScreen() {
     Keyboard.dismiss();
 
     if (!email || !password || !confirmPassword) {
-      Alert.alert('Campos obrigatórios', 'Por favor, preencha todos os campos.');
+      Alert.alert(language === 'en-US' ? 'Required fields' : 'Campos obrigatórios', language === 'en-US' ? 'Please fill all fields.' : 'Por favor, preencha todos os campos.');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Erro', 'As senhas não coincidem.');
+      Alert.alert('Erro', language === 'en-US' ? 'Passwords do not match.' : 'As senhas não coincidem.');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres.');
+      Alert.alert('Erro', language === 'en-US' ? 'Password must be at least 6 characters.' : 'A senha deve ter pelo menos 6 caracteres.');
       return;
     }
 
@@ -138,8 +85,6 @@ export default function SignupScreen() {
       const data = await response.json();
 
       if (response.ok && data.user_id) {
-        console.log('Signup success:', data.user_id);
-        
         await AsyncStorage.setItem('userId', data.user_id);
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
         await AsyncStorage.setItem('token', data.access_token || '');
@@ -154,16 +99,48 @@ export default function SignupScreen() {
         await new Promise(resolve => setTimeout(resolve, 200));
         router.replace('/onboarding');
       } else {
-        Alert.alert('Erro', data.detail || data.message || 'Não foi possível criar a conta');
+        Alert.alert('Erro', data.detail || data.message || (language === 'en-US' ? 'Could not create account' : 'Não foi possível criar a conta'));
       }
     } catch (error) {
-      console.error('Signup error:', error);
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      Alert.alert('Erro', language === 'en-US' ? 'Could not connect to server' : 'Não foi possível conectar ao servidor');
     } finally {
       setIsLoading(false);
       buttonScale.value = withSpring(1, animations.spring.gentle);
     }
   };
+
+  const InputField = ({ icon: Icon, label, value, onChangeText, placeholder, secureTextEntry, field, showToggle }: any) => (
+    <View style={styles.inputGroup}>
+      <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
+      <View style={[
+        styles.inputContainer,
+        {
+          backgroundColor: theme.input.background,
+          borderColor: focusedField === field ? premiumColors.primary : theme.input.border,
+        }
+      ]}>
+        <Icon size={20} color={focusedField === field ? premiumColors.primary : theme.textTertiary} />
+        <TextInput
+          style={[styles.input, { color: theme.text }]}
+          placeholder={placeholder}
+          placeholderTextColor={theme.input.placeholder}
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={() => setFocusedField(field)}
+          onBlur={() => setFocusedField(null)}
+          secureTextEntry={secureTextEntry && !showPassword}
+          autoCapitalize="none"
+          keyboardType={field === 'email' ? 'email-address' : 'default'}
+          autoCorrect={false}
+        />
+        {showToggle && (
+          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+            {showPassword ? <EyeOff size={20} color={theme.textTertiary} /> : <Eye size={20} color={theme.textTertiary} />}
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -186,10 +163,19 @@ export default function SignupScreen() {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            {/* Back Button */}
-            <Animated.View entering={FadeInDown.springify()}>
+            {/* Header */}
+            <Animated.View entering={FadeInDown.springify()} style={styles.headerRow}>
               <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                 <ArrowLeft size={24} color={theme.text} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.langButton, { backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)' }]}
+                onPress={() => setShowLangModal(true)}
+              >
+                <Globe size={16} color={theme.text} />
+                <Text style={[styles.langButtonText, { color: theme.text }]}>
+                  {LANGUAGES.find(l => l.code === language)?.flag}
+                </Text>
               </TouchableOpacity>
             </Animated.View>
 
@@ -205,9 +191,9 @@ export default function SignupScreen() {
                   <Sparkles size={32} color="#FFF" strokeWidth={2} />
                 </LinearGradient>
               </View>
-              <Text style={[styles.brandTitle, { color: theme.text }]}>Criar Conta</Text>
+              <Text style={[styles.brandTitle, { color: theme.text }]}>{t.createAccount}</Text>
               <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
-                Comece sua jornada fitness agora
+                {language === 'en-US' ? 'Start your fitness journey now' : language === 'es-ES' ? 'Comienza tu viaje fitness ahora' : 'Comece sua jornada fitness agora'}
               </Text>
             </Animated.View>
 
@@ -221,50 +207,32 @@ export default function SignupScreen() {
             >
               <InputField
                 icon={Mail}
-                label="Email"
+                label={t.email}
                 value={email}
                 onChangeText={setEmail}
-                placeholder="seu@email.com"
+                placeholder={language === 'en-US' ? 'your@email.com' : 'seu@email.com'}
                 field="email"
-                showPassword={showPassword}
-                setShowPassword={setShowPassword}
-                focusedField={focusedField}
-                setFocusedField={setFocusedField}
-                theme={theme}
-                isDark={isDark}
               />
 
               <InputField
                 icon={Lock}
-                label="Senha"
+                label={t.password}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="••••••••"
                 secureTextEntry
                 field="password"
                 showToggle
-                showPassword={showPassword}
-                setShowPassword={setShowPassword}
-                focusedField={focusedField}
-                setFocusedField={setFocusedField}
-                theme={theme}
-                isDark={isDark}
               />
 
               <InputField
                 icon={Lock}
-                label="Confirmar Senha"
+                label={language === 'en-US' ? 'Confirm Password' : language === 'es-ES' ? 'Confirmar Contraseña' : 'Confirmar Senha'}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="••••••••"
                 secureTextEntry
                 field="confirmPassword"
-                showPassword={showPassword}
-                setShowPassword={setShowPassword}
-                focusedField={focusedField}
-                setFocusedField={setFocusedField}
-                theme={theme}
-                isDark={isDark}
               />
 
               {/* Signup Button */}
@@ -281,7 +249,7 @@ export default function SignupScreen() {
                   >
                     <UserPlus size={20} color="#FFF" />
                     <Text style={styles.signupButtonText}>
-                      {isLoading ? 'Criando...' : 'Criar Conta'}
+                      {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -291,17 +259,46 @@ export default function SignupScreen() {
             {/* Login Link */}
             <Animated.View entering={FadeInUp.delay(400).springify()} style={styles.loginSection}>
               <Text style={[styles.loginText, { color: theme.textSecondary }]}>
-                Já tem uma conta?
+                {t.hasAccount}
               </Text>
               <TouchableOpacity onPress={() => router.push('/auth/login')}>
                 <Text style={[styles.loginLink, { color: premiumColors.primary }]}>
-                  Entrar
+                  {t.login}
                 </Text>
               </TouchableOpacity>
             </Animated.View>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* Language Modal */}
+      <Modal visible={showLangModal} transparent animationType="fade">
+        <TouchableOpacity 
+          style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}
+          activeOpacity={1}
+          onPress={() => setShowLangModal(false)}
+        >
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundCardSolid }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
+              {language === 'en-US' ? 'Select Language' : language === 'es-ES' ? 'Seleccionar Idioma' : 'Selecionar Idioma'}
+            </Text>
+            {LANGUAGES.map((lang) => (
+              <TouchableOpacity
+                key={lang.code}
+                style={[styles.langOption, { borderBottomColor: theme.border }]}
+                onPress={() => {
+                  setLanguage(lang.code);
+                  setShowLangModal(false);
+                }}
+              >
+                <Text style={styles.langFlag}>{lang.flag}</Text>
+                <Text style={[styles.langLabel, { color: theme.text }]}>{lang.label}</Text>
+                {language === lang.code && <Check size={20} color={premiumColors.primary} />}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -312,13 +309,10 @@ const styles = StyleSheet.create({
   keyboardView: { flex: 1 },
   scrollContent: { flexGrow: 1, padding: spacing.xl },
 
-  backButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-  },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.md },
+  backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  langButton: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, borderRadius: radius.full },
+  langButtonText: { fontSize: 16 },
 
   brandSection: { alignItems: 'center', marginBottom: spacing.xl },
   logoContainer: { marginBottom: spacing.md },
@@ -348,6 +342,19 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
 
+  inputGroup: { marginBottom: spacing.lg },
+  inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, letterSpacing: 0.3 },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.base,
+    gap: spacing.md,
+  },
+  input: { flex: 1, fontSize: 16, fontWeight: '500' },
+
   buttonContainer: { marginTop: spacing.md },
   signupButton: {
     height: 56,
@@ -373,4 +380,11 @@ const styles = StyleSheet.create({
   },
   loginText: { fontSize: 15 },
   loginLink: { fontSize: 15, fontWeight: '700' },
+
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  modalContent: { width: '80%', borderRadius: radius.xl, padding: spacing.lg },
+  modalTitle: { fontSize: 18, fontWeight: '700', marginBottom: spacing.lg, textAlign: 'center' },
+  langOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, gap: spacing.md },
+  langFlag: { fontSize: 24 },
+  langLabel: { flex: 1, fontSize: 16, fontWeight: '600' },
 });
