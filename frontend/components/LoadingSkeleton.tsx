@@ -132,7 +132,7 @@ export const WorkoutSkeleton: React.FC = () => {
 
 // Skeleton para tela de progresso
 export const ProgressSkeleton: React.FC = () => {
-  const { colors } = useTheme();
+  const { colors } = useThemeColors();
   
   return (
     <View style={styles.container}>
