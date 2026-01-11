@@ -14,11 +14,6 @@ interface Props {
 }
 
 const MEAL_PRESETS: Record<number, { name: string; time: string }[]> = {
-  3: [
-    { name: 'Café da Manhã', time: '07:00' },
-    { name: 'Almoço', time: '12:00' },
-    { name: 'Jantar', time: '19:00' },
-  ],
   4: [
     { name: 'Café da Manhã', time: '07:00' },
     { name: 'Almoço', time: '12:00' },
