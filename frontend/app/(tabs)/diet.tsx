@@ -154,6 +154,7 @@ export default function DietScreen() {
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [generating, setGenerating] = useState(false);
 
   // Substitution modal
   const [substitutionModal, setSubstitutionModal] = useState(false);
