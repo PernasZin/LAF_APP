@@ -307,30 +307,118 @@ class WorkoutAIService:
         
         level = user_profile.get('training_level', 'intermediario')
         goal = user_profile.get('goal', 'bulking')
+        duration = user_profile.get('training_duration', 60)  # Em minutos
+        completed_workouts = user_profile.get('completed_workouts', 0)
         
-        return self._generate_workout(user_profile['id'], frequency, level, goal)
+        return self._generate_workout(user_profile['id'], frequency, level, goal, duration, completed_workouts)
     
-    def _generate_workout(self, user_id: str, frequency: int, level: str, goal: str) -> WorkoutPlan:
+    def _get_exercises_per_duration(self, duration: int, level: str) -> int:
+        """Calcula quantos exercícios cabem no tempo disponível"""
+        # Tempo médio por exercício: ~5-7 minutos (incluindo descanso)
+        # Aquecimento: ~5 minutos
+        # Alongamento final: ~5 minutos
+        available_time = duration - 10  # Desconta aquecimento e alongamento
+        
+        if level == 'novato':
+            time_per_exercise = 4  # Menos séries, mais rápido
+        elif level == 'avancado':
+            time_per_exercise = 7  # Mais séries e descanso
+        else:
+            time_per_exercise = 5.5
+        
+        return max(4, int(available_time / time_per_exercise))
+    
+    def _generate_workout(self, user_id: str, frequency: int, level: str, goal: str, duration: int, completed_workouts: int) -> WorkoutPlan:
         split = get_split_for_frequency(frequency)
         
-        config = {
-            "iniciante": {"sets": 3, "reps": "12-15", "rest": "90s", "ex_per_muscle": 2},
-            "intermediario": {"sets": 4, "reps": "10-12", "rest": "75s", "ex_per_muscle": 2},
-            "avancado": {"sets": 4, "reps": "8-12", "rest": "60s", "ex_per_muscle": 3}
-        }.get(level, {"sets": 4, "reps": "10-12", "rest": "75s", "ex_per_muscle": 2})
+        # NOVATO: Treino de adaptação nas primeiras 30 sessões
+        is_adaptation = level == 'novato' and completed_workouts < 30
+        
+        # Configurações baseadas no nível
+        if is_adaptation:
+            # Treino de adaptação para novatos (4-8 semanas)
+            config = {
+                "sets": 2,
+                "reps": "15-20",
+                "rest": "60s",
+                "ex_per_muscle": 1,
+                "machine_priority": True,  # 100% máquinas
+                "notes_prefix": "ADAPTAÇÃO: "
+            }
+        elif level == 'novato':
+            # Novato pós-adaptação (hipertrofia leve)
+            config = {
+                "sets": 3,
+                "reps": "12-15",
+                "rest": "90s",
+                "ex_per_muscle": 2,
+                "machine_priority": True,  # 100% máquinas
+                "notes_prefix": ""
+            }
+        elif level == 'iniciante':
+            # Iniciante (0-1 anos) - Foco em máquinas
+            config = {
+                "sets": 3,
+                "reps": "10-12",
+                "rest": "75s",
+                "ex_per_muscle": 2,
+                "machine_priority": True,  # Grande foco em máquinas
+                "notes_prefix": ""
+            }
+        elif level == 'intermediario':
+            # Intermediário (1-2 anos) - Maioria máquinas
+            config = {
+                "sets": 4,
+                "reps": "8-12",
+                "rest": "75s",
+                "ex_per_muscle": 2,
+                "machine_priority": True,  # Ainda foco em máquinas
+                "notes_prefix": ""
+            }
+        else:  # avancado
+            # Avançado (3+ anos) - Equilibrado máquinas + peso livre
+            config = {
+                "sets": 4,
+                "reps": "6-10",
+                "rest": "90s",
+                "ex_per_muscle": 3,
+                "machine_priority": False,  # Mix equilibrado
+                "notes_prefix": ""
+            }
+        
+        # Ajusta número de exercícios baseado no tempo disponível
+        max_exercises = self._get_exercises_per_duration(duration, level)
         
         workout_days = []
         
         for i in range(frequency):
             template = split[i]
             exercises = []
+            exercises_added = 0
             
             for muscle in template["muscles"]:
+                if exercises_added >= max_exercises:
+                    break
+                    
                 available = EXERCISES.get(muscle, [])
                 
-                for j in range(min(config["ex_per_muscle"], len(available))):
-                    ex_data = available[j]
+                # Filtra exercícios baseado no nível
+                if config["machine_priority"]:
+                    # Prioriza máquinas e cabos (já estão ordenados assim)
+                    filtered = available[:config["ex_per_muscle"]]
+                else:
+                    # Avançado: usa todos os exercícios disponíveis
+                    filtered = available[:config["ex_per_muscle"]]
+                
+                for j, ex_data in enumerate(filtered):
+                    if exercises_added >= max_exercises:
+                        break
+                        
                     rest_str = config["rest"]
+                    notes = ex_data.get("notes", "")
+                    
+                    if config["notes_prefix"] and is_adaptation:
+                        notes = f"{config['notes_prefix']}Foque na execução perfeita. {notes}"
                     
                     exercises.append(Exercise(
                         name=ex_data["name"],
@@ -339,16 +427,23 @@ class WorkoutAIService:
                         reps=config["reps"],
                         rest=rest_str,
                         rest_seconds=parse_rest_seconds(rest_str),
-                        notes=ex_data.get("notes"),
+                        notes=notes,
                         completed=False
                     ))
+                    exercises_added += 1
             
-            duration = len(exercises) * 5 + 10
+            # Calcula duração real do treino
+            calc_duration = len(exercises) * (config["sets"] * 1.5 + parse_rest_seconds(config["rest"]) * config["sets"] / 60) + 10
+            calc_duration = min(duration, max(20, int(calc_duration)))
+            
+            day_name = f"Treino {template['name']}"
+            if is_adaptation:
+                day_name = f"[Adaptação] {template['name']}"
             
             workout_days.append(WorkoutDay(
-                name=f"Treino {template['name']}",
+                name=day_name,
                 day=DAYS[i] if i < 7 else f"Dia {i + 1}",
-                duration=duration,
+                duration=calc_duration,
                 exercises=exercises,
                 completed=False
             ))
@@ -358,11 +453,24 @@ class WorkoutAIService:
             4: "ABCD", 5: "ABCDE", 6: "PPL 2x", 7: "Bro Split"
         }.get(frequency, "Personalizado")
         
+        level_name = {
+            "novato": "Novato",
+            "iniciante": "Iniciante",
+            "intermediario": "Intermediário",
+            "avancado": "Avançado"
+        }.get(level, "Intermediário")
+        
+        # Nota especial para novatos em adaptação
+        notes = f"{split_name} - {frequency}x/semana | {level_name} | ~{duration}min"
+        if is_adaptation:
+            remaining = 30 - completed_workouts
+            notes = f"FASE DE ADAPTAÇÃO - {remaining} treinos restantes | {split_name} | {frequency}x/semana"
+        
         return WorkoutPlan(
             user_id=user_id,
             training_level=level,
             goal=goal,
             weekly_frequency=frequency,
             workout_days=workout_days,
-            notes=f"{split_name} - {frequency}x/semana | Máquinas e Cabos"
+            notes=notes
         )
