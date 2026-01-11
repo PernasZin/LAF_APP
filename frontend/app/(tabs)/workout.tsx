@@ -427,6 +427,16 @@ export default function WorkoutScreen() {
 
             {selectedExercise && (
               <View style={styles.exerciseModalContent}>
+                {/* Foco muscular */}
+                {selectedExercise.focus && (
+                  <View style={[styles.focusBadge, { backgroundColor: premiumColors.primary + '15' }]}>
+                    <Target size={16} color={premiumColors.primary} />
+                    <Text style={[styles.focusBadgeText, { color: premiumColors.primary }]}>
+                      {selectedExercise.focus}
+                    </Text>
+                  </View>
+                )}
+
                 <View style={styles.exerciseModalStats}>
                   <View style={[styles.exerciseModalStat, { backgroundColor: premiumColors.primary + '15' }]}>
                     <Repeat size={20} color={premiumColors.primary} />
