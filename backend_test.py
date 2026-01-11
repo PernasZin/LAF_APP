@@ -24,7 +24,7 @@ import time
 from typing import Dict, List, Tuple
 
 # Configuration
-BASE_URL = "https://glassmorphic-app-4.preview.emergentagent.com/api"
+BASE_URL = "https://healthappfix.preview.emergentagent.com/api"
 TEST_USER_ID = "test_diet_validation"
 
 class DietValidationTester:
