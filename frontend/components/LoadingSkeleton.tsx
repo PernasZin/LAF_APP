@@ -111,7 +111,7 @@ export const DietSkeleton: React.FC = () => {
 
 // Skeleton para tela de treino
 export const WorkoutSkeleton: React.FC = () => {
-  const { colors } = useTheme();
+  const { colors } = useThemeColors();
   
   return (
     <View style={styles.container}>
