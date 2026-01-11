@@ -62,80 +62,111 @@ EXERCISES = {
     # ============ PEITO ============
     "peito": [
         {
-            "name": "Supino na Máquina",
+            "name": "Supino Reto na Máquina",
+            "focus": "Peitoral Médio",
             "notes": "Sente com costas apoiadas. Empurre as manoplas para frente até extensão quase completa. Retorne controlado sem bater os pesos."
         },
         {
+            "name": "Supino Inclinado na Máquina",
+            "focus": "Peitoral Superior",
+            "notes": "Banco ajustado para inclinação. Empurre para cima e para frente. Foco no peitoral superior. Desça controlado."
+        },
+        {
             "name": "Crucifixo na Máquina (Peck Deck)",
+            "focus": "Peitoral Médio - Adução",
             "notes": "Cotovelos na altura dos ombros. Junte os braços à frente contraindo o peitoral. Abra controlado até sentir leve alongamento."
         },
         {
-            "name": "Cross Over (Polia Alta)",
-            "notes": "Cabos na posição alta. Dê um passo à frente. Puxe os cabos para baixo e para frente, cruzando na frente do corpo. Volte controlado."
+            "name": "Cross Over Polia Alta",
+            "focus": "Peitoral Inferior",
+            "notes": "Cabos na posição alta. Dê um passo à frente. Puxe os cabos para baixo e para frente, cruzando na frente do corpo."
         },
         {
-            "name": "Supino Inclinado com Halteres",
-            "notes": "Banco a 30°. Halteres ao lado do peito. Empurre para cima sem bater os halteres no topo. Desça controlado até cotovelos a 90°."
+            "name": "Cross Over Polia Baixa",
+            "focus": "Peitoral Superior",
+            "notes": "Cabos na posição baixa. Puxe os cabos de baixo para cima, cruzando na altura do peito. Foco no peitoral superior."
         },
     ],
     
     # ============ COSTAS ============
     "costas": [
         {
-            "name": "Puxada Frontal (Pulley)",
-            "notes": "Pegada um pouco mais larga que os ombros. Puxe a barra até a altura do queixo, levando os cotovelos para baixo e para trás. Retorne controlado."
+            "name": "Puxada Frontal Pegada Aberta",
+            "focus": "Dorsal (Largura)",
+            "notes": "Pegada pronada mais larga que os ombros. Puxe a barra até o queixo, cotovelos para baixo e para trás. Foco em abrir as costas."
         },
         {
-            "name": "Remada na Máquina (Sentado)",
-            "notes": "Peito apoiado no suporte. Puxe as manoplas em direção ao abdômen, contraindo as escápulas. Retorne estendendo completamente os braços."
+            "name": "Puxada Pegada Neutra (Triângulo)",
+            "focus": "Dorsal (Espessura)",
+            "notes": "Use o triângulo/pegada neutra. Puxe até o peito, apertando as escápulas. Foco em espessura das costas."
         },
         {
-            "name": "Remada Baixa (Polia)",
-            "notes": "Sente com pernas levemente flexionadas. Puxe o triângulo até o abdômen, mantendo costas retas. Estenda os braços completamente na volta."
+            "name": "Remada Máquina Pegada Neutra",
+            "focus": "Dorsal Médio (Espessura)",
+            "notes": "Peito apoiado, pegada neutra. Puxe as manoplas em direção ao abdômen, contraindo as escápulas. Foco em espessura."
         },
         {
-            "name": "Pulldown com Corda (Polia Alta)",
-            "notes": "Braços estendidos acima. Puxe a corda até a altura das coxas, mantendo cotovelos próximos ao corpo. Retorne controlado."
+            "name": "Remada Máquina Pegada Pronada",
+            "focus": "Trapézio/Romboides",
+            "notes": "Pegada pronada (palmas para baixo). Puxe com cotovelos mais altos. Foco em trapézio médio e romboides."
+        },
+        {
+            "name": "Remada Baixa Polia (Triângulo)",
+            "focus": "Dorsal Inferior",
+            "notes": "Sente com pernas levemente flexionadas. Puxe o triângulo até o abdômen baixo. Mantenha costas retas."
+        },
+        {
+            "name": "Pulldown Corda (Polia Alta)",
+            "focus": "Dorsal (Contração)",
+            "notes": "Braços estendidos acima. Puxe a corda separando as pontas, até a altura das coxas. Aperte as escápulas."
         },
     ],
     
     # ============ OMBROS ============
     "ombros": [
         {
-            "name": "Desenvolvimento na Máquina",
-            "notes": "Sente com costas totalmente apoiadas. Empurre as manoplas para cima até quase estender os cotovelos. Desça até a altura das orelhas."
+            "name": "Desenvolvimento Máquina",
+            "focus": "Deltóide Anterior/Médio",
+            "notes": "Costas totalmente apoiadas. Empurre até quase estender os cotovelos. Desça até altura das orelhas."
         },
         {
-            "name": "Elevação Lateral na Máquina",
-            "notes": "Cotovelos apoiados nas almofadas. Eleve os braços até a altura dos ombros. Desça controlado sem deixar os pesos baterem."
+            "name": "Elevação Lateral Máquina",
+            "focus": "Deltóide Lateral",
+            "notes": "Cotovelos apoiados nas almofadas. Eleve até altura dos ombros. Desça controlado."
         },
         {
-            "name": "Elevação Lateral com Halteres (Sentado)",
-            "notes": "Sente no banco para mais estabilidade. Cotovelos levemente flexionados. Eleve até a altura dos ombros. Desça controlado."
+            "name": "Elevação Lateral Halteres",
+            "focus": "Deltóide Lateral",
+            "notes": "Sentado para mais estabilidade. Cotovelos levemente flexionados. Eleve até altura dos ombros."
         },
         {
             "name": "Face Pull (Polia)",
-            "notes": "Polia na altura do rosto. Puxe a corda em direção ao rosto, abrindo os cotovelos para os lados. Aperte as escápulas no final."
+            "focus": "Deltóide Posterior/Rotadores",
+            "notes": "Polia na altura do rosto. Puxe a corda em direção ao rosto, abrindo cotovelos. Aperte escápulas no final."
         },
     ],
     
     # ============ BÍCEPS ============
     "biceps": [
         {
-            "name": "Rosca na Máquina",
-            "notes": "Braços apoiados no suporte. Flexione os cotovelos trazendo as manoplas em direção aos ombros. Desça controlado sem estender completamente."
+            "name": "Rosca Máquina",
+            "focus": "Bíceps (Pico)",
+            "notes": "Braços apoiados no suporte. Flexione trazendo manoplas aos ombros. Desça controlado sem estender completamente."
         },
         {
-            "name": "Rosca na Polia Baixa",
-            "notes": "De frente para a polia baixa. Cotovelos fixos ao lado do corpo. Flexione puxando a barra até os ombros. Desça controlado."
+            "name": "Rosca Polia Baixa (Barra Reta)",
+            "focus": "Bíceps (Cabeça Curta)",
+            "notes": "De frente para polia baixa. Cotovelos fixos ao lado do corpo. Flexione até os ombros. Desça controlado."
         },
         {
-            "name": "Rosca Alternada com Halteres (Sentado)",
-            "notes": "Sente no banco com costas apoiadas. Alterne os braços. Gire o punho (supinação) durante a subida. Desça controlado."
+            "name": "Rosca Alternada Halteres",
+            "focus": "Bíceps (Cabeça Longa)",
+            "notes": "Sentado com costas apoiadas. Alterne os braços. Gire o punho (supinação) durante a subida."
         },
         {
-            "name": "Rosca Martelo com Halteres (Sentado)",
-            "notes": "Pegada neutra (palmas voltadas para dentro). Cotovelos fixos. Flexione até contrair o bíceps. Desça controlado."
+            "name": "Rosca Martelo Halteres",
+            "focus": "Braquial/Braquiorradial",
+            "notes": "Pegada neutra (palmas para dentro). Cotovelos fixos. Flexione até contrair. Trabalha braquial."
         },
     ],
     
