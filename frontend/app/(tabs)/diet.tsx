@@ -597,7 +597,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   selectedFoodText: { fontSize: 15, fontWeight: '600', textAlign: 'center' },
-  substitutesList: { maxHeight: 300 },
+  selectedFoodMacros: { fontSize: 13, textAlign: 'center', marginTop: 4 },
+  substitutesList: { maxHeight: 350 },
   substituteItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -605,9 +606,26 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
   },
-  substituteContent: {},
+  substituteContent: { flex: 1 },
   substituteName: { fontSize: 15, fontWeight: '600' },
   substituteGrams: { fontSize: 13, marginTop: 2 },
+  substituteMacros: { fontSize: 12, marginTop: 2 },
+  substituteCheck: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.md,
+  },
+  emptySubstitutes: {
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+  },
+  emptySubstitutesText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
 
   // Empty State Styles
   emptyStateCard: { padding: spacing.xl },
