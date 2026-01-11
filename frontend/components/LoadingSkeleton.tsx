@@ -87,7 +87,7 @@ export const CardSkeleton: React.FC<{ style?: ViewStyle }> = ({ style }) => {
 
 // Skeleton para tela de dieta
 export const DietSkeleton: React.FC = () => {
-  const { colors } = useTheme();
+  const { colors } = useThemeColors();
   
   return (
     <View style={styles.container}>
