@@ -127,30 +127,39 @@ class LAFBackendTester:
                 
             workout = response.json()
             
-            # Analyze workout
+            # Analyze workout - Check exercises PER DAY, not total
             workout_days = workout.get("workout_days", [])
-            total_exercises = 0
-            total_sets = 0
-            valid_sets = 0
+            
+            # For time variation test, we should check the average exercises per day
+            # or check if any day exceeds the expected range
+            exercises_per_day = []
+            sets_per_day = []
             
             for day in workout_days:
                 exercises = day.get("exercises", [])
-                total_exercises += len(exercises)
+                day_exercises = len(exercises)
+                day_sets = 0
                 
                 for exercise in exercises:
                     sets_count = exercise.get("sets", 0)
-                    total_sets += sets_count
-                    # Count valid sets (assuming all sets are valid if sets > 0)
-                    if sets_count > 0:
-                        valid_sets += sets_count
+                    day_sets += sets_count
+                
+                exercises_per_day.append(day_exercises)
+                sets_per_day.append(day_sets)
             
-            # Check if meets criteria
+            # Check if the workout structure respects time constraints
+            # Use the maximum exercises per day as the test metric
+            max_exercises_per_day = max(exercises_per_day) if exercises_per_day else 0
+            avg_exercises_per_day = sum(exercises_per_day) / len(exercises_per_day) if exercises_per_day else 0
+            max_sets_per_day = max(sets_per_day) if sets_per_day else 0
+            
+            # Check if meets criteria (per day, not total)
             min_ex, max_ex = scenario["expected_exercises"]
             min_sets, max_sets = scenario["expected_sets"]
             
-            exercises_ok = min_ex <= total_exercises <= max_ex
-            sets_ok = total_sets >= min_sets
-            valid_sets_ok = valid_sets >= 2  # At least 2 valid sets
+            exercises_ok = min_ex <= max_exercises_per_day <= max_ex
+            sets_ok = max_sets_per_day >= min_sets
+            valid_sets_ok = max_sets_per_day >= 2  # At least 2 valid sets per day
             
             result = {
                 "scenario": scenario,
