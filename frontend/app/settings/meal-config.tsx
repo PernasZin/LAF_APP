@@ -74,10 +74,31 @@ export default function MealConfigScreen() {
   const loadData = async () => {
     const id = await AsyncStorage.getItem('userId');
     setUserId(id);
-    const profile = await AsyncStorage.getItem('userProfile');
-    if (profile) {
-      const data = JSON.parse(profile);
-      setMealCount(data.meal_count || 5);
+    
+    if (id) {
+      // Busca meal_count das configurações do usuário (user_settings)
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/user/settings/${id}`);
+        if (response.ok) {
+          const settings = await response.json();
+          setMealCount(settings.meal_count || 6);
+        } else {
+          // Fallback para profile antigo
+          const profile = await AsyncStorage.getItem('userProfile');
+          if (profile) {
+            const data = JSON.parse(profile);
+            setMealCount(data.meal_count || 6);
+          }
+        }
+      } catch (error) {
+        console.error('Erro ao carregar configurações:', error);
+        // Fallback para profile antigo
+        const profile = await AsyncStorage.getItem('userProfile');
+        if (profile) {
+          const data = JSON.parse(profile);
+          setMealCount(data.meal_count || 6);
+        }
+      }
     }
   };
 
