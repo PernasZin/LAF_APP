@@ -442,6 +442,9 @@ class WorkoutAIService:
             "remada", "puxada", "leg press", "hack"
         ]
         
+        # Músculos pequenos: máximo 2 exercícios
+        SMALL_MUSCLES = ["ombros", "triceps", "biceps", "panturrilha", "abdominal"]
+        
         workout_days = []
         
         for i in range(frequency):
