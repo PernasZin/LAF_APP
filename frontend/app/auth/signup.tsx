@@ -141,13 +141,14 @@ export default function SignupScreen() {
       const data = await response.json();
 
       if (response.ok && data.user_id) {
+        // Save to AsyncStorage
         await AsyncStorage.setItem('userId', data.user_id);
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
+        if (data.access_token) {
+          await AsyncStorage.setItem('token', data.access_token);
+        }
         
-        // Update auth store to mark as authenticated
-        const { useAuthStore } = await import('../../stores/authStore');
-        useAuthStore.getState().setAuthenticated(true, data.user_id);
-        
+        // Navigate to onboarding
         router.replace('/onboarding/');
       } else {
         Alert.alert('Erro', data.detail || data.message || 'Não foi possível criar a conta');
