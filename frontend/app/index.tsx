@@ -204,7 +204,7 @@ export default function IndexScreen() {
   }
   
   if (destination === 'onboarding') {
-    return <Redirect href="/onboarding" />;
+    return <Redirect href="/onboarding/index" />;
   }
 
   // ============ LOADING STATE ============
