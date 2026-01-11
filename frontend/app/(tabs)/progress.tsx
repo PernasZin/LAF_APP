@@ -1,7 +1,7 @@
 /**
  * LAF Premium Progress Screen
  * ============================
- * Glassmorphism + Gradientes + Animações
+ * Corrigido: Endpoints corretos e peso inicial do perfil
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -16,13 +16,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   TrendingUp, TrendingDown, Scale, Calendar, Plus,
-  X, Check, Target, Clock, ChevronRight, Minus
+  X, Check, Target, Clock, Smile, Droplets, Moon, Dumbbell, Utensils
 } from 'lucide-react-native';
+import Slider from '@react-native-community/slider';
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { ProgressSkeleton } from '../../components';
-import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -39,7 +39,6 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
-// Glass Card Component
 const GlassCard = ({ children, style, isDark }: any) => {
   const cardStyle = {
     backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
@@ -60,15 +59,24 @@ export default function ProgressScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
-  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [progressData, setProgressData] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Questionário
+  const [questionnaire, setQuestionnaire] = useState({
+    diet: 5,
+    training: 5,
+    cardio: 5,
+    sleep: 5,
+    hydration: 5,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -83,9 +91,17 @@ export default function ProgressScreen() {
       setUserId(id);
 
       if (id && BACKEND_URL) {
-        const response = await safeFetch(`${BACKEND_URL}/api/weight-records/${id}`);
-        if (response.ok) {
-          const data = await response.json();
+        // Carregar perfil para pegar peso atual
+        const profileRes = await safeFetch(`${BACKEND_URL}/api/user/profile/${id}`);
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setUserProfile(profileData);
+        }
+
+        // Carregar histórico de peso - endpoint correto
+        const weightRes = await safeFetch(`${BACKEND_URL}/api/progress/weight/${id}`);
+        if (weightRes.ok) {
+          const data = await weightRes.json();
           setProgressData(data);
         }
       }
@@ -107,19 +123,26 @@ export default function ProgressScreen() {
 
     setSaving(true);
     try {
-      const response = await safeFetch(`${BACKEND_URL}/api/weight-records/${userId}`, {
+      // Endpoint correto com questionário
+      const response = await safeFetch(`${BACKEND_URL}/api/progress/weight/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ weight: parseFloat(newWeight) }),
+        body: JSON.stringify({ 
+          weight: parseFloat(newWeight),
+          questionnaire: questionnaire
+        }),
       });
 
       if (response.ok) {
         setShowWeightModal(false);
         setNewWeight('');
+        // Reset questionnaire
+        setQuestionnaire({ diet: 5, training: 5, cardio: 5, sleep: 5, hydration: 5 });
         await loadProgress();
+        Alert.alert('Sucesso', 'Peso registrado com sucesso!');
       } else {
         const data = await response.json();
-        Alert.alert('Aviso', data.message || 'Não foi possível salvar');
+        Alert.alert('Aviso', data.detail || 'Não foi possível salvar');
       }
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível salvar o peso');
@@ -128,7 +151,9 @@ export default function ProgressScreen() {
     }
   };
 
-  const currentWeight = progressData?.current_weight || 0;
+  // Peso atual vem do perfil do usuário
+  const currentWeight = userProfile?.weight || progressData?.current_weight || 0;
+  const targetWeight = userProfile?.target_weight || progressData?.target_weight;
   const history = progressData?.history || [];
   const canRecord = progressData?.can_record ?? true;
   const daysUntilNext = progressData?.days_until_next_record || 0;
@@ -145,6 +170,27 @@ export default function ProgressScreen() {
       </SafeAreaView>
     );
   }
+
+  const QuestionnaireSlider = ({ label, icon: Icon, value, onChange, color }: any) => (
+    <View style={styles.questionnaireRow}>
+      <View style={styles.questionnaireHeader}>
+        <Icon size={18} color={color} />
+        <Text style={[styles.questionnaireLabel, { color: theme.text }]}>{label}</Text>
+        <Text style={[styles.questionnaireValue, { color }]}>{value}</Text>
+      </View>
+      <Slider
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={10}
+        step={1}
+        value={value}
+        onValueChange={onChange}
+        minimumTrackTintColor={color}
+        maximumTrackTintColor={theme.border}
+        thumbTintColor={color}
+      />
+    </View>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -209,6 +255,16 @@ export default function ProgressScreen() {
                 )}
               </View>
 
+              {/* Target Weight */}
+              {targetWeight && (
+                <View style={[styles.targetRow, { borderTopColor: theme.border }]}>
+                  <Target size={16} color={theme.textTertiary} />
+                  <Text style={[styles.targetText, { color: theme.textSecondary }]}>
+                    Meta: {targetWeight}kg
+                  </Text>
+                </View>
+              )}
+
               {/* Add Weight Button */}
               {canRecord ? (
                 <TouchableOpacity onPress={() => setShowWeightModal(true)}>
@@ -245,7 +301,7 @@ export default function ProgressScreen() {
             <GlassCard isDark={isDark} style={styles.statCard}>
               <Calendar size={20} color="#F59E0B" />
               <Text style={[styles.statValue, { color: theme.text }]}>
-                {history.length}
+                {stats.total_records || history.length || 0}
               </Text>
               <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Registros</Text>
             </GlassCard>
@@ -261,6 +317,9 @@ export default function ProgressScreen() {
                   <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
                     Nenhum registro ainda
                   </Text>
+                  <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
+                    Registre seu peso a cada 2 semanas
+                  </Text>
                 </View>
               ) : (
                 history.slice(-10).reverse().map((record: any, index: number) => (
@@ -271,9 +330,19 @@ export default function ProgressScreen() {
                         {new Date(record.recorded_at).toLocaleDateString('pt-BR')}
                       </Text>
                     </View>
-                    <Text style={[styles.historyWeight, { color: theme.text }]}>
-                      {record.weight?.toFixed(1)}kg
-                    </Text>
+                    <View style={styles.historyRight}>
+                      {record.questionnaire_average && (
+                        <View style={[styles.avgBadge, { backgroundColor: premiumColors.primary + '15' }]}>
+                          <Smile size={12} color={premiumColors.primary} />
+                          <Text style={[styles.avgText, { color: premiumColors.primary }]}>
+                            {record.questionnaire_average.toFixed(1)}
+                          </Text>
+                        </View>
+                      )}
+                      <Text style={[styles.historyWeight, { color: theme.text }]}>
+                        {record.weight?.toFixed(1)}kg
+                      </Text>
+                    </View>
                   </View>
                 ))
               )}
@@ -284,7 +353,7 @@ export default function ProgressScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Weight Modal */}
+      {/* Weight Modal with Questionnaire */}
       <Modal visible={showWeightModal} transparent animationType="slide">
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -298,35 +367,79 @@ export default function ProgressScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.weightInputContainer}>
-              <TextInput
-                style={[styles.weightInput, { color: theme.text, borderColor: theme.border }]}
-                value={newWeight}
-                onChangeText={setNewWeight}
-                keyboardType="decimal-pad"
-                placeholder="0.0"
-                placeholderTextColor={theme.textTertiary}
-                autoFocus
-              />
-              <Text style={[styles.weightInputUnit, { color: theme.textSecondary }]}>kg</Text>
-            </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Weight Input */}
+              <View style={styles.weightInputContainer}>
+                <TextInput
+                  style={[styles.weightInput, { color: theme.text, borderColor: theme.border }]}
+                  value={newWeight}
+                  onChangeText={setNewWeight}
+                  keyboardType="decimal-pad"
+                  placeholder="0.0"
+                  placeholderTextColor={theme.textTertiary}
+                />
+                <Text style={[styles.weightInputUnit, { color: theme.textSecondary }]}>kg</Text>
+              </View>
 
-            <TouchableOpacity
-              onPress={handleSaveWeight}
-              disabled={!newWeight || saving}
-            >
-              <LinearGradient
-                colors={!newWeight ? ['#9CA3AF', '#6B7280'] : [premiumColors.gradient.start, premiumColors.gradient.end]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.saveButton}
+              {/* Questionnaire */}
+              <Text style={[styles.questionnaireTitle, { color: theme.textSecondary }]}>
+                COMO FOI SUA SEMANA?
+              </Text>
+
+              <QuestionnaireSlider
+                label="Dieta"
+                icon={Utensils}
+                value={questionnaire.diet}
+                onChange={(v: number) => setQuestionnaire({...questionnaire, diet: v})}
+                color="#10B981"
+              />
+              <QuestionnaireSlider
+                label="Treino"
+                icon={Dumbbell}
+                value={questionnaire.training}
+                onChange={(v: number) => setQuestionnaire({...questionnaire, training: v})}
+                color="#3B82F6"
+              />
+              <QuestionnaireSlider
+                label="Cardio"
+                icon={TrendingUp}
+                value={questionnaire.cardio}
+                onChange={(v: number) => setQuestionnaire({...questionnaire, cardio: v})}
+                color="#F59E0B"
+              />
+              <QuestionnaireSlider
+                label="Sono"
+                icon={Moon}
+                value={questionnaire.sleep}
+                onChange={(v: number) => setQuestionnaire({...questionnaire, sleep: v})}
+                color="#8B5CF6"
+              />
+              <QuestionnaireSlider
+                label="Hidratação"
+                icon={Droplets}
+                value={questionnaire.hydration}
+                onChange={(v: number) => setQuestionnaire({...questionnaire, hydration: v})}
+                color="#06B6D4"
+              />
+
+              <TouchableOpacity
+                onPress={handleSaveWeight}
+                disabled={!newWeight || saving}
+                style={{ marginTop: spacing.lg }}
               >
-                <Check size={20} color="#FFF" />
-                <Text style={styles.saveButtonText}>
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={!newWeight ? ['#9CA3AF', '#6B7280'] : [premiumColors.gradient.start, premiumColors.gradient.end]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.saveButton}
+                >
+                  <Check size={20} color="#FFF" />
+                  <Text style={styles.saveButtonText}>
+                    {saving ? 'Salvando...' : 'Salvar'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -347,11 +460,13 @@ const styles = StyleSheet.create({
   weightHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
   weightIconBg: { width: 48, height: 48, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center' },
   weightLabel: { fontSize: 14, fontWeight: '600' },
-  weightValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginBottom: spacing.lg },
+  weightValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginBottom: spacing.md },
   weightValue: { fontSize: 56, fontWeight: '800', letterSpacing: -2 },
   weightUnit: { fontSize: 24, fontWeight: '600' },
   weightChangeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full, marginLeft: spacing.sm },
   weightChangeText: { fontSize: 14, fontWeight: '700' },
+  targetRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingTop: spacing.md, marginBottom: spacing.md, borderTopWidth: 1 },
+  targetText: { fontSize: 14, fontWeight: '600' },
   addWeightButton: { height: 52, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   addWeightButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   blockedBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.lg },
@@ -364,20 +479,32 @@ const styles = StyleSheet.create({
 
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: spacing.sm },
   historyCard: { padding: spacing.base },
-  emptyHistory: { alignItems: 'center', padding: spacing.xl, gap: spacing.md },
-  emptyText: { fontSize: 14 },
+  emptyHistory: { alignItems: 'center', padding: spacing.xl, gap: spacing.sm },
+  emptyText: { fontSize: 16, fontWeight: '600' },
+  emptySubtext: { fontSize: 13 },
   historyItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1 },
   historyDate: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   historyDateText: { fontSize: 14 },
+  historyRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  avgBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.full },
+  avgText: { fontSize: 12, fontWeight: '700' },
   historyWeight: { fontSize: 16, fontWeight: '700' },
 
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'], padding: spacing.lg },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xl },
+  modalContent: { borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'], padding: spacing.lg, maxHeight: '85%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
   modalTitle: { fontSize: 20, fontWeight: '700' },
   weightInputContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md, marginBottom: spacing.xl },
   weightInput: { fontSize: 48, fontWeight: '800', textAlign: 'center', width: 150, borderBottomWidth: 2, paddingVertical: spacing.sm },
   weightInputUnit: { fontSize: 24, fontWeight: '600' },
+
+  questionnaireTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: spacing.md },
+  questionnaireRow: { marginBottom: spacing.lg },
+  questionnaireHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  questionnaireLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
+  questionnaireValue: { fontSize: 18, fontWeight: '800' },
+  slider: { width: '100%', height: 40 },
+
   saveButton: { height: 52, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   saveButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });

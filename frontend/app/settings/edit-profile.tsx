@@ -1,7 +1,7 @@
 /**
  * LAF Premium Edit Profile Screen
  * ================================
- * Glassmorphism + Gradientes + Animações
+ * Apenas: Nome, Email, Objetivo
  */
 
 import React, { useState, useEffect } from 'react';
@@ -14,10 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import {
-  ArrowLeft, User, Scale, Ruler, Calendar, Target,
-  Check, Activity, Utensils
-} from 'lucide-react-native';
+import { ArrowLeft, User, Mail, Target, Check } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
@@ -37,7 +34,6 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
-// Glass Card Component
 const GlassCard = ({ children, style, isDark }: any) => {
   const cardStyle = {
     backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
@@ -60,14 +56,6 @@ const GOALS = [
   { id: 'bulking', label: '💪 Bulking', desc: 'Ganhar massa' },
 ];
 
-const ACTIVITY_LEVELS = [
-  { id: 'sedentary', label: 'Sedentário' },
-  { id: 'light', label: 'Leve' },
-  { id: 'moderate', label: 'Moderado' },
-  { id: 'high', label: 'Intenso' },
-  { id: 'very_high', label: 'Muito Intenso' },
-];
-
 export default function EditProfileScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
@@ -78,12 +66,8 @@ export default function EditProfileScreen() {
   const [userId, setUserId] = useState<string | null>(null);
 
   const [name, setName] = useState('');
-  const [age, setAge] = useState('');
-  const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
+  const [email, setEmail] = useState('');
   const [goal, setGoal] = useState('manutencao');
-  const [activityLevel, setActivityLevel] = useState('moderate');
-  const [mealCount, setMealCount] = useState(5);
 
   useEffect(() => {
     loadProfile();
@@ -92,19 +76,16 @@ export default function EditProfileScreen() {
   const loadProfile = async () => {
     try {
       const id = await AsyncStorage.getItem('userId');
+      const storedEmail = await AsyncStorage.getItem('userEmail');
       setUserId(id);
+      if (storedEmail) setEmail(storedEmail);
 
       if (id && BACKEND_URL) {
         const response = await safeFetch(`${BACKEND_URL}/api/user/profile/${id}`);
         if (response.ok) {
           const data = await response.json();
           setName(data.name || '');
-          setAge(data.age?.toString() || '');
-          setWeight(data.weight?.toString() || '');
-          setHeight(data.height?.toString() || '');
           setGoal(data.goal || 'manutencao');
-          setActivityLevel(data.activity_level || 'moderate');
-          setMealCount(data.meal_count || 5);
         }
       }
     } catch (error) {
@@ -115,8 +96,8 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = async () => {
-    if (!name || !age || !weight || !height) {
-      Alert.alert('Campos obrigatórios', 'Preencha todos os campos.');
+    if (!name.trim()) {
+      Alert.alert('Campo obrigatório', 'Preencha o nome.');
       return;
     }
 
@@ -127,18 +108,17 @@ export default function EditProfileScreen() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: name.trim(),
-          age: parseInt(age),
-          weight: parseFloat(weight),
-          height: parseInt(height),
+          email: email.trim(),
           goal,
-          activity_level: activityLevel,
-          meal_count: mealCount,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
         await AsyncStorage.setItem('userProfile', JSON.stringify(data));
+        if (email.trim()) {
+          await AsyncStorage.setItem('userEmail', email.trim());
+        }
         Alert.alert('Sucesso', 'Perfil atualizado!', [
           { text: 'OK', onPress: () => router.back() }
         ]);
@@ -151,23 +131,6 @@ export default function EditProfileScreen() {
       setSaving(false);
     }
   };
-
-  const InputField = ({ icon: Icon, label, value, onChangeText, keyboardType = 'default', unit }: any) => (
-    <View style={styles.inputGroup}>
-      <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
-      <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
-        <Icon size={20} color={theme.textTertiary} />
-        <TextInput
-          style={[styles.input, { color: theme.text }]}
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType as any}
-          placeholderTextColor={theme.input.placeholder}
-        />
-        {unit && <Text style={[styles.inputUnit, { color: theme.textTertiary }]}>{unit}</Text>}
-      </View>
-    </View>
-  );
 
   if (loading) {
     return (
@@ -208,14 +171,41 @@ export default function EditProfileScreen() {
               <View style={{ width: 44 }} />
             </Animated.View>
 
-            {/* Basic Info */}
+            {/* Name & Email */}
             <Animated.View entering={FadeInDown.delay(100).springify()}>
-              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>INFORMAÇÕES BÁSICAS</Text>
+              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>INFORMAÇÕES</Text>
               <GlassCard isDark={isDark} style={styles.card}>
-                <InputField icon={User} label="Nome" value={name} onChangeText={setName} />
-                <InputField icon={Calendar} label="Idade" value={age} onChangeText={setAge} keyboardType="number-pad" unit="anos" />
-                <InputField icon={Scale} label="Peso" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" unit="kg" />
-                <InputField icon={Ruler} label="Altura" value={height} onChangeText={setHeight} keyboardType="number-pad" unit="cm" />
+                {/* Nome */}
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Nome</Text>
+                  <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
+                    <User size={20} color={theme.textTertiary} />
+                    <TextInput
+                      style={[styles.input, { color: theme.text }]}
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Seu nome"
+                      placeholderTextColor={theme.input.placeholder}
+                    />
+                  </View>
+                </View>
+
+                {/* Email */}
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Email</Text>
+                  <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
+                    <Mail size={20} color={theme.textTertiary} />
+                    <TextInput
+                      style={[styles.input, { color: theme.text }]}
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="seu@email.com"
+                      placeholderTextColor={theme.input.placeholder}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                    />
+                  </View>
+                </View>
               </GlassCard>
             </Animated.View>
 
@@ -223,10 +213,14 @@ export default function EditProfileScreen() {
             <Animated.View entering={FadeInDown.delay(200).springify()}>
               <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>OBJETIVO</Text>
               <GlassCard isDark={isDark} style={styles.card}>
-                {GOALS.map((g) => (
+                {GOALS.map((g, index) => (
                   <TouchableOpacity
                     key={g.id}
-                    style={[styles.optionItem, { borderBottomColor: theme.border }]}
+                    style={[
+                      styles.optionItem, 
+                      { borderBottomColor: theme.border },
+                      index === GOALS.length - 1 && { borderBottomWidth: 0 }
+                    ]}
                     onPress={() => setGoal(g.id)}
                   >
                     <View style={styles.optionContent}>
@@ -244,67 +238,8 @@ export default function EditProfileScreen() {
               </GlassCard>
             </Animated.View>
 
-            {/* Activity Level */}
-            <Animated.View entering={FadeInDown.delay(300).springify()}>
-              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>NÍVEL DE ATIVIDADE</Text>
-              <GlassCard isDark={isDark} style={styles.card}>
-                <View style={styles.activityGrid}>
-                  {ACTIVITY_LEVELS.map((level) => (
-                    <TouchableOpacity
-                      key={level.id}
-                      style={[
-                        styles.activityChip,
-                        {
-                          backgroundColor: activityLevel === level.id ? premiumColors.primary + '20' : 'transparent',
-                          borderColor: activityLevel === level.id ? premiumColors.primary : theme.border,
-                        }
-                      ]}
-                      onPress={() => setActivityLevel(level.id)}
-                    >
-                      <Text style={[
-                        styles.activityChipText,
-                        { color: activityLevel === level.id ? premiumColors.primary : theme.text }
-                      ]}>
-                        {level.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </GlassCard>
-            </Animated.View>
-
-            {/* Meal Count */}
-            <Animated.View entering={FadeInDown.delay(400).springify()}>
-              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>REFEIÇÕES POR DIA</Text>
-              <GlassCard isDark={isDark} style={styles.card}>
-                <View style={styles.mealCountRow}>
-                  {[4, 5, 6].map((count) => (
-                    <TouchableOpacity
-                      key={count}
-                      style={[
-                        styles.mealCountBtn,
-                        {
-                          backgroundColor: mealCount === count ? premiumColors.primary : 'transparent',
-                          borderColor: mealCount === count ? premiumColors.primary : theme.border,
-                        }
-                      ]}
-                      onPress={() => setMealCount(count)}
-                    >
-                      <Utensils size={20} color={mealCount === count ? '#FFF' : theme.textTertiary} />
-                      <Text style={[
-                        styles.mealCountText,
-                        { color: mealCount === count ? '#FFF' : theme.text }
-                      ]}>
-                        {count}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </GlassCard>
-            </Animated.View>
-
             {/* Save Button */}
-            <Animated.View entering={FadeInDown.delay(500).springify()} style={styles.saveContainer}>
+            <Animated.View entering={FadeInDown.delay(300).springify()} style={styles.saveContainer}>
               <TouchableOpacity onPress={handleSave} disabled={saving} activeOpacity={0.9}>
                 <LinearGradient
                   colors={saving
@@ -369,7 +304,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   input: { flex: 1, fontSize: 16, fontWeight: '500' },
-  inputUnit: { fontSize: 14, fontWeight: '600' },
 
   optionItem: {
     flexDirection: 'row',
@@ -391,34 +325,6 @@ const styles = StyleSheet.create({
   },
   radioInner: { width: 12, height: 12, borderRadius: 6 },
 
-  activityGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  activityChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.full,
-    borderWidth: 1.5,
-  },
-  activityChipText: { fontSize: 13, fontWeight: '600' },
-
-  mealCountRow: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  mealCountBtn: {
-    flex: 1,
-    height: 80,
-    borderRadius: radius.lg,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-  },
-  mealCountText: { fontSize: 24, fontWeight: '800' },
-
   saveContainer: { marginTop: spacing.lg },
   saveButton: {
     height: 56,
@@ -427,11 +333,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    shadowColor: premiumColors.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
   saveButtonText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
 });
