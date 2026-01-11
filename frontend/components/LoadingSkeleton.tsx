@@ -215,6 +215,27 @@ export const HomeSkeleton: React.FC = () => {
   );
 };
 
+// Skeleton para tela de Cardio
+export const CardioSkeleton: React.FC = () => {
+  const { colors } = useThemeColors();
+  
+  return (
+    <View style={styles.container}>
+      {/* Header skeleton */}
+      <View style={[styles.statsCard, { backgroundColor: colors.backgroundCard }]}>
+        <Skeleton width={150} height={20} style={{ marginBottom: 12 }} />
+        <Skeleton width={100} height={32} />
+      </View>
+      
+      {/* Session cards skeleton */}
+      {[1, 2, 3].map((i) => (
+        <CardSkeleton key={i} style={{ marginBottom: 12 }} />
+      ))}
+    </View>
+  );
+};
+
+
 const styles = StyleSheet.create({
   container: {
     padding: 16,
