@@ -42,7 +42,7 @@ export default function MealConfigStep({ formData, updateFormData, theme, isDark
   const meals = MEAL_PRESETS[mealCount] || MEAL_PRESETS[5];
 
   const handleMealCountChange = (delta: number) => {
-    const newCount = Math.max(3, Math.min(6, mealCount + delta));
+    const newCount = Math.max(4, Math.min(6, mealCount + delta));
     const newMeals = MEAL_PRESETS[newCount];
     updateFormData({
       meal_count: newCount,
