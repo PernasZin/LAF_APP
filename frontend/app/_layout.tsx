@@ -10,9 +10,10 @@ import { useAuthStore } from '../stores/authStore';
  * SINGLE SOURCE OF TRUTH: AuthStore
  * 
  * LOGIC:
- * if (!isAuthenticated) → /auth/login
- * else if (!profileCompleted) → /onboarding
- * else → /(tabs)
+ * 1. If on index (root) → allow (language selection)
+ * 2. if (!isAuthenticated) → /auth/login
+ * 3. else if (!profileCompleted) → /onboarding
+ * 4. else → /(tabs)
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -33,11 +34,19 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!navigationState?.key || !isInitialized) return;
 
-    const inAuth = segments[0] === 'auth';
-    const inOnboarding = segments[0] === 'onboarding';
-    const inTabs = segments[0] === '(tabs)';
+    const currentSegment = segments[0];
+    const inAuth = currentSegment === 'auth';
+    const inOnboarding = currentSegment === 'onboarding';
+    const inTabs = currentSegment === '(tabs)';
+    const isRootIndex = segments.length === 0 || currentSegment === 'index';
 
-    console.log('🛡️ GUARD:', { isAuthenticated, profileCompleted, segments: segments[0] });
+    console.log('🛡️ GUARD:', { isAuthenticated, profileCompleted, segments: currentSegment, isRootIndex });
+
+    // ALLOW index screen to handle language selection first
+    if (isRootIndex) {
+      console.log('🛡️ → Allowing index screen');
+      return;
+    }
 
     // NOT authenticated → go to login
     if (!isAuthenticated) {
@@ -57,8 +66,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Authenticated WITH profile → go to tabs
-    if (inAuth || inOnboarding || segments.length === 0) {
+    // Authenticated WITH profile → go to tabs (if not already there)
+    if (inAuth || inOnboarding) {
       console.log('🛡️ → /(tabs)');
       router.replace('/(tabs)');
     }
