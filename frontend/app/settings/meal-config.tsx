@@ -85,17 +85,31 @@ export default function MealConfigScreen() {
     if (!userId) return;
     setSaving(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
-        method: 'PUT',
+      // 1. Salva meal_count nas configurações do usuário (user_settings)
+      const settingsResponse = await fetch(`${BACKEND_URL}/api/user/settings/${userId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ meal_count: mealCount }),
       });
-      if (response.ok) {
-        const data = await response.json();
-        await AsyncStorage.setItem('userProfile', JSON.stringify(data));
-        Alert.alert('Sucesso', 'Configurações salvas!', [{ text: 'OK', onPress: () => router.back() }]);
+      
+      if (!settingsResponse.ok) {
+        throw new Error('Falha ao salvar configurações');
       }
+      
+      // 2. Regenera a dieta automaticamente com o novo número de refeições
+      const dietResponse = await fetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (dietResponse.ok) {
+        const dietData = await dietResponse.json();
+        await AsyncStorage.setItem('userDiet', JSON.stringify(dietData));
+      }
+      
+      Alert.alert('Sucesso', 'Configurações salvas e dieta atualizada!', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (error) {
+      console.error('Erro ao salvar:', error);
       Alert.alert('Erro', 'Não foi possível salvar');
     } finally {
       setSaving(false);
