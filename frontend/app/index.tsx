@@ -62,7 +62,7 @@ export default function IndexScreen() {
   // Handle redirect logic after language is selected
   useEffect(() => {
     if (screenState !== 'redirect') return;
-    if (!isInitialized || authLoading) return;
+    if (!isInitialized) return;
     
     const checkDestination = async () => {
       if (!isAuthenticated) {
@@ -79,7 +79,7 @@ export default function IndexScreen() {
     };
     
     checkDestination();
-  }, [screenState, isAuthenticated, isInitialized, authLoading]);
+  }, [screenState, isAuthenticated, isInitialized]);
 
   const handleLanguageSelect = (langCode: LanguagePreference) => {
     setSelectedLang(langCode);
