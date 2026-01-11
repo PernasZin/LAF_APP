@@ -444,7 +444,7 @@ class WorkoutAIService:
         ]
         
         # Músculos pequenos: máximo 2 exercícios
-        SMALL_MUSCLES = ["ombros", "triceps", "biceps", "panturrilha", "abdominal"]
+        SMALL_MUSCLES = ["ombros", "triceps", "biceps", "panturrilha", "abdomen"]
         
         workout_days = []
         
