@@ -519,29 +519,55 @@ class WorkoutAIService:
             # TRATAMENTO ESPECIAL: Upper Body (2x/semana)
             # Usa lista fixa de exercícios para distribuição balanceada
             if template.get("is_upper_lower") and template["name"] == "Upper":
-                for ex_data in UPPER_BODY_EXERCISES:
+                # Para tempo curto, usa menos exercícios do Upper
+                upper_exercises = UPPER_BODY_EXERCISES
+                if duration <= 45:
+                    # Remove 1 exercício de cada grupo que tem 2
+                    # Mantém: 1 peito, 1 costas, 1 ombro, 1 biceps, 1 triceps, 1 abdomen = 6
+                    upper_exercises = [
+                        UPPER_BODY_EXERCISES[0],  # Supino
+                        UPPER_BODY_EXERCISES[2],  # Puxada
+                        UPPER_BODY_EXERCISES[4],  # Desenvolvimento
+                        UPPER_BODY_EXERCISES[6],  # Rosca
+                        UPPER_BODY_EXERCISES[7],  # Triceps
+                        UPPER_BODY_EXERCISES[8],  # Abdomen
+                    ]
+                
+                for ex_data in upper_exercises:
                     # Instruções baseadas no nível
                     execution_notes = ex_data.get("notes", "")
                     
+                    # Ajuste de séries para avançado baseado no tempo
+                    adjusted_sets = config["sets"]
+                    
                     if level == 'avancado':
-                        series_instruction = """📋 ESTRUTURA (4 SÉRIES):
+                        # Se tempo curto: 3 séries (1 aquec + 1 reconhec + 1 válida)
+                        # Se tempo normal: 4 séries (1 aquec + 1 reconhec + 2 válidas)
+                        if duration <= 60:
+                            series_instruction = """📋 ESTRUTURA (3 SÉRIES - tempo otimizado):
+• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
+• 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
+• 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
+                            sets_count = 3
+                        else:
+                            series_instruction = """📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
 • 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
 • 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
 • 4ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
+                            sets_count = 4
                         notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}"
-                        sets_count = 4
                     elif level == 'intermediario':
                         series_instruction = "💪 Chegue PERTO DA FALHA em pelo menos 1 série!"
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}"
-                        sets_count = config["sets"]
+                        sets_count = adjusted_sets
                     elif is_adaptation:
                         series_instruction = "⚠️ ADAPTAÇÃO: Use carga LEVE! Foco 100% na execução correta."
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}"
-                        sets_count = config["sets"]
+                        sets_count = adjusted_sets
                     else:
                         notes = f"🎯 {execution_notes}"
-                        sets_count = config["sets"]
+                        sets_count = adjusted_sets
                     
                     exercises.append(Exercise(
                         name=ex_data["name"],
