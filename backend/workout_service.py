@@ -702,10 +702,6 @@ class WorkoutAIService:
                         
                         # Combina instrução de séries + execução
                         notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
-                                sets_count = 3
-                        
-                        # Combina instrução de séries + execução
-                        notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
                     
                     elif level == 'intermediario':
                         series_instruction = "💪 Chegue PERTO DA FALHA em pelo menos 1 série!"
