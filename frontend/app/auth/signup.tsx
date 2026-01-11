@@ -248,6 +248,12 @@ export default function SignupScreen() {
                 secureTextEntry
                 field="password"
                 showToggle
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                focusedField={focusedField}
+                setFocusedField={setFocusedField}
+                theme={theme}
+                isDark={isDark}
               />
 
               <InputField
