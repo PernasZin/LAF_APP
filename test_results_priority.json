@@ -12,13 +12,28 @@
           4
         ]
       },
-      "success": false,
-      "total_exercises": 20,
-      "total_sets": 73,
-      "valid_sets": 73,
-      "exercises_ok": false,
+      "success": true,
+      "max_exercises_per_day": 4,
+      "avg_exercises_per_day": 4.0,
+      "max_sets_per_day": 15,
+      "exercises_per_day": [
+        4,
+        4,
+        4,
+        4,
+        4
+      ],
+      "sets_per_day": [
+        15,
+        15,
+        14,
+        15,
+        14
+      ],
+      "exercises_ok": true,
       "sets_ok": true,
-      "valid_sets_ok": true
+      "valid_sets_ok": true,
+      "total_days": 5
     },
     {
       "scenario": {
@@ -32,13 +47,28 @@
           4
         ]
       },
-      "success": false,
-      "total_exercises": 24,
-      "total_sets": 88,
-      "valid_sets": 88,
-      "exercises_ok": false,
+      "success": true,
+      "max_exercises_per_day": 6,
+      "avg_exercises_per_day": 4.8,
+      "max_sets_per_day": 23,
+      "exercises_per_day": [
+        4,
+        4,
+        4,
+        6,
+        6
+      ],
+      "sets_per_day": [
+        15,
+        15,
+        14,
+        23,
+        21
+      ],
+      "exercises_ok": true,
       "sets_ok": true,
-      "valid_sets_ok": true
+      "valid_sets_ok": true,
+      "total_days": 5
     },
     {
       "scenario": {
@@ -52,13 +82,28 @@
           4
         ]
       },
-      "success": false,
-      "total_exercises": 24,
-      "total_sets": 88,
-      "valid_sets": 88,
-      "exercises_ok": false,
+      "success": true,
+      "max_exercises_per_day": 6,
+      "avg_exercises_per_day": 4.8,
+      "max_sets_per_day": 23,
+      "exercises_per_day": [
+        4,
+        4,
+        4,
+        6,
+        6
+      ],
+      "sets_per_day": [
+        15,
+        15,
+        14,
+        23,
+        21
+      ],
+      "exercises_ok": true,
       "sets_ok": true,
-      "valid_sets_ok": true
+      "valid_sets_ok": true,
+      "total_days": 5
     }
   ],
   "diet_meal_count": {
@@ -67,7 +112,7 @@
     "actual_meal_count": 4,
     "meals": [
       {
-        "id": "656f10ba-c334-4c23-a5c8-86f935e205fa",
+        "id": "9e7bef31-b11a-4330-b10a-57739c6980b9",
         "name": "Caf\u00e9 da Manh\u00e3",
         "time": "07:00",
         "foods": [
@@ -119,7 +164,7 @@
         }
       },
       {
-        "id": "45f3ef21-50c2-4100-bdde-89803f5891e3",
+        "id": "c88c07b4-603c-4473-a0b2-fa3ea66db3cf",
         "name": "Almo\u00e7o",
         "time": "12:00",
         "foods": [
@@ -189,28 +234,28 @@
             "category": "vegetable"
           },
           {
-            "key": "pepino",
-            "name": "Pepino",
+            "key": "pimentao",
+            "name": "Piment\u00e3o",
             "grams": 60,
             "quantity": "60g",
-            "quantity_display": "60g (\u2248 0.4 unidade)",
-            "unit_equivalent": "\u2248 0.4 unidade",
-            "protein": 0,
-            "carbs": 2,
+            "quantity_display": "60g (\u2248 0.5 unidade m\u00e9dia)",
+            "unit_equivalent": "\u2248 0.5 unidade m\u00e9dia",
+            "protein": 1,
+            "carbs": 4,
             "fat": 0,
-            "calories": 12,
+            "calories": 18,
             "category": "vegetable"
           }
         ],
-        "total_calories": 1620,
+        "total_calories": 1626,
         "macros": {
-          "protein": 73,
-          "carbs": 271,
+          "protein": 74,
+          "carbs": 273,
           "fat": 27
         }
       },
       {
-        "id": "34e9a44a-cadb-458d-b17c-29e874cfdaf7",
+        "id": "30629940-305b-4fe3-9474-fdea3f1814db",
         "name": "Lanche Tarde",
         "time": "16:00",
         "foods": [
@@ -262,21 +307,21 @@
         }
       },
       {
-        "id": "14f14b29-3edb-4d58-941e-298f8e127ae1",
+        "id": "4894947d-49a7-40d5-975b-d804197076cd",
         "name": "Jantar",
         "time": "20:00",
         "foods": [
           {
             "key": "patinho",
             "name": "Patinho (Carne Magra)",
-            "grams": 140,
-            "quantity": "140g",
-            "quantity_display": "140g (\u2248 1.2 bife m\u00e9dio)",
-            "unit_equivalent": "\u2248 1.2 bife m\u00e9dio",
-            "protein": 39,
+            "grams": 130,
+            "quantity": "130g",
+            "quantity_display": "130g (\u2248 1.1 bife m\u00e9dio)",
+            "unit_equivalent": "\u2248 1.1 bife m\u00e9dio",
+            "protein": 36,
             "carbs": 0,
             "fat": 8,
-            "calories": 232,
+            "calories": 216,
             "category": "protein"
           },
           {
@@ -319,23 +364,23 @@
             "category": "carb"
           },
           {
-            "key": "cenoura",
-            "name": "Cenoura",
+            "key": "brocolis",
+            "name": "Br\u00f3colis",
             "grams": 100,
             "quantity": "100g",
-            "quantity_display": "100g (\u2248 1.2 unidade m\u00e9dia)",
-            "unit_equivalent": "\u2248 1.2 unidade m\u00e9dia",
-            "protein": 1,
-            "carbs": 10,
+            "quantity_display": "100g (\u2248 1 x\u00edcara cozido)",
+            "unit_equivalent": "\u2248 1 x\u00edcara cozido",
+            "protein": 3,
+            "carbs": 7,
             "fat": 0,
-            "calories": 45,
+            "calories": 43,
             "category": "vegetable"
           }
         ],
-        "total_calories": 886,
+        "total_calories": 868,
         "macros": {
-          "protein": 56,
-          "carbs": 132,
+          "protein": 55,
+          "carbs": 129,
           "fat": 14
         }
       }
@@ -345,7 +390,7 @@
     "get_settings": {
       "success": true,
       "data": {
-        "user_id": "585ea236-c936-45e2-a915-1336874ce2d3",
+        "user_id": "a284476f-5772-4fba-bb7c-4eade9d16270",
         "theme_preference": "system",
         "privacy_analytics": true,
         "privacy_personalization": true,
@@ -354,13 +399,13 @@
         "language": "pt-BR",
         "meal_count": 6,
         "meal_times": [],
-        "updated_at": "2026-01-11T19:42:49.363262"
+        "updated_at": "2026-01-11T19:44:00.125694"
       }
     },
     "patch_settings": {
       "success": true,
       "data": {
-        "user_id": "585ea236-c936-45e2-a915-1336874ce2d3",
+        "user_id": "a284476f-5772-4fba-bb7c-4eade9d16270",
         "theme_preference": "system",
         "privacy_analytics": true,
         "privacy_personalization": true,
@@ -369,13 +414,13 @@
         "language": "pt-BR",
         "meal_count": 5,
         "meal_times": [],
-        "updated_at": "2026-01-11T19:42:49.372000"
+        "updated_at": "2026-01-11T19:44:00.135000"
       }
     },
     "get_after_patch": {
       "success": true,
       "data": {
-        "user_id": "585ea236-c936-45e2-a915-1336874ce2d3",
+        "user_id": "a284476f-5772-4fba-bb7c-4eade9d16270",
         "theme_preference": "system",
         "privacy_analytics": true,
         "privacy_personalization": true,
@@ -384,9 +429,9 @@
         "language": "pt-BR",
         "meal_count": 5,
         "meal_times": [],
-        "updated_at": "2026-01-11T19:42:49.372000"
+        "updated_at": "2026-01-11T19:44:00.135000"
       }
     }
   },
-  "timestamp": "2026-01-11T19:42:48.998669"
+  "timestamp": "2026-01-11T19:43:59.719828"
 }
