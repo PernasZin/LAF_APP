@@ -271,6 +271,11 @@ class LAFBackendTester:
             
         user_id = user["user_id"]
         
+        # Create profile first (required for settings)
+        profile = self.create_user_profile(user_id)
+        if not profile:
+            return {"success": False, "error": "Profile creation failed"}
+        
         results = {
             "get_settings": None,
             "patch_settings": None,
