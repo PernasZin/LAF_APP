@@ -1,39 +1,34 @@
-import React, { useState, useCallback } from 'react';
-import { 
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, 
-  ActivityIndicator, RefreshControl, Modal, TextInput, Alert,
-  Dimensions, Platform
+/**
+ * LAF Premium Progress Screen
+ * ============================
+ * Glassmorphism + Gradientes + Animações
+ */
+
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  RefreshControl, Modal, TextInput, KeyboardAvoidingView, Platform, Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { router } from 'expo-router';
-import { useTheme } from '../../theme/ThemeContext';
-import Svg, { Path, Circle, Line, Text as SvgText, Rect } from 'react-native-svg';
-import { Toast, ProgressSkeleton } from '../../components';
-import { useToast } from '../../hooks/useToast';
-import { useHaptics } from '../../hooks/useHaptics';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import {
+  TrendingUp, TrendingDown, Scale, Calendar, Plus,
+  X, Check, Target, Clock, ChevronRight, Minus
+} from 'lucide-react-native';
+
+import { useSettingsStore } from '../../stores/settingsStore';
+import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
+import { ProgressSkeleton } from '../../components';
 import { useTranslation } from '../../i18n';
-import Slider from '@react-native-community/slider';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// Categorias do questionário
-const QUESTIONNAIRE_CATEGORIES = [
-  { key: 'diet', label: 'Dieta', icon: 'nutrition-outline', emoji: '🍽️' },
-  { key: 'training', label: 'Treino', icon: 'barbell-outline', emoji: '🏋️' },
-  { key: 'cardio', label: 'Cardio', icon: 'fitness-outline', emoji: '🏃' },
-  { key: 'sleep', label: 'Sono', icon: 'moon-outline', emoji: '😴' },
-  { key: 'hydration', label: 'Hidratação', icon: 'water-outline', emoji: '💧' },
-];
-
-// Safe fetch with timeout
 const safeFetch = async (url: string, options?: RequestInit) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-  
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
@@ -44,798 +39,345 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
+// Glass Card Component
+const GlassCard = ({ children, style, isDark }: any) => {
+  const cardStyle = {
+    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(255, 255, 255, 0.5)',
+    borderRadius: radius.xl,
+    overflow: 'hidden' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.3 : 0.08,
+    shadowRadius: 16,
+    elevation: 8,
+  };
+  return <View style={[cardStyle, style]}>{children}</View>;
+};
+
 export default function ProgressScreen() {
-  const { colors } = useTheme();
+  const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const isDark = effectiveTheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
   const { t } = useTranslation();
-  const styles = createStyles(colors);
-  const { toast, showSuccess, showError, showInfo, hideToast } = useToast();
-  const { lightImpact, successFeedback, errorFeedback } = useHaptics();
-  
+
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [progressData, setProgressData] = useState<any>(null);
-  
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [modalStep, setModalStep] = useState<'weight' | 'questionnaire'>('weight');
+  const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [saving, setSaving] = useState(false);
-  
-  // Questionário state
-  const [questionnaire, setQuestionnaire] = useState({
-    diet: 5,
-    training: 5,
-    cardio: 5,
-    sleep: 5,
-    hydration: 5,
-  });
-  
-  // Notificações e performance
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [performanceData, setPerformanceData] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
+      loadProgress();
     }, [])
   );
 
-  const loadData = async () => {
+  const loadProgress = async () => {
     try {
+      setLoading(true);
       const id = await AsyncStorage.getItem('userId');
       setUserId(id);
-      
+
       if (id && BACKEND_URL) {
-        await Promise.all([
-          loadProgress(id),
-          loadNotifications(id),
-          loadPerformance(id),
-        ]);
+        const response = await safeFetch(`${BACKEND_URL}/api/weight-records/${id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setProgressData(data);
+        }
       }
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      console.error('Error loading progress:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const loadProgress = async (uid: string) => {
-    try {
-      const response = await safeFetch(`${BACKEND_URL}/api/progress/weight/${uid}?days=365`);
-      if (response.ok) {
-        const data = await response.json();
-        setProgressData(data);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar progresso:', error);
-    }
-  };
-
-  const loadNotifications = async (uid: string) => {
-    try {
-      const response = await safeFetch(`${BACKEND_URL}/api/notifications/${uid}`);
-      if (response.ok) {
-        const data = await response.json();
-        setNotifications(data.notifications || []);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar notificações:', error);
-    }
-  };
-
-  const loadPerformance = async (uid: string) => {
-    try {
-      const response = await safeFetch(`${BACKEND_URL}/api/progress/performance/${uid}?days=90`);
-      if (response.ok) {
-        const data = await response.json();
-        setPerformanceData(data);
-      }
-    } catch (error) {
-      console.error('Erro ao carregar performance:', error);
-    }
-  };
-
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadData();
+    await loadProgress();
     setRefreshing(false);
   };
 
-  const handleOpenModal = () => {
-    setNewWeight('');
-    setQuestionnaire({ diet: 5, training: 5, cardio: 5, sleep: 5, hydration: 5 });
-    setModalStep('weight');
-    setShowModal(true);
-    lightImpact();
-  };
-
-  const handleWeightNext = () => {
-    const weight = parseFloat(newWeight.replace(',', '.'));
-    if (isNaN(weight) || weight < 30 || weight > 300) {
-      errorFeedback();
-      showError('Digite um peso entre 30kg e 300kg.');
-      return;
-    }
-    lightImpact();
-    setModalStep('questionnaire');
-  };
-
-  const handleRecordWeight = async () => {
+  const handleSaveWeight = async () => {
     if (!newWeight || !userId) return;
-    
-    const weight = parseFloat(newWeight.replace(',', '.'));
-    if (isNaN(weight) || weight < 30 || weight > 300) {
-      errorFeedback();
-      showError('Digite um peso entre 30kg e 300kg.');
-      return;
-    }
-    
+
     setSaving(true);
-    lightImpact();
-    
     try {
-      const response = await safeFetch(`${BACKEND_URL}/api/progress/weight/${userId}`, {
+      const response = await safeFetch(`${BACKEND_URL}/api/weight-records/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          weight,
-          questionnaire: {
-            diet: questionnaire.diet,
-            training: questionnaire.training,
-            cardio: questionnaire.cardio,
-            sleep: questionnaire.sleep,
-            hydration: questionnaire.hydration,
-          }
-        }),
+        body: JSON.stringify({ weight: parseFloat(newWeight) }),
       });
-      
+
       if (response.ok) {
-        const result = await response.json();
-        setShowModal(false);
+        setShowWeightModal(false);
         setNewWeight('');
-        successFeedback();
-        
-        // Verifica se a dieta foi ajustada
-        if (result.diet_adjusted) {
-          showInfo(`Peso registrado! ${result.message || 'Dieta ajustada com base no seu progresso.'}`);
-        } else {
-          showSuccess('Peso e avaliação registrados com sucesso!');
-        }
-        
-        await loadProgress(userId);
+        await loadProgress();
       } else {
-        const error = await response.json().catch(() => ({}));
-        errorFeedback();
-        showError(error.detail || 'Não foi possível registrar o peso.');
+        const data = await response.json();
+        Alert.alert('Aviso', data.message || 'Não foi possível salvar');
       }
     } catch (error) {
-      console.error('Erro ao registrar peso:', error);
-      errorFeedback();
-      showError('Erro de conexão ao registrar peso.');
+      Alert.alert('Erro', 'Não foi possível salvar o peso');
     } finally {
       setSaving(false);
     }
   };
-
-  const updateQuestionnaireValue = (key: string, value: number) => {
-    setQuestionnaire(prev => ({ ...prev, [key]: Math.round(value) }));
-    lightImpact();
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 8) return colors.success;
-    if (score >= 5) return colors.warning;
-    return colors.error;
-  };
-
-  if (loading) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <ProgressSkeleton />
-      </SafeAreaView>
-    );
-  }
 
   const currentWeight = progressData?.current_weight || 0;
   const history = progressData?.history || [];
   const canRecord = progressData?.can_record ?? true;
   const daysUntilNext = progressData?.days_until_next_record || 0;
   const stats = progressData?.stats || {};
-  const blockPeriod = progressData?.block_period_days || 14;
-  const questionnaireAverages = stats.questionnaire_averages;
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-        }
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t.progress.title}</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-            Acompanhe sua evolução
-          </Text>
-        </View>
+  const weightChange = history.length >= 2 
+    ? history[history.length - 1]?.weight - history[history.length - 2]?.weight 
+    : 0;
 
-        {/* Notifications Card */}
-        {notifications.length > 0 && (
-          <View style={[styles.notificationsCard, { backgroundColor: colors.warning + '15', borderColor: colors.warning }]}>
-            {notifications.slice(0, 2).map((notif, index) => (
-              <TouchableOpacity 
-                key={notif.id || index}
-                style={styles.notificationItem}
-                onPress={() => {
-                  if (notif.action_url) {
-                    if (notif.action_url === '/progress') {
-                      handleOpenModal();
-                    }
-                  }
-                }}
-              >
-                <View style={styles.notificationContent}>
-                  <Text style={[styles.notificationTitle, { color: colors.text }]}>
-                    {notif.title}
-                  </Text>
-                  <Text style={[styles.notificationMessage, { color: colors.textSecondary }]} numberOfLines={2}>
-                    {notif.message}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-
-        {/* Current Weight Card */}
-        <View style={[styles.weightCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-          <View style={styles.weightCardHeader}>
-            <Ionicons name="scale-outline" size={24} color={colors.primary} />
-            <Text style={[styles.weightCardTitle, { color: colors.textSecondary }]}>{t.progress.currentWeight}</Text>
-          </View>
-          <Text style={[styles.currentWeight, { color: colors.text }]}>
-            {currentWeight.toFixed(1)} <Text style={styles.weightUnit}>kg</Text>
-          </Text>
-          
-          {stats.total_change !== undefined && stats.total_change !== 0 && (
-            <View style={[
-              styles.changeIndicator, 
-              { backgroundColor: stats.total_change < 0 ? colors.success + '20' : colors.warning + '20' }
-            ]}>
-              <Ionicons 
-                name={stats.total_change < 0 ? 'trending-down' : 'trending-up'} 
-                size={16} 
-                color={stats.total_change < 0 ? colors.success : colors.warning} 
-              />
-              <Text style={[
-                styles.changeText, 
-                { color: stats.total_change < 0 ? colors.success : colors.warning }
-              ]}>
-                {stats.total_change > 0 ? '+' : ''}{stats.total_change.toFixed(1)} kg
-              </Text>
-            </View>
-          )}
-
-          {/* Progress to Goal */}
-          {stats.progress_percent > 0 && (
-            <View style={styles.progressToGoal}>
-              <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
-                Progresso para o objetivo
-              </Text>
-              <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { backgroundColor: colors.primary, width: `${Math.min(100, stats.progress_percent)}%` }
-                  ]} 
-                />
-              </View>
-              <Text style={[styles.progressPercent, { color: colors.primary }]}>
-                {stats.progress_percent.toFixed(0)}%
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Record Button */}
-        <TouchableOpacity
-          style={[
-            styles.recordButton,
-            { backgroundColor: canRecord ? colors.primary : colors.border }
-          ]}
-          onPress={canRecord ? handleOpenModal : undefined}
-          disabled={!canRecord}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add-circle-outline" size={20} color={canRecord ? '#fff' : colors.textTertiary} />
-          <Text style={[styles.recordButtonText, { color: canRecord ? '#fff' : colors.textTertiary }]}>
-            {canRecord 
-              ? '📝 Registrar Peso e Avaliação' 
-              : `Próximo registro em ${daysUntilNext} dia${daysUntilNext !== 1 ? 's' : ''}`}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Questionnaire Averages Card */}
-        {questionnaireAverages && (
-          <View style={[styles.questionnaireCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <Text style={[styles.chartTitle, { color: colors.text }]}>📊 Média das Avaliações</Text>
-            <View style={styles.questionnaireGrid}>
-              {QUESTIONNAIRE_CATEGORIES.map(cat => (
-                <View key={cat.key} style={styles.questionnaireItem}>
-                  <Text style={styles.questionnaireEmoji}>{cat.emoji}</Text>
-                  <Text style={[styles.questionnaireItemLabel, { color: colors.textSecondary }]}>
-                    {cat.label}
-                  </Text>
-                  <Text style={[
-                    styles.questionnaireItemValue, 
-                    { color: getScoreColor(questionnaireAverages[cat.key]) }
-                  ]}>
-                    {questionnaireAverages[cat.key].toFixed(1)}
-                  </Text>
-                </View>
-              ))}
-              <View style={styles.questionnaireItem}>
-                <Text style={styles.questionnaireEmoji}>⭐</Text>
-                <Text style={[styles.questionnaireItemLabel, { color: colors.textSecondary }]}>
-                  Geral
-                </Text>
-                <Text style={[
-                  styles.questionnaireItemValue, 
-                  { color: getScoreColor(questionnaireAverages.overall) }
-                ]}>
-                  {questionnaireAverages.overall.toFixed(1)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* Chart */}
-        {history.length > 0 ? (
-          <View style={[styles.chartCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <Text style={[styles.chartTitle, { color: colors.text }]}>{t.progress.evolution}</Text>
-            <WeightChart data={history} colors={colors} />
-          </View>
-        ) : (
-          <View style={[styles.emptyChart, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <Ionicons name="analytics-outline" size={48} color={colors.textTertiary} />
-            <Text style={[styles.emptyChartText, { color: colors.textSecondary }]}>
-              {t.progress.noRecords}
-            </Text>
-            <Text style={[styles.emptyChartSubtext, { color: colors.textTertiary }]}>
-              Registre seu peso para ver a evolução
-            </Text>
-          </View>
-        )}
-
-        {/* History List */}
-        {history.length > 0 && (
-          <View style={styles.historySection}>
-            <Text style={[styles.historyTitle, { color: colors.text }]}>{t.progress.weightHistory}</Text>
-            {history.slice().reverse().slice(0, 10).map((record: any, index: number) => (
-              <View 
-                key={record.id} 
-                style={[styles.historyItem, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}
-              >
-                <View style={styles.historyItemLeft}>
-                  <View style={styles.historyWeightRow}>
-                    <Text style={[styles.historyWeight, { color: colors.text }]}>
-                      {record.weight.toFixed(1)} kg
-                    </Text>
-                    {record.questionnaire_average && (
-                      <View style={[styles.historyScoreBadge, { backgroundColor: getScoreColor(record.questionnaire_average) + '20' }]}>
-                        <Text style={[styles.historyScoreText, { color: getScoreColor(record.questionnaire_average) }]}>
-                          ⭐ {record.questionnaire_average.toFixed(1)}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={[styles.historyDate, { color: colors.textSecondary }]}>
-                    {formatDate(record.recorded_at)}
-                  </Text>
-                </View>
-                {index < history.length - 1 && (
-                  <View style={styles.historyItemRight}>
-                    {(() => {
-                      const prevIndex = history.length - 2 - index;
-                      if (prevIndex < 0) return null;
-                      const prevRecord = history[prevIndex];
-                      if (!prevRecord) return null;
-                      const diff = record.weight - prevRecord.weight;
-                      return (
-                        <View style={[
-                          styles.historyDiff,
-                          { backgroundColor: diff <= 0 ? colors.success + '20' : colors.warning + '20' }
-                        ]}>
-                          <Text style={[
-                            styles.historyDiffText,
-                            { color: diff <= 0 ? colors.success : colors.warning }
-                          ]}>
-                            {diff > 0 ? '+' : ''}{diff.toFixed(1)}
-                          </Text>
-                        </View>
-                      );
-                    })()}
-                  </View>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Info Box */}
-        <View style={[styles.infoBox, { backgroundColor: colors.primary + '10' }]}>
-          <Ionicons name="information-circle-outline" size={20} color={colors.primary} />
-          <Text style={[styles.infoBoxText, { color: colors.text }]}>
-            Registre seu peso a cada 2 semanas para acompanhar seu progresso. O questionário ajuda a identificar o que pode ser melhorado.
-          </Text>
-        </View>
-      </ScrollView>
-
-      {/* Record Weight Modal */}
-      <Modal
-        visible={showModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-            {modalStep === 'weight' ? (
-              <>
-                {/* Step 1: Weight */}
-                <View style={styles.modalHeader}>
-                  <Text style={[styles.modalTitle, { color: colors.text }]}>📝 Registrar Peso</Text>
-                  <TouchableOpacity onPress={() => setShowModal(false)}>
-                    <Ionicons name="close" size={24} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>
-                  Qual seu peso atual?
-                </Text>
-                
-                <View style={[styles.inputContainer, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-                  <TextInput
-                    style={[styles.input, { color: colors.text }]}
-                    value={newWeight}
-                    onChangeText={setNewWeight}
-                    placeholder={currentWeight.toFixed(1)}
-                    placeholderTextColor={colors.textTertiary}
-                    keyboardType="decimal-pad"
-                    autoFocus
-                  />
-                  <Text style={[styles.inputUnit, { color: colors.textSecondary }]}>kg</Text>
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: colors.primary }, !newWeight && { opacity: 0.5 }]}
-                  onPress={handleWeightNext}
-                  disabled={!newWeight}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.saveButtonText}>Próximo →</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <>
-                {/* Step 2: Questionnaire */}
-                <View style={styles.modalHeader}>
-                  <TouchableOpacity onPress={() => setModalStep('weight')}>
-                    <Ionicons name="arrow-back" size={24} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                  <Text style={[styles.modalTitle, { color: colors.text }]}>📊 Avaliação Semanal</Text>
-                  <TouchableOpacity onPress={() => setShowModal(false)}>
-                    <Ionicons name="close" size={24} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                </View>
-
-                <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
-                  Avalie de 0 a 10 como foi sua semana:
-                </Text>
-
-                <ScrollView style={styles.questionnaireScroll} showsVerticalScrollIndicator={false}>
-                  {QUESTIONNAIRE_CATEGORIES.map(cat => (
-                    <View key={cat.key} style={styles.sliderContainer}>
-                      <View style={styles.sliderHeader}>
-                        <Text style={styles.sliderEmoji}>{cat.emoji}</Text>
-                        <Text style={[styles.sliderLabel, { color: colors.text }]}>{cat.label}</Text>
-                        <Text style={[
-                          styles.sliderValue, 
-                          { color: getScoreColor(questionnaire[cat.key as keyof typeof questionnaire]) }
-                        ]}>
-                          {questionnaire[cat.key as keyof typeof questionnaire]}
-                        </Text>
-                      </View>
-                      <Slider
-                        style={styles.slider}
-                        minimumValue={0}
-                        maximumValue={10}
-                        step={1}
-                        value={questionnaire[cat.key as keyof typeof questionnaire]}
-                        onValueChange={(value) => updateQuestionnaireValue(cat.key, value)}
-                        minimumTrackTintColor={colors.primary}
-                        maximumTrackTintColor={colors.border}
-                        thumbTintColor={colors.primary}
-                      />
-                      <View style={styles.sliderLabels}>
-                        <Text style={[styles.sliderMinMax, { color: colors.textTertiary }]}>Péssimo</Text>
-                        <Text style={[styles.sliderMinMax, { color: colors.textTertiary }]}>Excelente</Text>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-
-                {/* Summary */}
-                <View style={[styles.summaryBox, { backgroundColor: colors.backgroundCard }]}>
-                  <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
-                    Peso: <Text style={{ color: colors.text, fontWeight: '700' }}>{newWeight} kg</Text>
-                  </Text>
-                  <Text style={[styles.summaryText, { color: colors.textSecondary }]}>
-                    Média: <Text style={[{ fontWeight: '700' }, { color: getScoreColor(
-                      (questionnaire.diet + questionnaire.training + questionnaire.cardio + questionnaire.sleep + questionnaire.hydration) / 5
-                    ) }]}>
-                      {((questionnaire.diet + questionnaire.training + questionnaire.cardio + questionnaire.sleep + questionnaire.hydration) / 5).toFixed(1)}
-                    </Text>
-                  </Text>
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: colors.primary }, saving && { opacity: 0.7 }]}
-                  onPress={handleRecordWeight}
-                  disabled={saving}
-                  activeOpacity={0.8}
-                >
-                  {saving ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text style={styles.saveButtonText}>✓ Salvar Registro</Text>
-                  )}
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
-
-      {/* Toast notification */}
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        onHide={hideToast}
-      />
-    </SafeAreaView>
-  );
-}
-
-// Simple Weight Chart Component
-function WeightChart({ data, colors }: { data: any[], colors: any }) {
-  if (data.length < 2) {
+  if (loading) {
     return (
-      <View style={{ height: 150, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: colors.textSecondary }}>Mínimo 2 registros para o gráfico</Text>
-      </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <ProgressSkeleton />
+      </SafeAreaView>
     );
   }
 
-  const chartWidth = SCREEN_WIDTH - 64;
-  const chartHeight = 150;
-  const padding = { top: 20, bottom: 30, left: 40, right: 20 };
-  const graphWidth = chartWidth - padding.left - padding.right;
-  const graphHeight = chartHeight - padding.top - padding.bottom;
-
-  const weights = data.map(d => d.weight);
-  const minWeight = Math.min(...weights) - 1;
-  const maxWeight = Math.max(...weights) + 1;
-  const weightRange = maxWeight - minWeight;
-
-  const getX = (index: number) => padding.left + (index / (data.length - 1)) * graphWidth;
-  const getY = (weight: number) => padding.top + ((maxWeight - weight) / weightRange) * graphHeight;
-
-  // Create path
-  let pathD = `M ${getX(0)} ${getY(data[0].weight)}`;
-  for (let i = 1; i < data.length; i++) {
-    pathD += ` L ${getX(i)} ${getY(data[i].weight)}`;
-  }
-
   return (
-    <Svg width={chartWidth} height={chartHeight}>
-      {/* Grid lines */}
-      {[0, 0.5, 1].map((ratio, i) => {
-        const y = padding.top + ratio * graphHeight;
-        const weight = maxWeight - ratio * weightRange;
-        return (
-          <React.Fragment key={i}>
-            <Line
-              x1={padding.left}
-              y1={y}
-              x2={chartWidth - padding.right}
-              y2={y}
-              stroke={colors.border}
-              strokeWidth={1}
-              strokeDasharray="4,4"
-            />
-            <SvgText
-              x={padding.left - 5}
-              y={y + 4}
-              fill={colors.textTertiary}
-              fontSize={10}
-              textAnchor="end"
-            >
-              {weight.toFixed(0)}
-            </SvgText>
-          </React.Fragment>
-        );
-      })}
-
-      {/* Line */}
-      <Path
-        d={pathD}
-        stroke={colors.primary}
-        strokeWidth={2}
-        fill="none"
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <LinearGradient
+        colors={isDark
+          ? ['rgba(16, 185, 129, 0.05)', 'transparent', 'rgba(59, 130, 246, 0.03)']
+          : ['rgba(16, 185, 129, 0.08)', 'transparent', 'rgba(59, 130, 246, 0.05)']
+        }
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
       />
 
-      {/* Points */}
-      {data.map((d, i) => (
-        <Circle
-          key={i}
-          cx={getX(i)}
-          cy={getY(d.weight)}
-          r={4}
-          fill={colors.primary}
-        />
-      ))}
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={premiumColors.primary} />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <Animated.View entering={FadeInDown.springify()} style={styles.header}>
+            <View>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>Progresso</Text>
+              <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
+                Acompanhe sua evolução
+              </Text>
+            </View>
+          </Animated.View>
 
-      {/* Date labels */}
-      {data.length <= 5 ? (
-        data.map((d, i) => (
-          <SvgText
-            key={i}
-            x={getX(i)}
-            y={chartHeight - 5}
-            fill={colors.textTertiary}
-            fontSize={9}
-            textAnchor="middle"
-          >
-            {formatShortDate(d.recorded_at)}
-          </SvgText>
-        ))
-      ) : (
-        [0, data.length - 1].map((i) => (
-          <SvgText
-            key={i}
-            x={getX(i)}
-            y={chartHeight - 5}
-            fill={colors.textTertiary}
-            fontSize={9}
-            textAnchor="middle"
-          >
-            {formatShortDate(data[i].recorded_at)}
-          </SvgText>
-        ))
-      )}
-    </Svg>
+          {/* Current Weight Card */}
+          <Animated.View entering={FadeInDown.delay(100).springify()}>
+            <GlassCard isDark={isDark} style={styles.weightCard}>
+              <LinearGradient
+                colors={[premiumColors.gradient.start + '10', premiumColors.gradient.end + '10']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={StyleSheet.absoluteFill}
+              />
+              <View style={styles.weightHeader}>
+                <View style={[styles.weightIconBg, { backgroundColor: premiumColors.primary + '20' }]}>
+                  <Scale size={24} color={premiumColors.primary} strokeWidth={2.5} />
+                </View>
+                <Text style={[styles.weightLabel, { color: theme.textSecondary }]}>Peso Atual</Text>
+              </View>
+              <View style={styles.weightValueRow}>
+                <Text style={[styles.weightValue, { color: theme.text }]}>
+                  {currentWeight.toFixed(1)}
+                </Text>
+                <Text style={[styles.weightUnit, { color: theme.textTertiary }]}>kg</Text>
+                {weightChange !== 0 && (
+                  <View style={[styles.weightChangeBadge, { backgroundColor: weightChange < 0 ? '#10B98120' : '#EF444420' }]}>
+                    {weightChange < 0 ? (
+                      <TrendingDown size={16} color="#10B981" />
+                    ) : (
+                      <TrendingUp size={16} color="#EF4444" />
+                    )}
+                    <Text style={[styles.weightChangeText, { color: weightChange < 0 ? '#10B981' : '#EF4444' }]}>
+                      {Math.abs(weightChange).toFixed(1)}kg
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Add Weight Button */}
+              {canRecord ? (
+                <TouchableOpacity onPress={() => setShowWeightModal(true)}>
+                  <LinearGradient
+                    colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.addWeightButton}
+                  >
+                    <Plus size={20} color="#FFF" />
+                    <Text style={styles.addWeightButtonText}>Registrar Peso</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ) : (
+                <View style={[styles.blockedBanner, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}>
+                  <Clock size={18} color={theme.textTertiary} />
+                  <Text style={[styles.blockedText, { color: theme.textSecondary }]}>
+                    Próximo registro em {daysUntilNext} dias
+                  </Text>
+                </View>
+              )}
+            </GlassCard>
+          </Animated.View>
+
+          {/* Stats Cards */}
+          <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.statsRow}>
+            <GlassCard isDark={isDark} style={styles.statCard}>
+              <Target size={20} color="#3B82F6" />
+              <Text style={[styles.statValue, { color: theme.text }]}>
+                {stats.total_change ? `${stats.total_change > 0 ? '+' : ''}${stats.total_change.toFixed(1)}` : '0'}kg
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Total</Text>
+            </GlassCard>
+            <GlassCard isDark={isDark} style={styles.statCard}>
+              <Calendar size={20} color="#F59E0B" />
+              <Text style={[styles.statValue, { color: theme.text }]}>
+                {history.length}
+              </Text>
+              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Registros</Text>
+            </GlassCard>
+          </Animated.View>
+
+          {/* History */}
+          <Animated.View entering={FadeInDown.delay(300).springify()}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Histórico</Text>
+            <GlassCard isDark={isDark} style={styles.historyCard}>
+              {history.length === 0 ? (
+                <View style={styles.emptyHistory}>
+                  <Scale size={40} color={theme.textTertiary} />
+                  <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+                    Nenhum registro ainda
+                  </Text>
+                </View>
+              ) : (
+                history.slice(-10).reverse().map((record: any, index: number) => (
+                  <View key={index} style={[styles.historyItem, { borderBottomColor: theme.border }]}>
+                    <View style={styles.historyDate}>
+                      <Calendar size={14} color={theme.textTertiary} />
+                      <Text style={[styles.historyDateText, { color: theme.textSecondary }]}>
+                        {new Date(record.recorded_at).toLocaleDateString('pt-BR')}
+                      </Text>
+                    </View>
+                    <Text style={[styles.historyWeight, { color: theme.text }]}>
+                      {record.weight?.toFixed(1)}kg
+                    </Text>
+                  </View>
+                ))
+              )}
+            </GlassCard>
+          </Animated.View>
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </SafeAreaView>
+
+      {/* Weight Modal */}
+      <Modal visible={showWeightModal} transparent animationType="slide">
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}
+        >
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundCardSolid }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Registrar Peso</Text>
+              <TouchableOpacity onPress={() => setShowWeightModal(false)}>
+                <X size={24} color={theme.text} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.weightInputContainer}>
+              <TextInput
+                style={[styles.weightInput, { color: theme.text, borderColor: theme.border }]}
+                value={newWeight}
+                onChangeText={setNewWeight}
+                keyboardType="decimal-pad"
+                placeholder="0.0"
+                placeholderTextColor={theme.textTertiary}
+                autoFocus
+              />
+              <Text style={[styles.weightInputUnit, { color: theme.textSecondary }]}>kg</Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleSaveWeight}
+              disabled={!newWeight || saving}
+            >
+              <LinearGradient
+                colors={!newWeight ? ['#9CA3AF', '#6B7280'] : [premiumColors.gradient.start, premiumColors.gradient.end]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.saveButton}
+              >
+                <Check size={20} color="#FFF" />
+                <Text style={styles.saveButtonText}>
+                  {saving ? 'Salvando...' : 'Salvar'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+    </View>
   );
 }
 
-// Helper functions
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function formatShortDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-}
-
-const createStyles = (colors: any) => StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1 },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  content: { padding: 16, paddingBottom: 32 },
-  header: { marginBottom: 16 },
-  headerTitle: { fontSize: 28, fontWeight: '700' },
+  safeArea: { flex: 1 },
+  scrollContent: { padding: spacing.lg, gap: spacing.lg },
+
+  header: { marginBottom: spacing.sm },
+  headerTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
   headerSubtitle: { fontSize: 14, marginTop: 4 },
-  
-  // Notifications Card
-  notificationsCard: { 
-    padding: 12, 
-    borderRadius: 12, 
-    borderWidth: 1, 
-    marginBottom: 16 
-  },
-  notificationItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 8 
-  },
-  notificationContent: { flex: 1 },
-  notificationTitle: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
-  notificationMessage: { fontSize: 12, lineHeight: 16 },
-  
-  // Weight Card
-  weightCard: { padding: 20, borderRadius: 16, borderWidth: 1, marginBottom: 16 },
-  weightCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  weightCardTitle: { fontSize: 14, fontWeight: '500' },
-  currentWeight: { fontSize: 48, fontWeight: '700' },
-  weightUnit: { fontSize: 24, fontWeight: '400' },
-  changeIndicator: { flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, marginTop: 12 },
-  changeText: { fontSize: 13, fontWeight: '600' },
-  
-  // Progress to Goal
-  progressToGoal: { marginTop: 16 },
-  progressLabel: { fontSize: 12, marginBottom: 6 },
-  progressBar: { height: 8, borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 4 },
-  progressPercent: { fontSize: 12, fontWeight: '600', marginTop: 4, textAlign: 'right' },
-  
-  // Record Button
-  recordButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14, borderRadius: 12, marginBottom: 20 },
-  recordButtonText: { fontSize: 16, fontWeight: '600' },
-  
-  // Questionnaire Card
-  questionnaireCard: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 20 },
-  questionnaireGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 12 },
-  questionnaireItem: { width: '30%', alignItems: 'center', padding: 12, borderRadius: 12, backgroundColor: 'rgba(0,0,0,0.03)' },
-  questionnaireEmoji: { fontSize: 24, marginBottom: 4 },
-  questionnaireItemLabel: { fontSize: 11, marginBottom: 2 },
-  questionnaireItemValue: { fontSize: 18, fontWeight: '700' },
-  
-  // Chart
-  chartCard: { padding: 16, borderRadius: 16, borderWidth: 1, marginBottom: 20 },
-  chartTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
-  emptyChart: { padding: 32, borderRadius: 16, borderWidth: 1, alignItems: 'center', marginBottom: 20 },
-  emptyChartText: { fontSize: 16, fontWeight: '500', marginTop: 12 },
-  emptyChartSubtext: { fontSize: 13, textAlign: 'center', marginTop: 8, lineHeight: 18 },
-  
-  // History
-  historySection: { marginBottom: 20 },
-  historyTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
-  historyItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 8 },
-  historyItemLeft: { flex: 1 },
-  historyWeightRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  historyWeight: { fontSize: 18, fontWeight: '600' },
-  historyScoreBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 },
-  historyScoreText: { fontSize: 11, fontWeight: '600' },
-  historyDate: { fontSize: 13, marginTop: 2 },
-  historyItemRight: {},
-  historyDiff: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
-  historyDiffText: { fontSize: 13, fontWeight: '600' },
-  
-  // Info Box
-  infoBox: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 16, borderRadius: 12 },
-  infoBoxText: { flex: 1, fontSize: 13, lineHeight: 18 },
-  
-  // Modal styles
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '85%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
+
+  weightCard: { padding: spacing.lg },
+  weightHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.md },
+  weightIconBg: { width: 48, height: 48, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center' },
+  weightLabel: { fontSize: 14, fontWeight: '600' },
+  weightValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm, marginBottom: spacing.lg },
+  weightValue: { fontSize: 56, fontWeight: '800', letterSpacing: -2 },
+  weightUnit: { fontSize: 24, fontWeight: '600' },
+  weightChangeBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.full, marginLeft: spacing.sm },
+  weightChangeText: { fontSize: 14, fontWeight: '700' },
+  addWeightButton: { height: 52, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  addWeightButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  blockedBanner: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, padding: spacing.md, borderRadius: radius.lg },
+  blockedText: { fontSize: 14, fontWeight: '600' },
+
+  statsRow: { flexDirection: 'row', gap: spacing.md },
+  statCard: { flex: 1, padding: spacing.base, alignItems: 'center', gap: spacing.xs },
+  statValue: { fontSize: 24, fontWeight: '800' },
+  statLabel: { fontSize: 12, fontWeight: '600' },
+
+  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: spacing.sm },
+  historyCard: { padding: spacing.base },
+  emptyHistory: { alignItems: 'center', padding: spacing.xl, gap: spacing.md },
+  emptyText: { fontSize: 14 },
+  historyItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1 },
+  historyDate: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  historyDateText: { fontSize: 14 },
+  historyWeight: { fontSize: 16, fontWeight: '700' },
+
+  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
+  modalContent: { borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'], padding: spacing.lg },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xl },
   modalTitle: { fontSize: 20, fontWeight: '700' },
-  modalSubtitle: { fontSize: 14, marginBottom: 16 },
-  modalLabel: { fontSize: 14, marginBottom: 8 },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, paddingHorizontal: 16, height: 60, marginBottom: 24 },
-  input: { flex: 1, fontSize: 24, fontWeight: '600' },
-  inputUnit: { fontSize: 18 },
-  saveButton: { paddingVertical: 16, borderRadius: 12, alignItems: 'center' },
-  saveButtonText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  
-  // Questionnaire Modal
-  questionnaireScroll: { maxHeight: 350 },
-  sliderContainer: { marginBottom: 20 },
-  sliderHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  sliderEmoji: { fontSize: 24, marginRight: 8 },
-  sliderLabel: { flex: 1, fontSize: 16, fontWeight: '600' },
-  sliderValue: { fontSize: 24, fontWeight: '700', minWidth: 40, textAlign: 'right' },
-  slider: { width: '100%', height: 40 },
-  sliderLabels: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -8 },
-  sliderMinMax: { fontSize: 11 },
-  
-  // Summary Box
-  summaryBox: { flexDirection: 'row', justifyContent: 'space-around', padding: 12, borderRadius: 12, marginBottom: 16 },
-  summaryText: { fontSize: 14 },
+  weightInputContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md, marginBottom: spacing.xl },
+  weightInput: { fontSize: 48, fontWeight: '800', textAlign: 'center', width: 150, borderBottomWidth: 2, paddingVertical: spacing.sm },
+  weightInputUnit: { fontSize: 24, fontWeight: '600' },
+  saveButton: { height: 52, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  saveButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
