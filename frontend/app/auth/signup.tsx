@@ -153,37 +153,7 @@ export default function SignupScreen() {
     }
   };
 
-  const InputField = ({ icon: Icon, label, value, onChangeText, placeholder, secureTextEntry, field, showToggle }: any) => (
-    <View style={styles.inputGroup}>
-      <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
-      <View style={[
-        styles.inputContainer,
-        {
-          backgroundColor: theme.input.background,
-          borderColor: focusedField === field ? premiumColors.primary : theme.input.border,
-        }
-      ]}>
-        <Icon size={20} color={focusedField === field ? premiumColors.primary : theme.textTertiary} />
-        <TextInput
-          style={[styles.input, { color: theme.text }]}
-          placeholder={placeholder}
-          placeholderTextColor={theme.input.placeholder}
-          value={value}
-          onChangeText={onChangeText}
-          onFocus={() => setFocusedField(field)}
-          onBlur={() => setFocusedField(null)}
-          secureTextEntry={secureTextEntry && !showPassword}
-          autoCapitalize={field === 'email' ? 'none' : field === 'name' ? 'words' : 'none'}
-          keyboardType={field === 'email' ? 'email-address' : 'default'}
-        />
-        {showToggle && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            {showPassword ? <EyeOff size={20} color={theme.textTertiary} /> : <Eye size={20} color={theme.textTertiary} />}
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
+  // InputField component is defined at the top of the file
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
