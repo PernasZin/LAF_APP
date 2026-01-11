@@ -1,119 +1,147 @@
+/**
+ * Premium Physical Data Step
+ */
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { translations, SupportedLanguage } from '../../../i18n/translations';
+import { Ruler, Scale, Target, Percent } from 'lucide-react-native';
+import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
-  data: any;
-  updateData: (data: any) => void;
-  language: SupportedLanguage;
+  formData: any;
+  updateFormData: (data: any) => void;
+  theme: any;
+  isDark: boolean;
 }
 
-export default function PhysicalDataStep({ data, updateData, language }: Props) {
-  const t = translations[language].onboarding;
-  
+const GlassCard = ({ children, style, isDark }: any) => (
+  <View style={[
+    {
+      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(255, 255, 255, 0.5)',
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+    },
+    style
+  ]}>
+    {children}
+  </View>
+);
+
+const InputField = ({ icon: Icon, label, value, onChangeText, placeholder, unit, theme }: any) => (
+  <View style={styles.inputGroup}>
+    <View style={styles.labelRow}>
+      <Icon size={18} color={premiumColors.primary} />
+      <Text style={[styles.label, { color: theme.textSecondary }]}>{label}</Text>
+    </View>
+    <View style={styles.inputWrapper}>
+      <TextInput
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.input.background,
+            borderColor: theme.input.border,
+            color: theme.text,
+          }
+        ]}
+        placeholder={placeholder}
+        placeholderTextColor={theme.input.placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        keyboardType="numeric"
+      />
+      {unit && (
+        <View style={[styles.unitBadge, { backgroundColor: `${premiumColors.primary}15` }]}>
+          <Text style={[styles.unitText, { color: premiumColors.primary }]}>{unit}</Text>
+        </View>
+      )}
+    </View>
+  </View>
+);
+
+export default function PhysicalDataStep({ formData, updateFormData, theme, isDark }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t.physicalDataTitle}</Text>
-      <Text style={styles.description}>
-        {t.physicalDataDesc}
-      </Text>
-
-      {/* Altura */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.height}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.heightPlaceholder}
-          value={data.height}
-          onChangeText={(text) => updateData({ height: text })}
-          keyboardType="numeric"
-          placeholderTextColor="#9CA3AF"
+      <GlassCard isDark={isDark} style={styles.card}>
+        <InputField
+          icon={Ruler}
+          label="Altura"
+          value={formData.height}
+          onChangeText={(text: string) => updateFormData({ height: text })}
+          placeholder="170"
+          unit="cm"
+          theme={theme}
         />
-      </View>
 
-      {/* Peso Atual */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.currentWeight}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.currentWeightPlaceholder}
-          value={data.weight}
-          onChangeText={(text) => updateData({ weight: text })}
-          keyboardType="numeric"
-          placeholderTextColor="#9CA3AF"
+        <InputField
+          icon={Scale}
+          label="Peso Atual"
+          value={formData.weight}
+          onChangeText={(text: string) => updateFormData({ weight: text })}
+          placeholder="70"
+          unit="kg"
+          theme={theme}
         />
-      </View>
 
-      {/* Peso Meta */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.targetWeight}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.targetWeightPlaceholder}
-          value={data.target_weight}
-          onChangeText={(text) => updateData({ target_weight: text })}
-          keyboardType="numeric"
-          placeholderTextColor="#9CA3AF"
+        <InputField
+          icon={Target}
+          label="Peso Desejado (opcional)"
+          value={formData.target_weight}
+          onChangeText={(text: string) => updateFormData({ target_weight: text })}
+          placeholder="65"
+          unit="kg"
+          theme={theme}
         />
-      </View>
 
-      {/* Percentual de Gordura */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.bodyFatPercentage}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.bodyFatPlaceholder}
-          value={data.body_fat_percentage}
-          onChangeText={(text) => updateData({ body_fat_percentage: text })}
-          keyboardType="numeric"
-          placeholderTextColor="#9CA3AF"
+        <InputField
+          icon={Percent}
+          label="Gordura Corporal (opcional)"
+          value={formData.body_fat_percentage}
+          onChangeText={(text: string) => updateFormData({ body_fat_percentage: text })}
+          placeholder="20"
+          unit="%"
+          theme={theme}
         />
-        <Text style={styles.hint}>
-          {t.bodyFatHint}
-        </Text>
-      </View>
+      </GlassCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  inputGroup: {
-    marginBottom: 24,
+  container: { paddingTop: spacing.lg },
+  card: { marginBottom: spacing.lg },
+  inputGroup: { marginBottom: spacing.lg },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   input: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    flex: 1,
+    height: 52,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.base,
     fontSize: 16,
-    color: '#000000',
+    fontWeight: '500',
   },
-  hint: {
+  unitBadge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+  },
+  unitText: {
     fontSize: 14,
-    color: '#9CA3AF',
-    marginTop: 4,
+    fontWeight: '700',
   },
 });

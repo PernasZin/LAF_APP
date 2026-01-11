@@ -1,193 +1,126 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { translations, SupportedLanguage } from '../../../i18n/translations';
+/**
+ * Premium Meal Config Step
+ */
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Utensils, Plus, Minus, Clock } from 'lucide-react-native';
+import { premiumColors, radius, spacing } from '../../../theme/premium';
 
-interface MealConfigStepProps {
-  data: any;
-  updateData: (data: any) => void;
-  language: SupportedLanguage;
+interface Props {
+  formData: any;
+  updateFormData: (data: any) => void;
+  theme: any;
+  isDark: boolean;
 }
 
-const DEFAULT_MEAL_TIMES: Record<number, string[]> = {
-  4: ['07:00', '12:00', '16:00', '20:00'],
-  5: ['07:00', '10:00', '13:00', '16:00', '20:00'],
-  6: ['07:00', '10:00', '13:00', '16:00', '19:00', '22:00'],
+const MEAL_PRESETS: Record<number, { name: string; time: string }[]> = {
+  3: [
+    { name: 'Café da Manhã', time: '07:00' },
+    { name: 'Almoço', time: '12:00' },
+    { name: 'Jantar', time: '19:00' },
+  ],
+  4: [
+    { name: 'Café da Manhã', time: '07:00' },
+    { name: 'Almoço', time: '12:00' },
+    { name: 'Lanche Tarde', time: '16:00' },
+    { name: 'Jantar', time: '20:00' },
+  ],
+  5: [
+    { name: 'Café da Manhã', time: '07:00' },
+    { name: 'Lanche Manhã', time: '10:00' },
+    { name: 'Almoço', time: '12:30' },
+    { name: 'Lanche Tarde', time: '16:00' },
+    { name: 'Jantar', time: '19:30' },
+  ],
+  6: [
+    { name: 'Café da Manhã', time: '07:00' },
+    { name: 'Lanche Manhã', time: '10:00' },
+    { name: 'Almoço', time: '12:30' },
+    { name: 'Lanche Tarde', time: '16:00' },
+    { name: 'Jantar', time: '19:30' },
+    { name: 'Ceia', time: '21:30' },
+  ],
 };
 
-const MEAL_NAMES_PT: Record<number, string[]> = {
-  4: ['Café da Manhã', 'Almoço', 'Lanche Tarde', 'Jantar'],
-  5: ['Café da Manhã', 'Lanche Manhã', 'Almoço', 'Lanche Tarde', 'Jantar'],
-  6: ['Café da Manhã', 'Lanche Manhã', 'Almoço', 'Lanche Tarde', 'Jantar', 'Ceia'],
-};
+export default function MealConfigStep({ formData, updateFormData, theme, isDark }: Props) {
+  const mealCount = formData.meal_count || 5;
+  const meals = MEAL_PRESETS[mealCount] || MEAL_PRESETS[5];
 
-const MEAL_NAMES_EN: Record<number, string[]> = {
-  4: ['Breakfast', 'Lunch', 'Afternoon Snack', 'Dinner'],
-  5: ['Breakfast', 'Morning Snack', 'Lunch', 'Afternoon Snack', 'Dinner'],
-  6: ['Breakfast', 'Morning Snack', 'Lunch', 'Afternoon Snack', 'Dinner', 'Supper'],
-};
-
-const MEAL_NAMES_ES: Record<number, string[]> = {
-  4: ['Desayuno', 'Almuerzo', 'Merienda', 'Cena'],
-  5: ['Desayuno', 'Snack Mañana', 'Almuerzo', 'Merienda', 'Cena'],
-  6: ['Desayuno', 'Snack Mañana', 'Almuerzo', 'Merienda', 'Cena', 'Colación'],
-};
-
-export default function MealConfigStep({ data, updateData, language }: MealConfigStepProps) {
-  const [mealCount, setMealCount] = useState<number>(data.meal_count || 5);
-  const [mealTimes, setMealTimes] = useState<string[]>(
-    data.meal_times || DEFAULT_MEAL_TIMES[5]
-  );
-
-  const t = translations[language];
-
-  const getMealNames = (count: number) => {
-    if (language === 'en-US') return MEAL_NAMES_EN[count];
-    if (language === 'es-ES') return MEAL_NAMES_ES[count];
-    return MEAL_NAMES_PT[count];
-  };
-
-  const handleMealCountChange = (count: number) => {
-    setMealCount(count);
-    setMealTimes(DEFAULT_MEAL_TIMES[count]);
-    updateData({
-      meal_count: count,
-      meal_times: DEFAULT_MEAL_TIMES[count],
+  const handleMealCountChange = (delta: number) => {
+    const newCount = Math.max(3, Math.min(6, mealCount + delta));
+    const newMeals = MEAL_PRESETS[newCount];
+    updateFormData({
+      meal_count: newCount,
+      meal_times: newMeals.map(m => m.time),
     });
   };
 
-  useEffect(() => {
-    // Inicializa com valores padrão se não existirem
-    if (!data.meal_count) {
-      updateData({
-        meal_count: 5,
-        meal_times: DEFAULT_MEAL_TIMES[5],
-      });
-    }
-  }, []);
-
-  const getTitle = () => {
-    if (language === 'en-US') return 'Meal Plan';
-    if (language === 'es-ES') return 'Plan de Comidas';
-    return 'Plano de Refeições';
-  };
-
-  const getSubtitle = () => {
-    if (language === 'en-US') return 'How many meals do you prefer per day?';
-    if (language === 'es-ES') return '¿Cuántas comidas prefieres al día?';
-    return 'Quantas refeições você prefere fazer por dia?';
-  };
-
-  const getDescription = () => {
-    if (language === 'en-US') return 'Your diet will be divided into the selected number of meals';
-    if (language === 'es-ES') return 'Tu dieta se dividirá en el número de comidas seleccionadas';
-    return 'Sua dieta será dividida no número de refeições selecionadas';
-  };
-
-  const getMealLabel = (count: number) => {
-    if (language === 'en-US') return `${count} meals`;
-    if (language === 'es-ES') return `${count} comidas`;
-    return `${count} refeições`;
-  };
-
-  const getMealDescription = (count: number) => {
-    const descriptions: Record<number, Record<string, string>> = {
-      4: {
-        'pt-BR': 'Ideal para quem tem uma rotina mais corrida',
-        'en-US': 'Ideal for those with a busy routine',
-        'es-ES': 'Ideal para quienes tienen una rutina agitada',
-      },
-      5: {
-        'pt-BR': 'Padrão recomendado para a maioria',
-        'en-US': 'Recommended standard for most people',
-        'es-ES': 'Estándar recomendado para la mayoría',
-      },
-      6: {
-        'pt-BR': 'Melhor para atletas e ganho de massa',
-        'en-US': 'Best for athletes and muscle gain',
-        'es-ES': 'Mejor para atletas y ganancia muscular',
-      },
-    };
-    return descriptions[count][language] || descriptions[count]['pt-BR'];
-  };
-
-  const getPreviewTitle = () => {
-    if (language === 'en-US') return 'Your meal schedule:';
-    if (language === 'es-ES') return 'Tu horario de comidas:';
-    return 'Seu horário de refeições:';
-  };
-
-  const mealNames = getMealNames(mealCount);
-
   return (
     <View style={styles.container}>
-      {/* Title */}
-      <Text style={styles.title}>{getTitle()}</Text>
-      <Text style={styles.subtitle}>{getSubtitle()}</Text>
-
-      {/* Meal Count Options */}
-      <View style={styles.optionsContainer}>
-        {[4, 5, 6].map((count) => (
+      {/* Meal Count Selector */}
+      <View style={[
+        styles.countCard,
+        {
+          backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+          borderColor: theme.border,
+        }
+      ]}>
+        <View style={styles.countHeader}>
+          <Utensils size={20} color={premiumColors.primary} />
+          <Text style={[styles.countLabel, { color: theme.text }]}>Refeições por dia</Text>
+        </View>
+        
+        <View style={styles.countControls}>
           <TouchableOpacity
-            key={count}
             style={[
-              styles.option,
-              mealCount === count && styles.optionSelected,
+              styles.countButton,
+              { backgroundColor: theme.input.background, borderColor: theme.border }
             ]}
-            onPress={() => handleMealCountChange(count)}
+            onPress={() => handleMealCountChange(-1)}
+            disabled={mealCount <= 3}
           >
-            <View style={[
-              styles.optionNumber,
-              mealCount === count && styles.optionNumberSelected,
-            ]}>
-              <Text style={[
-                styles.optionNumberText,
-                mealCount === count && styles.optionNumberTextSelected,
-              ]}>
-                {count}
-              </Text>
-            </View>
-            <View style={styles.optionContent}>
-              <Text style={[
-                styles.optionLabel,
-                mealCount === count && styles.optionLabelSelected,
-              ]}>
-                {getMealLabel(count)}
-              </Text>
-              <Text style={[
-                styles.optionDescription,
-                mealCount === count && styles.optionDescriptionSelected,
-              ]}>
-                {getMealDescription(count)}
-              </Text>
-            </View>
-            {mealCount === count && (
-              <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-            )}
+            <Minus size={20} color={mealCount <= 3 ? theme.textTertiary : theme.text} />
           </TouchableOpacity>
-        ))}
+          
+          <View style={[styles.countDisplay, { backgroundColor: `${premiumColors.primary}15` }]}>
+            <Text style={[styles.countNumber, { color: premiumColors.primary }]}>{mealCount}</Text>
+          </View>
+          
+          <TouchableOpacity
+            style={[
+              styles.countButton,
+              { backgroundColor: theme.input.background, borderColor: theme.border }
+            ]}
+            onPress={() => handleMealCountChange(1)}
+            disabled={mealCount >= 6}
+          >
+            <Plus size={20} color={mealCount >= 6 ? theme.textTertiary : theme.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Description */}
-      <View style={styles.infoCard}>
-        <Ionicons name="information-circle" size={20} color="#3B82F6" />
-        <Text style={styles.infoText}>{getDescription()}</Text>
-      </View>
-
-      {/* Preview */}
-      <Text style={styles.previewTitle}>{getPreviewTitle()}</Text>
-      <View style={styles.previewContainer}>
-        {mealNames.map((name, index) => (
-          <View key={index} style={styles.previewItem}>
-            <View style={styles.previewIconContainer}>
-              <Ionicons 
-                name={getIconForMeal(index, mealCount)} 
-                size={18} 
-                color="#10B981" 
-              />
+      {/* Meals Preview */}
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Distribuição</Text>
+      <View style={styles.mealsContainer}>
+        {meals.map((meal, index) => (
+          <View
+            key={index}
+            style={[
+              styles.mealItem,
+              {
+                backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(255, 255, 255, 0.8)',
+                borderColor: theme.border,
+              }
+            ]}
+          >
+            <View style={[styles.mealNumber, { backgroundColor: `${premiumColors.primary}20` }]}>
+              <Text style={[styles.mealNumberText, { color: premiumColors.primary }]}>{index + 1}</Text>
             </View>
-            <Text style={styles.previewMealName}>{name}</Text>
-            <Text style={styles.previewTime}>{mealTimes[index]}</Text>
+            <Text style={[styles.mealName, { color: theme.text }]}>{meal.name}</Text>
+            <View style={styles.mealTime}>
+              <Clock size={14} color={theme.textTertiary} />
+              <Text style={[styles.mealTimeText, { color: theme.textTertiary }]}>{meal.time}</Text>
+            </View>
           </View>
         ))}
       </View>
@@ -195,137 +128,90 @@ export default function MealConfigStep({ data, updateData, language }: MealConfi
   );
 }
 
-function getIconForMeal(index: number, total: number): any {
-  if (index === 0) return 'sunny-outline'; // Café
-  if (index === total - 1 && total === 6) return 'bed-outline'; // Ceia
-  if (index === total - 1) return 'moon-outline'; // Jantar
-  if (index === Math.floor(total / 2)) return 'restaurant-outline'; // Almoço
-  return 'nutrition-outline'; // Lanches
-}
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { paddingTop: spacing.lg },
+  countCard: {
+    padding: spacing.lg,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    marginBottom: spacing.xl,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 24,
-    lineHeight: 22,
-  },
-  optionsContainer: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  option: {
+  countHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#FFFFFF',
-    gap: 14,
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
   },
-  optionSelected: {
-    borderColor: '#10B981',
-    backgroundColor: '#F0FDF4',
+  countLabel: {
+    fontSize: 16,
+    fontWeight: '600',
   },
-  optionNumber: {
+  countControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.lg,
+  },
+  countButton: {
     width: 48,
     height: 48,
-    borderRadius: 24,
-    backgroundColor: '#F3F4F6',
+    borderRadius: radius.lg,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  optionNumberSelected: {
-    backgroundColor: '#10B981',
+  countDisplay: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  optionNumberText: {
-    fontSize: 20,
+  countNumber: {
+    fontSize: 32,
     fontWeight: '800',
-    color: '#6B7280',
   },
-  optionNumberTextSelected: {
-    color: '#FFFFFF',
-  },
-  optionContent: {
-    flex: 1,
-  },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 2,
-  },
-  optionLabelSelected: {
-    color: '#059669',
-  },
-  optionDescription: {
+  sectionTitle: {
     fontSize: 13,
-    color: '#9CA3AF',
-  },
-  optionDescriptionSelected: {
-    color: '#6B7280',
-  },
-  infoCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    backgroundColor: '#EFF6FF',
-    borderRadius: 12,
-    gap: 10,
-    marginBottom: 24,
-  },
-  infoText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#1D4ED8',
-    lineHeight: 20,
-  },
-  previewTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginBottom: 12,
-    textTransform: 'uppercase',
+    fontWeight: '700',
     letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: spacing.md,
   },
-  previewContainer: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
+  mealsContainer: {
+    gap: spacing.sm,
   },
-  previewItem: {
+  mealItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    gap: spacing.md,
   },
-  previewIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: '#D1FAE5',
+  mealNumber: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  previewMealName: {
+  mealNumberText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  mealName: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '500',
-    color: '#374151',
-  },
-  previewTime: {
-    fontSize: 14,
     fontWeight: '600',
-    color: '#10B981',
+  },
+  mealTime: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  mealTimeText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 });

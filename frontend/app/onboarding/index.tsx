@@ -1,8 +1,17 @@
+/**
+ * LAF Premium Onboarding Screen
+ * ==============================
+ * Glassmorphism + Gradientes + Animações
+ */
+
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Animated, { FadeInDown, FadeInRight, FadeOutLeft } from 'react-native-reanimated';
+import { ArrowLeft, ArrowRight, Check, User, Activity, Target, Utensils, Heart, Sparkles } from 'lucide-react-native';
 
 import BasicInfoStep from './steps/BasicInfoStep';
 import PhysicalDataStep from './steps/PhysicalDataStep';
@@ -12,65 +21,58 @@ import MealConfigStep from './steps/MealConfigStep';
 import RestrictionsStep from './steps/RestrictionsStep';
 
 import { useAuthStore } from '../../stores/authStore';
-import { useSettingsStore } from '../../stores/settingsStore';
+import { useSettingsStore, LanguagePreference } from '../../stores/settingsStore';
+import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { translations, SupportedLanguage } from '../../i18n/translations';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+const STEP_ICONS = [User, Activity, Target, Target, Utensils, Heart];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
   
-  // Auth store - SINGLE SOURCE OF TRUTH
+  // Theme
+  const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const isDark = effectiveTheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
+  
+  // Auth store
   const userId = useAuthStore((s) => s.userId);
   const setProfileCompleted = useAuthStore((s) => s.setProfileCompleted);
   
-  // Language - get from settings store
+  // Language
   const language = useSettingsStore((s) => s.language) as SupportedLanguage;
-  const t = translations[language].onboarding;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
   
-  // Form data state
+  // Form data
   const [formData, setFormData] = useState({
-    // Básico
     name: '',
     age: '',
     sex: '',
-    // Físico
     height: '',
     weight: '',
     target_weight: '',
     body_fat_percentage: '',
-    // Treino
     training_level: '',
     weekly_training_frequency: '',
     available_time_per_session: '',
-    // Objetivo
     goal: '',
-    // Configuração de Refeições
     meal_count: 5,
     meal_times: ['07:00', '10:00', '13:00', '16:00', '20:00'],
-    // Restrições
     dietary_restrictions: [] as string[],
     food_preferences: [] as string[],
     injury_history: [] as string[],
   });
-  
-  console.log('🎯 OnboardingScreen - userId:', userId);
-
-  // Steps - translated titles
-  const getMealConfigTitle = () => {
-    if (language === 'en-US') return 'Meal Plan';
-    if (language === 'es-ES') return 'Plan de Comidas';
-    return 'Plano de Refeições';
-  };
 
   const steps = [
     { title: t.steps.basicInfo, component: BasicInfoStep },
     { title: t.steps.physicalData, component: PhysicalDataStep },
     { title: t.steps.trainingLevel, component: TrainingLevelStep },
     { title: t.steps.yourGoal, component: GoalStep },
-    { title: getMealConfigTitle(), component: MealConfigStep },
+    { title: 'Refeições', component: MealConfigStep },
     { title: t.steps.preferences, component: RestrictionsStep },
   ];
 
@@ -78,10 +80,6 @@ export default function OnboardingScreen() {
     setFormData({ ...formData, ...data });
   };
 
-  // Step validation keys for translation matching
-  const stepValidationKeys = ['basicInfo', 'physicalData', 'trainingLevel', 'yourGoal', 'mealConfig', 'preferences'];
-
-  // Helper function for cross-platform alerts
   const showAlert = (title: string, message: string) => {
     if (Platform.OS === 'web') {
       window.alert(`${title}\n\n${message}`);
@@ -91,75 +89,37 @@ export default function OnboardingScreen() {
   };
 
   const validateCurrentStep = () => {
-    console.log('Validating step:', currentStep, 'Data:', formData);
-    
-    const currentStepKey = stepValidationKeys[currentStep];
-    
-    switch (currentStepKey) {
-      case 'basicInfo':
+    switch (currentStep) {
+      case 0:
         if (!formData.name || !formData.age || !formData.sex) {
-          showAlert(t.requiredFields, t.fillNameAgeSex);
-          return false;
-        }
-        if (parseInt(formData.age) < 15 || parseInt(formData.age) > 100) {
-          showAlert(t.requiredFields, t.invalidAge);
+          showAlert('Campos obrigatórios', 'Preencha nome, idade e sexo');
           return false;
         }
         break;
-      
-      case 'physicalData':
+      case 1:
         if (!formData.height || !formData.weight) {
-          showAlert(t.requiredFields, t.fillHeightWeight);
-          return false;
-        }
-        if (parseFloat(formData.height) < 100 || parseFloat(formData.height) > 250) {
-          showAlert(t.requiredFields, t.invalidHeight);
-          return false;
-        }
-        if (parseFloat(formData.weight) < 30 || parseFloat(formData.weight) > 300) {
-          showAlert(t.requiredFields, t.invalidWeight);
+          showAlert('Campos obrigatórios', 'Preencha altura e peso');
           return false;
         }
         break;
-      
-      case 'trainingLevel':
-        if (!formData.training_level || !formData.weekly_training_frequency || !formData.available_time_per_session) {
-          showAlert(t.requiredFields, t.fillTrainingFields);
-          return false;
-        }
-        if (parseInt(formData.weekly_training_frequency) < 0 || parseInt(formData.weekly_training_frequency) > 7) {
-          showAlert(t.requiredFields, t.invalidFrequency);
+      case 2:
+        if (!formData.training_level) {
+          showAlert('Campo obrigatório', 'Selecione seu nível de treino');
           return false;
         }
         break;
-      
-      case 'yourGoal':
-        console.log('Validating goal step - goal:', formData.goal);
+      case 3:
         if (!formData.goal) {
-          showAlert(t.requiredFields, t.selectGoal);
+          showAlert('Campo obrigatório', 'Selecione seu objetivo');
           return false;
         }
-        break;
-      
-      case 'mealConfig':
-        // meal_count sempre tem valor padrão, não precisa validar
-        break;
-      
-      case 'preferences':
-        // Optional step
         break;
     }
-    
     return true;
   };
 
   const handleNext = () => {
-    console.log('handleNext called, current step:', currentStep);
-    
-    if (!validateCurrentStep()) {
-      return;
-    }
-    
+    if (!validateCurrentStep()) return;
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -174,241 +134,236 @@ export default function OnboardingScreen() {
   };
 
   const handleSubmit = async () => {
-    console.log('🚀 handleSubmit called');
-    
-    // CRITICAL: userId must exist from auth
-    if (!userId) {
-      Alert.alert(t.error, t.sessionExpired);
-      router.replace('/auth/login');
-      return;
-    }
-    
     setLoading(true);
-    
     try {
-      // Prepare profile data - MUST include userId
-      const profileData: any = {
-        id: userId,  // REQUIRED: links profile to auth user
-        name: formData.name.trim(),
-        age: parseInt(formData.age),
+      const profileData = {
+        id: userId,
+        name: formData.name,
+        age: parseInt(formData.age) || 25,
         sex: formData.sex,
-        height: parseFloat(formData.height),
-        weight: parseFloat(formData.weight),
-        target_weight: formData.target_weight ? parseFloat(formData.target_weight) : null,
-        body_fat_percentage: formData.body_fat_percentage ? parseFloat(formData.body_fat_percentage) : null,
-        training_level: formData.training_level,
-        weekly_training_frequency: parseInt(formData.weekly_training_frequency),
-        available_time_per_session: parseInt(formData.available_time_per_session),
-        goal: formData.goal,
+        height: parseInt(formData.height) || 170,
+        weight: parseFloat(formData.weight) || 70,
+        target_weight: parseFloat(formData.target_weight) || parseFloat(formData.weight) || 70,
+        body_fat_percentage: parseFloat(formData.body_fat_percentage) || null,
+        goal: formData.goal || 'manutencao',
+        training_level: formData.training_level || 'iniciante',
+        weekly_training_frequency: parseInt(formData.weekly_training_frequency) || 3,
+        available_time_per_session: parseInt(formData.available_time_per_session) || 60,
         dietary_restrictions: formData.dietary_restrictions,
         food_preferences: formData.food_preferences,
         injury_history: formData.injury_history,
+        meal_count: formData.meal_count,
+        meal_times: formData.meal_times,
       };
 
-      console.log('📡 Sending to backend:', JSON.stringify(profileData, null, 2));
-      console.log('🌐 Backend URL:', `${BACKEND_URL}/api/user/profile`);
-
-      // 1. Call backend to save profile - uses UPSERT (idempotent)
       const response = await fetch(`${BACKEND_URL}/api/user/profile`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
 
-      console.log('📡 Response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Backend error:', errorData);
-        throw new Error(errorData.detail || 'Erro ao salvar perfil');
+      if (response.ok) {
+        await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+        await AsyncStorage.setItem('profileCompleted', 'true');
+        await setProfileCompleted(true);
+        router.replace('/(tabs)');
+      } else {
+        const error = await response.json();
+        showAlert('Erro', error.detail || 'Não foi possível salvar o perfil');
       }
-
-      const data = await response.json();
-      console.log('✅ Profile saved:', data.id);
-
-      // 2. Save meal settings to backend
-      const MEAL_NAMES_PT: Record<number, string[]> = {
-        4: ['Café da Manhã', 'Almoço', 'Lanche Tarde', 'Jantar'],
-        5: ['Café da Manhã', 'Lanche Manhã', 'Almoço', 'Lanche Tarde', 'Jantar'],
-        6: ['Café da Manhã', 'Lanche Manhã', 'Almoço', 'Lanche Tarde', 'Jantar', 'Ceia'],
-      };
-      
-      const mealTimesFormatted = formData.meal_times.map((time: string, idx: number) => ({
-        name: MEAL_NAMES_PT[formData.meal_count][idx],
-        time: time,
-      }));
-
-      try {
-        const settingsResponse = await fetch(`${BACKEND_URL}/api/user/settings/${userId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            meal_count: formData.meal_count,
-            meal_times: mealTimesFormatted,
-          }),
-        });
-        
-        if (settingsResponse.ok) {
-          console.log('✅ Meal settings saved');
-        }
-      } catch (settingsErr) {
-        console.warn('⚠️ Could not save meal settings:', settingsErr);
-      }
-
-      // SUCCESS: Update auth store - profileCompleted = true
-      await setProfileCompleted(true);
-      console.log('✅ profileCompleted set to true in authStore');
-
-      // Navigate to tabs - AuthGuard will handle routing
-      setLoading(false);
-      router.replace('/(tabs)');
-      
-    } catch (error: any) {
-      console.error('❌ Error saving profile:', error);
-      
-      let errorMessage = t.couldNotSaveProfile;
-      if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      Alert.alert(t.error, errorMessage);
+    } catch (error) {
+      console.error('Submit error:', error);
+      showAlert('Erro', 'Não foi possível conectar ao servidor');
+    } finally {
       setLoading(false);
     }
   };
 
-  const CurrentStepComponent = steps[currentStep].component;
+  const StepComponent = steps[currentStep].component;
+  const StepIcon = STEP_ICONS[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardView}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={handleBack} 
-            style={styles.backButton}
-            disabled={currentStep === 0}
-          >
-            {currentStep > 0 && (
-              <Ionicons name="arrow-back" size={24} color="#374151" />
-            )}
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{steps[currentStep].title}</Text>
-          <View style={styles.stepIndicator}>
-            <Text style={styles.stepText}>{currentStep + 1}/{steps.length}</Text>
-          </View>
-        </View>
-
-        {/* Progress Bar */}
-        <View style={styles.progressBarContainer}>
-          <View style={[styles.progressBar, { width: `${progress}%` }]} />
-        </View>
-
-        {/* Content */}
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <LinearGradient
+        colors={isDark 
+          ? ['rgba(16, 185, 129, 0.08)', 'transparent', 'rgba(59, 130, 246, 0.05)']
+          : ['rgba(16, 185, 129, 0.1)', 'transparent', 'rgba(59, 130, 246, 0.08)']}
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      
+      <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardView}
         >
-          <CurrentStepComponent 
-            data={formData}
-            updateData={updateFormData}
-            language={language}
-          />
-        </ScrollView>
-
-        {/* Footer Button */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.nextButton, loading && styles.nextButtonDisabled]}
-            onPress={handleNext}
-            disabled={loading}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.nextButtonText}>
-              {loading ? t.saving : currentStep === steps.length - 1 ? t.finish : translations[language].common.next}
+          {/* Header */}
+          <Animated.View entering={FadeInDown.springify()} style={styles.header}>
+            <View style={styles.headerTop}>
+              {currentStep > 0 ? (
+                <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                  <ArrowLeft size={24} color={theme.text} />
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.backButton} />
+              )}
+              
+              <View style={[styles.stepBadge, { backgroundColor: `${premiumColors.primary}20` }]}>
+                <StepIcon size={18} color={premiumColors.primary} />
+                <Text style={[styles.stepBadgeText, { color: premiumColors.primary }]}>
+                  {currentStep + 1}/{steps.length}
+                </Text>
+              </View>
+              
+              <View style={styles.backButton} />
+            </View>
+            
+            {/* Progress Bar */}
+            <View style={[styles.progressContainer, { backgroundColor: theme.border }]}>
+              <LinearGradient
+                colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressBar, { width: `${progress}%` }]}
+              />
+            </View>
+            
+            <Text style={[styles.stepTitle, { color: theme.text }]}>
+              {steps[currentStep].title}
             </Text>
-            {!loading && <Ionicons name="arrow-forward" size={20} color="#fff" />}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </Animated.View>
+
+          {/* Content */}
+          <ScrollView 
+            style={styles.content}
+            contentContainerStyle={styles.contentContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <StepComponent
+              formData={formData}
+              updateFormData={updateFormData}
+              theme={theme}
+              isDark={isDark}
+            />
+          </ScrollView>
+
+          {/* Footer */}
+          <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.footer}>
+            <TouchableOpacity
+              onPress={handleNext}
+              disabled={loading}
+              activeOpacity={0.9}
+            >
+              <LinearGradient
+                colors={[premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.nextButton}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <>
+                    <Text style={styles.nextButtonText}>
+                      {currentStep === steps.length - 1 ? 'Finalizar' : 'Continuar'}
+                    </Text>
+                    {currentStep === steps.length - 1 ? (
+                      <Check size={20} color="#FFF" strokeWidth={3} />
+                    ) : (
+                      <ArrowRight size={20} color="#FFF" strokeWidth={2.5} />
+                    )}
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  keyboardView: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  keyboardView: { flex: 1 },
+  
   header: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.lg,
+  },
+  headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    marginBottom: spacing.lg,
   },
   backButton: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
+  stepBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.full,
+    gap: spacing.xs,
   },
-  stepIndicator: {
-    width: 40,
-    alignItems: 'flex-end',
-  },
-  stepText: {
+  stepBadgeText: {
     fontSize: 14,
-    color: '#10B981',
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  progressBarContainer: {
-    height: 4,
-    backgroundColor: '#E5E7EB',
+  progressContainer: {
+    height: 6,
+    borderRadius: radius.full,
+    marginBottom: spacing.lg,
+    overflow: 'hidden',
   },
   progressBar: {
     height: '100%',
-    backgroundColor: '#10B981',
+    borderRadius: radius.full,
   },
-  scrollView: {
-    flex: 1,
+  stepTitle: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    textAlign: 'center',
   },
-  scrollContent: {
-    padding: 24,
+  
+  content: { flex: 1 },
+  contentContainer: {
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing['2xl'],
   },
+  
   footer: {
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
+    paddingTop: spacing.md,
   },
   nextButton: {
-    backgroundColor: '#10B981',
-    paddingVertical: 16,
-    borderRadius: 12,
+    height: 56,
+    borderRadius: radius.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-  },
-  nextButtonDisabled: {
-    backgroundColor: '#9CA3AF',
+    gap: spacing.sm,
+    shadowColor: premiumColors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   nextButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#FFF',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
 });

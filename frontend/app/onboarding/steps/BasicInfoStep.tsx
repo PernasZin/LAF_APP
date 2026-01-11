@@ -1,166 +1,166 @@
+/**
+ * Premium Basic Info Step
+ */
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { translations, SupportedLanguage } from '../../../i18n/translations';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { User, Calendar, Users } from 'lucide-react-native';
+import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
-  data: any;
-  updateData: (data: any) => void;
-  language: SupportedLanguage;
+  formData: any;
+  updateFormData: (data: any) => void;
+  theme: any;
+  isDark: boolean;
 }
 
-export default function BasicInfoStep({ data, updateData, language }: Props) {
-  const t = translations[language].onboarding;
-  
+const GlassCard = ({ children, style, isDark }: any) => (
+  <View style={[
+    {
+      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(255, 255, 255, 0.5)',
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+    },
+    style
+  ]}>
+    {children}
+  </View>
+);
+
+export default function BasicInfoStep({ formData, updateFormData, theme, isDark }: Props) {
+  const sexOptions = [
+    { value: 'masculino', label: 'Masculino', icon: '♂️' },
+    { value: 'feminino', label: 'Feminino', icon: '♀️' },
+  ];
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t.letsStart}</Text>
-      <Text style={styles.description}>
-        {t.tellUsAboutYou}
-      </Text>
-
-      {/* Nome */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.name}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.yourName}
-          value={data.name}
-          onChangeText={(text) => updateData({ name: text })}
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Idade */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.age}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.yourAge}
-          value={data.age}
-          onChangeText={(text) => updateData({ age: text })}
-          keyboardType="numeric"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Sexo */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.sex}</Text>
-        <View style={styles.optionRow}>
-          <TouchableOpacity
+      <GlassCard isDark={isDark} style={styles.card}>
+        <View style={styles.inputGroup}>
+          <View style={styles.labelRow}>
+            <User size={18} color={premiumColors.primary} />
+            <Text style={[styles.label, { color: theme.textSecondary }]}>Nome</Text>
+          </View>
+          <TextInput
             style={[
-              styles.optionButton,
-              data.sex === 'masculino' && styles.optionButtonActive,
+              styles.input,
+              {
+                backgroundColor: theme.input.background,
+                borderColor: theme.input.border,
+                color: theme.text,
+              }
             ]}
-            onPress={() => updateData({ sex: 'masculino' })}
-            activeOpacity={0.7}
-          >
-            <Ionicons 
-              name="male" 
-              size={24} 
-              color={data.sex === 'masculino' ? '#10B981' : '#6B7280'}
-            />
-            <Text
-              style={[
-                styles.optionText,
-                data.sex === 'masculino' && styles.optionTextActive,
-              ]}
-            >
-              {t.male}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.optionButton,
-              data.sex === 'feminino' && styles.optionButtonActive,
-            ]}
-            onPress={() => updateData({ sex: 'feminino' })}
-            activeOpacity={0.7}
-          >
-            <Ionicons 
-              name="female" 
-              size={24} 
-              color={data.sex === 'feminino' ? '#10B981' : '#6B7280'}
-            />
-            <Text
-              style={[
-                styles.optionText,
-                data.sex === 'feminino' && styles.optionTextActive,
-              ]}
-            >
-              {t.female}
-            </Text>
-          </TouchableOpacity>
+            placeholder="Seu nome completo"
+            placeholderTextColor={theme.input.placeholder}
+            value={formData.name}
+            onChangeText={(text) => updateFormData({ name: text })}
+          />
         </View>
-      </View>
+
+        <View style={styles.inputGroup}>
+          <View style={styles.labelRow}>
+            <Calendar size={18} color={premiumColors.primary} />
+            <Text style={[styles.label, { color: theme.textSecondary }]}>Idade</Text>
+          </View>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.input.background,
+                borderColor: theme.input.border,
+                color: theme.text,
+              }
+            ]}
+            placeholder="25"
+            placeholderTextColor={theme.input.placeholder}
+            value={formData.age}
+            onChangeText={(text) => updateFormData({ age: text })}
+            keyboardType="numeric"
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <View style={styles.labelRow}>
+            <Users size={18} color={premiumColors.primary} />
+            <Text style={[styles.label, { color: theme.textSecondary }]}>Sexo</Text>
+          </View>
+          <View style={styles.optionsRow}>
+            {sexOptions.map((option) => {
+              const isSelected = formData.sex === option.value;
+              return (
+                <TouchableOpacity
+                  key={option.value}
+                  style={[
+                    styles.optionButton,
+                    {
+                      backgroundColor: isSelected
+                        ? `${premiumColors.primary}20`
+                        : theme.input.background,
+                      borderColor: isSelected
+                        ? premiumColors.primary
+                        : theme.input.border,
+                    }
+                  ]}
+                  onPress={() => updateFormData({ sex: option.value })}
+                >
+                  <Text style={styles.optionIcon}>{option.icon}</Text>
+                  <Text style={[
+                    styles.optionLabel,
+                    { color: isSelected ? premiumColors.primary : theme.text }
+                  ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </GlassCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  inputGroup: {
-    marginBottom: 24,
+  container: { paddingTop: spacing.lg },
+  card: { marginBottom: spacing.lg },
+  inputGroup: { marginBottom: spacing.lg },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
   },
   input: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    height: 52,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.base,
     fontSize: 16,
-    color: '#000000',
+    fontWeight: '500',
   },
-  optionRow: {
+  optionsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: spacing.md,
   },
   optionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 12,
+    height: 52,
+    borderRadius: radius.lg,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
+    gap: spacing.sm,
   },
-  optionButtonActive: {
-    borderColor: '#10B981',
-    backgroundColor: '#F0FDF4',
-  },
-  optionText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  optionTextActive: {
-    color: '#10B981',
+  optionIcon: { fontSize: 20 },
+  optionLabel: {
+    fontSize: 15,
     fontWeight: '600',
   },
 });

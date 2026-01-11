@@ -1,154 +1,211 @@
+/**
+ * Premium Training Level Step
+ */
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { translations, SupportedLanguage } from '../../../i18n/translations';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Baby, User, Dumbbell, Trophy, Clock, Calendar } from 'lucide-react-native';
+import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
-  data: any;
-  updateData: (data: any) => void;
-  language: SupportedLanguage;
+  formData: any;
+  updateFormData: (data: any) => void;
+  theme: any;
+  isDark: boolean;
 }
 
-export default function TrainingLevelStep({ data, updateData, language }: Props) {
-  const t = translations[language].onboarding;
-  
-  const levels = [
-    { value: 'iniciante', label: t.beginner, icon: 'star-outline' as any, desc: t.beginnerDesc },
-    { value: 'intermediario', label: t.intermediate, icon: 'star-half-outline' as any, desc: t.intermediateDesc },
-    { value: 'avancado', label: t.advanced, icon: 'star' as any, desc: t.advancedDesc },
-  ];
+const LEVELS = [
+  { value: 'sedentario', label: 'Sedentário', desc: 'Sem atividade física', icon: Baby },
+  { value: 'iniciante', label: 'Iniciante', desc: 'Até 6 meses de treino', icon: User },
+  { value: 'intermediario', label: 'Intermediário', desc: '6 meses a 2 anos', icon: Dumbbell },
+  { value: 'avancado', label: 'Avançado', desc: 'Mais de 2 anos', icon: Trophy },
+];
 
+const FREQUENCIES = [
+  { value: '2', label: '2x' },
+  { value: '3', label: '3x' },
+  { value: '4', label: '4x' },
+  { value: '5', label: '5x' },
+  { value: '6', label: '6x' },
+];
+
+const DURATIONS = [
+  { value: '30', label: '30 min' },
+  { value: '45', label: '45 min' },
+  { value: '60', label: '1 hora' },
+  { value: '90', label: '1h30' },
+];
+
+export default function TrainingLevelStep({ formData, updateFormData, theme, isDark }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t.trainingLevelTitle}</Text>
-      <Text style={styles.description}>
-        {t.trainingLevelDesc}
-      </Text>
-
-      {/* Nível */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.currentLevel}</Text>
-        <View style={styles.levelContainer}>
-          {levels.map((level) => (
+      {/* Training Level */}
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Nível de Treino</Text>
+      <View style={styles.levelsGrid}>
+        {LEVELS.map((level) => {
+          const isSelected = formData.training_level === level.value;
+          const Icon = level.icon;
+          return (
             <TouchableOpacity
               key={level.value}
               style={[
                 styles.levelCard,
-                data.training_level === level.value && styles.levelCardActive,
+                {
+                  backgroundColor: isSelected
+                    ? isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)'
+                    : isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+                  borderColor: isSelected ? premiumColors.primary : theme.border,
+                }
               ]}
-              onPress={() => updateData({ training_level: level.value })}
-              activeOpacity={0.7}
+              onPress={() => updateFormData({ training_level: level.value })}
             >
-              <Ionicons
-                name={level.icon}
-                size={32}
-                color={data.training_level === level.value ? '#10B981' : '#6B7280'}
-              />
-              <Text
-                style={[
-                  styles.levelLabel,
-                  data.training_level === level.value && styles.levelLabelActive,
-                ]}
-              >
+              <View style={[
+                styles.iconContainer,
+                { backgroundColor: isSelected ? `${premiumColors.primary}20` : theme.input.background }
+              ]}>
+                <Icon size={24} color={isSelected ? premiumColors.primary : theme.textTertiary} />
+              </View>
+              <Text style={[styles.levelLabel, { color: isSelected ? premiumColors.primary : theme.text }]}>
                 {level.label}
               </Text>
-              <Text style={styles.levelDesc}>{level.desc}</Text>
+              <Text style={[styles.levelDesc, { color: theme.textTertiary }]}>
+                {level.desc}
+              </Text>
             </TouchableOpacity>
-          ))}
+          );
+        })}
+      </View>
+
+      {/* Frequency */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Calendar size={18} color={premiumColors.primary} />
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Frequência Semanal</Text>
+        </View>
+        <View style={styles.optionsRow}>
+          {FREQUENCIES.map((freq) => {
+            const isSelected = formData.weekly_training_frequency === freq.value;
+            return (
+              <TouchableOpacity
+                key={freq.value}
+                style={[
+                  styles.optionChip,
+                  {
+                    backgroundColor: isSelected ? premiumColors.primary : theme.input.background,
+                    borderColor: isSelected ? premiumColors.primary : theme.border,
+                  }
+                ]}
+                onPress={() => updateFormData({ weekly_training_frequency: freq.value })}
+              >
+                <Text style={[
+                  styles.optionChipText,
+                  { color: isSelected ? '#FFF' : theme.text }
+                ]}>
+                  {freq.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
 
-      {/* Frequência */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.daysPerWeek}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.daysPlaceholder}
-          value={data.weekly_training_frequency}
-          onChangeText={(text) => updateData({ weekly_training_frequency: text })}
-          keyboardType="numeric"
-          placeholderTextColor="#9CA3AF"
-        />
-      </View>
-
-      {/* Tempo Disponível */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>{t.timePerSession}</Text>
-        <TextInput
-          style={styles.input}
-          placeholder={t.timePlaceholder}
-          value={data.available_time_per_session}
-          onChangeText={(text) => updateData({ available_time_per_session: text })}
-          keyboardType="numeric"
-          placeholderTextColor="#9CA3AF"
-        />
+      {/* Duration */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Clock size={18} color={premiumColors.primary} />
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Duração do Treino</Text>
+        </View>
+        <View style={styles.optionsRow}>
+          {DURATIONS.map((dur) => {
+            const isSelected = formData.available_time_per_session === dur.value;
+            return (
+              <TouchableOpacity
+                key={dur.value}
+                style={[
+                  styles.optionChip,
+                  {
+                    backgroundColor: isSelected ? premiumColors.primary : theme.input.background,
+                    borderColor: isSelected ? premiumColors.primary : theme.border,
+                  }
+                ]}
+                onPress={() => updateFormData({ available_time_per_session: dur.value })}
+              >
+                <Text style={[
+                  styles.optionChipText,
+                  { color: isSelected ? '#FFF' : theme.text }
+                ]}>
+                  {dur.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
+  container: { paddingTop: spacing.lg },
+  sectionTitle: {
+    fontSize: 13,
     fontWeight: '700',
-    color: '#111827',
-    marginBottom: 8,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: spacing.md,
   },
-  description: {
-    fontSize: 16,
-    color: '#6B7280',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  levelContainer: {
-    gap: 12,
+  levelsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginBottom: spacing.xl,
   },
   levelCard: {
-    padding: 16,
-    borderRadius: 12,
+    width: '47%',
+    padding: spacing.base,
+    borderRadius: radius.xl,
     borderWidth: 2,
-    borderColor: '#E5E7EB',
-    backgroundColor: '#F9FAFB',
     alignItems: 'center',
   },
-  levelCardActive: {
-    borderColor: '#10B981',
-    backgroundColor: '#F0FDF4',
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   levelLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-    marginTop: 8,
-  },
-  levelLabelActive: {
-    color: '#10B981',
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 2,
   },
   levelDesc: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    marginTop: 4,
+    fontSize: 12,
+    textAlign: 'center',
   },
-  input: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 2,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#000000',
+  section: {
+    marginBottom: spacing.xl,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  optionChip: {
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+  },
+  optionChipText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
