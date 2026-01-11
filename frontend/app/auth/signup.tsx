@@ -149,6 +149,13 @@ export default function SignupScreen() {
           await AsyncStorage.setItem('token', data.access_token);
         }
         
+        // Update auth store
+        await useAuthStore.getState().login(
+          data.user_id, 
+          data.access_token || '', 
+          false // profileCompleted = false (needs onboarding)
+        );
+        
         // Navigate to onboarding
         router.replace('/onboarding/');
       } else {
