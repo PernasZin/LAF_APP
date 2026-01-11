@@ -164,20 +164,23 @@ class LAFBackendTester:
             result = {
                 "scenario": scenario,
                 "success": exercises_ok and sets_ok and valid_sets_ok,
-                "total_exercises": total_exercises,
-                "total_sets": total_sets,
-                "valid_sets": valid_sets,
+                "max_exercises_per_day": max_exercises_per_day,
+                "avg_exercises_per_day": round(avg_exercises_per_day, 1),
+                "max_sets_per_day": max_sets_per_day,
+                "exercises_per_day": exercises_per_day,
+                "sets_per_day": sets_per_day,
                 "exercises_ok": exercises_ok,
                 "sets_ok": sets_ok,
-                "valid_sets_ok": valid_sets_ok
+                "valid_sets_ok": valid_sets_ok,
+                "total_days": len(workout_days)
             }
             
             results.append(result)
             
             if result["success"]:
-                self.log(f"✅ {scenario['time']}min: {total_exercises} exercises, {total_sets} sets, {valid_sets} valid sets")
+                self.log(f"✅ {scenario['time']}min: Max {max_exercises_per_day} exercises/day (avg {avg_exercises_per_day}), Max {max_sets_per_day} sets/day across {len(workout_days)} days")
             else:
-                self.log(f"❌ {scenario['time']}min: {total_exercises} exercises (expected {min_ex}-{max_ex}), {total_sets} sets (expected ≥{min_sets}), {valid_sets} valid sets (expected ≥2)")
+                self.log(f"❌ {scenario['time']}min: Max {max_exercises_per_day} exercises/day (expected {min_ex}-{max_ex}), Max {max_sets_per_day} sets/day (expected ≥{min_sets}) across {len(workout_days)} days")
                 
         return results
         
