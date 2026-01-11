@@ -444,3 +444,5 @@ agent_communication:
 
   - agent: "main"
     message: "🔧 CORREÇÕES DE CONFIGURAÇÕES IMPLEMENTADAS - (1) BUG meal_count: O frontend estava salvando meal_count no user_profiles, mas a geração de dieta buscava de user_settings. Corrigido meal-config.tsx para salvar em /api/user/settings/{userId} e buscar de lá também. (2) AUTO-REGENERAÇÃO: Agora quando o usuário salva configurações de refeições (meal-config.tsx) a dieta é automaticamente regenerada. Quando salva configurações de treino (training-config.tsx), o treino é automaticamente regenerado. Não precisa mais clicar em 'regenerar' manualmente."
+  - agent: "main"
+    message: "🔍 TESTE COMPLETO SOLICITADO - Usuário reporta que 'quase tudo está errado'. Necessário teste abrangente de: (1) Substituição de alimentos na dieta, (2) Preferências alimentares sendo respeitadas, (3) Calorias totais por refeição aparecendo no UI, (4) Fluxo completo de onboarding→home→diet→workout. TODOS os endpoints e funcionalidades devem ser testados e qualquer erro deve ser identificado e reportado."
