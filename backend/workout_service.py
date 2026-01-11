@@ -342,8 +342,9 @@ class WorkoutAIService:
                 "reps": "15-20",
                 "rest": "60s",
                 "ex_per_muscle": 1,
-                "machine_priority": True,  # 100% máquinas
-                "notes_prefix": "ADAPTAÇÃO: "
+                "machine_only": True,  # 100% máquinas
+                "notes_prefix": "⚠️ ADAPTAÇÃO - CARGA LEVE! Foque 100% na execução perfeita do movimento. Não se preocupe com peso ainda. ",
+                "general_note": "FASE DE ADAPTAÇÃO: Use cargas LEVES. O objetivo é aprender os movimentos corretamente."
             }
         elif level == 'novato':
             # Novato pós-adaptação (hipertrofia leve)
@@ -352,38 +353,48 @@ class WorkoutAIService:
                 "reps": "12-15",
                 "rest": "90s",
                 "ex_per_muscle": 2,
-                "machine_priority": True,  # 100% máquinas
-                "notes_prefix": ""
+                "machine_only": True,  # 100% máquinas
+                "notes_prefix": "",
+                "general_note": "Agora pode aumentar as cargas progressivamente. Mantenha a execução correta."
             }
         elif level == 'iniciante':
-            # Iniciante (0-1 anos) - Foco em máquinas
+            # Iniciante (0-1 anos) - Foco em máquinas, alguns livres seguros
             config = {
                 "sets": 3,
                 "reps": "10-12",
                 "rest": "75s",
                 "ex_per_muscle": 2,
-                "machine_priority": True,  # Grande foco em máquinas
-                "notes_prefix": ""
+                "machine_only": False,
+                "allow_free_weights": ["elevacao_lateral", "rosca_alternada", "triceps_frances"],  # Livres seguros
+                "block_exercises": ["supino_barra", "rosca_direta_barra", "agachamento_livre", "stiff_livre"],
+                "notes_prefix": "",
+                "general_note": "Foque em aumentar cargas progressivamente mantendo boa execução."
             }
         elif level == 'intermediario':
-            # Intermediário (1-2 anos) - Maioria máquinas
+            # Intermediário (1-2 anos) - Pode usar mais livres
             config = {
                 "sets": 4,
                 "reps": "8-12",
                 "rest": "75s",
                 "ex_per_muscle": 2,
-                "machine_priority": True,  # Ainda foco em máquinas
-                "notes_prefix": ""
+                "machine_only": False,
+                "allow_free_weights": True,  # Libera maioria dos livres
+                "block_exercises": ["supino_barra", "rosca_direta_barra"],  # Ainda bloqueia esses
+                "notes_prefix": "💪 Chegue PERTO DA FALHA em pelo menos 1 série. ",
+                "general_note": "INTERMEDIÁRIO: Em cada exercício, faça pelo menos 1 série próxima da falha muscular."
             }
         else:  # avancado
-            # Avançado (3+ anos) - Equilibrado máquinas + peso livre
+            # Avançado (3+ anos) - Estrutura completa com aquecimento e séries válidas
             config = {
-                "sets": 4,
-                "reps": "6-10",
-                "rest": "90s",
+                "sets": 4,  # 1 aquec + 1 reconhec + 2 válidas
+                "reps": "5-8",
+                "rest": "120s",
                 "ex_per_muscle": 3,
-                "machine_priority": False,  # Mix equilibrado
-                "notes_prefix": ""
+                "machine_only": False,
+                "allow_free_weights": True,  # Todos liberados
+                "block_exercises": [],
+                "notes_prefix": "🔥 ESTRUTURA: 1x Aquecimento (50% carga) → 1x Reconhecimento (90-100%, 1-2 reps) → 2x Séries Válidas ATÉ A FALHA (mín 5 reps). ",
+                "general_note": "AVANÇADO: Cada exercício segue a estrutura - Aquecimento → Reconhecimento → 2 Séries até a FALHA MUSCULAR."
             }
         
         # Ajusta número de exercícios baseado no tempo disponível
