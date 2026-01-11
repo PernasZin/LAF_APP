@@ -418,6 +418,10 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
     # Atualiza dados fornecidos
     update_dict = {k: v for k, v in update_data.dict().items() if v is not None}
     
+    # Mapeia training_duration para available_time_per_session (nome do campo no UserProfile)
+    if "training_duration" in update_dict:
+        update_dict["available_time_per_session"] = update_dict.pop("training_duration")
+    
     if update_dict:
         current_profile = UserProfile(**existing_profile)
         new_goal = update_dict.get("goal", current_profile.goal)
