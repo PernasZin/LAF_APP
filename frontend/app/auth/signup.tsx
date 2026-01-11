@@ -157,7 +157,7 @@ export default function SignupScreen() {
         );
         
         // Navigate to onboarding
-        router.replace('/onboarding/');
+        router.replace('/onboarding/index');
       } else {
         Alert.alert('Erro', data.detail || data.message || 'Não foi possível criar a conta');
       }
