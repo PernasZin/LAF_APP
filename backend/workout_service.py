@@ -470,7 +470,8 @@ class WorkoutAIService:
                         
                         if needs_warmup:
                             # Precisa aquecer (primeiro do grupo OU exercício composto)
-                            series_instruction = """📋 ESTRUTURA DAS SÉRIES:
+                            # 4 séries: 1 aquec + 1 reconhec + 2 válidas
+                            series_instruction = """📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
 • 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps - testar peso)
 • 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
@@ -478,11 +479,15 @@ class WorkoutAIService:
                             if is_compound:
                                 series_instruction = "⚠️ EXERCÍCIO COMPOSTO - Sempre aquecer!\n" + series_instruction
                             muscles_warmed_up.add(muscle)
+                            sets_count = 4
                         else:
                             # Músculo já aquecido e não é composto
-                            series_instruction = """📋 ESTRUTURA (músculo já aquecido):
-• Direto para SÉRIES VÁLIDAS
-• 4 Séries de 5-8 reps ATÉ A FALHA"""
+                            # 3 séries: 1 reconhec + 2 válidas
+                            series_instruction = """📋 ESTRUTURA (3 SÉRIES - músculo já aquecido):
+• 1ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps - testar peso)
+• 2ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
+• 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
+                            sets_count = 3
                         
                         # Combina instrução de séries + execução
                         notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
@@ -490,19 +495,22 @@ class WorkoutAIService:
                     elif level == 'intermediario':
                         series_instruction = "💪 Chegue PERTO DA FALHA em pelo menos 1 série!"
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
+                        sets_count = config["sets"]
                     
                     elif is_adaptation:
                         series_instruction = "⚠️ ADAPTAÇÃO: Use carga LEVE! Foco 100% na execução correta."
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
+                        sets_count = config["sets"]
                     
                     else:
                         # Novato pós-adaptação e Iniciante
                         notes = f"🎯 {execution_notes}" if execution_notes else ""
+                        sets_count = config["sets"]
                     
                     exercises.append(Exercise(
                         name=ex_data["name"],
                         muscle_group=muscle.capitalize(),
-                        sets=config["sets"],
+                        sets=sets_count if level == 'avancado' else config["sets"],
                         reps=config["reps"],
                         rest=rest_str,
                         rest_seconds=parse_rest_seconds(rest_str),
