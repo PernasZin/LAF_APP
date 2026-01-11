@@ -91,8 +91,8 @@ class LAFBackendTester:
         
         success, response, status = self.make_request("POST", "/auth/signup", signup_data)
         
-        if success and isinstance(response, dict) and "token" in response:
-            self.auth_token = response["token"]
+        if success and isinstance(response, dict) and "access_token" in response:
+            self.auth_token = response["access_token"]
             self.test_user_id = response.get("user_id")
             self.log_test("AUTH - Signup", True, f"User created with ID: {self.test_user_id}")
         else:
