@@ -527,7 +527,7 @@ class WorkoutAIService:
                     day=DAYS[i],
                     name=template["name"],
                     exercises=exercises,
-                    duration_minutes=len(exercises) * 5  # ~5 min por exercício
+                    duration=len(exercises) * 5  # ~5 min por exercício
                 ))
                 continue  # Pula para o próximo dia
             
