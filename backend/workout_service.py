@@ -286,17 +286,19 @@ def get_split_for_frequency(freq: int) -> List[Dict]:
             {"name": "C - Legs", "muscles": ["quadriceps", "posterior", "panturrilha"]},
         ],
         4: [
+            # ABCD: Ombro + Abdômen junto (permitido)
             {"name": "A - Peito/Tríceps", "muscles": ["peito", "triceps"]},
             {"name": "B - Costas/Bíceps", "muscles": ["costas", "biceps"]},
             {"name": "C - Pernas", "muscles": ["quadriceps", "posterior", "panturrilha"]},
             {"name": "D - Ombros/Abdômen", "muscles": ["ombros", "abdomen"]},
         ],
         5: [
+            # ABCDE: Nunca treino só de ombros - D é Full Upper
             {"name": "A - Peito", "muscles": ["peito", "triceps"]},
             {"name": "B - Costas", "muscles": ["costas", "biceps"]},
             {"name": "C - Pernas Quad", "muscles": ["quadriceps", "panturrilha"]},
-            {"name": "D - Ombros", "muscles": ["ombros", "abdomen"]},
-            {"name": "E - Pernas Post", "muscles": ["posterior", "quadriceps"]},
+            {"name": "D - Full Upper", "muscles": ["ombros", "peito", "costas"]},
+            {"name": "E - Pernas Post", "muscles": ["posterior", "quadriceps", "abdomen"]},
         ],
         6: [
             {"name": "A - Push", "muscles": ["peito", "ombros", "triceps"]},
@@ -307,9 +309,10 @@ def get_split_for_frequency(freq: int) -> List[Dict]:
             {"name": "F - Legs", "muscles": ["quadriceps", "posterior", "panturrilha"]},
         ],
         7: [
+            # 7x: Ombro junto com outro grupo
             {"name": "A - Peito", "muscles": ["peito"]},
             {"name": "B - Costas", "muscles": ["costas"]},
-            {"name": "C - Ombros", "muscles": ["ombros"]},
+            {"name": "C - Ombros/Peito", "muscles": ["ombros", "peito"]},
             {"name": "D - Braços", "muscles": ["biceps", "triceps"]},
             {"name": "E - Quadríceps", "muscles": ["quadriceps", "panturrilha"]},
             {"name": "F - Posterior", "muscles": ["posterior"]},
