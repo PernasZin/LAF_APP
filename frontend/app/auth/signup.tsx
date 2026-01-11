@@ -1,7 +1,7 @@
 /**
  * LAF Premium Signup Screen
  * ==========================
- * Glassmorphism + Gradientes + Animações
+ * Apenas Email e Senha
  */
 
 import React, { useState } from 'react';
@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowLeft, User, Sparkles } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowLeft, Sparkles } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -22,7 +22,7 @@ import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } fro
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-// Input Field Component - OUTSIDE main component to prevent re-renders
+// Input Field Component
 const InputField = ({ 
   icon: Icon, 
   label, 
@@ -58,7 +58,7 @@ const InputField = ({
         onFocus={() => setFocusedField(field)}
         onBlur={() => setFocusedField(null)}
         secureTextEntry={secureTextEntry && !showPassword}
-        autoCapitalize={field === 'email' ? 'none' : field === 'name' ? 'words' : 'none'}
+        autoCapitalize="none"
         keyboardType={field === 'email' ? 'email-address' : 'default'}
         autoCorrect={false}
       />
@@ -91,7 +91,6 @@ export default function SignupScreen() {
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
 
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -108,7 +107,7 @@ export default function SignupScreen() {
   const handleSignup = async () => {
     Keyboard.dismiss();
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!email || !password || !confirmPassword) {
       Alert.alert('Campos obrigatórios', 'Por favor, preencha todos os campos.');
       return;
     }
@@ -127,9 +126,6 @@ export default function SignupScreen() {
     setIsLoading(true);
 
     try {
-      // Store name temporarily for onboarding
-      await AsyncStorage.setItem('tempUserName', name.trim());
-      
       const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,25 +140,18 @@ export default function SignupScreen() {
       if (response.ok && data.user_id) {
         console.log('Signup success:', data.user_id);
         
-        // Save to AsyncStorage first
         await AsyncStorage.setItem('userId', data.user_id);
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
         await AsyncStorage.setItem('token', data.access_token || '');
         await AsyncStorage.setItem('profileCompleted', 'false');
         
-        // Update auth store
         await useAuthStore.getState().login(
           data.user_id, 
           data.access_token || '', 
-          false // profileCompleted = false (needs onboarding)
+          false
         );
         
-        console.log('Auth store updated:', useAuthStore.getState().isAuthenticated);
-        
-        // Small delay to ensure zustand state propagates
         await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Navigate to onboarding
         router.replace('/onboarding');
       } else {
         Alert.alert('Erro', data.detail || data.message || 'Não foi possível criar a conta');
@@ -175,8 +164,6 @@ export default function SignupScreen() {
       buttonScale.value = withSpring(1, animations.spring.gentle);
     }
   };
-
-  // InputField component is defined at the top of the file
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -232,21 +219,6 @@ export default function SignupScreen() {
                 borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(255, 255, 255, 0.5)',
               }]}
             >
-              <InputField
-                icon={User}
-                label="Nome"
-                value={name}
-                onChangeText={setName}
-                placeholder="Seu nome"
-                field="name"
-                showPassword={showPassword}
-                setShowPassword={setShowPassword}
-                focusedField={focusedField}
-                setFocusedField={setFocusedField}
-                theme={theme}
-                isDark={isDark}
-              />
-
               <InputField
                 icon={Mail}
                 label="Email"
@@ -375,19 +347,6 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     elevation: 12,
   },
-
-  inputGroup: { marginBottom: spacing.lg },
-  inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, letterSpacing: 0.3 },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 56,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    paddingHorizontal: spacing.base,
-    gap: spacing.md,
-  },
-  input: { flex: 1, fontSize: 16, fontWeight: '500' },
 
   buttonContainer: { marginTop: spacing.md },
   signupButton: {
