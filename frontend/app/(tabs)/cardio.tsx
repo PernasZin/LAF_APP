@@ -56,7 +56,7 @@ const GlassCard = ({ children, style, isDark }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
-// Cardio Exercise Card - Adaptado para estrutura do backend
+// Cardio Exercise Card - Ícones específicos para cada tipo
 const CardioExerciseCard = ({ exercise, index, isDark, theme, language }: any) => {
   const intensityColors: any = {
     light: '#10B981',
@@ -70,18 +70,33 @@ const CardioExerciseCard = ({ exercise, index, isDark, theme, language }: any) =
     high: { pt: 'Intenso', en: 'High', es: 'Intenso' },
   };
   
+  // Determina o ícone baseado no nome do exercício
+  const getExerciseIcon = (name: string) => {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('caminhada') || nameLower.includes('walking')) {
+      return Footprints;
+    } else if (nameLower.includes('bicicleta') || nameLower.includes('bike') || nameLower.includes('cycling')) {
+      return Bike;
+    } else if (nameLower.includes('escada') || nameLower.includes('stair')) {
+      return ArrowUpDown;
+    }
+    return Activity;
+  };
+  
   const color = intensityColors[exercise.intensity] || '#F59E0B';
   const intensityLabel = intensityLabels[exercise.intensity]?.[language === 'en-US' ? 'en' : language === 'es-ES' ? 'es' : 'pt'] || 'Moderado';
   
   // Nome traduzido
   const name = language === 'en-US' ? exercise.name_en : language === 'es-ES' ? exercise.name_es : exercise.name;
+  
+  const IconComponent = getExerciseIcon(exercise.name);
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
       <GlassCard isDark={isDark} style={styles.sessionCard}>
         <View style={styles.sessionHeader}>
           <View style={[styles.sessionIconBg, { backgroundColor: color + '20' }]}>
-            <Activity size={22} color={color} strokeWidth={2.5} />
+            <IconComponent size={22} color={color} strokeWidth={2.5} />
           </View>
           <View style={styles.sessionInfo}>
             <Text style={[styles.sessionType, { color: theme.text }]}>{name}</Text>
