@@ -102,6 +102,11 @@ const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language }
                 <Text style={[styles.exerciseName, { color: theme.text }]} numberOfLines={1}>
                   {translateExercise(exercise.name, language)}
                 </Text>
+                {exercise.focus && (
+                  <Text style={[styles.exerciseFocus, { color: premiumColors.primary }]} numberOfLines={1}>
+                    {exercise.focus}
+                  </Text>
+                )}
                 <View style={styles.exerciseDetails}>
                   <View style={styles.exerciseDetail}>
                     <Repeat size={12} color={theme.textTertiary} />
