@@ -676,48 +676,32 @@ class WorkoutAIService:
                     is_compound = any(comp in ex_name_lower for comp in COMPOUND_EXERCISES)
                     
                     # Lógica de séries para AVANÇADO
+                    # REGRA: Avançado SEMPRE tem 2 séries válidas
                     if level == 'avancado':
                         needs_warmup = (muscle not in muscles_warmed_up) or is_compound
                         
-                        # Ajuste baseado no tempo disponível
-                        # Tempo curto (≤60min): reduz 1 série válida
-                        reduce_valid_sets = 1 if duration <= 60 else 0
-                        
                         if needs_warmup:
-                            # Precisa aquecer (primeiro do grupo OU exercício composto)
-                            if reduce_valid_sets:
-                                # Tempo curto: 3 séries (1 aquec + 1 reconhec + 1 válida)
-                                series_instruction = """📋 ESTRUTURA (3 SÉRIES - tempo otimizado):
-• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
-• 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
-• 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
-                                sets_count = 3
-                            else:
-                                # Tempo normal: 4 séries (1 aquec + 1 reconhec + 2 válidas)
-                                series_instruction = """📋 ESTRUTURA (4 SÉRIES):
+                            # Precisa aquecer: 4 séries (1 aquec + 1 reconhec + 2 válidas)
+                            series_instruction = """📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
 • 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
 • 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
 • 4ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
-                                sets_count = 4
+                            sets_count = 4
                             
                             if is_compound:
                                 series_instruction = "⚠️ EXERCÍCIO COMPOSTO - Sempre aquecer!\n" + series_instruction
                             muscles_warmed_up.add(muscle)
                         else:
-                            # Músculo já aquecido e não é composto
-                            if reduce_valid_sets:
-                                # Tempo curto: 2 séries (1 reconhec + 1 válida)
-                                series_instruction = """📋 ESTRUTURA (2 SÉRIES - músculo aquecido, tempo otimizado):
-• 1ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
-• 2ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
-                                sets_count = 2
-                            else:
-                                # Tempo normal: 3 séries (1 reconhec + 2 válidas)
-                                series_instruction = """📋 ESTRUTURA (3 SÉRIES - músculo já aquecido):
+                            # Músculo já aquecido: 3 séries (1 reconhec + 2 válidas)
+                            series_instruction = """📋 ESTRUTURA (3 SÉRIES - músculo já aquecido):
 • 1ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
 • 2ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
 • 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
+                            sets_count = 3
+                        
+                        # Combina instrução de séries + execução
+                        notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
                                 sets_count = 3
                         
                         # Combina instrução de séries + execução
