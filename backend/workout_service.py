@@ -142,16 +142,17 @@ EXERCISES = {
     ],
     
     # ============ BÍCEPS ============
+    # Focos diferentes para garantir variedade
     "biceps": [
         {
-            "name": "Rosca Máquina",
-            "focus": "Bíceps (Pico)",
-            "notes": "Braços apoiados no suporte. Flexione trazendo manoplas aos ombros. Desça controlado sem estender completamente."
+            "name": "Rosca Direta Barra",
+            "focus": "Bíceps Completo",
+            "notes": "Cotovelos fixos ao lado do corpo. Suba a barra até a altura dos ombros. Desça controlado."
         },
         {
-            "name": "Rosca Polia Baixa (Barra Reta)",
-            "focus": "Bíceps (Cabeça Curta)",
-            "notes": "De frente para polia baixa. Cotovelos fixos ao lado do corpo. Flexione até os ombros. Desça controlado."
+            "name": "Rosca Martelo Halteres",
+            "focus": "Braquial/Braquiorradial",
+            "notes": "Pegada neutra (palmas para dentro). Cotovelos fixos. Trabalha braquial e antebraço."
         },
         {
             "name": "Rosca Alternada Halteres",
@@ -159,33 +160,34 @@ EXERCISES = {
             "notes": "Sentado com costas apoiadas. Alterne os braços. Gire o punho (supinação) durante a subida."
         },
         {
-            "name": "Rosca Martelo Halteres",
-            "focus": "Braquial/Braquiorradial",
-            "notes": "Pegada neutra (palmas para dentro). Cotovelos fixos. Flexione até contrair. Trabalha braquial."
+            "name": "Rosca Scott Máquina",
+            "focus": "Bíceps (Cabeça Curta/Pico)",
+            "notes": "Braços apoiados no suporte. Isola o bíceps eliminando impulso. Foco no pico."
         },
     ],
     
     # ============ TRÍCEPS ============
+    # Focos diferentes para garantir variedade
     "triceps": [
         {
-            "name": "Tríceps Polia Corda",
-            "focus": "Cabeça Lateral/Medial",
-            "notes": "Cotovelos fixos ao lado do corpo. Estenda completamente, abrindo a corda no final. Retorne até 90°."
+            "name": "Tríceps Corda (Polia Alta)",
+            "focus": "Cabeça Lateral",
+            "notes": "Cotovelos fixos ao lado do corpo. Estenda completamente, abrindo a corda no final."
         },
         {
-            "name": "Tríceps Polia Barra Reta",
-            "focus": "Cabeça Lateral",
-            "notes": "Pegada pronada. Cotovelos fixos. Empurre a barra até extensão completa. Retorne controlado até 90°."
+            "name": "Tríceps Francês Halter",
+            "focus": "Cabeça Longa",
+            "notes": "Sentado. Halter acima da cabeça. Desça atrás da cabeça. Estenda sem mover cotovelos."
+        },
+        {
+            "name": "Tríceps Barra Reta (Polia Alta)",
+            "focus": "Cabeça Medial",
+            "notes": "Pegada pronada. Cotovelos fixos. Empurre a barra até extensão completa."
         },
         {
             "name": "Tríceps Máquina",
             "focus": "Tríceps Geral",
             "notes": "Costas apoiadas. Empurre as manoplas estendendo cotovelos. Retorne controlado."
-        },
-        {
-            "name": "Tríceps Francês Halter",
-            "focus": "Cabeça Longa",
-            "notes": "Sentado. Halter acima da cabeça com as duas mãos. Desça atrás da cabeça. Estenda sem mover cotovelos."
         },
     ],
     
