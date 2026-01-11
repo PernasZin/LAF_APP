@@ -173,20 +173,24 @@ EXERCISES = {
     # ============ TRÍCEPS ============
     "triceps": [
         {
-            "name": "Tríceps na Polia (Corda)",
-            "notes": "Cotovelos fixos ao lado do corpo. Estenda os braços completamente, abrindo a corda no final. Retorne até 90° nos cotovelos."
+            "name": "Tríceps Polia Corda",
+            "focus": "Cabeça Lateral/Medial",
+            "notes": "Cotovelos fixos ao lado do corpo. Estenda completamente, abrindo a corda no final. Retorne até 90°."
         },
         {
-            "name": "Tríceps na Polia (Barra Reta)",
-            "notes": "Pegada pronada na barra. Cotovelos fixos. Empurre a barra para baixo até extensão completa. Retorne controlado até 90°."
+            "name": "Tríceps Polia Barra Reta",
+            "focus": "Cabeça Lateral",
+            "notes": "Pegada pronada. Cotovelos fixos. Empurre a barra até extensão completa. Retorne controlado até 90°."
         },
         {
-            "name": "Tríceps na Máquina",
-            "notes": "Sente com costas apoiadas. Empurre as manoplas para baixo estendendo os cotovelos. Retorne controlado sem deixar pesos baterem."
+            "name": "Tríceps Máquina",
+            "focus": "Tríceps Geral",
+            "notes": "Costas apoiadas. Empurre as manoplas estendendo cotovelos. Retorne controlado."
         },
         {
-            "name": "Tríceps Francês com Halter (Sentado)",
-            "notes": "Sente no banco. Segure um halter acima da cabeça com as duas mãos. Desça atrás da cabeça. Estenda sem mover os cotovelos."
+            "name": "Tríceps Francês Halter",
+            "focus": "Cabeça Longa",
+            "notes": "Sentado. Halter acima da cabeça com as duas mãos. Desça atrás da cabeça. Estenda sem mover cotovelos."
         },
     ],
     
@@ -194,6 +198,7 @@ EXERCISES = {
     "quadriceps": [
         {
             "name": "Leg Press 45°",
+            "focus": "Quadríceps Geral",
             "notes": "Pés no centro da plataforma na largura dos ombros. Desça até 90° nos joelhos. Empurre sem travar os joelhos no topo."
         },
         {
