@@ -1,23 +1,41 @@
+/**
+ * LAF Premium Home Screen
+ * =======================
+ * Glassmorphism + Animações + Gradientes
+ */
+
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { useTheme } from '../../theme/ThemeContext';
-import { HomeSkeleton } from '../../components';
-import { useHaptics } from '../../hooks/useHaptics';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring, 
+  withTiming,
+  FadeInDown,
+  FadeInRight,
+} from 'react-native-reanimated';
+import { 
+  Flame, Dumbbell, Droplets, Target, Trophy, ChevronRight, 
+  Plus, Minus, RefreshCw, Zap, TrendingUp, Calendar,
+  User, Bell
+} from 'lucide-react-native';
+
+import { useSettingsStore } from '../../stores/settingsStore';
+import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
 import { useTranslation } from '../../i18n';
+import { HomeSkeleton } from '../../components';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-// Safe fetch with timeout - prevents blocking UI on iOS
+// Safe fetch with timeout
 const safeFetch = async (url: string, options?: RequestInit) => {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 8000);
-  
   try {
     const response = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(timeoutId);
@@ -28,349 +46,303 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
-// ==================== WATER TRACKER COMPONENT ====================
-interface WaterTrackerProps {
-  weight: number;
-  colors: any;
-  t: any;
-  onUpdate: () => void;
-}
+// ==================== GLASS CARD COMPONENT ====================
+const GlassCard = ({ children, style, isDark, onPress, gradient = false }: any) => {
+  const cardStyle = {
+    backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 1,
+    borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(255, 255, 255, 0.5)',
+    borderRadius: radius.xl,
+    overflow: 'hidden' as const,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: isDark ? 0.3 : 0.08,
+    shadowRadius: 16,
+    elevation: 8,
+  };
 
-function WaterTracker({ weight, colors, t, onUpdate }: WaterTrackerProps) {
-  const { lightImpact, successFeedback, warningFeedback } = useHaptics();
+  const content = (
+    <View style={[cardStyle, style]}>
+      {gradient && (
+        <LinearGradient
+          colors={['rgba(16, 185, 129, 0.05)', 'rgba(59, 130, 246, 0.05)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      )}
+      {children}
+    </View>
+  );
+
+  if (onPress) {
+    return <TouchableOpacity onPress={onPress} activeOpacity={0.8}>{content}</TouchableOpacity>;
+  }
+  return content;
+};
+
+// ==================== ANIMATED STAT CARD ====================
+const StatCard = ({ icon, value, unit, label, color, isDark, delay = 0 }: any) => {
+  const theme = isDark ? darkTheme : lightTheme;
+  
+  return (
+    <Animated.View 
+      entering={FadeInDown.delay(delay).springify()}
+      style={{ flex: 1 }}
+    >
+      <GlassCard isDark={isDark} style={styles.statCard}>
+        <View style={[styles.statIconContainer, { backgroundColor: `${color}15` }]}>
+          {icon}
+        </View>
+        <Text style={[styles.statValue, { color: theme.text }]}>{value}</Text>
+        <Text style={[styles.statUnit, { color: theme.textSecondary }]}>{unit}</Text>
+        <Text style={[styles.statLabel, { color: theme.textTertiary }]}>{label}</Text>
+      </GlassCard>
+    </Animated.View>
+  );
+};
+
+// ==================== MACRO PROGRESS BAR ====================
+const MacroBar = ({ label, current, target, color, isDark }: any) => {
+  const theme = isDark ? darkTheme : lightTheme;
+  const progress = Math.min((current / target) * 100, 100);
+  const progressWidth = useSharedValue(0);
+  
+  useEffect(() => {
+    progressWidth.value = withSpring(progress, animations.spring.gentle);
+  }, [progress]);
+  
+  const animatedStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
+  
+  return (
+    <View style={styles.macroContainer}>
+      <View style={styles.macroHeader}>
+        <View style={styles.macroLabelRow}>
+          <View style={[styles.macroDot, { backgroundColor: color }]} />
+          <Text style={[styles.macroLabel, { color: theme.text }]}>{label}</Text>
+        </View>
+        <Text style={[styles.macroValue, { color: theme.text }]}>
+          {Math.round(current)}<Text style={{ color: theme.textTertiary, fontWeight: '500' }}> / {Math.round(target)}g</Text>
+        </Text>
+      </View>
+      <View style={[styles.macroTrack, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}>
+        <Animated.View style={[styles.macroFill, { backgroundColor: color }, animatedStyle]} />
+      </View>
+    </View>
+  );
+};
+
+// ==================== WATER TRACKER PREMIUM ====================
+const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
+  const theme = isDark ? darkTheme : lightTheme;
   const [waterConsumed, setWaterConsumed] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Cálculo: 35ml por kg de peso corporal
-  const waterGoal = Math.round(weight * 35); // em ml
+  const waterGoal = Math.round(weight * 35);
   const waterGoalLiters = (waterGoal / 1000).toFixed(1);
   const waterConsumedLiters = (waterConsumed / 1000).toFixed(1);
   const progress = Math.min((waterConsumed / waterGoal) * 100, 100);
   const cupsConsumed = Math.floor(waterConsumed / 250);
   const totalCups = Math.ceil(waterGoal / 250);
   
-  // Carrega consumo de água do dia
+  const progressWidth = useSharedValue(0);
+  
   useEffect(() => {
     loadWaterData();
   }, []);
   
+  useEffect(() => {
+    progressWidth.value = withSpring(progress, animations.spring.gentle);
+  }, [progress]);
+  
+  const animatedProgressStyle = useAnimatedStyle(() => ({
+    width: `${progressWidth.value}%`,
+  }));
+  
   const loadWaterData = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const key = `water_${today}`;
-      const savedData = await AsyncStorage.getItem(key);
-      if (savedData) {
-        setWaterConsumed(parseInt(savedData, 10));
-      } else {
-        setWaterConsumed(0);
-      }
+      const savedData = await AsyncStorage.getItem(`water_${today}`);
+      if (savedData) setWaterConsumed(parseInt(savedData, 10));
     } catch (error) {
-      console.error('Error loading water data:', error);
+      console.error('Error loading water:', error);
     } finally {
       setIsLoading(false);
     }
   };
   
   const saveWaterData = async (amount: number) => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const key = `water_${today}`;
-      await AsyncStorage.setItem(key, amount.toString());
-    } catch (error) {
-      console.error('Error saving water data:', error);
-    }
+    const today = new Date().toISOString().split('T')[0];
+    await AsyncStorage.setItem(`water_${today}`, amount.toString());
   };
   
   const addWater = async (ml: number) => {
-    lightImpact();
-    const newAmount = Math.min(waterConsumed + ml, waterGoal + 1000); // Permite +1L além da meta
+    const newAmount = Math.min(waterConsumed + ml, waterGoal + 1000);
     setWaterConsumed(newAmount);
     await saveWaterData(newAmount);
-    
-    // Feedback de sucesso ao atingir a meta
-    if (waterConsumed < waterGoal && newAmount >= waterGoal) {
-      successFeedback();
-    }
-    onUpdate();
+    onUpdate?.();
   };
   
   const removeWater = async () => {
     if (waterConsumed >= 250) {
-      warningFeedback();
       const newAmount = waterConsumed - 250;
       setWaterConsumed(newAmount);
       await saveWaterData(newAmount);
-      onUpdate();
+      onUpdate?.();
     }
   };
   
   const resetWater = async () => {
-    warningFeedback();
     setWaterConsumed(0);
     await saveWaterData(0);
-    onUpdate();
+    onUpdate?.();
   };
   
-  if (isLoading) {
-    return null;
-  }
+  if (isLoading) return null;
   
   return (
-    <View style={[waterStyles.container, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-      {/* Header */}
-      <View style={waterStyles.header}>
-        <View style={waterStyles.headerLeft}>
-          <Ionicons name="water" size={24} color="#3B82F6" />
-          <Text style={[waterStyles.title, { color: colors.text }]}>
-            {t?.home?.waterTracker || 'Hidratação'}
-          </Text>
-        </View>
-        <TouchableOpacity onPress={resetWater} style={waterStyles.resetButton}>
-          <Ionicons name="refresh-outline" size={18} color={colors.textTertiary} />
-        </TouchableOpacity>
-      </View>
-      
-      {/* Meta e progresso */}
-      <View style={waterStyles.progressSection}>
-        <View style={waterStyles.progressInfo}>
-          <Text style={[waterStyles.consumed, { color: colors.text }]}>
-            {waterConsumedLiters}L
-          </Text>
-          <Text style={[waterStyles.goal, { color: colors.textSecondary }]}>
-            / {waterGoalLiters}L
-          </Text>
-        </View>
-        <Text style={[waterStyles.cups, { color: colors.textTertiary }]}>
-          {cupsConsumed} de {totalCups} copos (250ml)
-        </Text>
-      </View>
-      
-      {/* Barra de progresso */}
-      <View style={[waterStyles.progressBar, { backgroundColor: colors.border }]}>
-        <View 
-          style={[
-            waterStyles.progressFill, 
-            { 
-              width: `${progress}%`,
-              backgroundColor: progress >= 100 ? '#10B981' : '#3B82F6'
-            }
-          ]} 
-        />
-      </View>
-      
-      {/* Visual de copos */}
-      <View style={waterStyles.cupsContainer}>
-        {Array.from({ length: Math.min(totalCups, 12) }).map((_, index) => (
-          <View 
-            key={index}
-            style={[
-              waterStyles.cupIcon,
-              {
-                backgroundColor: index < cupsConsumed 
-                  ? (progress >= 100 ? '#10B981' : '#3B82F6') 
-                  : colors.border,
-                opacity: index < cupsConsumed ? 1 : 0.3
-              }
-            ]}
-          >
-            <Ionicons 
-              name="water" 
-              size={14} 
-              color={index < cupsConsumed ? '#FFFFFF' : colors.textTertiary} 
-            />
+    <Animated.View entering={FadeInDown.delay(400).springify()}>
+      <GlassCard isDark={isDark} gradient style={styles.waterCard}>
+        {/* Header */}
+        <View style={styles.waterHeader}>
+          <View style={styles.waterHeaderLeft}>
+            <View style={[styles.waterIconBg, { backgroundColor: '#3B82F615' }]}>
+              <Droplets size={22} color="#3B82F6" strokeWidth={2.5} />
+            </View>
+            <View>
+              <Text style={[styles.waterTitle, { color: theme.text }]}>Hidratação</Text>
+              <Text style={[styles.waterSubtitle, { color: theme.textTertiary }]}>
+                {cupsConsumed} de {totalCups} copos
+              </Text>
+            </View>
           </View>
-        ))}
-        {totalCups > 12 && (
-          <Text style={[waterStyles.moreCups, { color: colors.textTertiary }]}>
-            +{totalCups - 12}
-          </Text>
-        )}
-      </View>
-      
-      {/* Botões de ação */}
-      <View style={waterStyles.buttonsContainer}>
-        <TouchableOpacity 
-          style={[waterStyles.subtractButton, { backgroundColor: colors.border }]}
-          onPress={removeWater}
-          disabled={waterConsumed < 250}
-        >
-          <Ionicons name="remove" size={20} color={waterConsumed >= 250 ? colors.text : colors.textTertiary} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[waterStyles.addButton, { backgroundColor: '#3B82F6' }]}
-          onPress={() => addWater(250)}
-        >
-          <Ionicons name="add" size={22} color="#FFFFFF" />
-          <Text style={waterStyles.addButtonText}>250ml</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[waterStyles.addButtonLarge, { backgroundColor: '#2563EB' }]}
-          onPress={() => addWater(500)}
-        >
-          <Ionicons name="add" size={22} color="#FFFFFF" />
-          <Text style={waterStyles.addButtonText}>500ml</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Mensagem motivacional */}
-      {progress >= 100 && (
-        <View style={[waterStyles.successBanner, { backgroundColor: '#10B98120' }]}>
-          <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-          <Text style={[waterStyles.successText, { color: '#10B981' }]}>
-            {t?.home?.waterGoalReached || 'Meta de hidratação atingida! 🎉'}
-          </Text>
+          <TouchableOpacity onPress={resetWater} style={styles.resetButton}>
+            <RefreshCw size={18} color={theme.textTertiary} />
+          </TouchableOpacity>
         </View>
-      )}
-      
-      {progress < 50 && waterConsumed > 0 && (
-        <Text style={[waterStyles.tipText, { color: colors.textTertiary }]}>
-          💧 Beba água regularmente ao longo do dia
-        </Text>
-      )}
-    </View>
+        
+        {/* Progress */}
+        <View style={styles.waterProgressSection}>
+          <View style={styles.waterProgressInfo}>
+            <Text style={[styles.waterConsumed, { color: theme.text }]}>{waterConsumedLiters}</Text>
+            <Text style={[styles.waterGoalText, { color: theme.textSecondary }]}>/ {waterGoalLiters}L</Text>
+          </View>
+          <View style={[styles.waterProgressTrack, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}>
+            <Animated.View style={animatedProgressStyle}>
+              <LinearGradient
+                colors={progress >= 100 ? ['#10B981', '#059669'] : ['#3B82F6', '#2563EB']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.waterProgressFill}
+              />
+            </Animated.View>
+          </View>
+        </View>
+        
+        {/* Buttons */}
+        <View style={styles.waterButtons}>
+          <TouchableOpacity
+            style={[styles.waterMinusBtn, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(226, 232, 240, 0.8)' }]}
+            onPress={removeWater}
+            disabled={waterConsumed < 250}
+          >
+            <Minus size={20} color={waterConsumed >= 250 ? theme.text : theme.textTertiary} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.waterAddBtn} onPress={() => addWater(250)}>
+            <LinearGradient
+              colors={['#3B82F6', '#2563EB']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.waterAddBtnGradient}
+            >
+              <Plus size={20} color="#FFF" />
+              <Text style={styles.waterAddBtnText}>250ml</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.waterAddBtnLarge} onPress={() => addWater(500)}>
+            <LinearGradient
+              colors={['#1D4ED8', '#1E40AF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.waterAddBtnGradient}
+            >
+              <Plus size={20} color="#FFF" />
+              <Text style={styles.waterAddBtnText}>500ml</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Success Banner */}
+        {progress >= 100 && (
+          <View style={styles.successBanner}>
+            <LinearGradient
+              colors={['rgba(16, 185, 129, 0.15)', 'rgba(5, 150, 105, 0.15)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.successBannerGradient}
+            >
+              <Zap size={18} color="#10B981" />
+              <Text style={styles.successText}>Meta de hidratação atingida! 🎉</Text>
+            </LinearGradient>
+          </View>
+        )}
+      </GlassCard>
+    </Animated.View>
   );
-}
+};
 
-const waterStyles = StyleSheet.create({
-  container: {
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-  },
-  resetButton: {
-    padding: 4,
-  },
-  progressSection: {
-    marginBottom: 10,
-  },
-  progressInfo: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  consumed: {
-    fontSize: 32,
-    fontWeight: '800',
-    letterSpacing: -1,
-  },
-  goal: {
-    fontSize: 18,
-    fontWeight: '500',
-    marginLeft: 4,
-  },
-  cups: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  progressBar: {
-    height: 10,
-    borderRadius: 5,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 5,
-  },
-  cupsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 14,
-  },
-  cupIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  moreCups: {
-    fontSize: 12,
-    fontWeight: '600',
-    alignSelf: 'center',
-    marginLeft: 4,
-  },
-  buttonsContainer: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  subtractButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addButton: {
-    flex: 1,
-    flexDirection: 'row',
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  addButtonLarge: {
-    flex: 1,
-    flexDirection: 'row',
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  addButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  successBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    padding: 10,
-    borderRadius: 10,
-    marginTop: 12,
-  },
-  successText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  tipText: {
-    fontSize: 12,
-    textAlign: 'center',
-    marginTop: 10,
-  },
-});
+// ==================== GOAL CARD ====================
+const GoalCard = ({ goal, tdee, isDark, t }: any) => {
+  const theme = isDark ? darkTheme : lightTheme;
+  
+  const goalConfig: any = {
+    cutting: { label: 'Cutting', icon: TrendingUp, color: '#EF4444', emoji: '🔥' },
+    bulking: { label: 'Bulking', icon: Dumbbell, color: '#10B981', emoji: '💪' },
+    manutencao: { label: 'Manutenção', icon: Target, color: '#3B82F6', emoji: '⚖️' },
+  };
+  
+  const config = goalConfig[goal] || goalConfig.manutencao;
+  const IconComponent = config.icon;
+  
+  return (
+    <Animated.View entering={FadeInDown.delay(500).springify()}>
+      <GlassCard isDark={isDark} gradient style={styles.goalCard}>
+        <View style={styles.goalHeader}>
+          <View style={[styles.goalIconBg, { backgroundColor: `${config.color}15` }]}>
+            <IconComponent size={24} color={config.color} strokeWidth={2.5} />
+          </View>
+          <View style={styles.goalContent}>
+            <Text style={[styles.goalLabel, { color: theme.text }]}>
+              {config.emoji} {config.label}
+            </Text>
+            <Text style={[styles.goalDesc, { color: theme.textSecondary }]}>
+              TDEE: {Math.round(tdee || 0)} kcal/dia
+            </Text>
+          </View>
+          <View style={[styles.goalBadge, { backgroundColor: `${config.color}20` }]}>
+            <Text style={[styles.goalBadgeText, { color: config.color }]}>ATIVO</Text>
+          </View>
+        </View>
+      </GlassCard>
+    </Animated.View>
+  );
+};
 
+// ==================== MAIN HOME SCREEN ====================
 export default function HomeScreen() {
-  const { colors, isDark } = useTheme();
+  const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const isDark = effectiveTheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
   const { t } = useTranslation();
-  const { lightImpact, successFeedback } = useHaptics();
+  
   const [profile, setProfile] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carrega perfil quando a tela ganha foco
   useFocusEffect(
     useCallback(() => {
       loadProfile();
@@ -379,30 +351,24 @@ export default function HomeScreen() {
 
   const loadProfile = async () => {
     try {
-      // Primeiro tenta carregar do AsyncStorage para UI rápida
       const profileData = await AsyncStorage.getItem('userProfile');
-      if (profileData) {
-        setProfile(JSON.parse(profileData));
-      }
+      if (profileData) setProfile(JSON.parse(profileData));
       
-      // Depois busca do backend para garantir dados atualizados (Single Source of Truth)
       const userId = await AsyncStorage.getItem('userId');
       if (userId && BACKEND_URL) {
         try {
           const response = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`);
-          
           if (response.ok) {
             const data = await response.json();
             await AsyncStorage.setItem('userProfile', JSON.stringify(data));
             setProfile(data);
           }
-        } catch (apiError: any) {
-          // Silent fail - use local data
-          console.log('Using local data (backend unavailable):', apiError?.message || 'Unknown error');
+        } catch (apiError) {
+          console.log('Using local data');
         }
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -410,328 +376,436 @@ export default function HomeScreen() {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    lightImpact(); // Haptic feedback ao iniciar refresh
     await loadProfile();
-    successFeedback(); // Haptic feedback ao completar
     setRefreshing(false);
   };
 
-  const styles = createStyles(colors);
-
-  // Show skeleton loading state
   if (isLoading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <HomeSkeleton />
       </SafeAreaView>
     );
   }
 
-  // Show welcome message if no profile yet
   if (!profile) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={styles.emptyContainer}>
-          <Ionicons name="person-add-outline" size={60} color={colors.primary} />
-          <Text style={[styles.emptyTitle, { color: colors.text }]}>{t.home.greeting} LAF!</Text>
-          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>Complete seu perfil para começar</Text>
+          <User size={60} color={premiumColors.primary} />
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>Bem-vindo ao LAF!</Text>
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Complete seu perfil para começar</Text>
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh} 
-            colors={[colors.primary]} 
-            tintColor={colors.primary}
-          />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={isDark 
+          ? ['rgba(16, 185, 129, 0.05)', 'transparent', 'rgba(59, 130, 246, 0.03)']
+          : ['rgba(16, 185, 129, 0.08)', 'transparent', 'rgba(59, 130, 246, 0.05)']
         }
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={[styles.greeting, { color: colors.text }]}>{t.home.greeting}, {profile.name}!</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t.home.subtitle}</Text>
-          </View>
-          <TouchableOpacity style={styles.profileButton}>
-            <Ionicons name="person-circle-outline" size={40} color={colors.primary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Stats Cards */}
-        <View style={styles.statsContainer}>
-          <View style={[styles.statsCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <Ionicons name="flame" size={28} color="#EF4444" />
-            <Text style={[styles.statsValue, { color: colors.text }]}>{Math.round(profile.target_calories || 0)}</Text>
-            <Text style={[styles.statsUnit, { color: colors.textSecondary }]}>kcal</Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>{t.home.dailyGoal}</Text>
-          </View>
-          <View style={[styles.statsCard, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-            <Ionicons name="barbell" size={28} color={colors.primary} />
-            <Text style={[styles.statsValue, { color: colors.text }]}>{profile.weekly_training_frequency || 0}</Text>
-            <Text style={[styles.statsUnit, { color: colors.textSecondary }]}>{t.home.weeklyFrequency}</Text>
-            <Text style={[styles.statsLabel, { color: colors.textTertiary }]}>{t.home.training}</Text>
-          </View>
-        </View>
-
-        {/* Macros */}
-        <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>{t.home.macrosDistribution}</Text>
-          {profile.macros && (
-            <View style={styles.macrosContainer}>
-              <MacroItem
-                label={t.home.protein}
-                value={profile.macros.protein || 0}
-                color="#3B82F6"
-                textColor={colors.text}
-                labelColor={colors.textSecondary}
-              />
-              <MacroItem
-                label={t.home.carbs}
-                value={profile.macros.carbs || 0}
-                color="#F59E0B"
-                textColor={colors.text}
-                labelColor={colors.textSecondary}
-              />
-              <MacroItem
-                label={t.home.fat}
-                value={profile.macros.fat || 0}
-                color="#EF4444"
-                textColor={colors.text}
-                labelColor={colors.textSecondary}
-              />
+        locations={[0, 0.5, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              tintColor={premiumColors.primary}
+            />
+          }
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <Animated.View entering={FadeInDown.springify()} style={styles.header}>
+            <View>
+              <Text style={[styles.greeting, { color: theme.text }]}>
+                Olá, {profile.name?.split(' ')[0]}! 👋
+              </Text>
+              <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+                Vamos alcançar seus objetivos hoje
+              </Text>
             </View>
+            <TouchableOpacity style={[styles.profileButton, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}>
+              <Bell size={22} color={theme.text} />
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* Stats Cards */}
+          <View style={styles.statsRow}>
+            <StatCard
+              icon={<Flame size={26} color="#EF4444" strokeWidth={2.5} />}
+              value={Math.round(profile.target_calories || 0)}
+              unit="kcal"
+              label="META DIÁRIA"
+              color="#EF4444"
+              isDark={isDark}
+              delay={100}
+            />
+            <View style={{ width: spacing.md }} />
+            <StatCard
+              icon={<Dumbbell size={26} color={premiumColors.primary} strokeWidth={2.5} />}
+              value={profile.weekly_training_frequency || 0}
+              unit="treinos"
+              label="POR SEMANA"
+              color={premiumColors.primary}
+              isDark={isDark}
+              delay={200}
+            />
+          </View>
+
+          {/* Macros Card */}
+          <Animated.View entering={FadeInDown.delay(300).springify()}>
+            <GlassCard isDark={isDark} style={styles.macrosCard}>
+              <View style={styles.macrosHeader}>
+                <Text style={[styles.cardTitle, { color: theme.text }]}>Macros do Dia</Text>
+                <TouchableOpacity style={styles.seeAllBtn}>
+                  <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>Ver dieta</Text>
+                  <ChevronRight size={16} color={premiumColors.primary} />
+                </TouchableOpacity>
+              </View>
+              
+              {profile.macros && (
+                <View style={styles.macrosContent}>
+                  <MacroBar label="Proteína" current={0} target={profile.macros.protein || 150} color="#3B82F6" isDark={isDark} />
+                  <MacroBar label="Carboidratos" current={0} target={profile.macros.carbs || 200} color="#F59E0B" isDark={isDark} />
+                  <MacroBar label="Gorduras" current={0} target={profile.macros.fat || 60} color="#EF4444" isDark={isDark} />
+                </View>
+              )}
+            </GlassCard>
+          </Animated.View>
+
+          {/* Water Tracker */}
+          {profile.weight > 0 && (
+            <WaterTracker 
+              weight={profile.weight} 
+              isDark={isDark} 
+              t={t}
+              onUpdate={() => {}}
+            />
           )}
-        </View>
 
-        {/* Water Tracker - Sistema de Hidratação por kg */}
-        {profile.weight && profile.weight > 0 && (
-          <WaterTracker 
-            weight={profile.weight} 
-            colors={colors} 
+          {/* Goal Card */}
+          <GoalCard 
+            goal={profile.goal} 
+            tdee={profile.tdee} 
+            isDark={isDark} 
             t={t}
-            onUpdate={() => {}}
           />
-        )}
-
-        {/* Goal Card */}
-        <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }]}>
-          <Text style={[styles.cardTitle, { color: colors.text }]}>{t.home.yourGoal}</Text>
-          <View style={styles.goalContainer}>
-            <View style={[styles.goalIcon, { backgroundColor: colors.primary + '20' }]}>
-              <Ionicons name="trophy" size={24} color={colors.primary} />
-            </View>
-            <View style={styles.goalContent}>
-              <Text style={[styles.goalLabel, { color: colors.text }]}>
-                {profile.goal === 'cutting' && t.home.cutting}
-                {profile.goal === 'bulking' && t.home.bulking}
-                {profile.goal === 'manutencao' && t.home.maintenance}
-                {!profile.goal && 'Não definido'}
-              </Text>
-              <Text style={[styles.goalDesc, { color: colors.textSecondary }]}>
-                {t.home.tdee}: {Math.round(profile.tdee || 0)} kcal/dia
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Coming Soon */}
-        <View style={[styles.comingSoonCard, { backgroundColor: colors.primary + '15' }]}>
-          <Ionicons name="rocket-outline" size={48} color={colors.primary} />
-          <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>{t.home.comingSoon}</Text>
-          <Text style={[styles.comingSoonText, { color: colors.textSecondary }]}>
-            {t.home.comingSoonText}
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-function MacroItem({ label, value, color, textColor, labelColor }: any) {
-  return (
-    <View style={macroStyles.macroItem}>
-      <View style={[macroStyles.macroIndicator, { backgroundColor: color }]} />
-      <View style={macroStyles.macroContent}>
-        <Text style={[macroStyles.macroLabel, { color: labelColor }]}>{label}</Text>
-        <Text style={[macroStyles.macroValue, { color: textColor }]}>{Math.round(value)}g</Text>
-      </View>
+          
+          {/* Bottom Spacing for Tab Bar */}
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 }
 
-const macroStyles = StyleSheet.create({
-  macroItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  macroIndicator: {
-    width: 5,
-    height: 44,
-    borderRadius: 3,
-  },
-  macroContent: {
-    flex: 1,
+// ==================== STYLES ====================
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: { padding: spacing.lg, gap: spacing.lg },
+  
+  // Header
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: '800',
+    letterSpacing: -0.8,
+  },
+  subtitle: {
+    fontSize: 15,
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  profileButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  // Stats
+  statsRow: {
+    flexDirection: 'row',
+  },
+  statCard: {
+    padding: spacing.base,
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  statIconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -1,
+  },
+  statUnit: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: -4,
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  
+  // Macros Card
+  macrosCard: {
+    padding: spacing.lg,
+  },
+  macrosHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.base,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.4,
+  },
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  macrosContent: {
+    gap: spacing.md,
+  },
+  
+  // Macro Bar
+  macroContainer: {
+    gap: 8,
+  },
+  macroHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  macroLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  macroDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   macroLabel: {
     fontSize: 15,
     fontWeight: '600',
   },
   macroValue: {
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: -0.3,
-  },
-});
-
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loading: {
-    marginTop: 16,
-    fontSize: 16,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyTitle: {
-    fontSize: 24,
+    fontSize: 15,
     fontWeight: '700',
-    marginTop: 16,
   },
-  emptyText: {
-    fontSize: 16,
-    marginTop: 8,
+  macroTrack: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
   },
-  scrollView: {
-    flex: 1,
+  macroFill: {
+    height: '100%',
+    borderRadius: 4,
   },
-  scrollContent: {
-    padding: 20,
-    gap: 20,
+  
+  // Water Tracker
+  waterCard: {
+    padding: spacing.lg,
   },
-  header: {
+  waterHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: spacing.base,
   },
-  greeting: {
-    fontSize: 26,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: 15,
-    marginTop: 4,
-    opacity: 0.8,
-  },
-  profileButton: {
-    padding: 4,
-  },
-  statsContainer: {
+  waterHeaderLeft: {
     flexDirection: 'row',
-    gap: 14,
-  },
-  statsCard: {
-    flex: 1,
-    padding: 18,
-    borderRadius: 20,
     alignItems: 'center',
-    borderWidth: 1,
+    gap: spacing.md,
   },
-  statsValue: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginTop: 10,
-    letterSpacing: -0.5,
+  waterIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statsUnit: {
-    fontSize: 13,
-    fontWeight: '500',
-    opacity: 0.7,
-  },
-  statsLabel: {
-    fontSize: 11,
-    marginTop: 6,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  card: {
-    padding: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-  cardTitle: {
+  waterTitle: {
     fontSize: 17,
     fontWeight: '700',
-    marginBottom: 16,
     letterSpacing: -0.3,
   },
-  macrosContainer: {
-    gap: 14,
+  waterSubtitle: {
+    fontSize: 13,
+    marginTop: 2,
   },
-  goalContainer: {
+  resetButton: {
+    padding: spacing.sm,
+  },
+  waterProgressSection: {
+    marginBottom: spacing.base,
+  },
+  waterProgressInfo: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: spacing.sm,
+  },
+  waterConsumed: {
+    fontSize: 36,
+    fontWeight: '800',
+    letterSpacing: -1,
+  },
+  waterGoalText: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  waterProgressTrack: {
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  waterProgressFill: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  waterButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  waterMinusBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  waterAddBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  waterAddBtnLarge: {
+    flex: 1,
+    height: 48,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  waterAddBtnGradient: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    justifyContent: 'center',
+    gap: 6,
   },
-  goalIcon: {
+  waterAddBtnText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  successBanner: {
+    marginTop: spacing.md,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
+  successBannerGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: spacing.md,
+  },
+  successText: {
+    color: '#10B981',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  
+  // Goal Card
+  goalCard: {
+    padding: spacing.lg,
+  },
+  goalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  goalIconBg: {
     width: 52,
     height: 52,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   goalContent: {
     flex: 1,
+    marginLeft: spacing.md,
   },
   goalLabel: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    marginBottom: 4,
+    letterSpacing: -0.3,
   },
   goalDesc: {
     fontSize: 14,
-    opacity: 0.7,
+    marginTop: 2,
   },
-  comingSoonCard: {
-    padding: 32,
-    borderRadius: 20,
+  goalBadge: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.full,
+  },
+  goalBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  
+  // Empty State
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 4,
+    padding: spacing.xl,
+    gap: spacing.md,
   },
-  comingSoonTitle: {
-    fontSize: 18,
+  emptyTitle: {
+    fontSize: 24,
     fontWeight: '700',
-    marginTop: 14,
   },
-  comingSoonText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 22,
-    opacity: 0.8,
+  emptyText: {
+    fontSize: 16,
   },
 });
