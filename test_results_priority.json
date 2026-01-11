@@ -13,7 +13,12 @@
         ]
       },
       "success": false,
-      "error": "User creation failed"
+      "total_exercises": 0,
+      "total_sets": 0,
+      "valid_sets": 0,
+      "exercises_ok": false,
+      "sets_ok": false,
+      "valid_sets_ok": false
     },
     {
       "scenario": {
@@ -28,7 +33,12 @@
         ]
       },
       "success": false,
-      "error": "User creation failed"
+      "total_exercises": 0,
+      "total_sets": 0,
+      "valid_sets": 0,
+      "exercises_ok": false,
+      "sets_ok": false,
+      "valid_sets_ok": false
     },
     {
       "scenario": {
@@ -43,16 +53,308 @@
         ]
       },
       "success": false,
-      "error": "User creation failed"
+      "total_exercises": 0,
+      "total_sets": 0,
+      "valid_sets": 0,
+      "exercises_ok": false,
+      "sets_ok": false,
+      "valid_sets_ok": false
     }
   ],
   "diet_meal_count": {
-    "success": false,
-    "error": "User creation failed"
+    "success": true,
+    "meal_count_set": 4,
+    "actual_meal_count": 4,
+    "meals": [
+      {
+        "id": "b3d7013c-8d63-4436-85ad-45ad0ccc8b2a",
+        "name": "Caf\u00e9 da Manh\u00e3",
+        "time": "07:00",
+        "foods": [
+          {
+            "key": "ovos",
+            "name": "Ovos Inteiros",
+            "grams": 150,
+            "quantity": "150g",
+            "quantity_display": "150g (= 3 unidades grandes)",
+            "unit_equivalent": "= 3 unidades grandes",
+            "protein": 20,
+            "carbs": 2,
+            "fat": 16,
+            "calories": 233,
+            "category": "protein"
+          },
+          {
+            "key": "aveia",
+            "name": "Aveia",
+            "grams": 80,
+            "quantity": "80g",
+            "quantity_display": "80g (\u2248 5.3 colher sopa)",
+            "unit_equivalent": "\u2248 5.3 colher sopa",
+            "protein": 11,
+            "carbs": 53,
+            "fat": 6,
+            "calories": 305,
+            "category": "carb"
+          },
+          {
+            "key": "maca",
+            "name": "Ma\u00e7\u00e3",
+            "grams": 300,
+            "quantity": "300g",
+            "quantity_display": "300g (= 2 unidades m\u00e9dias)",
+            "unit_equivalent": "= 2 unidades m\u00e9dias",
+            "protein": 1,
+            "carbs": 42,
+            "fat": 1,
+            "calories": 177,
+            "category": "fruit"
+          }
+        ],
+        "total_calories": 715,
+        "macros": {
+          "protein": 32,
+          "carbs": 97,
+          "fat": 23
+        }
+      },
+      {
+        "id": "aee50e11-eea3-4495-adb3-18ba7b760b70",
+        "name": "Almo\u00e7o",
+        "time": "12:00",
+        "foods": [
+          {
+            "key": "patinho",
+            "name": "Patinho (Carne Magra)",
+            "grams": 100,
+            "quantity": "100g",
+            "quantity_display": "100g (\u2248 0.8 bife m\u00e9dio)",
+            "unit_equivalent": "\u2248 0.8 bife m\u00e9dio",
+            "protein": 28,
+            "carbs": 0,
+            "fat": 6,
+            "calories": 166,
+            "category": "protein"
+          },
+          {
+            "key": "batata_doce",
+            "name": "Batata Doce",
+            "grams": 300,
+            "quantity": "300g",
+            "quantity_display": "300g (= 2 unidades m\u00e9dias)",
+            "unit_equivalent": "= 2 unidades m\u00e9dias",
+            "protein": 5,
+            "carbs": 60,
+            "fat": 0,
+            "calories": 262,
+            "category": "carb"
+          },
+          {
+            "key": "aveia",
+            "name": "Aveia",
+            "grams": 280,
+            "quantity": "280g",
+            "quantity_display": "280g (\u2248 18.7 colher sopa)",
+            "unit_equivalent": "\u2248 18.7 colher sopa",
+            "protein": 38,
+            "carbs": 185,
+            "fat": 20,
+            "calories": 1067,
+            "category": "carb"
+          },
+          {
+            "key": "farofa",
+            "name": "Farofa",
+            "grams": 50,
+            "quantity": "50g",
+            "quantity_display": "50g (\u2248 2.5 colher sopa)",
+            "unit_equivalent": "\u2248 2.5 colher sopa",
+            "protein": 1,
+            "carbs": 23,
+            "fat": 1,
+            "calories": 104,
+            "category": "carb"
+          },
+          {
+            "key": "salada",
+            "name": "Salada Verde",
+            "grams": 60,
+            "quantity": "60g",
+            "quantity_display": "60g (\u2248 0.6 prato cheio)",
+            "unit_equivalent": "\u2248 0.6 prato cheio",
+            "protein": 1,
+            "carbs": 2,
+            "fat": 0,
+            "calories": 12,
+            "category": "vegetable"
+          },
+          {
+            "key": "tomate",
+            "name": "Tomate",
+            "grams": 60,
+            "quantity": "60g",
+            "quantity_display": "60g (\u2248 0.5 unidade m\u00e9dia)",
+            "unit_equivalent": "\u2248 0.5 unidade m\u00e9dia",
+            "protein": 1,
+            "carbs": 2,
+            "fat": 0,
+            "calories": 13,
+            "category": "vegetable"
+          }
+        ],
+        "total_calories": 1624,
+        "macros": {
+          "protein": 74,
+          "carbs": 272,
+          "fat": 27
+        }
+      },
+      {
+        "id": "0c5a3f3e-9e41-452e-9d1b-dec88fdb9677",
+        "name": "Lanche Tarde",
+        "time": "16:00",
+        "foods": [
+          {
+            "key": "iogurte_grego",
+            "name": "Iogurte Grego",
+            "grams": 170,
+            "quantity": "170g",
+            "quantity_display": "170g (= 1 pote)",
+            "unit_equivalent": "= 1 pote",
+            "protein": 17,
+            "carbs": 7,
+            "fat": 8,
+            "calories": 172,
+            "category": "protein"
+          },
+          {
+            "key": "maca",
+            "name": "Ma\u00e7\u00e3",
+            "grams": 150,
+            "quantity": "150g",
+            "quantity_display": "150g (= 1 unidade m\u00e9dia)",
+            "unit_equivalent": "= 1 unidade m\u00e9dia",
+            "protein": 0,
+            "carbs": 21,
+            "fat": 0,
+            "calories": 88,
+            "category": "fruit"
+          },
+          {
+            "key": "leite_condensado",
+            "name": "Leite Condensado",
+            "grams": 30,
+            "quantity": "30g",
+            "quantity_display": "30g (\u2248 1.5 colher sopa)",
+            "unit_equivalent": "\u2248 1.5 colher sopa",
+            "protein": 2,
+            "carbs": 16,
+            "fat": 2,
+            "calories": 97,
+            "category": "extra"
+          }
+        ],
+        "total_calories": 357,
+        "macros": {
+          "protein": 19,
+          "carbs": 44,
+          "fat": 10
+        }
+      },
+      {
+        "id": "7cf2c0d9-70d4-420a-b46a-45cf87b8a3af",
+        "name": "Jantar",
+        "time": "20:00",
+        "foods": [
+          {
+            "key": "patinho",
+            "name": "Patinho (Carne Magra)",
+            "grams": 140,
+            "quantity": "140g",
+            "quantity_display": "140g (\u2248 1.2 bife m\u00e9dio)",
+            "unit_equivalent": "\u2248 1.2 bife m\u00e9dio",
+            "protein": 39,
+            "carbs": 0,
+            "fat": 8,
+            "calories": 232,
+            "category": "protein"
+          },
+          {
+            "key": "batata_doce",
+            "name": "Batata Doce",
+            "grams": 300,
+            "quantity": "300g",
+            "quantity_display": "300g (= 2 unidades m\u00e9dias)",
+            "unit_equivalent": "= 2 unidades m\u00e9dias",
+            "protein": 5,
+            "carbs": 60,
+            "fat": 0,
+            "calories": 262,
+            "category": "carb"
+          },
+          {
+            "key": "aveia",
+            "name": "Aveia",
+            "grams": 80,
+            "quantity": "80g",
+            "quantity_display": "80g (\u2248 5.3 colher sopa)",
+            "unit_equivalent": "\u2248 5.3 colher sopa",
+            "protein": 11,
+            "carbs": 53,
+            "fat": 6,
+            "calories": 305,
+            "category": "carb"
+          },
+          {
+            "key": "farofa",
+            "name": "Farofa",
+            "grams": 20,
+            "quantity": "20g",
+            "quantity_display": "20g (\u2248 1 colher sopa)",
+            "unit_equivalent": "\u2248 1 colher sopa",
+            "protein": 0,
+            "carbs": 9,
+            "fat": 0,
+            "calories": 42,
+            "category": "carb"
+          },
+          {
+            "key": "abobrinha",
+            "name": "Abobrinha",
+            "grams": 100,
+            "quantity": "100g",
+            "quantity_display": "100g (\u2248 0.7 unidade m\u00e9dia)",
+            "unit_equivalent": "\u2248 0.7 unidade m\u00e9dia",
+            "protein": 1,
+            "carbs": 3,
+            "fat": 0,
+            "calories": 20,
+            "category": "vegetable"
+          }
+        ],
+        "total_calories": 861,
+        "macros": {
+          "protein": 56,
+          "carbs": 125,
+          "fat": 14
+        }
+      }
+    ]
   },
   "settings_endpoints": {
-    "success": false,
-    "error": "User creation failed"
+    "get_settings": {
+      "success": true,
+      "data": null,
+      "note": "No settings found (expected)"
+    },
+    "patch_settings": {
+      "success": false,
+      "error": "Status 404: {\"detail\":\"Usu\u00e1rio n\u00e3o encontrado\"}"
+    },
+    "get_after_patch": {
+      "success": false,
+      "error": "Status 404: {\"detail\":\"Usu\u00e1rio n\u00e3o encontrado\"}"
+    }
   },
-  "timestamp": "2026-01-11T19:41:31.773775"
+  "timestamp": "2026-01-11T19:41:42.955213"
 }
