@@ -101,7 +101,7 @@ const MealCard = ({ meal, index, isDark, theme, onFoodPress, language }: any) =>
           <View style={[styles.mealCaloriesBadge, { backgroundColor: mealConfig.color + '15' }]}>
             <Flame size={14} color={mealConfig.color} />
             <Text style={[styles.mealCaloriesText, { color: mealConfig.color }]}>
-              {Math.round(meal.calories || 0)} kcal
+              {Math.round(meal.total_calories || meal.calories || meal.foods?.reduce((s: number, f: any) => s + (f.calories || 0), 0) || 0)} kcal
             </Text>
           </View>
         </View>
