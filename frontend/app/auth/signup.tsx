@@ -1,10 +1,10 @@
 /**
  * LAF Premium Signup Screen
  * ==========================
- * Com seletor de idioma
+ * Com seletor de idioma - InputField fora do componente
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView, Alert, Keyboard, Modal
@@ -42,7 +42,6 @@ export default function SignupScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [focusedField, setFocusedField] = useState<string | null>(null);
   const [showLangModal, setShowLangModal] = useState(false);
 
   const buttonScale = useSharedValue(1);
@@ -55,7 +54,10 @@ export default function SignupScreen() {
     Keyboard.dismiss();
 
     if (!email || !password || !confirmPassword) {
-      Alert.alert(language === 'en-US' ? 'Required fields' : 'Campos obrigatórios', language === 'en-US' ? 'Please fill all fields.' : 'Por favor, preencha todos os campos.');
+      Alert.alert(
+        language === 'en-US' ? 'Required fields' : 'Campos obrigatórios', 
+        language === 'en-US' ? 'Please fill all fields.' : 'Por favor, preencha todos os campos.'
+      );
       return;
     }
 
@@ -108,39 +110,6 @@ export default function SignupScreen() {
       buttonScale.value = withSpring(1, animations.spring.gentle);
     }
   };
-
-  const InputField = ({ icon: Icon, label, value, onChangeText, placeholder, secureTextEntry, field, showToggle }: any) => (
-    <View style={styles.inputGroup}>
-      <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
-      <View style={[
-        styles.inputContainer,
-        {
-          backgroundColor: theme.input.background,
-          borderColor: focusedField === field ? premiumColors.primary : theme.input.border,
-        }
-      ]}>
-        <Icon size={20} color={focusedField === field ? premiumColors.primary : theme.textTertiary} />
-        <TextInput
-          style={[styles.input, { color: theme.text }]}
-          placeholder={placeholder}
-          placeholderTextColor={theme.input.placeholder}
-          value={value}
-          onChangeText={onChangeText}
-          onFocus={() => setFocusedField(field)}
-          onBlur={() => setFocusedField(null)}
-          secureTextEntry={secureTextEntry && !showPassword}
-          autoCapitalize="none"
-          keyboardType={field === 'email' ? 'email-address' : 'default'}
-          autoCorrect={false}
-        />
-        {showToggle && (
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            {showPassword ? <EyeOff size={20} color={theme.textTertiary} /> : <Eye size={20} color={theme.textTertiary} />}
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -205,35 +174,62 @@ export default function SignupScreen() {
                 borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(255, 255, 255, 0.5)',
               }]}
             >
-              <InputField
-                icon={Mail}
-                label={t.email}
-                value={email}
-                onChangeText={setEmail}
-                placeholder={language === 'en-US' ? 'your@email.com' : 'seu@email.com'}
-                field="email"
-              />
+              {/* Email */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{t.email}</Text>
+                <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
+                  <Mail size={20} color={theme.textTertiary} />
+                  <TextInput
+                    style={[styles.input, { color: theme.text }]}
+                    placeholder={language === 'en-US' ? 'your@email.com' : 'seu@email.com'}
+                    placeholderTextColor={theme.input.placeholder}
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    autoCorrect={false}
+                  />
+                </View>
+              </View>
 
-              <InputField
-                icon={Lock}
-                label={t.password}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-                secureTextEntry
-                field="password"
-                showToggle
-              />
+              {/* Password */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{t.password}</Text>
+                <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
+                  <Lock size={20} color={theme.textTertiary} />
+                  <TextInput
+                    style={[styles.input, { color: theme.text }]}
+                    placeholder="••••••••"
+                    placeholderTextColor={theme.input.placeholder}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoCorrect={false}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff size={20} color={theme.textTertiary} /> : <Eye size={20} color={theme.textTertiary} />}
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-              <InputField
-                icon={Lock}
-                label={language === 'en-US' ? 'Confirm Password' : language === 'es-ES' ? 'Confirmar Contraseña' : 'Confirmar Senha'}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="••••••••"
-                secureTextEntry
-                field="confirmPassword"
-              />
+              {/* Confirm Password */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  {language === 'en-US' ? 'Confirm Password' : language === 'es-ES' ? 'Confirmar Contraseña' : 'Confirmar Senha'}
+                </Text>
+                <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
+                  <Lock size={20} color={theme.textTertiary} />
+                  <TextInput
+                    style={[styles.input, { color: theme.text }]}
+                    placeholder="••••••••"
+                    placeholderTextColor={theme.input.placeholder}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry={!showPassword}
+                    autoCorrect={false}
+                  />
+                </View>
+              </View>
 
               {/* Signup Button */}
               <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
