@@ -241,6 +241,20 @@ export default function SettingsScreen() {
             </GlassCard>
           </Animated.View>
 
+          {/* Training Section */}
+          <Animated.View entering={FadeInDown.delay(275).springify()}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>TREINO</Text>
+            <GlassCard isDark={isDark} style={styles.settingsCard}>
+              <SettingsRow
+                icon={<Dumbbell />}
+                label="Configurar Treino"
+                value={profile?.weekly_training_frequency ? `${profile.weekly_training_frequency}x/semana` : null}
+                onPress={() => router.push('/settings/training-config')}
+                isDark={isDark}
+              />
+            </GlassCard>
+          </Animated.View>
+
           {/* Preferences Section */}
           <Animated.View entering={FadeInDown.delay(300).springify()}>
             <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>PREFERÊNCIAS</Text>
