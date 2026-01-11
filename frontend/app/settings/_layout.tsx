@@ -1,40 +1,30 @@
+/**
+ * Settings Layout - Premium
+ * ========================
+ */
+
 import { Stack } from 'expo-router';
-import { useTheme } from '../../theme/ThemeContext';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { lightTheme, darkTheme } from '../../theme/premium';
 
 export default function SettingsLayout() {
-  const { colors } = useTheme();
+  const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const isDark = effectiveTheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
   
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
-        headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: '600' },
-        headerShadowVisible: false,
-        contentStyle: { backgroundColor: colors.background },
+        headerShown: false, // Remove all headers - we use custom headers
+        contentStyle: { backgroundColor: theme.background },
+        animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen 
-        name="edit-profile" 
-        options={{ 
-          title: 'Editar Perfil',
-          presentation: 'modal',
-        }} 
-      />
-      <Stack.Screen 
-        name="terms" 
-        options={{ 
-          title: 'Termos de Uso',
-          presentation: 'modal',
-        }} 
-      />
-      <Stack.Screen 
-        name="privacy-policy" 
-        options={{ 
-          title: 'Política de Privacidade',
-          presentation: 'modal',
-        }} 
-      />
+      <Stack.Screen name="edit-profile" />
+      <Stack.Screen name="meal-config" />
+      <Stack.Screen name="notifications" />
+      <Stack.Screen name="privacy" />
+      <Stack.Screen name="terms" />
     </Stack>
   );
 }
