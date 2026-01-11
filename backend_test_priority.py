@@ -24,7 +24,8 @@ class LAFBackendTester:
         
     def create_test_user(self, email_suffix=""):
         """Create a test user for testing"""
-        email = f"teste_treino{email_suffix}@test.com"
+        timestamp = int(time.time())
+        email = f"teste_treino{email_suffix}_{timestamp}@test.com"
         password = "teste123456"
         
         self.log(f"Creating test user: {email}")
