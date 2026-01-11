@@ -414,22 +414,46 @@ class WorkoutAIService:
                 available = EXERCISES.get(muscle, [])
                 
                 # Filtra exercícios baseado no nível
-                if config["machine_priority"]:
-                    # Prioriza máquinas e cabos (já estão ordenados assim)
-                    filtered = available[:config["ex_per_muscle"]]
-                else:
-                    # Avançado: usa todos os exercícios disponíveis
+                filtered = []
+                for ex in available:
+                    ex_name_lower = ex["name"].lower()
+                    
+                    # Novatos e adaptação: apenas máquinas
+                    if config.get("machine_only"):
+                        if "máquina" in ex_name_lower or "polia" in ex_name_lower or "pulley" in ex_name_lower or "leg press" in ex_name_lower or "cadeira" in ex_name_lower or "mesa" in ex_name_lower or "cross" in ex_name_lower or "smith" in ex_name_lower:
+                            filtered.append(ex)
+                    else:
+                        # Verifica exercícios bloqueados
+                        blocked = config.get("block_exercises", [])
+                        is_blocked = False
+                        
+                        # Bloqueios específicos
+                        if "supino" in ex_name_lower and "barra" in ex_name_lower and "supino_barra" in blocked:
+                            is_blocked = True
+                        if "rosca" in ex_name_lower and "barra" in ex_name_lower and "direta" in ex_name_lower:
+                            is_blocked = True
+                        if "agachamento" in ex_name_lower and "livre" in ex_name_lower and "agachamento_livre" in blocked:
+                            is_blocked = True
+                        if "stiff" in ex_name_lower and "livre" in ex_name_lower and "stiff_livre" in blocked:
+                            is_blocked = True
+                        
+                        if not is_blocked:
+                            filtered.append(ex)
+                
+                # Se não encontrou exercícios filtrados, usa os disponíveis (fallback)
+                if not filtered:
                     filtered = available[:config["ex_per_muscle"]]
                 
-                for j, ex_data in enumerate(filtered):
+                for j, ex_data in enumerate(filtered[:config["ex_per_muscle"]]):
                     if exercises_added >= max_exercises:
                         break
                         
                     rest_str = config["rest"]
                     notes = ex_data.get("notes", "")
                     
-                    if config["notes_prefix"] and is_adaptation:
-                        notes = f"{config['notes_prefix']}Foque na execução perfeita. {notes}"
+                    # Adiciona prefixo baseado no nível
+                    if config.get("notes_prefix"):
+                        notes = f"{config['notes_prefix']}{notes}"
                     
                     exercises.append(Exercise(
                         name=ex_data["name"],
