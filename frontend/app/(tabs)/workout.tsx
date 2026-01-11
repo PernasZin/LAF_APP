@@ -587,6 +587,7 @@ const styles = StyleSheet.create({
   },
   exerciseInfo: { flex: 1 },
   exerciseName: { fontSize: 15, fontWeight: '600' },
+  exerciseFocus: { fontSize: 12, fontWeight: '500', marginTop: 2 },
   exerciseDetails: { flexDirection: 'row', gap: spacing.md, marginTop: 4 },
   exerciseDetail: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   exerciseDetailText: { fontSize: 12 },
