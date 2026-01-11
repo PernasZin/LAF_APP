@@ -279,14 +279,15 @@ export default function DietScreen() {
     }
   };
 
-  // Calculate totals
-  const totalCalories = dietPlan?.meals?.reduce((sum: number, m: any) => sum + (m.calories || 0), 0) || 0;
-  const totalProtein = dietPlan?.meals?.reduce((sum: number, m: any) => 
-    sum + m.foods?.reduce((s: number, f: any) => s + (f.protein || 0), 0), 0) || 0;
-  const totalCarbs = dietPlan?.meals?.reduce((sum: number, m: any) => 
-    sum + m.foods?.reduce((s: number, f: any) => s + (f.carbs || 0), 0), 0) || 0;
-  const totalFat = dietPlan?.meals?.reduce((sum: number, m: any) => 
-    sum + m.foods?.reduce((s: number, f: any) => s + (f.fat || 0), 0), 0) || 0;
+  // Calculate totals from foods (more reliable)
+  const totalCalories = dietPlan?.computed_calories || dietPlan?.meals?.reduce((sum: number, m: any) => 
+    sum + (m.calories || m.total_calories || m.foods?.reduce((s: number, f: any) => s + (f.calories || 0), 0) || 0), 0) || 0;
+  const totalProtein = dietPlan?.computed_macros?.protein || dietPlan?.meals?.reduce((sum: number, m: any) => 
+    sum + (m.foods?.reduce((s: number, f: any) => s + (f.protein || 0), 0) || 0), 0) || 0;
+  const totalCarbs = dietPlan?.computed_macros?.carbs || dietPlan?.meals?.reduce((sum: number, m: any) => 
+    sum + (m.foods?.reduce((s: number, f: any) => s + (f.carbs || 0), 0) || 0), 0) || 0;
+  const totalFat = dietPlan?.computed_macros?.fat || dietPlan?.meals?.reduce((sum: number, m: any) => 
+    sum + (m.foods?.reduce((s: number, f: any) => s + (f.fat || 0), 0) || 0), 0) || 0;
 
   if (initialLoading) {
     return (
