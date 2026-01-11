@@ -153,6 +153,7 @@ const CardioExerciseCard = ({ exercise, index, isDark, theme, language }: any) =
 
 export default function CardioScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const language = useSettingsStore((state) => state.language);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
   const { t } = useTranslation();
@@ -194,8 +195,18 @@ export default function CardioScreen() {
     setRefreshing(false);
   };
 
-  const totalMinutes = cardioData?.sessions?.reduce((sum: number, s: any) => sum + (s.duration || 0), 0) || 0;
-  const totalCalories = cardioData?.sessions?.reduce((sum: number, s: any) => sum + (s.calories || 0), 0) || 0;
+  // Usa weekly_summary do backend
+  const totalMinutes = cardioData?.weekly_summary?.total_duration_minutes || 0;
+  const totalCalories = cardioData?.weekly_summary?.total_calories_burned || 0;
+  const totalSessions = cardioData?.weekly_summary?.total_sessions || 0;
+  
+  // Tradução do objetivo
+  const goalLabels: any = {
+    cutting: { pt: 'Cutting', en: 'Cutting', es: 'Definición' },
+    bulking: { pt: 'Bulking', en: 'Bulking', es: 'Volumen' },
+    manutencao: { pt: 'Manutenção', en: 'Maintenance', es: 'Mantenimiento' },
+  };
+  const goalLabel = goalLabels[cardioData?.goal]?.[language === 'en-US' ? 'en' : language === 'es-ES' ? 'es' : 'pt'] || 'Manutenção';
 
   if (loading) {
     return (
