@@ -72,9 +72,9 @@ export default function MealConfigStep({ formData, updateFormData, theme, isDark
               { backgroundColor: theme.input.background, borderColor: theme.border }
             ]}
             onPress={() => handleMealCountChange(-1)}
-            disabled={mealCount <= 3}
+            disabled={mealCount <= 4}
           >
-            <Minus size={20} color={mealCount <= 3 ? theme.textTertiary : theme.text} />
+            <Minus size={20} color={mealCount <= 4 ? theme.textTertiary : theme.text} />
           </TouchableOpacity>
           
           <View style={[styles.countDisplay, { backgroundColor: `${premiumColors.primary}15` }]}>
