@@ -434,48 +434,69 @@ export default function DietScreen() {
 
       {/* Substitution Modal */}
       <Modal visible={substitutionModal} transparent animationType="slide">
-        <View style={[styles.modalOverlay, { backgroundColor: theme.overlay }]}>
-          <View style={[styles.modalContent, { backgroundColor: theme.backgroundCardSolid }]}>
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Substituir Alimento</Text>
-              <TouchableOpacity onPress={() => setSubstitutionModal(false)}>
-                <X size={24} color={theme.text} />
-              </TouchableOpacity>
-            </View>
-            
-            {selectedFood && (
-              <View style={[styles.selectedFoodBanner, { backgroundColor: premiumColors.primary + '15' }]}>
-                <Text style={[styles.selectedFoodText, { color: theme.text }]}>
-                  {translateFood(selectedFood.name, language)} ({Math.round(selectedFood.grams)}g)
-                </Text>
+        <TouchableOpacity 
+          style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
+          activeOpacity={1}
+          onPress={() => setSubstitutionModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View style={[styles.modalContent, { backgroundColor: theme.backgroundCardSolid }]}>
+              <View style={styles.modalHeader}>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>Substituir Alimento</Text>
+                <TouchableOpacity onPress={() => setSubstitutionModal(false)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <X size={24} color={theme.text} />
+                </TouchableOpacity>
               </View>
-            )}
+              
+              {selectedFood && (
+                <View style={[styles.selectedFoodBanner, { backgroundColor: premiumColors.primary + '15' }]}>
+                  <Text style={[styles.selectedFoodText, { color: theme.text }]}>
+                    {translateFood(selectedFood.name, language)} ({Math.round(selectedFood.grams)}g)
+                  </Text>
+                  <Text style={[styles.selectedFoodMacros, { color: theme.textSecondary }]}>
+                    P:{Math.round(selectedFood.protein || 0)}g • C:{Math.round(selectedFood.carbs || 0)}g • G:{Math.round(selectedFood.fat || 0)}g
+                  </Text>
+                </View>
+              )}
 
-            {loadingSubstitutes ? (
-              <ActivityIndicator size="large" color={premiumColors.primary} style={{ marginVertical: 40 }} />
-            ) : (
-              <ScrollView style={styles.substitutesList}>
-                {substitutes.map((sub, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    style={[styles.substituteItem, { borderBottomColor: theme.border }]}
-                    onPress={() => handleSubstitute(sub)}
-                  >
-                    <View style={styles.substituteContent}>
-                      <Text style={[styles.substituteName, { color: theme.text }]}>
-                        {translateFood(sub.name, language)}
-                      </Text>
-                      <Text style={[styles.substituteGrams, { color: theme.textTertiary }]}>
-                        {Math.round(sub.grams)}g
-                      </Text>
-                    </View>
-                    <Check size={20} color={premiumColors.primary} />
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
-          </View>
-        </View>
+              {loadingSubstitutes ? (
+                <ActivityIndicator size="large" color={premiumColors.primary} style={{ marginVertical: 40 }} />
+              ) : substitutes.length === 0 ? (
+                <View style={styles.emptySubstitutes}>
+                  <Text style={[styles.emptySubstitutesText, { color: theme.textSecondary }]}>
+                    Nenhuma substituição disponível para este alimento
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView style={styles.substitutesList} showsVerticalScrollIndicator={false}>
+                  {substitutes.map((sub, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[styles.substituteItem, { borderBottomColor: theme.border }]}
+                      onPress={() => handleSubstitute(sub)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.substituteContent}>
+                        <Text style={[styles.substituteName, { color: theme.text }]}>
+                          {translateFood(sub.name, language)}
+                        </Text>
+                        <Text style={[styles.substituteGrams, { color: theme.textTertiary }]}>
+                          {Math.round(sub.grams)}g • {Math.round(sub.calories || 0)} kcal
+                        </Text>
+                        <Text style={[styles.substituteMacros, { color: theme.textSecondary }]}>
+                          P:{Math.round(sub.protein || 0)}g • C:{Math.round(sub.carbs || 0)}g • G:{Math.round(sub.fat || 0)}g
+                        </Text>
+                      </View>
+                      <View style={[styles.substituteCheck, { backgroundColor: premiumColors.primary + '15' }]}>
+                        <Check size={18} color={premiumColors.primary} />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
