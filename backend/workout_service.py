@@ -61,6 +61,7 @@ class WorkoutGenerateRequest(BaseModel):
 
 EXERCISES = {
     # ============ PEITO ============
+    # Inclui Elevação Lateral para trabalhar ombro no dia de peito
     "peito": [
         {
             "name": "Supino Reto na Máquina",
@@ -83,13 +84,14 @@ EXERCISES = {
             "notes": "Cabos na posição alta. Dê um passo à frente. Puxe os cabos para baixo e para frente, cruzando na frente do corpo."
         },
         {
-            "name": "Cross Over Polia Baixa",
-            "focus": "Peitoral Superior",
-            "notes": "Cabos na posição baixa. Puxe os cabos de baixo para cima, cruzando na altura do peito. Foco no peitoral superior."
+            "name": "Elevação Lateral Halteres",
+            "focus": "Deltóide Lateral",
+            "notes": "Sentado para mais estabilidade. Cotovelos levemente flexionados. Eleve até altura dos ombros. Desça controlado."
         },
     ],
     
     # ============ COSTAS ============
+    # Inclui Voador Invertido para trabalhar posterior de ombro
     "costas": [
         {
             "name": "Puxada Frontal Pegada Aberta",
@@ -112,14 +114,14 @@ EXERCISES = {
             "notes": "Pegada pronada (palmas para baixo). Puxe com cotovelos mais altos. Foco em trapézio médio e romboides."
         },
         {
+            "name": "Voador Invertido (Peck Deck)",
+            "focus": "Deltóide Posterior",
+            "notes": "Sente de frente para o encosto. Abra os braços para trás contraindo as escápulas. Retorne controlado. Trabalha posterior de ombro."
+        },
+        {
             "name": "Remada Baixa Polia (Triângulo)",
             "focus": "Dorsal Inferior",
             "notes": "Sente com pernas levemente flexionadas. Puxe o triângulo até o abdômen baixo. Mantenha costas retas."
-        },
-        {
-            "name": "Pulldown Corda (Polia Alta)",
-            "focus": "Dorsal (Contração)",
-            "notes": "Braços estendidos acima. Puxe a corda separando as pontas, até a altura das coxas. Aperte as escápulas."
         },
     ],
     
