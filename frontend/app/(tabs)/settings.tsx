@@ -230,14 +230,6 @@ export default function SettingsScreen() {
                 onPress={() => router.push('/settings/meal-config')}
                 isDark={isDark}
               />
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              <SettingsRow
-                icon={<Target />}
-                label="Preferências de Alimentos"
-                value={null}
-                onPress={() => router.push('/settings/food-preferences')}
-                isDark={isDark}
-              />
             </GlassCard>
           </Animated.View>
 
