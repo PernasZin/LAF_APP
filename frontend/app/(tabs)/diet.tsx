@@ -324,12 +324,6 @@ export default function DietScreen() {
                 {dietPlan?.meals?.length || 0} refeições planejadas
               </Text>
             </View>
-            <TouchableOpacity 
-              style={[styles.refreshButton, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}
-              onPress={onRefresh}
-            >
-              <RefreshCw size={20} color={theme.text} />
-            </TouchableOpacity>
           </Animated.View>
 
           {/* Summary Card */}
