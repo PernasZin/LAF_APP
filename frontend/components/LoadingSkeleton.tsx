@@ -1,6 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
-import { useTheme } from '../theme/ThemeContext';
+import { useSettingsStore } from '../stores/settingsStore';
+import { lightTheme, darkTheme } from '../theme/premium';
+
+// Hook para obter cores do tema
+const useThemeColors = () => {
+  const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const isDark = effectiveTheme === 'dark';
+  const theme = isDark ? darkTheme : lightTheme;
+  return {
+    colors: {
+      border: theme.border,
+      backgroundCard: theme.backgroundCard,
+    }
+  };
+};
 
 interface SkeletonProps {
   width?: number | string;
