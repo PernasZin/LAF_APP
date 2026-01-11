@@ -73,7 +73,7 @@ export default function OnboardingScreen() {
     { title: t.steps.trainingLevel, component: TrainingLevelStep },
     { title: t.steps.yourGoal, component: GoalStep },
     { title: 'Refeições', component: MealConfigStep },
-    { title: t.steps.preferences, component: RestrictionsStep },
+    { title: t.steps.preferences, component: FoodPreferencesStep },
   ];
 
   const updateFormData = (data: any) => {
