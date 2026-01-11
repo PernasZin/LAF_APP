@@ -240,7 +240,7 @@ export default function CardioScreen() {
             <View>
               <Text style={[styles.headerTitle, { color: theme.text }]}>Cardio</Text>
               <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-                {cardioData?.sessions?.length || 0} sessões por semana
+                {totalSessions} sessões/semana • {goalLabel}
               </Text>
             </View>
           </Animated.View>
@@ -269,20 +269,32 @@ export default function CardioScreen() {
               </View>
             </GlassCard>
           </Animated.View>
+          
+          {/* Dica do cardio */}
+          {cardioData?.tips && (
+            <Animated.View entering={FadeInDown.delay(150).springify()}>
+              <GlassCard isDark={isDark} style={styles.tipCard}>
+                <Text style={[styles.tipText, { color: theme.text }]}>
+                  💡 {language === 'en-US' ? cardioData.tips.en : language === 'es-ES' ? cardioData.tips.es : cardioData.tips.pt}
+                </Text>
+              </GlassCard>
+            </Animated.View>
+          )}
 
-          {/* Sessions */}
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Suas Sessões</Text>
-          {cardioData?.sessions?.map((session: any, index: number) => (
-            <CardioSessionCard
+          {/* Exercises */}
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Seus Exercícios</Text>
+          {cardioData?.exercises?.map((exercise: any, index: number) => (
+            <CardioExerciseCard
               key={index}
-              session={session}
+              exercise={exercise}
               index={index}
               isDark={isDark}
               theme={theme}
+              language={language}
             />
           ))}
 
-          {(!cardioData?.sessions || cardioData.sessions.length === 0) && (
+          {(!cardioData?.exercises || cardioData.exercises.length === 0) && (
             <GlassCard isDark={isDark} style={styles.emptyCard}>
               <Activity size={48} color={theme.textTertiary} />
               <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
