@@ -457,8 +457,15 @@ class WorkoutAIService:
                 if exercises_added >= max_exercises:
                     break
                 
-                # Limite de exercícios para músculos pequenos
-                max_for_muscle = 2 if muscle in SMALL_MUSCLES else config["ex_per_muscle"]
+                # REGRA ESPECIAL: Ombros SEMPRE tem 3 exercícios
+                # (Desenvolvimento, Elevação Lateral, Voador/Posterior)
+                if muscle == "ombros":
+                    max_for_muscle = 3
+                # Limite de 2 exercícios para músculos pequenos
+                elif muscle in SMALL_MUSCLES:
+                    max_for_muscle = 2
+                else:
+                    max_for_muscle = config["ex_per_muscle"]
                     
                 available = EXERCISES.get(muscle, [])
                 
