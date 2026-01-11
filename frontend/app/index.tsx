@@ -37,14 +37,17 @@ export default function IndexScreen() {
 
   // Check if user has selected language before
   useEffect(() => {
-    checkLanguageSelection();
-  }, [isHydrated]);
+    // Small delay to ensure store is ready
+    const timer = setTimeout(() => {
+      checkLanguageSelection();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const checkLanguageSelection = async () => {
-    if (!isHydrated) return;
-    
     try {
       const hasSelected = await AsyncStorage.getItem('hasSelectedLanguage');
+      console.log('hasSelectedLanguage:', hasSelected);
       if (hasSelected === 'true') {
         setHasSelectedLanguage(true);
       } else {
@@ -52,7 +55,10 @@ export default function IndexScreen() {
         setShowLanguageSelector(true);
       }
     } catch (error) {
-      setHasSelectedLanguage(true); // Skip on error
+      console.log('Error checking language:', error);
+      // On error, show language selector
+      setHasSelectedLanguage(false);
+      setShowLanguageSelector(true);
     }
   };
 
