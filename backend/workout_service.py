@@ -406,6 +406,7 @@ class WorkoutAIService:
             template = split[i]
             exercises = []
             exercises_added = 0
+            muscles_warmed_up = set()  # Rastreia músculos já aquecidos (para avançado)
             
             for muscle in template["muscles"]:
                 if exercises_added >= max_exercises:
@@ -451,8 +452,16 @@ class WorkoutAIService:
                     rest_str = config["rest"]
                     notes = ex_data.get("notes", "")
                     
-                    # Adiciona prefixo baseado no nível
-                    if config.get("notes_prefix"):
+                    # Lógica especial para AVANÇADO: aquecimento só no primeiro exercício do grupo muscular
+                    if level == 'avancado':
+                        if muscle not in muscles_warmed_up:
+                            # Primeiro exercício do grupo - inclui aquecimento
+                            notes = f"🔥 1ª do grupo - AQUECER: 1x Aquec (50%) → 1x Reconhec (90-100%, 1-2 reps) → 2x Válidas ATÉ A FALHA (mín 5 reps). {notes}"
+                            muscles_warmed_up.add(muscle)
+                        else:
+                            # Exercício subsequente - músculo já aquecido
+                            notes = f"✅ Músculo já aquecido - Direto para 2x Séries Válidas ATÉ A FALHA (mín 5 reps). {notes}"
+                    elif config.get("notes_prefix"):
                         notes = f"{config['notes_prefix']}{notes}"
                     
                     exercises.append(Exercise(
