@@ -453,102 +453,69 @@ class WorkoutAIService:
         if is_adaptation:
             # Treino de adaptação para novatos (4-8 semanas)
             config = {
-                "sets": 2,
+                "sets": min(sets_by_time, 2),  # Máximo 2 séries na adaptação
                 "reps": "15-20",
                 "rest": "60s",
                 "ex_per_muscle": 1,
-                "machine_only": True,  # 100% máquinas
-                "notes_prefix": "⚠️ ADAPTAÇÃO - CARGA LEVE! Foque 100% na execução perfeita do movimento. Não se preocupe com peso ainda. ",
-                "general_note": "FASE DE ADAPTAÇÃO: Use cargas LEVES. O objetivo é aprender os movimentos corretamente."
+                "machine_only": True,
+                "notes_prefix": "⚠️ ADAPTAÇÃO - CARGA LEVE! ",
+                "general_note": "FASE DE ADAPTAÇÃO: Técnica acima de carga."
             }
         elif level == 'novato':
-            # Novato pós-adaptação (hipertrofia leve)
+            # NOVATO = nunca treinou (treinos simples, exercícios seguros, menor volume)
             config = {
-                "sets": 3,
+                "sets": min(sets_by_time, 3),
                 "reps": "12-15",
                 "rest": "90s",
-                "ex_per_muscle": 2,
-                "machine_only": True,  # 100% máquinas
+                "ex_per_muscle": 1,  # Menos exercícios por músculo
+                "machine_only": True,
                 "notes_prefix": "",
-                "general_note": "Agora pode aumentar as cargas progressivamente. Mantenha a execução correta."
+                "general_note": "Foco 100% na execução correta. Evite cargas pesadas."
             }
         elif level == 'iniciante':
-            # Iniciante (0-1 anos) - Foco em máquinas, alguns livres seguros
+            # INICIANTE = 6 meses - 2 anos (volume moderado, compostos + acessórios leves)
             config = {
-                "sets": 3,
+                "sets": sets_by_time,
                 "reps": "10-12",
                 "rest": "75s",
                 "ex_per_muscle": 2,
                 "machine_only": False,
-                "allow_free_weights": ["elevacao_lateral", "rosca_alternada", "triceps_frances"],  # Livres seguros
-                "block_exercises": ["supino_barra", "rosca_direta_barra", "agachamento_livre", "stiff_livre"],
+                "allow_free_weights": ["elevacao_lateral", "rosca_alternada", "triceps_frances"],
+                "block_exercises": ["supino_barra", "agachamento_livre", "stiff_livre"],
                 "notes_prefix": "",
-                "general_note": "Foque em aumentar cargas progressivamente mantendo boa execução."
+                "general_note": "Progressão simples. Aumente cargas gradualmente."
             }
         elif level == 'intermediario':
-            # Intermediário (1-2 anos) - Pode usar mais livres
+            # INTERMEDIÁRIO = 2-3 anos (maior volume, pode usar bi-set, pirâmide, pré-exaustão)
             config = {
-                "sets": 4,
+                "sets": sets_by_time,
                 "reps": "8-12",
                 "rest": "75s",
                 "ex_per_muscle": 2,
                 "machine_only": False,
-                "allow_free_weights": True,  # Libera maioria dos livres
-                "block_exercises": ["supino_barra", "rosca_direta_barra"],  # Ainda bloqueia esses
+                "allow_free_weights": True,
+                "block_exercises": [],
                 "notes_prefix": "💪 Chegue PERTO DA FALHA em pelo menos 1 série. ",
-                "general_note": "INTERMEDIÁRIO: Em cada exercício, faça pelo menos 1 série próxima da falha muscular."
+                "general_note": "Controle de descanso. Pode usar técnicas como bi-set e pirâmide."
             }
         else:  # avancado
-            # Avançado (3+ anos) - Estrutura completa com aquecimento e séries válidas
+            # AVANÇADO = 3+ anos (volume alto, drop set, rest pause, maior intensidade)
             config = {
-                "sets": 4,  # 1 aquec + 1 reconhec + 2 válidas
+                "sets": sets_by_time,
                 "reps": "5-8",
                 "rest": "120s",
-                "ex_per_muscle": 3,
+                "ex_per_muscle": 2,
                 "machine_only": False,
-                "allow_free_weights": True,  # Todos liberados
+                "allow_free_weights": True,
                 "block_exercises": [],
-                "notes_prefix": "🔥 ESTRUTURA: 1x Aquecimento (50% carga) → 1x Reconhecimento (90-100%, 1-2 reps) → 2x Séries Válidas ATÉ A FALHA (mín 5 reps). ",
-                "general_note": "AVANÇADO: Cada exercício segue a estrutura - Aquecimento → Reconhecimento → 2 Séries até a FALHA MUSCULAR."
+                "notes_prefix": "🔥 ATÉ A FALHA! ",
+                "general_note": "AVANÇADO: Pode usar drop set, rest pause. Controle técnico máximo."
             }
         
-        # ==================== AJUSTE BASEADO NO TEMPO DISPONÍVEL ====================
-        # Tempo curto (≤45 min): Reduz exercícios repetidos e -1 série
-        # Tempo médio (46-75 min): Normal
-        # Tempo longo (≥76 min): Permite mais exercícios por grupo
-        
-        time_adjustment = {
-            "reduce_sets": 0,  # Quantas séries a menos
-            "reduce_exercises": 0,  # Quantos exercícios a menos por grupo
-            "time_note": ""
-        }
-        
-        if duration <= 45:
-            # Tempo curto: treino mais enxuto
-            time_adjustment["reduce_sets"] = 1
-            time_adjustment["reduce_exercises"] = 1
-            time_adjustment["time_note"] = "⏱️ TREINO OTIMIZADO (tempo curto): Menos exercícios e séries para caber no seu tempo."
-        elif duration <= 60:
-            # Tempo médio-curto: reduz apenas séries
-            time_adjustment["reduce_sets"] = 1
-            time_adjustment["reduce_exercises"] = 0
-            time_adjustment["time_note"] = "⏱️ TREINO COMPACTO: 1 série a menos por exercício."
-        elif duration >= 90:
-            # Tempo longo: pode ter mais exercícios
-            time_adjustment["reduce_sets"] = 0
-            time_adjustment["reduce_exercises"] = -1  # Negativo = adiciona
-            time_adjustment["time_note"] = ""
-        
-        # Aplica ajuste de séries (mínimo 2 séries)
-        config["sets"] = max(2, config["sets"] - time_adjustment["reduce_sets"])
-        
-        # Aplica ajuste de exercícios por músculo (mínimo 1)
-        config["ex_per_muscle"] = max(1, config["ex_per_muscle"] - time_adjustment["reduce_exercises"])
-        
-        # Ajusta número de exercícios baseado no tempo disponível
+        # ==================== MÁXIMO DE EXERCÍCIOS (REGRA DURA: 10) ====================
         max_exercises = self._get_exercises_per_duration(duration, level)
         
-        # Exercícios compostos que sempre precisam de aquecimento (envolvem múltiplos grupos)
+        # Exercícios compostos que sempre precisam de aquecimento
         COMPOUND_EXERCISES = [
             "agachamento", "stiff", "levantamento", "supino", "desenvolvimento",
             "remada", "puxada", "leg press", "hack"
