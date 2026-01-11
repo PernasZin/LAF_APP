@@ -393,8 +393,8 @@ class LAFBackendTester:
         # 1. Generate Workout
         success, response, status = self.make_request("POST", f"/workout/generate?user_id={self.test_user_id}")
         
-        if success and isinstance(response, dict) and "workouts" in response:
-            workouts = response.get("workouts", [])
+        if success and isinstance(response, dict) and "workout_days" in response:
+            workouts = response.get("workout_days", [])
             workout_count = len(workouts)
             
             # Should match weekly_training_frequency from profile (4)
@@ -412,7 +412,7 @@ class LAFBackendTester:
                     self.log_test("WORKOUT - Structure", False, f"Workout {i} has no exercises")
                 else:
                     exercise_count = len(workout.get("exercises", []))
-                    self.log_test("WORKOUT - Structure", True, f"Workout {i} has {exercise_count} exercises")
+                    self.log_test("WORKOUT - Structure", True, f"Workout {i} ({workout.get('name', 'Unknown')}) has {exercise_count} exercises")
         else:
             self.log_test("WORKOUT - Generate", False, f"Status: {status}", response)
             return False
