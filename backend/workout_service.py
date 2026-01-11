@@ -440,8 +440,8 @@ class WorkoutAIService:
             "remada", "puxada", "leg press", "hack"
         ]
         
-        # Músculos pequenos: máximo 2 exercícios (ombros NÃO está aqui - tem 3 exercícios)
-        SMALL_MUSCLES = ["triceps", "biceps", "panturrilha", "abdomen"]
+        # Músculos pequenos: máximo 2 exercícios
+        SMALL_MUSCLES = ["ombros", "triceps", "biceps", "panturrilha", "abdomen"]
         
         workout_days = []
         
