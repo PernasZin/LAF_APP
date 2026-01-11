@@ -204,6 +204,36 @@ export default function DietScreen() {
     setRefreshing(false);
   };
 
+  // Função para GERAR nova dieta
+  const handleGenerateDiet = async () => {
+    if (!userId || !BACKEND_URL) {
+      Alert.alert('Erro', 'Usuário não identificado');
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const response = await safeFetch(
+        `${BACKEND_URL}/api/diet/generate?user_id=${userId}`,
+        { method: 'POST' }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setDietPlan(data);
+        Alert.alert('Sucesso!', 'Sua dieta foi gerada com sucesso!');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        Alert.alert('Erro', errorData.detail || 'Não foi possível gerar a dieta');
+      }
+    } catch (error) {
+      console.error('Error generating diet:', error);
+      Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleFoodPress = async (food: any, mealIndex: number, foodIndex: number) => {
     setSelectedFood(food);
     setSelectedMealIndex(mealIndex);
