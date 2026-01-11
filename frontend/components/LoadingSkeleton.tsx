@@ -161,7 +161,7 @@ export const ProgressSkeleton: React.FC = () => {
 
 // Skeleton para tela Home
 export const HomeSkeleton: React.FC = () => {
-  const { colors } = useTheme();
+  const { colors } = useThemeColors();
   
   return (
     <View style={styles.container}>
