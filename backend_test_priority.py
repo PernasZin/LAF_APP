@@ -382,10 +382,19 @@ class LAFBackendTester:
             for result in workout_results:
                 scenario = result["scenario"]
                 if result.get("success"):
-                    self.log(f"  ✅ {scenario['time']}min: {result.get('total_exercises', 'N/A')} exercises, {result.get('total_sets', 'N/A')} sets")
+                    max_ex = result.get("max_exercises_per_day", "N/A")
+                    avg_ex = result.get("avg_exercises_per_day", "N/A")
+                    max_sets = result.get("max_sets_per_day", "N/A")
+                    days = result.get("total_days", "N/A")
+                    self.log(f"  ✅ {scenario['time']}min: Max {max_ex} exercises/day (avg {avg_ex}) across {days} days")
                 else:
-                    error_msg = result.get("error", "Unknown error")
-                    self.log(f"  ❌ {scenario['time']}min: {error_msg}")
+                    error_msg = result.get("error", "Criteria not met")
+                    max_ex = result.get("max_exercises_per_day", "N/A")
+                    expected = scenario.get("expected_exercises", [])
+                    if expected:
+                        self.log(f"  ❌ {scenario['time']}min: Max {max_ex} exercises/day (expected {expected[0]}-{expected[1]})")
+                    else:
+                        self.log(f"  ❌ {scenario['time']}min: {error_msg}")
         
         # Diet meal count summary
         diet_result = results.get("diet_meal_count")
