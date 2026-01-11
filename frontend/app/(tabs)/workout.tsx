@@ -347,26 +347,6 @@ export default function WorkoutScreen() {
                   language={language}
                 />
               ))}
-              
-              {/* Botão Regenerar Treino */}
-              <Animated.View entering={FadeInDown.delay(500).springify()}>
-                <TouchableOpacity
-                  style={[styles.regenerateButton, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(226, 232, 240, 0.9)' }]}
-                  onPress={handleGenerateWorkout}
-                  disabled={generating}
-                >
-                  {generating ? (
-                    <ActivityIndicator size="small" color={theme.text} />
-                  ) : (
-                    <>
-                      <RotateCcw size={18} color={theme.textSecondary} />
-                      <Text style={[styles.regenerateButtonText, { color: theme.textSecondary }]}>
-                        Gerar Novo Treino
-                      </Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
             </>
           ) : (
             /* Estado Vazio - Sem Treino */
