@@ -495,11 +495,19 @@ class WorkoutAIService:
             "avancado": "Avançado"
         }.get(level, "Intermediário")
         
+        # Nota geral do treino baseada no nível
+        general_note = config.get("general_note", "")
+        
         # Nota especial para novatos em adaptação
-        notes = f"{split_name} - {frequency}x/semana | {level_name} | ~{duration}min"
         if is_adaptation:
             remaining = 30 - completed_workouts
-            notes = f"FASE DE ADAPTAÇÃO - {remaining} treinos restantes | {split_name} | {frequency}x/semana"
+            notes = f"🔰 FASE DE ADAPTAÇÃO ({remaining} treinos restantes)\n{general_note}\n{split_name} | {frequency}x/semana | ~{duration}min"
+        elif level == 'avancado':
+            notes = f"🏆 {level_name} | {split_name} | {frequency}x/semana | ~{duration}min\n{general_note}"
+        elif level == 'intermediario':
+            notes = f"💪 {level_name} | {split_name} | {frequency}x/semana | ~{duration}min\n{general_note}"
+        else:
+            notes = f"{split_name} | {level_name} | {frequency}x/semana | ~{duration}min"
         
         return WorkoutPlan(
             user_id=user_id,
