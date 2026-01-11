@@ -1,10 +1,10 @@
 /**
  * Premium Food Preferences Step - Seleção de alimentos
- * Categorias: Proteínas, Carboidratos, Gorduras, Frutas, Vegetais/Legumes, Alimentos, Suplementos
+ * Categorias: Proteínas, Carboidratos, Gorduras, Frutas, Vegetais/Legumes, Suplementos
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad, Cookie } from 'lucide-react-native';
+import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
@@ -36,7 +36,7 @@ const FOOD_CATEGORIES = {
       { key: 'peixe', name: 'Peixe (Tilápia)' },
       { key: 'atum', name: 'Atum' },
       { key: 'peito_peru', name: 'Peito de Peru' },
-      { key: 'iogurte', name: 'Iogurte' },
+      { key: 'iogurte', name: 'Iogurte Desnatado/Zero' },
     ],
   },
   carbs: {
@@ -53,6 +53,8 @@ const FOOD_CATEGORIES = {
       { key: 'tapioca', name: 'Tapioca' },
       { key: 'granola', name: 'Granola' },
       { key: 'feijao', name: 'Feijão' },
+      { key: 'mel', name: 'Mel' },
+      { key: 'leite_condensado', name: 'Leite Condensado' },
     ],
   },
   fats: {
@@ -97,15 +99,6 @@ const FOOD_CATEGORIES = {
       { key: 'pepino', name: 'Pepino' },
     ],
   },
-  foods: {
-    title: 'Alimentos',
-    icon: Cookie,
-    color: '#EC4899',
-    items: [
-      { key: 'mel', name: 'Mel' },
-      { key: 'leite_condensado', name: 'Leite Condensado' },
-    ],
-  },
   supplements: {
     title: 'Suplementos',
     icon: Pill,
@@ -120,6 +113,10 @@ const FOOD_CATEGORIES = {
     ],
   },
 };
+
+// Export para usar nas configurações
+export const FOOD_CATEGORIES_DATA = FOOD_CATEGORIES;
+export const RESTRICTIONS_DATA = RESTRICTIONS;
 
 export default function FoodPreferencesStep({ formData, updateFormData, theme, isDark }: Props) {
   const selectedFoods = formData.food_preferences || [];
