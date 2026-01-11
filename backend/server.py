@@ -687,16 +687,19 @@ class FoodSubstitutionRequest(BaseModel):
     new_food_key: str  # Chave do novo alimento
 
 
-@api_router.get("/diet/{diet_id}/substitutes/{food_key}")
-async def get_food_substitutes(diet_id: str, food_key: str):
+@api_router.get("/diet/{user_id}/substitutes/{food_key}")
+async def get_food_substitutes(user_id: str, food_key: str):
     """
     Retorna lista de alimentos substitutos da mesma categoria.
     Calcula automaticamente a quantidade para manter os macros.
     """
     from diet_service import FOODS
     
-    # Busca dieta
-    diet_plan = await db.diet_plans.find_one({"_id": diet_id})
+    # Busca dieta pelo user_id
+    diet_plan = await db.diet_plans.find_one({"user_id": user_id})
+    if not diet_plan:
+        # Tenta buscar por _id também (compatibilidade)
+        diet_plan = await db.diet_plans.find_one({"_id": user_id})
     if not diet_plan:
         raise HTTPException(status_code=404, detail="Dieta não encontrada")
     
