@@ -18,7 +18,7 @@ import PhysicalDataStep from './steps/PhysicalDataStep';
 import TrainingLevelStep from './steps/TrainingLevelStep';
 import GoalStep from './steps/GoalStep';
 import MealConfigStep from './steps/MealConfigStep';
-import RestrictionsStep from './steps/RestrictionsStep';
+import FoodPreferencesStep from './steps/FoodPreferencesStep';
 
 import { useAuthStore } from '../../stores/authStore';
 import { useSettingsStore, LanguagePreference } from '../../stores/settingsStore';
