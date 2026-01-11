@@ -185,6 +185,36 @@ export default function WorkoutScreen() {
     setRefreshing(false);
   };
 
+  // Função para GERAR novo treino
+  const handleGenerateWorkout = async () => {
+    if (!userId || !BACKEND_URL) {
+      Alert.alert('Erro', 'Usuário não identificado');
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const response = await safeFetch(
+        `${BACKEND_URL}/api/workout/generate?user_id=${userId}`,
+        { method: 'POST' }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setWorkoutPlan(data);
+        Alert.alert('Sucesso!', 'Seu treino foi gerado com sucesso!');
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        Alert.alert('Erro', errorData.detail || 'Não foi possível gerar o treino');
+      }
+    } catch (error) {
+      console.error('Error generating workout:', error);
+      Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleExercisePress = (exercise: any, dayIndex: number, exIndex: number) => {
     setSelectedExercise(exercise);
     setShowExerciseModal(true);
