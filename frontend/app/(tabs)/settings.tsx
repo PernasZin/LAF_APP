@@ -212,24 +212,30 @@ export default function SettingsScreen() {
               <SettingsRow
                 icon={<User />}
                 label="Editar Perfil"
-                value={profile?.weight ? `${profile.weight}kg` : null}
+                value={null}
                 onPress={() => router.push('/settings/edit-profile')}
+                isDark={isDark}
+              />
+            </GlassCard>
+          </Animated.View>
+
+          {/* Diet Section */}
+          <Animated.View entering={FadeInDown.delay(250).springify()}>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DIETA</Text>
+            <GlassCard isDark={isDark} style={styles.settingsCard}>
+              <SettingsRow
+                icon={<Utensils />}
+                label="Refeições por Dia"
+                value={profile?.meal_count ? `${profile.meal_count} refeições` : null}
+                onPress={() => router.push('/settings/meal-config')}
                 isDark={isDark}
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <SettingsRow
                 icon={<Target />}
-                label="Objetivo"
-                value={getGoalLabel(profile?.goal)}
-                onPress={() => router.push('/settings/edit-profile')}
-                isDark={isDark}
-              />
-              <View style={[styles.divider, { backgroundColor: theme.border }]} />
-              <SettingsRow
-                icon={<Utensils />}
-                label="Refeições"
-                value={profile?.meal_count ? `${profile.meal_count} por dia` : null}
-                onPress={() => router.push('/settings/meal-config')}
+                label="Preferências de Alimentos"
+                value={null}
+                onPress={() => router.push('/settings/food-preferences')}
                 isDark={isDark}
               />
             </GlassCard>
