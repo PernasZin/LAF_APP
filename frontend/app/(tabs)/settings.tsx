@@ -94,6 +94,7 @@ export default function SettingsScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const themePreference = useSettingsStore((state) => state.themePreference);
   const setThemePreference = useSettingsStore((state) => state.setThemePreference);
+  const authLogout = useAuthStore((state) => state.logout);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
   
