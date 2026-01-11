@@ -391,6 +391,42 @@ frontend:
     needs_retesting: false
     status_history:
       - working: "NA"
+  
+  - task: "Diet Screen - Calories Display"
+    implemented: true
+    working: false
+    file: "/app/frontend/app/(tabs)/diet.tsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRÍTICO: Calorias por refeição NÃO aparecem - nenhuma referência a 'kcal' encontrada na tela de dieta. Mesmo com dieta gerada, os valores de calorias não são exibidos nos cards das refeições."
+  
+  - task: "Diet Screen - Food Substitution"
+    implemented: true
+    working: false
+    file: "/app/frontend/app/(tabs)/diet.tsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRÍTICO: Substituição de alimentos NÃO funciona - nenhum elemento com gramas clicável encontrado. Não consegui acessar o modal de substituição de alimentos."
+  
+  - task: "Authentication Integration"
+    implemented: true
+    working: false
+    file: "/app/frontend/app/auth/login.tsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ CRÍTICO: Sistema de autenticação com problemas - app fica preso na tela de login mesmo com credenciais válidas. Impede acesso a todas as funcionalidades principais do app."
         agent: "main"
         comment: "Step 5: Dietary restrictions and food preferences selection implemented. Needs UI testing."
       - working: false
