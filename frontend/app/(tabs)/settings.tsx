@@ -91,8 +91,8 @@ const SettingsToggle = ({ icon, label, value, onToggle, isDark }: any) => {
 
 export default function SettingsScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
-  const themePreference = useSettingsStore((state) => state.theme);
-  const setTheme = useSettingsStore((state) => state.setTheme);
+  const themePreference = useSettingsStore((state) => state.themePreference);
+  const setThemePreference = useSettingsStore((state) => state.setThemePreference);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
   
@@ -142,7 +142,7 @@ export default function SettingsScreen() {
 
   const toggleTheme = () => {
     const newTheme = isDark ? 'light' : 'dark';
-    setTheme(newTheme);
+    setThemePreference(newTheme);
   };
 
   return (
