@@ -37,22 +37,7 @@ const InputField = ({
   setFocusedField,
   theme,
   isDark
-}: {
-  icon: any;
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  secureTextEntry?: boolean;
-  field: string;
-  showToggle?: boolean;
-  showPassword?: boolean;
-  setShowPassword?: (show: boolean) => void;
-  focusedField: string | null;
-  setFocusedField: (field: string | null) => void;
-  theme: any;
-  isDark: boolean;
-}) => (
+}: any) => (
   <View style={inputStyles.inputGroup}>
     <Text style={[inputStyles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
     <View style={[
