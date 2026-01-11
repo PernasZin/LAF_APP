@@ -362,19 +362,21 @@ class LAFBackendTester:
             self.log("\n🏋️ WORKOUT TIME VARIATION:")
             for result in workout_results:
                 scenario = result["scenario"]
-                if result["success"]:
-                    self.log(f"  ✅ {scenario['time']}min: {result['total_exercises']} exercises, {result['total_sets']} sets")
+                if result.get("success"):
+                    self.log(f"  ✅ {scenario['time']}min: {result.get('total_exercises', 'N/A')} exercises, {result.get('total_sets', 'N/A')} sets")
                 else:
-                    self.log(f"  ❌ {scenario['time']}min: {result['total_exercises']} exercises (expected {scenario['expected_exercises'][0]}-{scenario['expected_exercises'][1]})")
+                    error_msg = result.get("error", "Unknown error")
+                    self.log(f"  ❌ {scenario['time']}min: {error_msg}")
         
         # Diet meal count summary
         diet_result = results.get("diet_meal_count")
         if diet_result:
             self.log("\n🍽️ DIET MEAL COUNT:")
-            if diet_result["success"]:
+            if diet_result.get("success"):
                 self.log(f"  ✅ meal_count=4 → {diet_result['actual_meal_count']} meals generated")
             else:
-                self.log(f"  ❌ meal_count=4 → {diet_result.get('actual_meal_count', 'unknown')} meals generated")
+                error_msg = diet_result.get("error", "Unknown error")
+                self.log(f"  ❌ meal_count=4 → {error_msg}")
                 
         # Settings endpoints summary
         settings_result = results.get("settings_endpoints")
