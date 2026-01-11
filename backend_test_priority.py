@@ -128,20 +128,21 @@ class LAFBackendTester:
             workout = response.json()
             
             # Analyze workout
-            workouts = workout.get("workouts", [])
+            workout_days = workout.get("workout_days", [])
             total_exercises = 0
             total_sets = 0
             valid_sets = 0
             
-            for w in workouts:
-                exercises = w.get("exercises", [])
+            for day in workout_days:
+                exercises = day.get("exercises", [])
                 total_exercises += len(exercises)
                 
                 for exercise in exercises:
-                    sets = exercise.get("sets", [])
-                    total_sets += len(sets)
-                    # Count valid sets (assuming sets with reps > 0 are valid)
-                    valid_sets += len([s for s in sets if s.get("reps", 0) > 0])
+                    sets_count = exercise.get("sets", 0)
+                    total_sets += sets_count
+                    # Count valid sets (assuming all sets are valid if sets > 0)
+                    if sets_count > 0:
+                        valid_sets += sets_count
             
             # Check if meets criteria
             min_ex, max_ex = scenario["expected_exercises"]
