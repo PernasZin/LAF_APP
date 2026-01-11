@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
-import { Ruler, Scale, Target, Percent } from 'lucide-react-native';
+import { Ruler, Scale } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
@@ -80,26 +80,6 @@ export default function PhysicalDataStep({ formData, updateFormData, theme, isDa
           onChangeText={(text: string) => updateFormData({ weight: text })}
           placeholder="70"
           unit="kg"
-          theme={theme}
-        />
-
-        <InputField
-          icon={Target}
-          label="Peso Desejado (opcional)"
-          value={formData.target_weight}
-          onChangeText={(text: string) => updateFormData({ target_weight: text })}
-          placeholder="65"
-          unit="kg"
-          theme={theme}
-        />
-
-        <InputField
-          icon={Percent}
-          label="Gordura Corporal (opcional)"
-          value={formData.body_fat_percentage}
-          onChangeText={(text: string) => updateFormData({ body_fat_percentage: text })}
-          placeholder="20"
-          unit="%"
           theme={theme}
         />
       </GlassCard>
