@@ -265,16 +265,23 @@ export default function DietScreen() {
     try {
       if (userId && BACKEND_URL) {
         const response = await safeFetch(
-          `${BACKEND_URL}/api/diet/${userId}/substitute/${selectedMealIndex}/${selectedFoodIndex}`,
+          `${BACKEND_URL}/api/diet/${userId}/substitute`,
           {
-            method: 'POST',
+            method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ new_food_id: substitute.id }),
+            body: JSON.stringify({ 
+              meal_index: selectedMealIndex,
+              food_index: selectedFoodIndex,
+              new_food_key: substitute.key 
+            }),
           }
         );
         if (response.ok) {
           setSubstitutionModal(false);
           await loadUserData();
+          Alert.alert('Sucesso', 'Alimento substituído com sucesso!');
+        } else {
+          Alert.alert('Erro', 'Não foi possível substituir o alimento');
         }
       }
     } catch (error) {
