@@ -17,6 +17,7 @@ import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withS
 import { Mail, Lock, Eye, EyeOff, UserPlus, ArrowLeft, User, Sparkles } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useAuthStore } from '../../stores/authStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
