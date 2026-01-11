@@ -141,8 +141,6 @@ export default function OnboardingScreen() {
         sex: formData.sex,
         height: parseInt(formData.height) || 170,
         weight: parseFloat(formData.weight) || 70,
-        target_weight: parseFloat(formData.target_weight) || parseFloat(formData.weight) || 70,
-        body_fat_percentage: parseFloat(formData.body_fat_percentage) || null,
         goal: formData.goal || 'manutencao',
         training_level: formData.training_level || 'iniciante',
         weekly_training_frequency: parseInt(formData.weekly_training_frequency) || 3,
