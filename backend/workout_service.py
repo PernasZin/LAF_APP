@@ -633,7 +633,35 @@ class WorkoutAIService:
                 if not filtered:
                     filtered = available[:config["ex_per_muscle"]]
                 
-                for j, ex_data in enumerate(filtered[:max_for_muscle]):
+                # ==================== EVITAR FOCOS REPETIDOS ====================
+                # Seleciona exercícios garantindo que cada um tenha um foco diferente
+                selected_exercises = []
+                used_focuses = set()
+                
+                for ex in filtered:
+                    if len(selected_exercises) >= max_for_muscle:
+                        break
+                    
+                    ex_focus = ex.get("focus", "")
+                    
+                    # Se o foco já foi usado, pula este exercício
+                    if ex_focus and ex_focus in used_focuses:
+                        continue
+                    
+                    selected_exercises.append(ex)
+                    if ex_focus:
+                        used_focuses.add(ex_focus)
+                
+                # Se não conseguiu exercícios suficientes com focos diferentes, 
+                # completa com os disponíveis (fallback)
+                if len(selected_exercises) < max_for_muscle:
+                    for ex in filtered:
+                        if len(selected_exercises) >= max_for_muscle:
+                            break
+                        if ex not in selected_exercises:
+                            selected_exercises.append(ex)
+                
+                for j, ex_data in enumerate(selected_exercises):
                     if exercises_added >= max_exercises:
                         break
                     
