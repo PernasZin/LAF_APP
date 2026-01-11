@@ -22,23 +22,6 @@ import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } fro
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
 // Input Field Component - OUTSIDE main component to prevent re-renders
-interface InputFieldProps {
-  icon: any;
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  secureTextEntry?: boolean;
-  field: string;
-  showToggle?: boolean;
-  showPassword?: boolean;
-  setShowPassword?: (show: boolean) => void;
-  focusedField: string | null;
-  setFocusedField: (field: string | null) => void;
-  theme: any;
-  isDark: boolean;
-}
-
 const InputField = ({ 
   icon: Icon, 
   label, 
@@ -54,7 +37,22 @@ const InputField = ({
   setFocusedField,
   theme,
   isDark
-}: InputFieldProps) => (
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  placeholder: string;
+  secureTextEntry?: boolean;
+  field: string;
+  showToggle?: boolean;
+  showPassword?: boolean;
+  setShowPassword?: (show: boolean) => void;
+  focusedField: string | null;
+  setFocusedField: (field: string | null) => void;
+  theme: any;
+  isDark: boolean;
+}) => (
   <View style={inputStyles.inputGroup}>
     <Text style={[inputStyles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
     <View style={[
