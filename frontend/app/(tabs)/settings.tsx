@@ -238,8 +238,8 @@ export default function SettingsScreen() {
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsToggle
                 icon={isDark ? <Moon /> : <Sun />}
-                label="Modo Escuro"
-                value={isDark}
+                label="Modo Claro"
+                value={!isDark}
                 onToggle={toggleTheme}
                 isDark={isDark}
               />
