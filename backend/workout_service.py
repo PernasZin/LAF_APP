@@ -126,7 +126,8 @@ EXERCISES = {
     ],
     
     # ============ OMBROS ============
-    # REGRA: Sempre 3 exercícios - Desenvolvimento, Elevação Lateral, Voador (Posterior)
+    # Para Full Upper e dias com ombro: Desenvolvimento + Elevação Lateral
+    # (Voador vai em costas, Elevação Lateral Halteres vai em peito)
     "ombros": [
         {
             "name": "Desenvolvimento Máquina",
@@ -137,11 +138,6 @@ EXERCISES = {
             "name": "Elevação Lateral Máquina",
             "focus": "Deltóide Lateral",
             "notes": "Cotovelos apoiados nas almofadas. Eleve até altura dos ombros. Desça controlado."
-        },
-        {
-            "name": "Voador Invertido (Peck Deck)",
-            "focus": "Deltóide Posterior",
-            "notes": "Sente de frente para o encosto. Abra os braços para trás contraindo as escápulas. Retorne controlado."
         },
     ],
     
