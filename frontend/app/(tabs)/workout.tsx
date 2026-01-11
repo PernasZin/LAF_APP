@@ -622,4 +622,52 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   startTimerBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+
+  // Empty State Styles
+  emptyStateCard: { padding: spacing.xl },
+  emptyStateContent: { alignItems: 'center', gap: spacing.md },
+  emptyIconBg: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  emptyTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
+  emptyDescription: { 
+    fontSize: 14, 
+    textAlign: 'center', 
+    lineHeight: 20,
+    paddingHorizontal: spacing.lg,
+  },
+  generateButton: { 
+    marginTop: spacing.md,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+  },
+  generateButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+  },
+  generateButtonText: { 
+    color: '#FFF', 
+    fontSize: 16, 
+    fontWeight: '700',
+  },
+  regenerateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.lg,
+    marginTop: spacing.sm,
+  },
+  regenerateButtonText: { fontSize: 14, fontWeight: '600' },
 });
