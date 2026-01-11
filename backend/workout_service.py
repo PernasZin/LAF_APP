@@ -456,6 +456,9 @@ class WorkoutAIService:
             for muscle in template["muscles"]:
                 if exercises_added >= max_exercises:
                     break
+                
+                # Limite de exercícios para músculos pequenos
+                max_for_muscle = 2 if muscle in SMALL_MUSCLES else config["ex_per_muscle"]
                     
                 available = EXERCISES.get(muscle, [])
                 
