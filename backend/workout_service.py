@@ -494,12 +494,15 @@ class WorkoutAIService:
                 if not filtered:
                     filtered = available[:config["ex_per_muscle"]]
                 
-                for j, ex_data in enumerate(filtered[:config["ex_per_muscle"]]):
+                for j, ex_data in enumerate(filtered[:max_for_muscle]):
                     if exercises_added >= max_exercises:
                         break
                     
                     ex_name_lower = ex_data["name"].lower()
                     rest_str = config["rest"]
+                    
+                    # Foco muscular específico
+                    exercise_focus = ex_data.get("focus", None)
                     
                     # Instruções de EXECUÇÃO do exercício (separadas)
                     execution_notes = ex_data.get("notes", "")
@@ -553,6 +556,7 @@ class WorkoutAIService:
                     exercises.append(Exercise(
                         name=ex_data["name"],
                         muscle_group=muscle.capitalize(),
+                        focus=exercise_focus,
                         sets=sets_count if level == 'avancado' else config["sets"],
                         reps=config["reps"],
                         rest=rest_str,
