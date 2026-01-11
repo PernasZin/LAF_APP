@@ -126,11 +126,13 @@ export default function SignupScreen() {
     setIsLoading(true);
 
     try {
+      // Store name temporarily for onboarding
+      await AsyncStorage.setItem('tempUserName', name.trim());
+      
       const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim(),
           email: email.trim().toLowerCase(),
           password,
         }),
@@ -143,9 +145,10 @@ export default function SignupScreen() {
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
         router.replace('/onboarding');
       } else {
-        Alert.alert('Erro', data.message || 'Não foi possível criar a conta');
+        Alert.alert('Erro', data.detail || data.message || 'Não foi possível criar a conta');
       }
     } catch (error) {
+      console.error('Signup error:', error);
       Alert.alert('Erro', 'Não foi possível conectar ao servidor');
     } finally {
       setIsLoading(false);
