@@ -420,8 +420,8 @@ class LAFBackendTester:
         # 2. Get Workout
         success, response, status = self.make_request("GET", f"/workout/{self.test_user_id}")
         
-        if success and isinstance(response, dict) and "workouts" in response:
-            self.log_test("WORKOUT - Get", True, f"Workout retrieved with {len(response.get('workouts', []))} workouts")
+        if success and isinstance(response, dict) and "workout_days" in response:
+            self.log_test("WORKOUT - Get", True, f"Workout retrieved with {len(response.get('workout_days', []))} workouts")
         else:
             self.log_test("WORKOUT - Get", False, f"Status: {status}", response)
         
