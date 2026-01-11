@@ -23,7 +23,7 @@ type ScreenState = 'loading' | 'language_select' | 'redirect';
  * Tela inicial - Seleção de Idioma + Redireciona baseado no estado de auth
  */
 export default function IndexScreen() {
-  const { isAuthenticated, isInitialized, isLoading: authLoading } = useAuthStore();
+  const { isAuthenticated, isInitialized } = useAuthStore();
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const language = useSettingsStore((state) => state.language);
   const setLanguage = useSettingsStore((state) => state.setLanguage);
