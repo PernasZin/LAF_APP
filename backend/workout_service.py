@@ -483,6 +483,54 @@ class WorkoutAIService:
             exercises_added = 0
             muscles_warmed_up = set()  # Rastreia músculos já aquecidos (para avançado)
             
+            # TRATAMENTO ESPECIAL: Upper Body (2x/semana)
+            # Usa lista fixa de exercícios para distribuição balanceada
+            if template.get("is_upper_lower") and template["name"] == "Upper":
+                for ex_data in UPPER_BODY_EXERCISES:
+                    # Instruções baseadas no nível
+                    execution_notes = ex_data.get("notes", "")
+                    
+                    if level == 'avancado':
+                        series_instruction = """📋 ESTRUTURA (4 SÉRIES):
+• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
+• 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
+• 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
+• 4ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
+                        notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}"
+                        sets_count = 4
+                    elif level == 'intermediario':
+                        series_instruction = "💪 Chegue PERTO DA FALHA em pelo menos 1 série!"
+                        notes = f"{series_instruction}\n\n🎯 {execution_notes}"
+                        sets_count = config["sets"]
+                    elif is_adaptation:
+                        series_instruction = "⚠️ ADAPTAÇÃO: Use carga LEVE! Foco 100% na execução correta."
+                        notes = f"{series_instruction}\n\n🎯 {execution_notes}"
+                        sets_count = config["sets"]
+                    else:
+                        notes = f"🎯 {execution_notes}"
+                        sets_count = config["sets"]
+                    
+                    exercises.append(Exercise(
+                        name=ex_data["name"],
+                        muscle_group=ex_data["muscle_group"],
+                        focus=ex_data.get("focus"),
+                        sets=sets_count,
+                        reps=config["reps"],
+                        rest=config["rest"],
+                        rest_seconds=parse_rest_seconds(config["rest"]),
+                        notes=notes,
+                        completed=False
+                    ))
+                
+                # Cria o dia de treino Upper com exercícios fixos
+                workout_days.append(WorkoutDay(
+                    day=DAYS[i],
+                    name=template["name"],
+                    exercises=exercises,
+                    duration_minutes=len(exercises) * 5  # ~5 min por exercício
+                ))
+                continue  # Pula para o próximo dia
+            
             for muscle in template["muscles"]:
                 if exercises_added >= max_exercises:
                     break
