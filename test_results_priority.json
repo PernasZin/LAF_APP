@@ -1,0 +1,58 @@
+{
+  "workout_time_variation": [
+    {
+      "scenario": {
+        "time": 30,
+        "expected_exercises": [
+          3,
+          4
+        ],
+        "expected_sets": [
+          3,
+          4
+        ]
+      },
+      "success": false,
+      "error": "User creation failed"
+    },
+    {
+      "scenario": {
+        "time": 60,
+        "expected_exercises": [
+          5,
+          6
+        ],
+        "expected_sets": [
+          3,
+          4
+        ]
+      },
+      "success": false,
+      "error": "User creation failed"
+    },
+    {
+      "scenario": {
+        "time": 90,
+        "expected_exercises": [
+          6,
+          8
+        ],
+        "expected_sets": [
+          3,
+          4
+        ]
+      },
+      "success": false,
+      "error": "User creation failed"
+    }
+  ],
+  "diet_meal_count": {
+    "success": false,
+    "error": "User creation failed"
+  },
+  "settings_endpoints": {
+    "success": false,
+    "error": "User creation failed"
+  },
+  "timestamp": "2026-01-11T19:41:31.773775"
+}
