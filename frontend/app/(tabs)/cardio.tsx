@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   Activity, Flame, Clock, Footprints, Heart,
-  Calendar, TrendingUp, Zap
+  Calendar, TrendingUp, Zap, Bike, ArrowUpDown
 } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
