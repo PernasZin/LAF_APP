@@ -88,7 +88,8 @@ export default function TrainingConfigScreen() {
         if (response.ok) {
           const data = await response.json();
           setFrequency(data.weekly_training_frequency || 3);
-          setDuration(data.training_duration || 60);
+          // O backend usa available_time_per_session, mas também pode vir como training_duration
+          setDuration(data.available_time_per_session || data.training_duration || 60);
           setLevel(data.training_level || 'intermediario');
         }
       }
