@@ -421,13 +421,12 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
     if update_dict:
         current_profile = UserProfile(**existing_profile)
         new_goal = update_dict.get("goal", current_profile.goal)
+        new_level = update_dict.get("training_level", current_profile.training_level)
+        new_frequency = update_dict.get("weekly_training_frequency", current_profile.weekly_training_frequency)
+        new_weight = update_dict.get("weight", current_profile.weight)
         
-        # Se peso ou goal mudou, recalcula macros
-        if "weight" in update_dict or "goal" in update_dict:
-            # Usa novos valores ou mantém existentes
-            new_weight = update_dict.get("weight", current_profile.weight)
-            new_frequency = update_dict.get("weekly_training_frequency", current_profile.weekly_training_frequency)
-            
+        # Se peso, goal, level ou frequência mudou, recalcula macros
+        if any(key in update_dict for key in ["weight", "goal", "training_level", "weekly_training_frequency"]):
             # Recalcula
             bmr = calculate_bmr(
                 weight=new_weight,
@@ -435,7 +434,7 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                 age=current_profile.age,
                 sex=current_profile.sex
             )
-            tdee = calculate_tdee(bmr, new_frequency, current_profile.training_level)
+            tdee = calculate_tdee(bmr, new_frequency, new_level)
             target_calories = calculate_target_calories(tdee, new_goal, new_weight)
             macros = calculate_macros(target_calories, new_weight, new_goal)
             
@@ -449,6 +448,8 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
             {"_id": user_id},
             {"$set": update_dict}
         )
+        
+        logger.info(f"Profile updated for user {user_id}: {list(update_dict.keys())}")
     
     # Retorna perfil atualizado
     updated_profile = await db.user_profiles.find_one({"_id": user_id})
