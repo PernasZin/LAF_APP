@@ -125,7 +125,8 @@ export default function SettingsScreen() {
           text: 'Sair',
           style: 'destructive',
           onPress: async () => {
-            await AsyncStorage.multiRemove(['userId', 'userEmail', 'userProfile']);
+            // Usa o authStore para logout completo
+            await authLogout();
             router.replace('/auth/login');
           },
         },
