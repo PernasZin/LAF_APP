@@ -607,6 +607,16 @@ const styles = StyleSheet.create({
   modalTitle: { fontSize: 20, fontWeight: '700', flex: 1 },
 
   exerciseModalContent: { gap: spacing.lg },
+  focusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.lg,
+  },
+  focusBadgeText: { fontSize: 14, fontWeight: '600' },
   exerciseModalStats: {
     flexDirection: 'row',
     gap: spacing.md,
