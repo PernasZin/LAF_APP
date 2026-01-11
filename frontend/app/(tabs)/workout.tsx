@@ -329,9 +329,9 @@ export default function WorkoutScreen() {
           )}
 
           {/* Workout Days */}
-          {workoutPlan?.days?.length > 0 ? (
+          {(workoutPlan?.days || workoutPlan?.workout_days)?.length > 0 ? (
             <>
-              {workoutPlan.days.map((day: any, index: number) => (
+              {(workoutPlan.days || workoutPlan.workout_days).map((day: any, index: number) => (
                 <WorkoutDayCard
                   key={index}
                   day={day}
