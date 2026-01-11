@@ -61,18 +61,18 @@ interface SettingsState {
 
 const getSystemTheme = (): 'light' | 'dark' => {
   try {
-    return Appearance.getColorScheme() || 'light';
+    return Appearance.getColorScheme() || 'dark';
   } catch {
-    return 'light';
+    return 'dark';
   }
 };
 
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set, get) => ({
-      // Default values
-      themePreference: 'system',
-      effectiveTheme: 'light',
+      // Default values - DARK MODE IS DEFAULT
+      themePreference: 'dark',
+      effectiveTheme: 'dark',
       privacyAnalytics: true,
       privacyPersonalization: true,
       privacyNotifications: true,
