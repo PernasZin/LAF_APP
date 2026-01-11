@@ -69,7 +69,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 
 // Card skeleton para listas
 export const CardSkeleton: React.FC<{ style?: ViewStyle }> = ({ style }) => {
-  const { colors } = useTheme();
+  const { colors } = useThemeColors();
   
   return (
     <View style={[styles.card, { backgroundColor: colors.backgroundCard, borderColor: colors.border }, style]}>
