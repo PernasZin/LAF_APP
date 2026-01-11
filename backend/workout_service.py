@@ -381,28 +381,75 @@ class WorkoutAIService:
         return self._generate_workout(user_profile['id'], frequency, level, goal, duration, completed_workouts)
     
     def _get_exercises_per_duration(self, duration: int, level: str) -> int:
-        """Calcula quantos exercícios cabem no tempo disponível"""
-        # Tempo médio por exercício: ~5-7 minutos (incluindo descanso)
-        # Aquecimento: ~5 minutos
-        # Alongamento final: ~5 minutos
-        available_time = duration - 10  # Desconta aquecimento e alongamento
+        """
+        Calcula quantos exercícios cabem no tempo disponível
+        REGRA DURA: Máximo absoluto = 10 exercícios
         
-        if level == 'novato':
-            time_per_exercise = 4  # Menos séries, mais rápido
-        elif level == 'avancado':
-            time_per_exercise = 7  # Mais séries e descanso
+        Classificação por tempo:
+        - ≤30 min (Curto): 3-4 exercícios
+        - 30-60 min (Médio): 5-6 exercícios
+        - 60-90 min (Longo): 6-8 exercícios
+        - >90 min (Estendido): 8-10 exercícios (nunca mais que 10)
+        """
+        if duration <= 30:
+            # Treino Curto: 3-4 exercícios
+            max_ex = 4 if level in ['intermediario', 'avancado'] else 3
+        elif duration <= 60:
+            # Treino Médio: 5-6 exercícios
+            max_ex = 6 if level in ['intermediario', 'avancado'] else 5
+        elif duration <= 90:
+            # Treino Longo: 6-8 exercícios
+            max_ex = 8 if level in ['intermediario', 'avancado'] else 6
         else:
-            time_per_exercise = 5.5
+            # Treino Estendido: 8-10 exercícios
+            max_ex = 10 if level == 'avancado' else 8
         
-        return max(4, int(available_time / time_per_exercise))
+        # REGRA DURA: Nunca ultrapassar 10 exercícios
+        return min(max_ex, 10)
+    
+    def _get_sets_per_duration(self, duration: int, level: str) -> int:
+        """
+        Calcula quantas séries por exercício baseado no tempo
+        
+        - ≤30 min (Curto): 2-3 séries
+        - 30-60 min (Médio): 3-4 séries
+        - 60-90 min (Longo): 3-4 séries
+        - >90 min (Estendido): 4 séries
+        """
+        if duration <= 30:
+            return 2 if level == 'novato' else 3
+        elif duration <= 60:
+            return 3
+        elif duration <= 90:
+            return 4 if level in ['intermediario', 'avancado'] else 3
+        else:
+            return 4
     
     def _generate_workout(self, user_id: str, frequency: int, level: str, goal: str, duration: int, completed_workouts: int) -> WorkoutPlan:
         split = get_split_for_frequency(frequency)
         
+        # ==================== VALIDAÇÃO DE DIAS POR NÍVEL ====================
+        # Novato: ideal 2-3 dias
+        # 6+ dias: apenas para Intermediário e Avançado
+        if level == 'novato' and frequency > 3:
+            frequency = 3  # Limita novato a 3 dias
+            split = get_split_for_frequency(frequency)
+        elif level == 'iniciante' and frequency > 5:
+            frequency = 5  # Limita iniciante a 5 dias
+            split = get_split_for_frequency(frequency)
+        
         # NOVATO: Treino de adaptação nas primeiras 30 sessões
         is_adaptation = level == 'novato' and completed_workouts < 30
         
-        # Configurações baseadas no nível
+        # ==================== CONFIGURAÇÕES POR NÍVEL ====================
+        # NOVATO = nunca treinou (treinos simples, exercícios seguros, menor volume)
+        # INICIANTE = 6 meses - 2 anos (volume moderado, compostos + acessórios leves)
+        # INTERMEDIÁRIO = 2-3 anos (maior volume, pode usar técnicas)
+        # AVANÇADO = 3+ anos (volume alto, técnicas avançadas)
+        
+        # Séries baseadas no tempo disponível
+        sets_by_time = self._get_sets_per_duration(duration, level)
+        
         if is_adaptation:
             # Treino de adaptação para novatos (4-8 semanas)
             config = {
