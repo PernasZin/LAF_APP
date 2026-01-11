@@ -56,35 +56,42 @@ const GlassCard = ({ children, style, isDark }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
-// Cardio Session Card
-const CardioSessionCard = ({ session, index, isDark, theme }: any) => {
-  const typeConfig: any = {
-    walking: { icon: Footprints, color: '#10B981', label: 'Caminhada' },
-    running: { icon: Activity, color: '#EF4444', label: 'Corrida' },
-    cycling: { icon: Activity, color: '#3B82F6', label: 'Ciclismo' },
-    hiit: { icon: Zap, color: '#F59E0B', label: 'HIIT' },
-    swimming: { icon: Activity, color: '#06B6D4', label: 'Natação' },
+// Cardio Exercise Card - Adaptado para estrutura do backend
+const CardioExerciseCard = ({ exercise, index, isDark, theme, language }: any) => {
+  const intensityColors: any = {
+    light: '#10B981',
+    moderate: '#F59E0B', 
+    high: '#EF4444',
   };
-
-  const config = typeConfig[session.type] || typeConfig.walking;
-  const IconComponent = config.icon;
+  
+  const intensityLabels: any = {
+    light: { pt: 'Leve', en: 'Light', es: 'Ligero' },
+    moderate: { pt: 'Moderado', en: 'Moderate', es: 'Moderado' },
+    high: { pt: 'Intenso', en: 'High', es: 'Intenso' },
+  };
+  
+  const color = intensityColors[exercise.intensity] || '#F59E0B';
+  const intensityLabel = intensityLabels[exercise.intensity]?.[language === 'en-US' ? 'en' : language === 'es-ES' ? 'es' : 'pt'] || 'Moderado';
+  
+  // Nome traduzido
+  const name = language === 'en-US' ? exercise.name_en : language === 'es-ES' ? exercise.name_es : exercise.name;
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
       <GlassCard isDark={isDark} style={styles.sessionCard}>
         <View style={styles.sessionHeader}>
-          <View style={[styles.sessionIconBg, { backgroundColor: config.color + '20' }]}>
-            <IconComponent size={22} color={config.color} strokeWidth={2.5} />
+          <View style={[styles.sessionIconBg, { backgroundColor: color + '20' }]}>
+            <Activity size={22} color={color} strokeWidth={2.5} />
           </View>
           <View style={styles.sessionInfo}>
-            <Text style={[styles.sessionType, { color: theme.text }]}>{config.label}</Text>
+            <Text style={[styles.sessionType, { color: theme.text }]}>{name}</Text>
             <Text style={[styles.sessionDay, { color: theme.textTertiary }]}>
-              {session.day || `Dia ${index + 1}`}
+              {exercise.sessions_per_week}x por semana
             </Text>
           </View>
-          <View style={[styles.sessionBadge, { backgroundColor: config.color + '15' }]}>
-            <Text style={[styles.sessionBadgeText, { color: config.color }]}>
-              {session.intensity || 'Moderado'}
+          <View style={[styles.sessionBadge, { backgroundColor: color + '15' }]}>
+            <Text style={[styles.sessionBadgeText, { color: color }]}>
+              {intensityLabel}
             </Text>
           </View>
         </View>
@@ -93,29 +100,51 @@ const CardioSessionCard = ({ session, index, isDark, theme }: any) => {
           <View style={styles.sessionStat}>
             <Clock size={16} color={theme.textTertiary} />
             <Text style={[styles.sessionStatValue, { color: theme.text }]}>
-              {session.duration || 30} min
+              {exercise.duration_minutes} min
             </Text>
           </View>
           <View style={styles.sessionStat}>
             <Flame size={16} color="#EF4444" />
             <Text style={[styles.sessionStatValue, { color: theme.text }]}>
-              {session.calories || 200} kcal
+              {exercise.calories_burned} kcal
             </Text>
           </View>
-          {session.heart_rate && (
+          {exercise.heart_rate_zone && (
             <View style={styles.sessionStat}>
               <Heart size={16} color="#EC4899" />
-              <Text style={[styles.sessionStatValue, { color: theme.text }]}>
-                {session.heart_rate} bpm
+              <Text style={[styles.sessionStatValue, { color: theme.text, fontSize: 11 }]}>
+                {exercise.heart_rate_zone.split(' ')[0]}
               </Text>
             </View>
           )}
         </View>
 
-        {session.notes && (
+        {/* Descrição de como se sentir */}
+        {exercise.how_to_feel && (
           <Text style={[styles.sessionNotes, { color: theme.textSecondary }]}>
-            {session.notes}
+            💡 {language === 'en-US' ? exercise.how_to_feel_en : language === 'es-ES' ? exercise.how_to_feel_es : exercise.how_to_feel}
           </Text>
+        )}
+        
+        {/* Substitutos */}
+        {exercise.substitutes_detailed?.length > 0 && (
+          <View style={styles.substitutesSection}>
+            <Text style={[styles.substitutesTitle, { color: theme.textTertiary }]}>
+              Substitutos:
+            </Text>
+            <View style={styles.substitutesList}>
+              {exercise.substitutes_detailed.map((sub: any, i: number) => (
+                <View key={i} style={[styles.substituteChip, { backgroundColor: isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(241, 245, 249, 0.8)' }]}>
+                  <Text style={[styles.substituteText, { color: theme.text }]}>
+                    {language === 'en-US' ? sub.name_en : language === 'es-ES' ? sub.name_es : sub.name}
+                  </Text>
+                  <Text style={[styles.substituteTime, { color: theme.textTertiary }]}>
+                    {sub.equivalent_duration}min
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
         )}
       </GlassCard>
     </Animated.View>
