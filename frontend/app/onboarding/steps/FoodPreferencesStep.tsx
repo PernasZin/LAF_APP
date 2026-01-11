@@ -1,9 +1,10 @@
 /**
  * Premium Food Preferences Step - Seleção de alimentos
+ * Categorias: Proteínas, Carboidratos, Gorduras, Frutas, Vegetais/Legumes, Alimentos, Suplementos
  */
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad, Cookie } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
@@ -35,7 +36,6 @@ const FOOD_CATEGORIES = {
       { key: 'peixe', name: 'Peixe (Tilápia)' },
       { key: 'atum', name: 'Atum' },
       { key: 'peito_peru', name: 'Peito de Peru' },
-      { key: 'whey', name: 'Whey Protein' },
       { key: 'iogurte', name: 'Iogurte' },
     ],
   },
@@ -52,6 +52,7 @@ const FOOD_CATEGORIES = {
       { key: 'pao_integral', name: 'Pão Integral' },
       { key: 'tapioca', name: 'Tapioca' },
       { key: 'granola', name: 'Granola' },
+      { key: 'feijao', name: 'Feijão' },
     ],
   },
   fats: {
@@ -94,18 +95,28 @@ const FOOD_CATEGORIES = {
       { key: 'tomate', name: 'Tomate' },
       { key: 'alface', name: 'Alface' },
       { key: 'pepino', name: 'Pepino' },
-      { key: 'feijao', name: 'Feijão' },
+    ],
+  },
+  foods: {
+    title: 'Alimentos',
+    icon: Cookie,
+    color: '#EC4899',
+    items: [
+      { key: 'mel', name: 'Mel' },
+      { key: 'leite_condensado', name: 'Leite Condensado' },
     ],
   },
   supplements: {
-    title: 'Suplementos e Outros',
+    title: 'Suplementos',
     icon: Pill,
     color: '#8B5CF6',
     items: [
+      { key: 'whey', name: 'Whey Protein' },
       { key: 'creatina', name: 'Creatina' },
-      { key: 'glutamina', name: 'Glutamina' },
-      { key: 'mel', name: 'Mel' },
-      { key: 'leite_condensado', name: 'Leite Condensado' },
+      { key: 'multivitaminico', name: 'Multivitamínico' },
+      { key: 'cafeina', name: 'Cafeína' },
+      { key: 'bcaa', name: 'BCAA' },
+      { key: 'omega3', name: 'Ômega 3' },
     ],
   },
 };
