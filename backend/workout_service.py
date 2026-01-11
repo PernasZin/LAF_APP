@@ -375,7 +375,10 @@ class WorkoutAIService:
         
         level = user_profile.get('training_level', 'intermediario')
         goal = user_profile.get('goal', 'bulking')
-        duration = user_profile.get('training_duration', 60)  # Em minutos
+        # Busca tempo disponível do perfil (available_time_per_session)
+        duration = user_profile.get('available_time_per_session', 60)
+        if duration is None:
+            duration = 60  # Default 60 minutos
         completed_workouts = user_profile.get('completed_workouts', 0)
         
         return self._generate_workout(user_profile['id'], frequency, level, goal, duration, completed_workouts)
