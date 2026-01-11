@@ -90,6 +90,8 @@ class UserProfileUpdate(BaseModel):
     target_weight: Optional[float] = None
     body_fat_percentage: Optional[float] = None
     weekly_training_frequency: Optional[int] = None
+    training_level: Optional[str] = None  # "novato", "iniciante", "intermediario", "avancado"
+    training_duration: Optional[int] = None  # Tempo disponível em minutos
     goal: Optional[str] = None  # "cutting", "bulking", "manutencao"
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
