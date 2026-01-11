@@ -42,10 +42,10 @@ class LAFBackendTester:
             
         signup_result = response.json()
         user_id = signup_result.get("user_id")
-        token = signup_result.get("token")
+        token = signup_result.get("access_token")  # Changed from "token" to "access_token"
         
         if not user_id or not token:
-            self.log(f"❌ Signup response missing user_id or token: {signup_result}")
+            self.log(f"❌ Signup response missing user_id or access_token: {signup_result}")
             return None
             
         self.log(f"✅ User created: {user_id}")
