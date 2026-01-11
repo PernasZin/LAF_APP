@@ -242,17 +242,20 @@ export default function DietScreen() {
     setLoadingSubstitutes(true);
 
     try {
-      if (userId && BACKEND_URL) {
+      if (userId && BACKEND_URL && food.key) {
         const response = await safeFetch(
-          `${BACKEND_URL}/api/diet/${userId}/substitutes/${mealIndex}/${foodIndex}`
+          `${BACKEND_URL}/api/diet/${userId}/substitutes/${food.key}`
         );
         if (response.ok) {
           const data = await response.json();
           setSubstitutes(data.substitutes || []);
+        } else {
+          setSubstitutes([]);
         }
       }
     } catch (error) {
       console.error('Error loading substitutes:', error);
+      setSubstitutes([]);
     } finally {
       setLoadingSubstitutes(false);
     }
