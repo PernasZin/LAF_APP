@@ -369,17 +369,79 @@ export default function DietScreen() {
           </Animated.View>
 
           {/* Meals */}
-          {dietPlan?.meals?.map((meal: any, index: number) => (
-            <MealCard
-              key={index}
-              meal={meal}
-              index={index}
-              isDark={isDark}
-              theme={theme}
-              onFoodPress={handleFoodPress}
-              language={language}
-            />
-          ))}
+          {dietPlan?.meals?.length > 0 ? (
+            <>
+              {dietPlan.meals.map((meal: any, index: number) => (
+                <MealCard
+                  key={index}
+                  meal={meal}
+                  index={index}
+                  isDark={isDark}
+                  theme={theme}
+                  onFoodPress={handleFoodPress}
+                  language={language}
+                />
+              ))}
+              
+              {/* Botão Regenerar Dieta */}
+              <Animated.View entering={FadeInDown.delay(500).springify()}>
+                <TouchableOpacity
+                  style={[styles.regenerateButton, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(226, 232, 240, 0.9)' }]}
+                  onPress={handleGenerateDiet}
+                  disabled={generating}
+                >
+                  {generating ? (
+                    <ActivityIndicator size="small" color={theme.text} />
+                  ) : (
+                    <>
+                      <RefreshCw size={18} color={theme.textSecondary} />
+                      <Text style={[styles.regenerateButtonText, { color: theme.textSecondary }]}>
+                        Gerar Nova Dieta
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </Animated.View>
+            </>
+          ) : (
+            /* Estado Vazio - Sem Dieta */
+            <Animated.View entering={FadeInDown.delay(200).springify()}>
+              <GlassCard isDark={isDark} style={styles.emptyStateCard}>
+                <View style={styles.emptyStateContent}>
+                  <View style={[styles.emptyIconBg, { backgroundColor: premiumColors.primary + '15' }]}>
+                    <Utensils size={40} color={premiumColors.primary} strokeWidth={1.5} />
+                  </View>
+                  <Text style={[styles.emptyTitle, { color: theme.text }]}>
+                    Nenhuma dieta gerada
+                  </Text>
+                  <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
+                    Gere sua dieta personalizada baseada no seu perfil e objetivos
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.generateButton, { opacity: generating ? 0.7 : 1 }]}
+                    onPress={handleGenerateDiet}
+                    disabled={generating}
+                  >
+                    <LinearGradient
+                      colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={styles.generateButtonGradient}
+                    >
+                      {generating ? (
+                        <ActivityIndicator size="small" color="#FFF" />
+                      ) : (
+                        <>
+                          <ChefHat size={20} color="#FFF" strokeWidth={2} />
+                          <Text style={styles.generateButtonText}>Gerar Minha Dieta</Text>
+                        </>
+                      )}
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+              </GlassCard>
+            </Animated.View>
+          )}
 
           <View style={{ height: 100 }} />
         </ScrollView>
