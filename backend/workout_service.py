@@ -463,6 +463,39 @@ class WorkoutAIService:
                 "general_note": "AVANÇADO: Cada exercício segue a estrutura - Aquecimento → Reconhecimento → 2 Séries até a FALHA MUSCULAR."
             }
         
+        # ==================== AJUSTE BASEADO NO TEMPO DISPONÍVEL ====================
+        # Tempo curto (≤45 min): Reduz exercícios repetidos e -1 série
+        # Tempo médio (46-75 min): Normal
+        # Tempo longo (≥76 min): Permite mais exercícios por grupo
+        
+        time_adjustment = {
+            "reduce_sets": 0,  # Quantas séries a menos
+            "reduce_exercises": 0,  # Quantos exercícios a menos por grupo
+            "time_note": ""
+        }
+        
+        if duration <= 45:
+            # Tempo curto: treino mais enxuto
+            time_adjustment["reduce_sets"] = 1
+            time_adjustment["reduce_exercises"] = 1
+            time_adjustment["time_note"] = "⏱️ TREINO OTIMIZADO (tempo curto): Menos exercícios e séries para caber no seu tempo."
+        elif duration <= 60:
+            # Tempo médio-curto: reduz apenas séries
+            time_adjustment["reduce_sets"] = 1
+            time_adjustment["reduce_exercises"] = 0
+            time_adjustment["time_note"] = "⏱️ TREINO COMPACTO: 1 série a menos por exercício."
+        elif duration >= 90:
+            # Tempo longo: pode ter mais exercícios
+            time_adjustment["reduce_sets"] = 0
+            time_adjustment["reduce_exercises"] = -1  # Negativo = adiciona
+            time_adjustment["time_note"] = ""
+        
+        # Aplica ajuste de séries (mínimo 2 séries)
+        config["sets"] = max(2, config["sets"] - time_adjustment["reduce_sets"])
+        
+        # Aplica ajuste de exercícios por músculo (mínimo 1)
+        config["ex_per_muscle"] = max(1, config["ex_per_muscle"] - time_adjustment["reduce_exercises"])
+        
         # Ajusta número de exercícios baseado no tempo disponível
         max_exercises = self._get_exercises_per_duration(duration, level)
         
