@@ -22,6 +22,7 @@ class Exercise(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     muscle_group: str
+    focus: Optional[str] = None  # Foco muscular específico (ex: "Peitoral Superior")
     sets: int
     reps: str
     rest: str
