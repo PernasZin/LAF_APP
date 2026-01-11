@@ -294,15 +294,18 @@ backend:
 frontend:
   - task: "Welcome Screen"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/app/index.tsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Welcome screen with LAF branding and 'Começar Agora' button implemented. Needs UI testing."
+      - working: true
+        agent: "testing"
+        comment: "✅ Welcome screen funciona corretamente - tela de seleção de idioma aparece, botão 'Continuar' funcional, redirecionamento para login/cadastro OK."
   
   - task: "Onboarding Flow"
     implemented: true
@@ -321,75 +324,93 @@ frontend:
   
   - task: "Basic Info Step"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/app/onboarding/steps/BasicInfoStep.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Step 1: Name, age, sex input implemented. Needs UI testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login. Não foi possível testar os passos do onboarding."
   
   - task: "Physical Data Step"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/app/onboarding/steps/PhysicalDataStep.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Step 2: Height, weight, target weight, body fat % input implemented. Needs UI testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
   
   - task: "Training Level Step"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/app/onboarding/steps/TrainingLevelStep.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Step 3: Training level, weekly frequency, session time input implemented. Needs UI testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
   
   - task: "Goal Step"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/app/onboarding/steps/GoalStep.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Step 4: Goal selection (cutting/bulking/manutenção/atleta) implemented. Needs UI testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
   
   - task: "Restrictions Step"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/app/onboarding/steps/RestrictionsStep.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Step 5: Dietary restrictions and food preferences selection implemented. Needs UI testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
   
   - task: "Home Screen with Profile Summary"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/app/home/index.tsx"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Home screen displaying user profile, TDEE, target calories, and macros implemented. Needs testing."
+      - working: false
+        agent: "testing"
+        comment: "❌ CRÍTICO: Não consegui acessar a home screen - app fica preso na tela de login mesmo com credenciais válidas. Problema de autenticação/integração frontend-backend."
 
 metadata:
   created_by: "main_agent"
