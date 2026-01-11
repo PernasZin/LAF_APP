@@ -17,73 +17,69 @@ const LANGUAGES = [
   { code: 'es-ES' as LanguagePreference, label: 'Español', flag: '🇪🇸' },
 ];
 
+type ScreenState = 'loading' | 'language_select' | 'redirect';
+
 /**
  * Tela inicial - Seleção de Idioma + Redireciona baseado no estado de auth
  */
 export default function IndexScreen() {
-  const { isAuthenticated, isInitialized, isLoading } = useAuthStore();
+  const { isAuthenticated, isInitialized, isLoading: authLoading } = useAuthStore();
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const language = useSettingsStore((state) => state.language);
   const setLanguage = useSettingsStore((state) => state.setLanguage);
-  const isHydrated = useSettingsStore((state) => state.isHydrated);
   
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
   
+  const [screenState, setScreenState] = useState<ScreenState>('loading');
   const [destination, setDestination] = useState<'login' | 'tabs' | 'onboarding' | null>(null);
-  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
-  const [hasSelectedLanguage, setHasSelectedLanguage] = useState<boolean | null>(null);
   const [selectedLang, setSelectedLang] = useState<LanguagePreference>(language);
 
-  // Check if user has selected language before
+  // Initial check on mount
   useEffect(() => {
-    // Small delay to ensure store is ready
-    const timer = setTimeout(() => {
-      checkLanguageSelection();
-    }, 100);
-    return () => clearTimeout(timer);
+    const init = async () => {
+      try {
+        const hasSelectedLang = await AsyncStorage.getItem('hasSelectedLanguage');
+        console.log('hasSelectedLanguage check:', hasSelectedLang);
+        
+        if (hasSelectedLang !== 'true') {
+          // First time user - show language selector
+          setScreenState('language_select');
+        } else {
+          // Returning user - go to redirect flow
+          setScreenState('redirect');
+        }
+      } catch (error) {
+        console.log('Error in init:', error);
+        // Show language selector on error
+        setScreenState('language_select');
+      }
+    };
+    
+    init();
   }, []);
 
-  const checkLanguageSelection = async () => {
-    try {
-      const hasSelected = await AsyncStorage.getItem('hasSelectedLanguage');
-      console.log('hasSelectedLanguage:', hasSelected);
-      if (hasSelected === 'true') {
-        setHasSelectedLanguage(true);
-      } else {
-        setHasSelectedLanguage(false);
-        setShowLanguageSelector(true);
-      }
-    } catch (error) {
-      console.log('Error checking language:', error);
-      // On error, show language selector
-      setHasSelectedLanguage(false);
-      setShowLanguageSelector(true);
-    }
-  };
-
-  // Check destination after language selection
+  // Handle redirect logic after language is selected
   useEffect(() => {
-    if (hasSelectedLanguage === true) {
-      checkDestination();
-    }
-  }, [isAuthenticated, isInitialized, hasSelectedLanguage]);
+    if (screenState !== 'redirect') return;
+    if (!isInitialized || authLoading) return;
+    
+    const checkDestination = async () => {
+      if (!isAuthenticated) {
+        setDestination('login');
+        return;
+      }
 
-  const checkDestination = async () => {
-    if (!isInitialized || isLoading) return;
-
-    if (!isAuthenticated) {
-      setDestination('login');
-      return;
-    }
-
-    const hasProfile = await AsyncStorage.getItem('hasCompletedOnboarding');
-    if (hasProfile === 'true') {
-      setDestination('tabs');
-    } else {
-      setDestination('onboarding');
-    }
-  };
+      const hasProfile = await AsyncStorage.getItem('hasCompletedOnboarding');
+      if (hasProfile === 'true') {
+        setDestination('tabs');
+      } else {
+        setDestination('onboarding');
+      }
+    };
+    
+    checkDestination();
+  }, [screenState, isAuthenticated, isInitialized, authLoading]);
 
   const handleLanguageSelect = (langCode: LanguagePreference) => {
     setSelectedLang(langCode);
@@ -92,12 +88,11 @@ export default function IndexScreen() {
   const handleContinue = async () => {
     setLanguage(selectedLang);
     await AsyncStorage.setItem('hasSelectedLanguage', 'true');
-    setHasSelectedLanguage(true);
-    setShowLanguageSelector(false);
+    setScreenState('redirect');
   };
 
-  // Show language selector for first-time users
-  if (showLanguageSelector && hasSelectedLanguage === false) {
+  // ============ LANGUAGE SELECTOR SCREEN ============
+  if (screenState === 'language_select') {
     return (
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         {/* Background Gradient */}
@@ -199,7 +194,7 @@ export default function IndexScreen() {
     );
   }
 
-  // Redirect based on destination
+  // ============ REDIRECT LOGIC ============
   if (destination === 'login') {
     return <Redirect href="/auth/login" />;
   }
@@ -212,7 +207,7 @@ export default function IndexScreen() {
     return <Redirect href="/onboarding" />;
   }
 
-  // Loading state
+  // ============ LOADING STATE ============
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <LinearGradient
