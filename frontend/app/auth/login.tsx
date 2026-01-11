@@ -77,14 +77,17 @@ export default function LoginScreen() {
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
         await AsyncStorage.setItem('token', data.access_token || '');
         
+        // Verifica se tem perfil (backend retorna profile_completed)
+        const hasProfile = data.profile_completed || data.has_profile || false;
+        
         // Atualizar authStore
         await useAuthStore.getState().login(
           data.user_id, 
           data.access_token || '', 
-          data.has_profile || false
+          hasProfile
         );
         
-        if (data.has_profile) {
+        if (hasProfile) {
           await AsyncStorage.setItem('profileCompleted', 'true');
           await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
           router.replace('/(tabs)');
