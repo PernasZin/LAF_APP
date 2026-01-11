@@ -60,8 +60,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     // Authenticated but NO profile → go to onboarding
     if (!profileCompleted) {
       if (!inOnboarding) {
-        console.log('🛡️ → /onboarding');
-        router.replace('/onboarding');
+        console.log('🛡️ → /onboarding/index');
+        router.replace('/onboarding/index');
       }
       return;
     }
