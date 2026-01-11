@@ -339,7 +339,19 @@ const styles = StyleSheet.create({
   sessionStats: { flexDirection: 'row', gap: spacing.xl },
   sessionStat: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   sessionStatValue: { fontSize: 14, fontWeight: '600' },
-  sessionNotes: { fontSize: 13, marginTop: spacing.md, fontStyle: 'italic' },
+  sessionNotes: { fontSize: 13, marginTop: spacing.md, fontStyle: 'italic', lineHeight: 18 },
+
+  // Substitutes
+  substitutesSection: { marginTop: spacing.md, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.1)' },
+  substitutesTitle: { fontSize: 12, fontWeight: '600', marginBottom: spacing.sm },
+  substitutesList: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  substituteChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.sm, paddingVertical: 4, borderRadius: radius.md, gap: 4 },
+  substituteText: { fontSize: 11, fontWeight: '500' },
+  substituteTime: { fontSize: 10 },
+
+  // Tip Card
+  tipCard: { padding: spacing.md },
+  tipText: { fontSize: 13, lineHeight: 18 },
 
   emptyCard: { padding: spacing.xl, alignItems: 'center', gap: spacing.md },
   emptyText: { fontSize: 14, textAlign: 'center' },
