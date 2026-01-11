@@ -264,6 +264,12 @@ export default function SignupScreen() {
                 placeholder="••••••••"
                 secureTextEntry
                 field="confirmPassword"
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                focusedField={focusedField}
+                setFocusedField={setFocusedField}
+                theme={theme}
+                isDark={isDark}
               />
 
               {/* Signup Button */}
