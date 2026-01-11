@@ -24,7 +24,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, List
 
 # Backend URL from environment
-BACKEND_URL = "https://diet-goal-tracker-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://glassmorphic-app-4.preview.emergentagent.com/api"
 
 class LAFBackendAuditor:
     def __init__(self):
