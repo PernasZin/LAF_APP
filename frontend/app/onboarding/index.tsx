@@ -54,8 +54,6 @@ export default function OnboardingScreen() {
     sex: '',
     height: '',
     weight: '',
-    target_weight: '',
-    body_fat_percentage: '',
     training_level: '',
     weekly_training_frequency: '',
     available_time_per_session: '',
