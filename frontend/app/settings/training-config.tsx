@@ -105,6 +105,7 @@ export default function TrainingConfigScreen() {
     setSaving(true);
 
     try {
+      // 1. Salva as configurações de treino
       const response = await fetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -116,15 +117,30 @@ export default function TrainingConfigScreen() {
       });
 
       if (response.ok) {
+        const profileData = await response.json();
+        await AsyncStorage.setItem('userProfile', JSON.stringify(profileData));
+        
+        // 2. Regenera o treino automaticamente com as novas configurações
+        const workoutResponse = await fetch(`${BACKEND_URL}/api/workout/generate?user_id=${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        
+        if (workoutResponse.ok) {
+          const workoutData = await workoutResponse.json();
+          await AsyncStorage.setItem('userWorkout', JSON.stringify(workoutData));
+        }
+        
         Alert.alert(
           'Sucesso!', 
-          'Configurações salvas! Gere um novo treino para aplicar as mudanças.',
+          'Configurações salvas e treino atualizado!',
           [{ text: 'OK', onPress: () => router.back() }]
         );
       } else {
         Alert.alert('Erro', 'Não foi possível salvar');
       }
     } catch (error) {
+      console.error('Erro ao salvar:', error);
       Alert.alert('Erro', 'Não foi possível conectar ao servidor');
     } finally {
       setSaving(false);
