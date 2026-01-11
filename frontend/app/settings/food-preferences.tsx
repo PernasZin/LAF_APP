@@ -141,6 +141,7 @@ export default function FoodPreferencesScreen() {
     if (!userId) return;
     setSaving(true);
     try {
+      // 1. Salva as preferências alimentares
       const response = await fetch(`${BACKEND_URL}/api/user/profile/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -149,7 +150,19 @@ export default function FoodPreferencesScreen() {
       if (response.ok) {
         const data = await response.json();
         await AsyncStorage.setItem('userProfile', JSON.stringify(data));
-        Alert.alert('Sucesso', 'Preferências salvas!', [{ text: 'OK', onPress: () => router.back() }]);
+        
+        // 2. Regenera a dieta automaticamente com as novas preferências
+        const dietResponse = await fetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        
+        if (dietResponse.ok) {
+          const dietData = await dietResponse.json();
+          await AsyncStorage.setItem('userDiet', JSON.stringify(dietData));
+        }
+        
+        Alert.alert('Sucesso', 'Preferências salvas e dieta atualizada!', [{ text: 'OK', onPress: () => router.back() }]);
       }
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível salvar');
