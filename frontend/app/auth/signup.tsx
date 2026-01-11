@@ -142,22 +142,27 @@ export default function SignupScreen() {
       const data = await response.json();
 
       if (response.ok && data.user_id) {
+        console.log('Signup success:', data.user_id);
+        
         // Save to AsyncStorage
         await AsyncStorage.setItem('userId', data.user_id);
         await AsyncStorage.setItem('userEmail', email.trim().toLowerCase());
-        if (data.access_token) {
-          await AsyncStorage.setItem('token', data.access_token);
-        }
+        await AsyncStorage.setItem('token', data.access_token || '');
+        await AsyncStorage.setItem('profileCompleted', 'false');
         
-        // Update auth store
+        // Update auth store and wait
         await useAuthStore.getState().login(
           data.user_id, 
           data.access_token || '', 
           false // profileCompleted = false (needs onboarding)
         );
         
-        // Navigate to onboarding
-        router.replace('/onboarding/index');
+        console.log('Auth store updated, navigating to onboarding...');
+        
+        // Small delay to ensure state is propagated
+        setTimeout(() => {
+          router.replace('/onboarding/index');
+        }, 100);
       } else {
         Alert.alert('Erro', data.detail || data.message || 'Não foi possível criar a conta');
       }
