@@ -159,10 +159,8 @@ export default function SignupScreen() {
         
         console.log('Auth store updated, navigating to onboarding...');
         
-        // Small delay to ensure state is propagated
-        setTimeout(() => {
-          router.replace('/onboarding/index');
-        }, 100);
+        // Navigate to onboarding - use push instead of replace
+        router.push('/onboarding');
       } else {
         Alert.alert('Erro', data.detail || data.message || 'Não foi possível criar a conta');
       }
