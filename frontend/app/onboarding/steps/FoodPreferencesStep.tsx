@@ -1,10 +1,9 @@
 /**
- * Premium Food Preferences Step - Substitui RestrictionsStep
- * Seleção de alimentos preferidos para dieta
+ * Premium Food Preferences Step - Seleção de alimentos
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Check, Beef, Fish, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle } from 'lucide-react-native';
+import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
@@ -20,8 +19,7 @@ const RESTRICTIONS = [
   { value: 'vegano', label: 'Vegano', icon: Leaf, color: '#10B981' },
   { value: 'sem_lactose', label: 'Sem Lactose', icon: Milk, color: '#3B82F6' },
   { value: 'sem_gluten', label: 'Sem Glúten', icon: Wheat, color: '#F59E0B' },
-  { value: 'sem_frutos_mar', label: 'Sem Frutos do Mar', icon: Fish, color: '#06B6D4' },
-  { value: 'sem_amendoim', label: 'Sem Amendoim', icon: AlertTriangle, color: '#EF4444' },
+  { value: 'sem_frutos_mar', label: 'Sem Frutos do Mar', icon: AlertTriangle, color: '#06B6D4' },
 ];
 
 // Alimentos disponíveis organizados por categoria
@@ -32,13 +30,13 @@ const FOOD_CATEGORIES = {
     color: '#EF4444',
     items: [
       { key: 'frango', name: 'Frango' },
-      { key: 'patinho', name: 'Patinho' },
+      { key: 'patinho', name: 'Patinho/Carne Moída' },
       { key: 'ovo', name: 'Ovos' },
-      { key: 'peixe', name: 'Peixe' },
+      { key: 'peixe', name: 'Peixe (Tilápia)' },
       { key: 'atum', name: 'Atum' },
-      { key: 'carne_moida', name: 'Carne Moída' },
       { key: 'peito_peru', name: 'Peito de Peru' },
       { key: 'whey', name: 'Whey Protein' },
+      { key: 'iogurte', name: 'Iogurte' },
     ],
   },
   carbs: {
@@ -49,11 +47,11 @@ const FOOD_CATEGORIES = {
       { key: 'arroz_branco', name: 'Arroz Branco' },
       { key: 'arroz_integral', name: 'Arroz Integral' },
       { key: 'batata_doce', name: 'Batata Doce' },
-      { key: 'batata_inglesa', name: 'Batata Inglesa' },
       { key: 'macarrao', name: 'Macarrão' },
       { key: 'aveia', name: 'Aveia' },
       { key: 'pao_integral', name: 'Pão Integral' },
       { key: 'tapioca', name: 'Tapioca' },
+      { key: 'granola', name: 'Granola' },
     ],
   },
   fats: {
@@ -61,9 +59,8 @@ const FOOD_CATEGORIES = {
     icon: Droplets,
     color: '#3B82F6',
     items: [
-      { key: 'azeite', name: 'Azeite' },
+      { key: 'azeite', name: 'Azeite de Oliva' },
       { key: 'castanha', name: 'Castanhas' },
-      { key: 'amendoim', name: 'Amendoim' },
       { key: 'abacate', name: 'Abacate' },
       { key: 'pasta_amendoim', name: 'Pasta de Amendoim' },
     ],
@@ -78,6 +75,37 @@ const FOOD_CATEGORIES = {
       { key: 'laranja', name: 'Laranja' },
       { key: 'morango', name: 'Morango' },
       { key: 'mamao', name: 'Mamão' },
+      { key: 'melancia', name: 'Melancia' },
+      { key: 'uva', name: 'Uva' },
+      { key: 'pera', name: 'Pera' },
+      { key: 'manga', name: 'Manga' },
+      { key: 'abacaxi', name: 'Abacaxi' },
+    ],
+  },
+  vegetables: {
+    title: 'Vegetais e Legumes',
+    icon: Salad,
+    color: '#84CC16',
+    items: [
+      { key: 'brocolis', name: 'Brócolis' },
+      { key: 'espinafre', name: 'Espinafre' },
+      { key: 'cenoura', name: 'Cenoura' },
+      { key: 'abobrinha', name: 'Abobrinha' },
+      { key: 'tomate', name: 'Tomate' },
+      { key: 'alface', name: 'Alface' },
+      { key: 'pepino', name: 'Pepino' },
+      { key: 'feijao', name: 'Feijão' },
+    ],
+  },
+  supplements: {
+    title: 'Suplementos e Outros',
+    icon: Pill,
+    color: '#8B5CF6',
+    items: [
+      { key: 'creatina', name: 'Creatina' },
+      { key: 'glutamina', name: 'Glutamina' },
+      { key: 'mel', name: 'Mel' },
+      { key: 'leite_condensado', name: 'Leite Condensado' },
     ],
   },
 };
