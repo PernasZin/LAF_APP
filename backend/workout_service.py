@@ -400,6 +400,12 @@ class WorkoutAIService:
         # Ajusta número de exercícios baseado no tempo disponível
         max_exercises = self._get_exercises_per_duration(duration, level)
         
+        # Exercícios compostos que sempre precisam de aquecimento (envolvem múltiplos grupos)
+        COMPOUND_EXERCISES = [
+            "agachamento", "stiff", "levantamento", "supino", "desenvolvimento",
+            "remada", "puxada", "leg press", "hack"
+        ]
+        
         workout_days = []
         
         for i in range(frequency):
@@ -448,21 +454,50 @@ class WorkoutAIService:
                 for j, ex_data in enumerate(filtered[:config["ex_per_muscle"]]):
                     if exercises_added >= max_exercises:
                         break
-                        
-                    rest_str = config["rest"]
-                    notes = ex_data.get("notes", "")
                     
-                    # Lógica especial para AVANÇADO: aquecimento só no primeiro exercício do grupo muscular
+                    ex_name_lower = ex_data["name"].lower()
+                    rest_str = config["rest"]
+                    
+                    # Instruções de EXECUÇÃO do exercício (separadas)
+                    execution_notes = ex_data.get("notes", "")
+                    
+                    # Verifica se é exercício composto
+                    is_compound = any(comp in ex_name_lower for comp in COMPOUND_EXERCISES)
+                    
+                    # Lógica de séries para AVANÇADO
                     if level == 'avancado':
-                        if muscle not in muscles_warmed_up:
-                            # Primeiro exercício do grupo - inclui aquecimento
-                            notes = f"🔥 1ª do grupo - AQUECER: 1x Aquec (50%) → 1x Reconhec (90-100%, 1-2 reps) → 2x Válidas ATÉ A FALHA (mín 5 reps). {notes}"
+                        needs_warmup = (muscle not in muscles_warmed_up) or is_compound
+                        
+                        if needs_warmup:
+                            # Precisa aquecer (primeiro do grupo OU exercício composto)
+                            series_instruction = """📋 ESTRUTURA DAS SÉRIES:
+• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
+• 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps - testar peso)
+• 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
+• 4ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
+                            if is_compound:
+                                series_instruction = "⚠️ EXERCÍCIO COMPOSTO - Sempre aquecer!\n" + series_instruction
                             muscles_warmed_up.add(muscle)
                         else:
-                            # Exercício subsequente - músculo já aquecido
-                            notes = f"✅ Músculo já aquecido - Direto para 2x Séries Válidas ATÉ A FALHA (mín 5 reps). {notes}"
-                    elif config.get("notes_prefix"):
-                        notes = f"{config['notes_prefix']}{notes}"
+                            # Músculo já aquecido e não é composto
+                            series_instruction = """📋 ESTRUTURA (músculo já aquecido):
+• Direto para SÉRIES VÁLIDAS
+• 4 Séries de 5-8 reps ATÉ A FALHA"""
+                        
+                        # Combina instrução de séries + execução
+                        notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
+                    
+                    elif level == 'intermediario':
+                        series_instruction = "💪 Chegue PERTO DA FALHA em pelo menos 1 série!"
+                        notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
+                    
+                    elif is_adaptation:
+                        series_instruction = "⚠️ ADAPTAÇÃO: Use carga LEVE! Foco 100% na execução correta."
+                        notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
+                    
+                    else:
+                        # Novato pós-adaptação e Iniciante
+                        notes = f"🎯 {execution_notes}" if execution_notes else ""
                     
                     exercises.append(Exercise(
                         name=ex_data["name"],
