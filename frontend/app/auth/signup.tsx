@@ -21,6 +21,70 @@ import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } fro
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
+// Input Field Component - OUTSIDE main component to prevent re-renders
+const InputField = ({ 
+  icon: Icon, 
+  label, 
+  value, 
+  onChangeText, 
+  placeholder, 
+  secureTextEntry, 
+  field, 
+  showToggle,
+  showPassword,
+  setShowPassword,
+  focusedField,
+  setFocusedField,
+  theme,
+  isDark
+}: any) => (
+  <View style={inputStyles.inputGroup}>
+    <Text style={[inputStyles.inputLabel, { color: theme.textSecondary }]}>{label}</Text>
+    <View style={[
+      inputStyles.inputContainer,
+      {
+        backgroundColor: theme.input.background,
+        borderColor: focusedField === field ? premiumColors.primary : theme.input.border,
+      }
+    ]}>
+      <Icon size={20} color={focusedField === field ? premiumColors.primary : theme.textTertiary} />
+      <TextInput
+        style={[inputStyles.input, { color: theme.text }]}
+        placeholder={placeholder}
+        placeholderTextColor={theme.input.placeholder}
+        value={value}
+        onChangeText={onChangeText}
+        onFocus={() => setFocusedField(field)}
+        onBlur={() => setFocusedField(null)}
+        secureTextEntry={secureTextEntry && !showPassword}
+        autoCapitalize={field === 'email' ? 'none' : field === 'name' ? 'words' : 'none'}
+        keyboardType={field === 'email' ? 'email-address' : 'default'}
+        autoCorrect={false}
+      />
+      {showToggle && (
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          {showPassword ? <EyeOff size={20} color={theme.textTertiary} /> : <Eye size={20} color={theme.textTertiary} />}
+        </TouchableOpacity>
+      )}
+    </View>
+  </View>
+);
+
+const inputStyles = StyleSheet.create({
+  inputGroup: { marginBottom: spacing.lg },
+  inputLabel: { fontSize: 13, fontWeight: '600', marginBottom: spacing.sm, letterSpacing: 0.3 },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 56,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.base,
+    gap: spacing.md,
+  },
+  input: { flex: 1, fontSize: 16, fontWeight: '500' },
+});
+
 export default function SignupScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
