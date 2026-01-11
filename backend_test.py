@@ -107,7 +107,7 @@ class LAFBackendTester:
         
         success, response, status = self.make_request("POST", "/auth/login", login_data)
         
-        if success and isinstance(response, dict) and "token" in response:
+        if success and isinstance(response, dict) and "access_token" in response:
             self.log_test("AUTH - Login", True, "Login successful")
         else:
             self.log_test("AUTH - Login", False, f"Status: {status}", response)
