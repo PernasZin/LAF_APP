@@ -138,6 +138,7 @@ export default function WorkoutScreen() {
   const [workoutPlan, setWorkoutPlan] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   // Timer state
   const [timerActive, setTimerActive] = useState(false);
