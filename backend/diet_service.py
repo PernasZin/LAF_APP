@@ -1961,7 +1961,7 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     return validated_meals
 
 
-def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
+def validate_food_frequency(meals: List[Dict], preferred: Set[str] = None) -> List[Dict]:
     """
     🔄 Etapa 4 do PRD: Validação de Frequência de Alimentos
     
@@ -1969,12 +1969,17 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
     
     Se um alimento aparecer mais de 2 vezes:
     1. Remove a terceira ocorrência
-    2. Substitui por alimento da mesma categoria
+    2. Substitui por alimento da mesma categoria (🚫 APENAS do usuário!)
     
     ⚠️ REGRA ESPECIAL CEIA (índice 5):
-    - Na ceia, só pode substituir por: iogurte_zero, iogurte_natural, cottage, frutas
+    - Na ceia, só pode substituir por: iogurte_zero, cottage, frutas
     - NUNCA substituir por carnes/peixes na ceia!
+    
+    🚫 REGRA ABSOLUTA: Substitutos APENAS dentre os alimentos do usuário!
     """
+    if preferred is None:
+        preferred = set()
+    
     # Conta ocorrências de cada alimento
     food_count = {}
     for meal in meals:
