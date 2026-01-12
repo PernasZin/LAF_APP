@@ -1220,11 +1220,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         protein_grams = 180
     
     if main_carb and main_carb in FOODS:
-        # ARROZ: mínimo 150g por refeição para ser uma porção decente
-        carb_grams = round_to_10(clamp(main_meal_c * 0.6 / (FOODS[main_carb]["c"] / 100), 150, 350))
+        # ARROZ/BATATA: porções generosas para atingir o target de carbs
+        carb_grams = round_to_10(clamp(main_meal_c * 0.8 / (FOODS[main_carb]["c"] / 100), 180, 400))
     else:
         main_carb = "arroz_branco"
-        carb_grams = 200
+        carb_grams = 250
     
     # Feijão: só se nas preferências
     feijao_nas_preferencias = "feijao" in preferred
