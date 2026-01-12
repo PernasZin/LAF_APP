@@ -1854,6 +1854,44 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     # VALIDAÇÃO FINAL: Todos os alimentos devem ter campos obrigatórios
     required_fields = ["key", "name", "grams", "quantity", "protein", "carbs", "fat", "calories", "category"]
     
+    # ALIMENTOS PROIBIDOS por tipo de refeição
+    PROHIBITED_FOODS = {
+        # Almoço e Jantar: NUNCA aveia, pão, tapioca, iogurte
+        2: {"aveia", "pao", "pao_integral", "tapioca", "iogurte_grego", "iogurte_natural"},  # Almoço (6 refeições)
+        4: {"aveia", "pao", "pao_integral", "tapioca", "iogurte_grego", "iogurte_natural"},  # Jantar (6 refeições)
+    }
+    
+    # REMOÇÃO DE ALIMENTOS PROIBIDOS
+    for meal_idx, meal in enumerate(validated_meals):
+        prohibited = PROHIBITED_FOODS.get(meal_idx, set())
+        if prohibited:
+            original_foods = meal.get("foods", [])
+            filtered_foods = [f for f in original_foods if f.get("key") not in prohibited]
+            
+            # Se removeu alimentos, recalcula e adiciona arroz se precisar
+            if len(filtered_foods) < len(original_foods):
+                # Recalcula macros
+                mp, mc, mf, mcal = sum_foods(filtered_foods)
+                
+                # Se carboidratos ficaram muito baixos, adiciona mais arroz
+                existing_arroz = [f for f in filtered_foods if f.get("key") in {"arroz_branco", "arroz_integral"}]
+                if existing_arroz and mc < target_c * 0.2:  # Se menos de 20% dos carbs target
+                    # Aumenta o arroz existente
+                    for f_idx, food in enumerate(filtered_foods):
+                        if food.get("key") in {"arroz_branco", "arroz_integral"}:
+                            current_grams = food.get("grams", 100)
+                            new_grams = min(300, current_grams + 80)  # Adiciona até 80g
+                            filtered_foods[f_idx] = calc_food(food.get("key"), new_grams)
+                            break
+                elif not existing_arroz:
+                    # Adiciona arroz se não tinha
+                    filtered_foods.append(calc_food("arroz_branco", 150))
+                
+                validated_meals[meal_idx]["foods"] = filtered_foods
+                mp, mc, mf, mcal = sum_foods(filtered_foods)
+                validated_meals[meal_idx]["total_calories"] = mcal
+                validated_meals[meal_idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
     for meal_idx, meal in enumerate(validated_meals):
         for food_idx, food in enumerate(meal.get("foods", [])):
             for field in required_fields:
