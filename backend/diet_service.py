@@ -1238,8 +1238,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods = [calc_food("iogurte_zero", 170), calc_food("banana", 100), calc_food("castanhas", 15)]
                 
         elif meal_type == 'almoco':
-            # ALMOÇO: usa proteína 1
-            foods.append(calc_food(main_protein_1, protein_grams_1))
+            # ⭐ ALMOÇO: EXATAMENTE IGUAL AO JANTAR (mesma proteína, mesmas quantidades)
+            foods.append(calc_food(main_protein, protein_grams))
             foods.append(calc_food(main_carb, carb_grams))
             
             if use_feijao:
@@ -1248,8 +1248,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'jantar':
-            # JANTAR: usa proteína 2 (diferente do almoço)
-            foods.append(calc_food(main_protein_2, protein_grams_2))
+            # ⭐ JANTAR: EXATAMENTE IGUAL AO ALMOÇO (mesma proteína, mesmas quantidades)
+            foods.append(calc_food(main_protein, protein_grams))
             foods.append(calc_food(main_carb, carb_grams))
             
             if use_feijao:
