@@ -1399,15 +1399,16 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if lanche_protein and lanche_protein in FOODS:
                 foods.append(calc_food(lanche_protein, 170))
             else:
-                # 🧠 FALLBACK: proteína leve segura (respeita sem lactose)
-                safe_lanche_protein = get_safe_fallback("protein", restrictions, ["whey_protein", "ovos"])
+                # 🧠 FALLBACK: proteína leve segura (respeita sem lactose e vegetariano)
+                safe_lanche_protein = get_safe_fallback("protein", restrictions, ["iogurte_zero", "whey_protein", "ovos", "tofu"])
                 if safe_lanche_protein:
-                    foods.append(calc_food(safe_lanche_protein, 100 if safe_lanche_protein == "ovos" else 30))
+                    grams = 100 if safe_lanche_protein in ["ovos", "tofu"] else 170 if safe_lanche_protein == "iogurte_zero" else 30
+                    foods.append(calc_food(safe_lanche_protein, grams))
             
             if lanche_fruit and lanche_fruit in FOODS:
                 foods.append(calc_food(lanche_fruit, 100))
             else:
-                # 🧠 FALLBACK: banana
+                # 🧠 FALLBACK: banana (sempre segura)
                 foods.append(calc_food("banana", 100))
             
             if lanche_fat and lanche_fat in FOODS:
