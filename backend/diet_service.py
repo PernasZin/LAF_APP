@@ -68,6 +68,11 @@ MAX_CARB_GRAMS = 1200     # Máximo específico para carboidratos (arroz, batata
 MIN_MEAL_CALORIES = 50    # Mínimo 50kcal por refeição
 MIN_DAILY_CALORIES = 800  # Mínimo 800kcal por dia (segurança)
 
+# ==================== LIMITES GLOBAIS ESPECIAIS ====================
+# Estes limites se aplicam à DIETA INTEIRA, não por refeição
+MAX_COTTAGE_TOTAL = 20    # MÁXIMO 20g de cottage na dieta TODA (1 pote = 300g, muito!)
+MAX_AVEIA_TOTAL = 80      # MÁXIMO 80g de aveia na dieta TODA
+
 
 # ==================== MÍNIMOS NECESSÁRIOS ====================
 MIN_PROTEINS = 3
