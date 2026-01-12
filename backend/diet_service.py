@@ -1153,6 +1153,71 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if not foods:
                 foods = [calc_food("pao_integral", 60), calc_food("ovos", 100), calc_food("banana", 120)]
                 
+        elif meal_type == 'lanche_manha':
+            # Lanche Manhã: iogurte/pão + fruta (mesmo estilo do café)
+            protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
+            fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
+            fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
+            
+            # Iogurte ou cottage - MÁXIMO 1 POTE (170g)
+            if protein and protein in FOODS:
+                max_protein_grams = 170 if protein in ["iogurte_grego", "iogurte_natural"] else 200
+                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
+                foods.append(calc_food(protein, p_grams))
+            
+            # Fruta - MÁXIMO 1 UNIDADE
+            if fruit and fruit in FOODS:
+                max_fruit_grams = 150
+                fruit_grams = clamp(meal_c * 0.6 / max(FOODS[fruit]["c"] / 100, 0.1), 80, max_fruit_grams)
+                foods.append(calc_food(fruit, fruit_grams))
+            
+            # Gordura saudável (castanhas/amendoas)
+            if fat and fat in FOODS and meal_f > 5:
+                fat_grams = clamp(meal_f * 0.5 / max(FOODS[fat]["f"] / 100, 0.1), 10, 30)
+                foods.append(calc_food(fat, fat_grams))
+                
+            if not foods:
+                foods = [calc_food("iogurte_grego", 150), calc_food("banana", 100)]
+                
+        elif meal_type == 'lanche_tarde':
+            # Lanche Tarde: iogurte/fruta + DOCES (mel/leite condensado)
+            protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
+            fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
+            
+            # Iogurte ou cottage
+            if protein and protein in FOODS:
+                max_protein_grams = 170 if protein in ["iogurte_grego", "iogurte_natural"] else 200
+                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
+                foods.append(calc_food(protein, p_grams))
+            
+            # Fruta
+            if fruit and fruit in FOODS:
+                max_fruit_grams = 150
+                fruit_grams = clamp(meal_c * 0.4 / max(FOODS[fruit]["c"] / 100, 0.1), 80, max_fruit_grams)
+                foods.append(calc_food(fruit, fruit_grams))
+            
+            # DOCES: Mel ou Leite Condensado (exclusivos do lanche da tarde)
+            carbs_so_far = sum(f.get("carbs", 0) for f in foods)
+            carbs_remaining = meal_c - carbs_so_far
+            if carbs_remaining > 5:
+                # Verifica preferências do usuário
+                if "mel" in preferred:
+                    extra = "mel"
+                    extra_grams = clamp(carbs_remaining / max(FOODS["mel"]["c"] / 100, 0.5), 10, 30)
+                    foods.append(calc_food(extra, extra_grams))
+                elif "leite_condensado" in preferred:
+                    extra = "leite_condensado"
+                    extra_grams = clamp(carbs_remaining / max(FOODS["leite_condensado"]["c"] / 100, 0.5), 15, 40)
+                    foods.append(calc_food(extra, extra_grams))
+                # Se nenhum selecionado, adiciona granola
+                elif "granola" in preferred or carbs_remaining > 10:
+                    extra_grams = clamp(carbs_remaining / max(FOODS.get("granola", {"c": 60})["c"] / 100, 0.5), 20, 50)
+                    if "granola" in FOODS:
+                        foods.append(calc_food("granola", extra_grams))
+                
+            if not foods:
+                foods = [calc_food("iogurte_grego", 150), calc_food("banana", 100)]
+                
         elif meal_type == 'lanche':
             # Lanche: iogurte/cottage + fruta + opcionalmente extra doce (mel/leite condensado)
             protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
