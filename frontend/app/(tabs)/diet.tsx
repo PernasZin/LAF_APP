@@ -468,7 +468,9 @@ export default function DietScreen() {
                 </Text>
                 <View style={styles.currentFoodInfo}>
                   <Text style={[styles.currentFoodGrams, { color: theme.textSecondary }]}>
-                    {Math.round(selectedFood.grams)}g
+                    {selectedFood.unit_equivalent 
+                      ? `${Math.round(selectedFood.grams)}g ${selectedFood.unit_equivalent}` 
+                      : `${Math.round(selectedFood.grams)}g`}
                   </Text>
                   <View style={styles.currentFoodMacrosRow}>
                     <View style={[styles.macroChip, { backgroundColor: '#3B82F6' + '20' }]}>
