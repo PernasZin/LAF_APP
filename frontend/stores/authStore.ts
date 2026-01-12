@@ -66,7 +66,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   
   logout: async () => {
-    set({ isAuthenticated: false, userId: null, token: null, profileCompleted: false });
-    await AsyncStorage.clear();
+    // Limpa AsyncStorage PRIMEIRO
+    try {
+      await AsyncStorage.clear();
+    } catch (error) {
+      console.error('Error clearing AsyncStorage:', error);
+    }
+    // Depois atualiza o estado
+    set({ isAuthenticated: false, userId: null, token: null, profileCompleted: false, isInitialized: true });
   },
 }));
