@@ -1799,6 +1799,122 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     }
 
 
+def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[Dict]:
+    """
+    ✅ APLICA LIMITES GLOBAIS NA DIETA TODA
+    
+    REGRAS OBRIGATÓRIAS:
+    1. COTTAGE: Máximo 20g na dieta TODA (1 pote = 300g, muito!)
+    2. AVEIA: Máximo 80g na dieta TODA
+    3. FEIJÃO: Só aparece SE:
+       - Usuário selecionou feijão nas preferências
+       - E existe ARROZ na mesma refeição
+    """
+    if preferred is None:
+        preferred = set()
+    
+    # TIPOS DE ARROZ (para verificar se tem arroz na refeição)
+    TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
+    
+    # ========== PASSO 1: APLICAR LIMITE DE COTTAGE (MAX 20g TOTAL) ==========
+    total_cottage = 0
+    for meal in meals:
+        for food in meal.get("foods", []):
+            if food.get("key") == "cottage":
+                total_cottage += food.get("grams", 0)
+    
+    if total_cottage > MAX_COTTAGE_TOTAL:
+        # Precisa reduzir cottage
+        cottage_to_remove = total_cottage - MAX_COTTAGE_TOTAL
+        
+        for meal in meals:
+            foods_to_keep = []
+            for food in meal.get("foods", []):
+                if food.get("key") == "cottage":
+                    current_grams = food.get("grams", 0)
+                    if cottage_to_remove >= current_grams:
+                        # Remove este cottage completamente
+                        cottage_to_remove -= current_grams
+                        continue  # Não adiciona à lista
+                    else:
+                        # Reduz este cottage
+                        new_grams = current_grams - cottage_to_remove
+                        if new_grams >= 10:  # Mínimo 10g para fazer sentido
+                            food = calc_food("cottage", new_grams)
+                            cottage_to_remove = 0
+                        else:
+                            cottage_to_remove -= current_grams
+                            continue  # Remove completamente
+                foods_to_keep.append(food)
+            meal["foods"] = foods_to_keep
+            
+            # Recalcula macros da refeição
+            mp, mc, mf, mcal = sum_foods(meal["foods"])
+            meal["total_calories"] = mcal
+            meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
+    # ========== PASSO 2: APLICAR LIMITE DE AVEIA (MAX 80g TOTAL) ==========
+    total_aveia = 0
+    for meal in meals:
+        for food in meal.get("foods", []):
+            if food.get("key") == "aveia":
+                total_aveia += food.get("grams", 0)
+    
+    if total_aveia > MAX_AVEIA_TOTAL:
+        # Precisa reduzir aveia
+        aveia_to_remove = total_aveia - MAX_AVEIA_TOTAL
+        
+        for meal in meals:
+            for f_idx, food in enumerate(meal.get("foods", [])):
+                if food.get("key") == "aveia" and aveia_to_remove > 0:
+                    current_grams = food.get("grams", 0)
+                    new_grams = max(0, current_grams - aveia_to_remove)
+                    
+                    if new_grams < 20:
+                        # Remove aveia se ficar muito pouco
+                        meal["foods"].pop(f_idx)
+                        aveia_to_remove -= current_grams
+                    else:
+                        meal["foods"][f_idx] = calc_food("aveia", new_grams)
+                        aveia_to_remove -= (current_grams - new_grams)
+                    break  # Uma refeição por vez
+            
+            # Recalcula macros da refeição
+            mp, mc, mf, mcal = sum_foods(meal["foods"])
+            meal["total_calories"] = mcal
+            meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
+    # ========== PASSO 3: FEIJÃO SÓ COM ARROZ E SE NAS PREFERÊNCIAS ==========
+    feijao_nas_preferencias = "feijao" in preferred
+    
+    for meal in meals:
+        # Verifica se tem arroz nesta refeição
+        tem_arroz = any(f.get("key") in TIPOS_ARROZ for f in meal.get("foods", []))
+        
+        foods_to_keep = []
+        for food in meal.get("foods", []):
+            food_key = food.get("key")
+            
+            # Se é feijão, só mantém se:
+            # 1. Usuário selecionou feijão nas preferências
+            # 2. E tem arroz na mesma refeição
+            if food_key == "feijao":
+                if feijao_nas_preferencias and tem_arroz:
+                    foods_to_keep.append(food)
+                # Senão, não adiciona (remove feijão)
+            else:
+                foods_to_keep.append(food)
+        
+        meal["foods"] = foods_to_keep
+        
+        # Recalcula macros da refeição
+        mp, mc, mf, mcal = sum_foods(meal["foods"])
+        meal["total_calories"] = mcal
+        meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
+    return meals
+
+
 def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int,
                           preferred: Set[str] = None, meal_count: int = 6) -> List[Dict]:
     """
