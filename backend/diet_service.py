@@ -1038,7 +1038,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
          "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"], "protein")
     
     light_protein_priority_cafe = get_preferred_first(
-        ["ovos", "cottage", "claras"], "protein")
+        ["ovos", "iogurte_zero", "iogurte_natural", "cottage", "claras"], "protein")
+    
+    # Proteína leve para lanches (iogurte zero tem prioridade!)
+    light_protein_priority_lanche = get_preferred_first(
+        ["iogurte_zero", "iogurte_natural", "cottage"], "protein")
     
     # ARROZ tem PRIORIDADE sobre tudo - sempre primeiro na lista!
     carb_priority = get_preferred_first(
@@ -1059,24 +1063,39 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
          "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"], "fruit")
     
-    # ==================== CALCULAR ALMOÇO/JANTAR PRIMEIRO (IGUAIS) ====================
+    # ==================== CALCULAR ALMOÇO/JANTAR ====================
+    # NOVA REGRA: Proteínas DIFERENTES no almoço e jantar para variedade
     # Proporção: Almoço + Jantar = ~55% dos macros totais
-    # Cada um = ~27.5% (vamos usar 27% cada = 54% total)
     
     main_meal_p = target_p * 0.27  # Proteína por refeição principal
     main_meal_c = target_c * 0.27  # Carbs por refeição principal
     main_meal_f = target_f * 0.30  # Gordura por refeição principal
     
-    # Selecionar alimentos para almoço/jantar (serão IGUAIS)
-    main_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
+    # Selecionar DUAS proteínas diferentes para almoço e jantar
+    main_protein_1 = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
+    
+    # Segunda proteína: remove a primeira da lista de prioridades
+    protein_priority_2 = [p for p in protein_priority if p != main_protein_1]
+    main_protein_2 = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority_2)
+    
+    # Se não encontrou segunda proteína, usa a mesma
+    if not main_protein_2 or main_protein_2 not in FOODS:
+        main_protein_2 = main_protein_1
+    
     main_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
     
     # Calcular quantidades para UMA refeição principal
-    if main_protein and main_protein in FOODS:
-        protein_grams = round_to_10(clamp(main_meal_p / (FOODS[main_protein]["p"] / 100), 150, 250))
+    if main_protein_1 and main_protein_1 in FOODS:
+        protein_grams_1 = round_to_10(clamp(main_meal_p / (FOODS[main_protein_1]["p"] / 100), 150, 250))
     else:
-        main_protein = "frango"
-        protein_grams = 180
+        main_protein_1 = "frango"
+        protein_grams_1 = 180
+    
+    if main_protein_2 and main_protein_2 in FOODS:
+        protein_grams_2 = round_to_10(clamp(main_meal_p / (FOODS[main_protein_2]["p"] / 100), 150, 250))
+    else:
+        main_protein_2 = "patinho"
+        protein_grams_2 = 180
     
     if main_carb and main_carb in FOODS:
         # ARROZ: mínimo 150g por refeição para ser uma porção decente
