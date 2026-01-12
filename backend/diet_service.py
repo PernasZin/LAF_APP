@@ -1177,7 +1177,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         foods = []
         
         if meal_type == 'cafe':
-            # Café da Manhã
+            # Café da Manhã - 🚫 APENAS alimentos selecionados pelo usuário!
             protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
             carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
             fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
@@ -1197,16 +1197,16 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if fat and fat in FOODS:
                 foods.append(calc_food(fat, 15))
             
-            if not foods:
-                foods = [calc_food("ovos", 100), calc_food("pao_integral", 60), calc_food("banana", 120)]
+            # 🚫 SEM FALLBACK! Se não tem alimentos suficientes, a refeição fica incompleta
+            # O sistema já validou que o usuário tem alimentos suficientes
                 
         elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
-            # Lanches: iogurte zero + fruta + gordura saudável
+            # Lanches: 🚫 APENAS alimentos selecionados pelo usuário!
             light_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
             fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
             
-            # Iogurte zero/natural (1 pote = 170g)
+            # Iogurte zero (1 pote = 170g)
             if light_protein and light_protein in FOODS:
                 foods.append(calc_food(light_protein, 170))
             
@@ -1216,8 +1216,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if fat and fat in FOODS:
                 foods.append(calc_food(fat, 15))
             
-            if not foods:
-                foods = [calc_food("iogurte_zero", 170), calc_food("banana", 100), calc_food("castanhas", 15)]
+            # 🚫 SEM FALLBACK! Usa apenas os alimentos que o usuário selecionou
                 
         elif meal_type == 'almoco':
             # ⭐ ALMOÇO: EXATAMENTE IGUAL AO JANTAR (mesma proteína, mesmas quantidades)
