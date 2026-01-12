@@ -2357,6 +2357,15 @@ class DietAIService:
                     else:
                         break
         
+        # ✅ AJUSTE FINAL: Garantir que os macros totais estejam corretos
+        for _ in range(3):
+            meals = fine_tune_diet(meals, target_p, target_c, target_f)
+            total_p = sum(f.get("protein", 0) for m in meals for f in m.get("foods", []))
+            total_c = sum(f.get("carbs", 0) for m in meals for f in m.get("foods", []))
+            total_f = sum(f.get("fat", 0) for m in meals for f in m.get("foods", []))
+            if abs(total_p - target_p) <= 15 and abs(total_c - target_c) <= 30 and abs(total_f - target_f) <= 10:
+                break
+        
         # Aplica horários personalizados se fornecidos
         if meal_times and len(meal_times) == len(meals):
             for i, mt in enumerate(meal_times):
