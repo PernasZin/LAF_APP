@@ -97,6 +97,115 @@ RESTRICTION_EXCLUSIONS = {
 }
 
 
+# ==================== REGRAS OBRIGATÓRIAS POR REFEIÇÃO ====================
+# Estas regras NUNCA devem ser violadas
+
+# Carboidrato principal para almoço/jantar - SEMPRE arroz ou macarrão
+CARBS_ALMOCO_JANTAR = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"}
+
+# Proteína principal para almoço/jantar - NUNCA ovo
+PROTEINS_ALMOCO_JANTAR = {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "camarao", "peru", "suino"}
+
+# Alimentos EXCLUSIVOS para café da manhã e lanche da manhã
+FOODS_CAFE_LANCHE_MANHA = {"ovos", "claras", "pao", "pao_integral", "pao_forma", "iogurte_grego", "iogurte_natural", "tapioca"}
+
+# Alimentos EXCLUSIVOS para lanche da tarde (doces)
+FOODS_LANCHE_TARDE = {"mel", "leite_condensado", "granola"}
+
+# Tipos de refeição
+MEAL_TYPE_CAFE = "cafe"
+MEAL_TYPE_LANCHE_MANHA = "lanche_manha"
+MEAL_TYPE_ALMOCO = "almoco"
+MEAL_TYPE_LANCHE_TARDE = "lanche_tarde"
+MEAL_TYPE_JANTAR = "jantar"
+MEAL_TYPE_CEIA = "ceia"
+
+
+def get_meal_type_from_name(meal_name: str) -> str:
+    """Determina o tipo de refeição pelo nome"""
+    name_lower = meal_name.lower()
+    if "café" in name_lower or "cafe" in name_lower:
+        return MEAL_TYPE_CAFE
+    elif "lanche" in name_lower and "manhã" in name_lower:
+        return MEAL_TYPE_LANCHE_MANHA
+    elif "almoço" in name_lower or "almoco" in name_lower:
+        return MEAL_TYPE_ALMOCO
+    elif "lanche" in name_lower and ("tarde" in name_lower or "manhã" not in name_lower):
+        return MEAL_TYPE_LANCHE_TARDE
+    elif "jantar" in name_lower:
+        return MEAL_TYPE_JANTAR
+    elif "ceia" in name_lower:
+        return MEAL_TYPE_CEIA
+    return MEAL_TYPE_ALMOCO  # Default
+
+
+def is_food_allowed_for_meal(food_key: str, meal_type: str) -> bool:
+    """
+    Verifica se um alimento é permitido para um tipo de refeição específico.
+    
+    REGRAS:
+    - Ovos/Pão/Iogurte: APENAS café da manhã e lanche da manhã
+    - Mel/Leite condensado: APENAS lanche da tarde
+    - Arroz/Macarrão: APENAS almoço e jantar
+    - Frango/Patinho/Peixes: APENAS almoço e jantar
+    """
+    # Alimentos de café da manhã/lanche manhã - NÃO podem ir em almoço/jantar
+    if food_key in FOODS_CAFE_LANCHE_MANHA:
+        return meal_type in {MEAL_TYPE_CAFE, MEAL_TYPE_LANCHE_MANHA, MEAL_TYPE_CEIA}
+    
+    # Doces do lanche da tarde
+    if food_key in FOODS_LANCHE_TARDE:
+        return meal_type == MEAL_TYPE_LANCHE_TARDE
+    
+    # Proteínas principais (carnes/peixes) - NÃO podem ir no café/lanches
+    if food_key in PROTEINS_ALMOCO_JANTAR:
+        return meal_type in {MEAL_TYPE_ALMOCO, MEAL_TYPE_JANTAR}
+    
+    # Arroz/Macarrão - APENAS almoço e jantar
+    if food_key in CARBS_ALMOCO_JANTAR:
+        return meal_type in {MEAL_TYPE_ALMOCO, MEAL_TYPE_JANTAR}
+    
+    # Outros alimentos são permitidos em qualquer refeição
+    return True
+
+
+def get_allowed_proteins_for_meal(meal_type: str, available_proteins: Set[str]) -> Set[str]:
+    """Retorna proteínas permitidas para o tipo de refeição"""
+    if meal_type in {MEAL_TYPE_CAFE, MEAL_TYPE_LANCHE_MANHA}:
+        # Café/Lanche manhã: ovos, iogurte, cottage
+        allowed = {"ovos", "claras", "iogurte_grego", "iogurte_natural", "cottage"}
+        return available_proteins & allowed
+    elif meal_type in {MEAL_TYPE_ALMOCO, MEAL_TYPE_JANTAR}:
+        # Almoço/Jantar: carnes e peixes, NUNCA ovos
+        return available_proteins & PROTEINS_ALMOCO_JANTAR
+    else:
+        # Lanches: iogurte, cottage
+        allowed = {"iogurte_grego", "iogurte_natural", "cottage"}
+        return available_proteins & allowed
+
+
+def get_allowed_carbs_for_meal(meal_type: str, available_carbs: Set[str]) -> Set[str]:
+    """Retorna carboidratos permitidos para o tipo de refeição"""
+    if meal_type in {MEAL_TYPE_CAFE, MEAL_TYPE_LANCHE_MANHA}:
+        # Café/Lanche manhã: aveia, pão, tapioca
+        allowed = {"aveia", "pao", "pao_integral", "pao_forma", "tapioca", "granola"}
+        return available_carbs & allowed
+    elif meal_type in {MEAL_TYPE_ALMOCO, MEAL_TYPE_JANTAR}:
+        # Almoço/Jantar: SEMPRE arroz ou macarrão como principal
+        return available_carbs & CARBS_ALMOCO_JANTAR
+    else:
+        # Lanches: frutas principalmente (sem carbs pesados)
+        return set()  # Lanches usam frutas, não carbs
+
+
+def get_complementary_carbs_for_meal(meal_type: str, available_carbs: Set[str]) -> Set[str]:
+    """Retorna carboidratos complementares (batata, feijão) para almoço/jantar"""
+    if meal_type in {MEAL_TYPE_ALMOCO, MEAL_TYPE_JANTAR}:
+        complementary = {"batata_doce", "feijao", "lentilha", "grao_de_bico"}
+        return available_carbs & complementary
+    return set()
+
+
 # ==================== NORMALIZAÇÃO ====================
 
 FOOD_NORMALIZATION = {
