@@ -1863,6 +1863,72 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     return validated_meals
 
 
+def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
+    """
+    🔄 Etapa 4 do PRD: Validação de Frequência de Alimentos
+    
+    ❌ Erro se um alimento aparece > 2 vezes/dia
+    
+    Se um alimento aparecer mais de 2 vezes:
+    1. Remove a terceira ocorrência
+    2. Substitui por alimento da mesma categoria
+    """
+    # Conta ocorrências de cada alimento
+    food_count = {}
+    for meal in meals:
+        for food in meal.get("foods", []):
+            key = food.get("key")
+            if key:
+                food_count[key] = food_count.get(key, 0) + 1
+    
+    # Identifica alimentos com mais de 2 ocorrências
+    foods_to_limit = {k: v for k, v in food_count.items() if v > 2}
+    
+    if not foods_to_limit:
+        return meals  # Nada a corrigir
+    
+    # Substitutos por categoria
+    SUBSTITUTES = {
+        "protein": ["frango", "patinho", "tilapia", "atum", "ovos", "peru"],
+        "carb": ["arroz_branco", "arroz_integral", "batata_doce", "macarrao"],
+        "fat": ["azeite", "castanhas", "amendoas", "pasta_amendoim"],
+        "fruit": ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
+    }
+    
+    # Processa cada alimento com excesso
+    for food_key, count in foods_to_limit.items():
+        occurrences_to_keep = 2
+        current_count = 0
+        
+        for meal in meals:
+            new_foods = []
+            for food in meal.get("foods", []):
+                if food.get("key") == food_key:
+                    current_count += 1
+                    if current_count <= occurrences_to_keep:
+                        new_foods.append(food)
+                    else:
+                        # Substitui por outro alimento da mesma categoria
+                        category = FOODS.get(food_key, {}).get("category", "protein")
+                        substitutes = [s for s in SUBSTITUTES.get(category, []) if s != food_key and s not in food_count]
+                        
+                        if substitutes:
+                            new_key = substitutes[0]
+                            new_food = calc_food(new_key, food.get("grams", 100))
+                            new_foods.append(new_food)
+                else:
+                    new_foods.append(food)
+            
+            meal["foods"] = new_foods
+            
+            # Recalcula macros da refeição
+            mp, mc, mf, mcal = sum_foods(meal["foods"])
+            meal["total_calories"] = mcal
+            meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
+    return meals
+
+
 def ensure_consistency(cal: float, p: float, c: float, f: float) -> Tuple[int, int, int]:
     """Garante consistência entre macros e calorias"""
     target_p = round(p)
