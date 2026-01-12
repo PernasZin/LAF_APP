@@ -1436,15 +1436,15 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # 🍛 ALMOÇO - Refeição completa
             # ✅ Permitido: proteína principal, arroz, batata, macarrão, feijão, legumes, azeite
             # ⭐ IGUAL AO JANTAR
-            if main_protein and main_protein in FOODS and main_protein not in excluded_restrictions:
+            if main_protein and main_protein in FOODS and main_protein not in excluded_by_restrictions:
                 foods.append(calc_food(main_protein, protein_grams))
             else:
-                # 🧠 FALLBACK: proteína segura (respeita vegetariano)
-                safe_main_protein = get_safe_fallback("protein", restrictions, ["frango", "ovos", "tofu"])
+                # 🧠 FALLBACK: proteína segura (respeita vegetariano - tofu primeiro)
+                safe_main_protein = get_safe_fallback("protein", restrictions, ["tofu", "ovos", "frango"])
                 if safe_main_protein:
                     foods.append(calc_food(safe_main_protein, 180 if safe_main_protein != "ovos" else 200))
             
-            if main_carb and main_carb in FOODS and main_carb not in excluded_restrictions:
+            if main_carb and main_carb in FOODS and main_carb not in excluded_by_restrictions:
                 foods.append(calc_food(main_carb, carb_grams))
             else:
                 # 🧠 FALLBACK: carb seguro
@@ -1460,15 +1460,15 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         elif meal_type == 'jantar':
             # 🍽️ JANTAR - Mesmo conceito do almoço
             # ⭐ IGUAL AO ALMOÇO (preferir proteína diferente quando possível, mas aqui mantemos igual)
-            if main_protein and main_protein in FOODS:
+            if main_protein and main_protein in FOODS and main_protein not in excluded_by_restrictions:
                 foods.append(calc_food(main_protein, protein_grams))
             else:
-                # 🧠 FALLBACK: proteína segura (respeita vegetariano)
-                safe_main_protein = get_safe_fallback("protein", restrictions, ["frango", "ovos", "tofu"])
+                # 🧠 FALLBACK: proteína segura (respeita vegetariano - tofu primeiro)
+                safe_main_protein = get_safe_fallback("protein", restrictions, ["tofu", "ovos", "frango"])
                 if safe_main_protein:
                     foods.append(calc_food(safe_main_protein, 180 if safe_main_protein != "ovos" else 200))
             
-            if main_carb and main_carb in FOODS and main_carb not in excluded_restrictions:
+            if main_carb and main_carb in FOODS and main_carb not in excluded_by_restrictions:
                 foods.append(calc_food(main_carb, carb_grams))
             else:
                 # 🧠 FALLBACK: carb seguro
