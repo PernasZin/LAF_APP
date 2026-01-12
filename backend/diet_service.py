@@ -1239,19 +1239,18 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'ceia':
-            # Ceia: iogurte zero + fruta (sem castanhas, é tarde)
+            # Ceia: 🚫 APENAS alimentos selecionados pelo usuário!
             light_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_lanche)
             fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
             
-            # Iogurte zero/natural (1 pote = 170g)
+            # Iogurte zero (1 pote = 170g)
             if light_protein and light_protein in FOODS:
                 foods.append(calc_food(light_protein, 170))
             
             if fruit and fruit in FOODS:
                 foods.append(calc_food(fruit, 120))
             
-            if not foods:
-                foods = [calc_food("iogurte_zero", 170), calc_food("morango", 120)]
+            # 🚫 SEM FALLBACK! Usa apenas os alimentos que o usuário selecionou
         
         meals.append({
             "name": meal_info['name'],
