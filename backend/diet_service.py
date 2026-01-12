@@ -1048,13 +1048,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     light_protein_priority_ceia = get_preferred_first(
         ["iogurte_grego", "iogurte_natural"], "protein")  # NUNCA OVOS NA CEIA!
     
-    # Carboidratos principais (para almoço/jantar) - EXCLUI feijão/lentilha
+    # Carboidratos principais (para almoço/jantar) - APENAS ARROZ ou MACARRÃO!
+    # Batata doce é COMPLEMENTO, não principal
     carb_priority = get_preferred_first(
-        ["arroz_branco", "arroz_integral", "batata_doce", "macarrao", "macarrao_integral"], 
+        ["arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"], 
         "carb", exclude_complements=True)
     
-    # Carboidratos complementares (feijão, lentilha - para acompanhar)
-    carb_complement = get_preferred_first(["feijao", "lentilha"], "carb")
+    # Carboidratos complementares (batata doce, feijão, lentilha - para acompanhar)
+    carb_complement = get_preferred_first(["batata_doce", "feijao", "lentilha"], "carb")
     
     # Carboidratos leves (para café da manhã) - EXCLUI feijão/lentilha
     light_carb_priority = get_preferred_first(
