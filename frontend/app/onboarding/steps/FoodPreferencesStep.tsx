@@ -24,6 +24,7 @@ const RESTRICTIONS = [
 ];
 
 // Alimentos disponíveis organizados por categoria
+// IMPORTANTE: As keys devem corresponder EXATAMENTE às keys do backend (diet_service.py FOODS)
 const FOOD_CATEGORIES = {
   proteins: {
     title: 'Proteínas',
@@ -31,12 +32,15 @@ const FOOD_CATEGORIES = {
     color: '#EF4444',
     items: [
       { key: 'frango', name: 'Frango' },
-      { key: 'patinho', name: 'Patinho/Carne Moída' },
-      { key: 'ovo', name: 'Ovos' },
-      { key: 'peixe', name: 'Peixe (Tilápia)' },
+      { key: 'patinho', name: 'Patinho' },
+      { key: 'carne_moida', name: 'Carne Moída' },
+      { key: 'ovos', name: 'Ovos' },
+      { key: 'tilapia', name: 'Tilápia' },
       { key: 'atum', name: 'Atum' },
-      { key: 'peito_peru', name: 'Peito de Peru' },
-      { key: 'iogurte', name: 'Iogurte Desnatado/Zero' },
+      { key: 'salmao', name: 'Salmão' },
+      { key: 'peru', name: 'Peru' },
+      { key: 'iogurte_grego', name: 'Iogurte Grego' },
+      { key: 'iogurte_natural', name: 'Iogurte Natural' },
     ],
   },
   carbs: {
@@ -50,11 +54,10 @@ const FOOD_CATEGORIES = {
       { key: 'macarrao', name: 'Macarrão' },
       { key: 'aveia', name: 'Aveia' },
       { key: 'pao_integral', name: 'Pão Integral' },
+      { key: 'pao', name: 'Pão Francês' },
       { key: 'tapioca', name: 'Tapioca' },
-      { key: 'granola', name: 'Granola' },
       { key: 'feijao', name: 'Feijão' },
-      { key: 'mel', name: 'Mel' },
-      { key: 'leite_condensado', name: 'Leite Condensado' },
+      { key: 'lentilha', name: 'Lentilha' },
     ],
   },
   fats: {
@@ -63,9 +66,11 @@ const FOOD_CATEGORIES = {
     color: '#3B82F6',
     items: [
       { key: 'azeite', name: 'Azeite de Oliva' },
-      { key: 'castanha', name: 'Castanhas' },
-      { key: 'abacate', name: 'Abacate' },
+      { key: 'castanhas', name: 'Castanhas' },
+      { key: 'amendoas', name: 'Amêndoas' },
+      { key: 'nozes', name: 'Nozes' },
       { key: 'pasta_amendoim', name: 'Pasta de Amendoim' },
+      { key: 'abacate', name: 'Abacate' },
     ],
   },
   fruits: {
@@ -83,6 +88,7 @@ const FOOD_CATEGORIES = {
       { key: 'pera', name: 'Pera' },
       { key: 'manga', name: 'Manga' },
       { key: 'abacaxi', name: 'Abacaxi' },
+      { key: 'kiwi', name: 'Kiwi' },
     ],
   },
   vegetables: {
@@ -92,11 +98,13 @@ const FOOD_CATEGORIES = {
     items: [
       { key: 'brocolis', name: 'Brócolis' },
       { key: 'espinafre', name: 'Espinafre' },
+      { key: 'couve', name: 'Couve' },
       { key: 'cenoura', name: 'Cenoura' },
       { key: 'abobrinha', name: 'Abobrinha' },
       { key: 'tomate', name: 'Tomate' },
       { key: 'alface', name: 'Alface' },
       { key: 'pepino', name: 'Pepino' },
+      { key: 'salada', name: 'Salada Verde' },
     ],
   },
   supplements: {
@@ -104,11 +112,10 @@ const FOOD_CATEGORIES = {
     icon: Pill,
     color: '#8B5CF6',
     items: [
-      { key: 'whey', name: 'Whey Protein' },
+      { key: 'whey_protein', name: 'Whey Protein' },
       { key: 'creatina', name: 'Creatina' },
       { key: 'multivitaminico', name: 'Multivitamínico' },
       { key: 'cafeina', name: 'Cafeína' },
-      { key: 'bcaa', name: 'BCAA' },
       { key: 'omega3', name: 'Ômega 3' },
     ],
   },
