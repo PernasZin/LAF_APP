@@ -115,23 +115,33 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleLogout = async () => {
-    Alert.alert(
-      'Sair da conta',
-      'Tem certeza que deseja sair?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Sair',
-          style: 'destructive',
-          onPress: async () => {
-            // Usa o authStore para logout completo
-            await authLogout();
-            router.replace('/auth/login');
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      // Para web, usar confirm do navegador
+      if (window.confirm('Tem certeza que deseja sair?')) {
+        (async () => {
+          await authLogout();
+          router.replace('/auth/login');
+        })();
+      }
+    } else {
+      // Para mobile, usar Alert nativo
+      Alert.alert(
+        'Sair da conta',
+        'Tem certeza que deseja sair?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Sair',
+            style: 'destructive',
+            onPress: async () => {
+              await authLogout();
+              router.replace('/auth/login');
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const getGoalLabel = (goal: string) => {
