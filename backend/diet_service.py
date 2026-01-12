@@ -1989,19 +1989,21 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
     if not foods_to_limit:
         return meals  # Nada a corrigir
     
-    # Substitutos por categoria
-    SUBSTITUTES = {
-        "protein": ["frango", "patinho", "tilapia", "atum", "ovos", "peru"],
-        "carb": ["arroz_branco", "arroz_integral", "batata_doce", "macarrao"],
-        "fat": ["azeite", "castanhas", "amendoas", "pasta_amendoim"],
-        "fruit": ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
+    # 🚫 NOVA REGRA: Substitutos APENAS dentre os alimentos do usuário!
+    # Organiza os alimentos preferidos por categoria
+    user_substitutes = {
+        "protein": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "protein"],
+        "carb": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "carb"],
+        "fat": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "fat"],
+        "fruit": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "fruit"]
     }
     
-    # Substitutos permitidos na CEIA (só proteínas leves! iogurte_natural removido)
-    CEIA_SUBSTITUTES = {
-        "protein": ["iogurte_zero", "cottage", "banana", "morango"],  # Frutas como fallback
-        "fat": ["castanhas", "amendoas"],
-        "fruit": ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
+    # Substitutos permitidos na CEIA (apenas proteínas leves e frutas do usuário)
+    CEIA_ALLOWED_PROTEINS = {"iogurte_zero", "cottage"}
+    user_ceia_substitutes = {
+        "protein": [f for f in user_substitutes["protein"] if f in CEIA_ALLOWED_PROTEINS],
+        "fat": user_substitutes["fat"],
+        "fruit": user_substitutes["fruit"]
     }
     
     num_meals = len(meals)
