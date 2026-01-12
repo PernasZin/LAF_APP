@@ -561,8 +561,12 @@ def calc_food(food_key: str, grams: float, round_down: bool = False) -> Dict:
         # Calcula equivalente em medida caseira
         if unit_g > 0:
             unit_qty = g / unit_g
-            # Formata quantidade de unidades
-            if unit_qty >= 1:
+            
+            # Para garrafas/líquidos: mostra em ml quando < 1 garrafa
+            if unit == "garrafa" and unit_qty < 1:
+                ml = g  # 1g ≈ 1ml para iogurte
+                unit_str = f"≈ {int(ml)}ml"
+            elif unit_qty >= 1:
                 if unit_qty == int(unit_qty):
                     unit_str = f"≈ {int(unit_qty)} {unit}"
                 else:
