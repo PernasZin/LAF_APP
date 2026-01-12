@@ -72,6 +72,7 @@ MIN_DAILY_CALORIES = 800  # Mínimo 800kcal por dia (segurança)
 # Estes limites se aplicam à DIETA INTEIRA, não por refeição
 MAX_COTTAGE_TOTAL = 20    # MÁXIMO 20g de cottage na dieta TODA (1 pote = 300g, muito!)
 MAX_AVEIA_TOTAL = 80      # MÁXIMO 80g de aveia na dieta TODA
+MAX_IOGURTE_OCORRENCIAS = 1  # Iogurte zero aparece no MÁXIMO 1x por dia (muito repetitivo)
 
 
 # ==================== MÍNIMOS NECESSÁRIOS ====================
