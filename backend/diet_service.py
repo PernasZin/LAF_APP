@@ -1957,28 +1957,32 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
                 validated_food = calc_food("banana", validated_food.get("grams", 100))
             validated_foods.append(validated_food)
     
-    # Garante que tem pelo menos 1 alimento (RESPEITANDO regras da refeição)
+    # Garante que tem pelo menos 1 alimento (RESPEITANDO regras da refeição E RESTRIÇÕES)
     if len(validated_foods) == 0:
         if meal_index == 0:  # Café - proteína leve
-            validated_foods = [calc_food("ovos", 100)]
+            safe_protein = get_safe_protein_light()
+            validated_foods = [calc_food(safe_protein, 100)]
         elif meal_index == 5:  # Ceia - NUNCA OVOS, sem cottage!
             validated_foods = [calc_food("morango", 150)]
-        elif meal_index in [1, 3]:  # Lanches - fruta
+        elif meal_index in [1, 3]:  # Lanches - fruta (NUNCA carne!)
             validated_foods = [calc_food("banana", 150)]
         else:  # Almoço/Jantar - proteína principal
-            validated_foods = [calc_food("frango", 150)]
+            safe_protein = get_safe_protein_main()
+            validated_foods = [calc_food(safe_protein, 150)]
     
     # Recalcula totais da refeição
     mp, mc, mf, mcal = sum_foods(validated_foods)
     
-    # Garante calorias mínimas (RESPEITANDO regras da refeição)
+    # Garante calorias mínimas (RESPEITANDO regras da refeição E RESTRIÇÕES)
     if mcal < MIN_MEAL_CALORIES:
-        if meal_index in [0, 5]:  # Café ou Ceia - adicionar aveia ou fruta
-            validated_foods.append(calc_food("aveia", 50) if meal_index == 0 else calc_food("banana", 100))
-        elif meal_index in [1, 3]:  # Lanches - adicionar fruta
+        if meal_index in [0, 5]:  # Café ou Ceia - adicionar carb ou fruta
+            safe_carb = "tapioca" if "tapioca" not in excluded_by_restrictions else "batata_doce"
+            validated_foods.append(calc_food(safe_carb, 50) if meal_index == 0 else calc_food("banana", 100))
+        elif meal_index in [1, 3]:  # Lanches - adicionar fruta (NUNCA carne!)
             validated_foods.append(calc_food("maca", 150))
-        else:  # Almoço/Jantar - adicionar proteína
-            validated_foods.append(calc_food("frango", 100))
+        else:  # Almoço/Jantar - adicionar proteína segura
+            safe_protein = get_safe_protein_main()
+            validated_foods.append(calc_food(safe_protein, 100))
         mp, mc, mf, mcal = sum_foods(validated_foods)
     
     return {
