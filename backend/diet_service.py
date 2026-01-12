@@ -1863,7 +1863,7 @@ def validate_and_fix_food(food: Dict, preferred: Set[str] = None) -> Dict:
     return calc_food(food_key, grams)
 
 
-def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = None) -> Dict:
+def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = None, restrictions: List[str] = None) -> Dict:
     """
     ✅ Valida e corrige uma refeição seguindo as REGRAS POR TIPO.
     
@@ -1872,7 +1872,17 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     - Todos alimentos válidos
     - Respeita regras de cada tipo de refeição
     - Totais calculados corretamente
+    - ✅ RESPEITA RESTRIÇÕES ALIMENTARES
     """
+    if restrictions is None:
+        restrictions = []
+    
+    # Calcula alimentos excluídos por restrições
+    excluded_by_restrictions = set()
+    for r in restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded_by_restrictions.update(RESTRICTION_EXCLUSIONS[r])
+    
     # Meal names padrão (6 refeições)
     default_meals = [
         {"name": "Café da Manhã", "time": "07:00", "type": "cafe_da_manha"},
@@ -1894,23 +1904,45 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     # Obtém lista de foods
     foods = meal.get("foods", [])
     
-    # Se refeição vazia, adiciona alimento padrão SEGUINDO AS REGRAS
+    # ✅ FALLBACKS SEGUROS que respeitam restrições
+    def get_safe_protein_main():
+        """Proteína para almoço/jantar que respeita restrições"""
+        options = ["tofu", "ovos", "frango", "tilapia"]
+        for opt in options:
+            if opt not in excluded_by_restrictions:
+                return opt
+        return "arroz_branco"  # Último fallback: carb
+    
+    def get_safe_protein_light():
+        """Proteína leve para lanches que respeita restrições"""
+        options = ["ovos", "tofu", "iogurte_zero", "cottage"]
+        for opt in options:
+            if opt not in excluded_by_restrictions:
+                return opt
+        return "banana"  # Último fallback: fruta
+    
+    # Se refeição vazia, adiciona alimento padrão SEGUINDO AS REGRAS E RESTRIÇÕES
     if not foods or len(foods) == 0:
         if meal_index == 0:  # Café da Manhã
             # PERMITIDO: ovos, aveia, frutas | PROIBIDO: carnes, azeite
-            foods = [calc_food("ovos", 100), calc_food("aveia", 40), calc_food("banana", 100)]
+            safe_protein = get_safe_protein_light()
+            safe_carb = "aveia" if "aveia" not in excluded_by_restrictions else "tapioca"
+            foods = [calc_food(safe_protein, 100), calc_food(safe_carb, 40), calc_food("banana", 100)]
         elif meal_index == 1:  # Lanche manhã
             # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
             foods = [calc_food("maca", 150), calc_food("castanhas", 20)]
         elif meal_index == 2:  # Almoço
             # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
-            foods = [calc_food("frango", 150), calc_food("arroz_branco", 150), calc_food("salada", 100), calc_food("azeite", 10)]
+            safe_protein = get_safe_protein_main()
+            foods = [calc_food(safe_protein, 150), calc_food("arroz_branco", 150), calc_food("salada", 100), calc_food("azeite", 10)]
         elif meal_index == 3:  # Lanche tarde
             # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
             foods = [calc_food("laranja", 150), calc_food("castanhas", 20)]
         elif meal_index == 4:  # Jantar
             # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
-            foods = [calc_food("tilapia", 150), calc_food("arroz_integral", 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
+            safe_protein = get_safe_protein_main()
+            safe_carb = "arroz_integral" if "arroz_integral" not in excluded_by_restrictions else "arroz_branco"
+            foods = [calc_food(safe_protein, 150), calc_food(safe_carb, 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
         else:  # Ceia
             # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, carbs complexos, OVOS, cottage
             foods = [calc_food("morango", 150), calc_food("castanhas", 20)]
