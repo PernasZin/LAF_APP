@@ -96,8 +96,8 @@ DEFAULT_FRUITS = ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
 RESTRICTION_EXCLUSIONS = {
     "Vegetariano": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", 
                    "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
-    "Sem Lactose": {"cottage", "queijo", "cream_cheese", "manteiga"},
-    "Sem Glúten": {"aveia", "macarrao", "pao", "pao_integral"},
+    "Sem Lactose": {"cottage", "queijo", "cream_cheese", "manteiga", "iogurte_zero", "iogurte_natural", "whey_protein"},
+    "Sem Glúten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma"},
     "Low Carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", 
                  "macarrao", "pao", "pao_integral", "banana", "manga", "uva"},
 }
