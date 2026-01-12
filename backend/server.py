@@ -383,6 +383,14 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
         upsert=True
     )
     
+    # ✅ SALVA meal_count nas user_settings também
+    meal_count = profile_data.meal_count if profile_data.meal_count in [4, 5, 6] else 6
+    await db.user_settings.update_one(
+        {"user_id": profile_data.id},
+        {"$set": {"meal_count": meal_count, "user_id": profile_data.id, "updated_at": datetime.utcnow()}},
+        upsert=True
+    )
+    
     # Vincula profile ao users_auth
     await db.users_auth.update_one(
         {"_id": profile_data.id},
