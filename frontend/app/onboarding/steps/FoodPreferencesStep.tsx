@@ -39,8 +39,7 @@ const FOOD_CATEGORIES = {
       { key: 'atum', name: 'Atum' },
       { key: 'salmao', name: 'Salmão' },
       { key: 'peru', name: 'Peru' },
-      { key: 'iogurte_grego', name: 'Iogurte Grego' },
-      { key: 'iogurte_natural', name: 'Iogurte Natural' },
+      { key: 'cottage', name: 'Queijo Cottage' },
     ],
   },
   carbs: {
