@@ -94,11 +94,19 @@ DEFAULT_FRUITS = ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
 # ==================== RESTRIÇÕES ALIMENTARES ====================
 
 RESTRICTION_EXCLUSIONS = {
+    # Versões com maiúsculas
     "Vegetariano": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", 
                    "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
     "Sem Lactose": {"cottage", "queijo", "cream_cheese", "manteiga", "iogurte_zero", "iogurte_natural", "whey_protein"},
     "Sem Glúten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma"},
     "Low Carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", 
+                 "macarrao", "pao", "pao_integral", "banana", "manga", "uva"},
+    # Versões lowercase (como vem do frontend)
+    "vegetariano": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", 
+                   "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
+    "sem_lactose": {"cottage", "queijo", "cream_cheese", "manteiga", "iogurte_zero", "iogurte_natural", "whey_protein"},
+    "sem_gluten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma"},
+    "low_carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", 
                  "macarrao", "pao", "pao_integral", "banana", "manga", "uva"},
 }
 
