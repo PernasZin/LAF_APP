@@ -90,6 +90,37 @@ DEFAULT_CARBS = ["arroz_branco", "arroz_integral", "batata_doce", "aveia", "maca
 DEFAULT_FATS = ["azeite", "pasta_amendoim", "castanhas", "amendoas", "queijo"]
 DEFAULT_FRUITS = ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
 
+# ==================== VARIÁVEL GLOBAL DE RESTRIÇÕES ====================
+# Usada pelas funções de fallback para respeitar restrições alimentares
+_current_diet_restrictions: List[str] = []
+
+def set_diet_restrictions(restrictions: List[str]):
+    """Define as restrições alimentares para a geração atual"""
+    global _current_diet_restrictions
+    _current_diet_restrictions = restrictions if restrictions else []
+
+def get_restriction_safe_protein() -> str:
+    """
+    Retorna uma proteína segura que respeita as restrições alimentares atuais.
+    Prioriza: tofu (vegetariano) > ovos > frango (se permitido)
+    """
+    global _current_diet_restrictions
+    
+    # Calcula exclusões
+    excluded = set()
+    for r in _current_diet_restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded.update(RESTRICTION_EXCLUSIONS[r])
+    
+    # Lista de proteínas em ordem de prioridade (vegetariano-friendly primeiro)
+    proteins = ["tofu", "ovos", "frango", "patinho", "tilapia"]
+    
+    for p in proteins:
+        if p not in excluded:
+            return p
+    
+    return "banana"  # Último fallback - fruta (não é proteína, mas não dá erro)
+
 
 # ==================== RESTRIÇÕES ALIMENTARES ====================
 
