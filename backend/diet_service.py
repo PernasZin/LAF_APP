@@ -1726,21 +1726,20 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
             # PERMITIDO: ovos, aveia, frutas | PROIBIDO: carnes, azeite
             foods = [calc_food("ovos", 100), calc_food("aveia", 40), calc_food("banana", 100)]
         elif meal_index == 1:  # Lanche manhã
-            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite
+            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
             foods = [calc_food("maca", 150), calc_food("castanhas", 20)]
         elif meal_index == 2:  # Almoço
             # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
             foods = [calc_food("frango", 150), calc_food("arroz_branco", 150), calc_food("salada", 100), calc_food("azeite", 10)]
         elif meal_index == 3:  # Lanche tarde
-            # PERMITIDO: frutas, iogurte | PROIBIDO: carnes, azeite
-            foods = [calc_food("laranja", 150), calc_food("cottage", 170)]
+            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
+            foods = [calc_food("laranja", 150), calc_food("castanhas", 20)]
         elif meal_index == 4:  # Jantar
             # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
             foods = [calc_food("tilapia", 150), calc_food("arroz_integral", 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
         else:  # Ceia
-            # PERMITIDO: iogurte + frutas | PROIBIDO: carnes, carbs complexos, OVOS!
-            # REGRA ABSOLUTA: NUNCA OVOS NA CEIA!
-            foods = [calc_food("cottage", 170), calc_food("morango", 100)]
+            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, carbs complexos, OVOS, cottage
+            foods = [calc_food("morango", 150), calc_food("castanhas", 20)]
     
     # Valida cada alimento
     validated_foods = []
@@ -1749,15 +1748,15 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         if validated_food:
             # REGRA ABSOLUTA: Se for CEIA, NUNCA permite ovos
             if meal_index == 5 and validated_food.get("key") == "ovos":
-                validated_food = calc_food("cottage", validated_food.get("grams", 100))
+                validated_food = calc_food("banana", validated_food.get("grams", 100))
             validated_foods.append(validated_food)
     
     # Garante que tem pelo menos 1 alimento (RESPEITANDO regras da refeição)
     if len(validated_foods) == 0:
         if meal_index == 0:  # Café - proteína leve
             validated_foods = [calc_food("ovos", 100)]
-        elif meal_index == 5:  # Ceia - NUNCA OVOS!
-            validated_foods = [calc_food("cottage", 100)]
+        elif meal_index == 5:  # Ceia - NUNCA OVOS, sem cottage!
+            validated_foods = [calc_food("morango", 150)]
         elif meal_index in [1, 3]:  # Lanches - fruta
             validated_foods = [calc_food("banana", 150)]
         else:  # Almoço/Jantar - proteína principal
