@@ -2177,7 +2177,13 @@ class DietAIService:
                         "foods": [calc_food(user_protein, 100)],
                         "total_calories": 100,
                         "macros": {"protein": 20, "carbs": 0, "fat": 2}
-                })
+                    })
+                else:
+                    # Sem proteína selecionada, copia última refeição
+                    if meals:
+                        meals.append(meals[-1].copy())
+                    else:
+                        break
         
         # Aplica horários personalizados se fornecidos
         if meal_times and len(meal_times) == len(meals):
