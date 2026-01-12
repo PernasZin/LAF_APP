@@ -2159,20 +2159,24 @@ class DietAIService:
         meals = apply_global_limits(meals, raw_preferred)
         
         # ✅ VALIDA FREQUÊNCIA DE ALIMENTOS (nenhum alimento > 2x/dia)
-        meals = validate_food_frequency(meals)
+        # 🚫 Passa preferred_foods para substituições apenas com alimentos do usuário!
+        meals = validate_food_frequency(meals, preferred_foods)
         
         # Ajusta para o número de refeições configurado
         if len(meals) > meal_count:
             meals = meals[:meal_count]
         elif len(meals) < meal_count:
-            # Adiciona refeições extras se necessário
+            # Adiciona refeições extras se necessário (com alimentos do usuário)
             while len(meals) < meal_count:
-                meals.append(meals[-1].copy() if meals else {
-                    "name": f"Refeição {len(meals) + 1}",
-                    "time": "12:00",
-                    "foods": [calc_food("frango", 100)],
-                    "total_calories": 100,
-                    "macros": {"protein": 20, "carbs": 0, "fat": 2}
+                # 🚫 Usa alimentos do usuário, não defaults!
+                user_protein = next((f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "protein"), None)
+                if user_protein:
+                    meals.append({
+                        "name": f"Refeição {len(meals) + 1}",
+                        "time": "12:00",
+                        "foods": [calc_food(user_protein, 100)],
+                        "total_calories": 100,
+                        "macros": {"protein": 20, "carbs": 0, "fat": 2}
                 })
         
         # Aplica horários personalizados se fornecidos
