@@ -1223,7 +1223,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         foods = []
         
         if meal_type == 'cafe':
-            # Café da Manhã - 🚫 APENAS alimentos selecionados pelo usuário!
+            # 🍳 Café da Manhã
+            # ✅ Permitido: ovos, whey, iogurte, cottage, pão, aveia, frutas
+            # ❌ Proibido: carne, arroz, macarrão
             protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
             carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
             fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
@@ -1232,32 +1234,45 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if protein and protein in FOODS:
                 p_grams = 150 if protein == "ovos" else 100
                 foods.append(calc_food(protein, p_grams))
+            else:
+                # 🧠 FALLBACK: ovos se não tiver proteína
+                foods.append(calc_food("ovos", 150))
             
             if carb and carb in FOODS:
                 c_grams = 60 if carb == "aveia" else 60
                 foods.append(calc_food(carb, c_grams))
+            else:
+                # 🧠 FALLBACK: aveia se não tiver carb
+                foods.append(calc_food("aveia", 60))
             
             if fruit and fruit in FOODS:
                 foods.append(calc_food(fruit, 120))
+            else:
+                # 🧠 FALLBACK: banana se não tiver fruta
+                foods.append(calc_food("banana", 120))
             
             if fat and fat in FOODS:
                 foods.append(calc_food(fat, 15))
-            
-            # 🚫 SEM FALLBACK! Se não tem alimentos suficientes, a refeição fica incompleta
-            # O sistema já validou que o usuário tem alimentos suficientes
                 
         elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
-            # Lanches: 🚫 APENAS alimentos selecionados pelo usuário!
+            # 🥪 Lanches
+            # ✅ Permitido: frutas, whey, iogurte, castanhas
+            # ❌ Proibido: nada pesado
             light_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
             fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
             
-            # Iogurte zero (1 pote = 170g)
             if light_protein and light_protein in FOODS:
                 foods.append(calc_food(light_protein, 170))
+            else:
+                # 🧠 FALLBACK: whey se não tiver proteína leve
+                foods.append(calc_food("whey_protein", 30))
             
             if fruit and fruit in FOODS:
                 foods.append(calc_food(fruit, 100))
+            else:
+                # 🧠 FALLBACK: banana
+                foods.append(calc_food("banana", 100))
             
             if fat and fat in FOODS:
                 foods.append(calc_food(fat, 15))
