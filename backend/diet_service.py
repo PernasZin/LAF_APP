@@ -2264,6 +2264,8 @@ class DietAIService:
         
         # Gera nota com info de auto-complete se aplicável
         notes = f"Dieta V14: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | ✅ Validada"
+        if auto_completed:
+            notes += " | 🔄 Auto-completada"
         
         return DietPlan(
             user_id=user_profile['id'],
@@ -2274,8 +2276,8 @@ class DietAIService:
             computed_macros={"protein": total_p, "carbs": total_c, "fat": total_f},
             supplements=supplements,
             notes=notes,
-            auto_completed=False,
-            auto_complete_message=None
+            auto_completed=auto_completed,
+            auto_complete_message=auto_message
         )
     
     def to_strict_json(self, diet_plan: DietPlan) -> Dict:
