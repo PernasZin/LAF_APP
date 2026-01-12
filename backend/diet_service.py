@@ -1554,7 +1554,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         c_per_100 = FOODS[food_key]["c"]
                         if c_per_100 > 0:
                             reduce_grams = reduce_needed / (c_per_100 / 100)
-                            new_g = max(40, current_g - reduce_grams)
+                            # MÍNIMO 100g para arroz/macarrão (porção realista)
+                            min_carb = 100 if food_key in {"arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"} else 40
+                            new_g = max(min_carb, current_g - reduce_grams)
                             if current_g - new_g >= 10:
                                 meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                                 adjusted = True
