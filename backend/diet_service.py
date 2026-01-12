@@ -1055,40 +1055,45 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         
         return user_foods
     
-    # Prioridades - usando subcategorias do PRD
-    # PROTEÍNAS PRINCIPAIS para almoço/jantar
-    protein_priority = get_preferred_first(
-        list(PROTEINS_PRINCIPAIS), "protein")
+    # Prioridades - usando APENAS alimentos selecionados pelo usuário
+    # 🚫 NUNCA usa listas padrão!
     
-    # PROTEÍNAS LEVES para café/lanches/ceia
-    light_protein_priority_cafe = get_preferred_first(
-        ["ovos", "iogurte_zero", "iogurte_natural", "cottage", "whey_protein"], "protein")
+    # PROTEÍNAS PRINCIPAIS para almoço/jantar (apenas as que o usuário selecionou)
+    protein_priority = get_user_foods_only("protein")
     
-    # Proteína leve para lanches (iogurte zero tem prioridade!)
-    light_protein_priority_lanche = get_preferred_first(
-        ["iogurte_zero", "iogurte_natural", "cottage", "whey_protein"], "protein")
+    # PROTEÍNAS LEVES para café/lanches/ceia (apenas as que o usuário selecionou)
+    light_protein_priority_cafe = [p for p in protein_priority if p in {"ovos", "iogurte_zero", "cottage", "whey_protein", "claras"}]
+    if not light_protein_priority_cafe:
+        light_protein_priority_cafe = protein_priority  # Usa qualquer proteína disponível
     
-    # CARBOIDRATOS PRINCIPAIS (arroz tem prioridade!)
-    carb_priority = get_preferred_first(
-        list(CARBS_PRINCIPAIS), 
-        "carb", exclude_complements=True)
+    # Proteína leve para lanches
+    light_protein_priority_lanche = [p for p in protein_priority if p in {"iogurte_zero", "cottage", "whey_protein"}]
+    if not light_protein_priority_lanche:
+        light_protein_priority_lanche = light_protein_priority_cafe
     
-    # CARBOIDRATOS DE LANCHE
-    light_carb_priority = get_preferred_first(
-        list(CARBS_LANCHE), 
-        "carb", exclude_complements=True)
+    # CARBOIDRATOS PRINCIPAIS (apenas os que o usuário selecionou)
+    carb_priority = get_user_foods_only("carb", exclude_complements=True)
+    
+    # CARBOIDRATOS DE LANCHE (apenas os que o usuário selecionou)
+    light_carb_priority = [c for c in carb_priority if c in {"aveia", "pao_integral", "pao", "tapioca"}]
+    if not light_carb_priority:
+        light_carb_priority = carb_priority
+    
+    # GORDURAS (apenas as que o usuário selecionou)
+    fat_priority = get_user_foods_only("fat")
     
     # GORDURAS SNACKS para lanches
-    fat_priority_lanche = get_preferred_first(
-        list(GORDURAS_SNACKS), "fat")
+    fat_priority_lanche = [f for f in fat_priority if f in {"castanhas", "amendoas", "nozes", "pasta_amendoim"}]
+    if not fat_priority_lanche:
+        fat_priority_lanche = fat_priority
     
     # GORDURAS para café
-    fat_priority_cafe = get_preferred_first(
-        ["pasta_amendoim", "chia"], "fat")
+    fat_priority_cafe = [f for f in fat_priority if f in {"pasta_amendoim", "chia"}]
+    if not fat_priority_cafe:
+        fat_priority_cafe = fat_priority
     
-    # FRUTAS (frequentes primeiro)
-    fruit_priority = get_preferred_first(
-        list(FRUTAS_FREQUENTES) + list(FRUTAS_OPCIONAIS), "fruit")
+    # FRUTAS (apenas as que o usuário selecionou)
+    fruit_priority = get_user_foods_only("fruit")
     
     # ==================== CALCULAR ALMOÇO/JANTAR ====================
     # ⭐ REGRA OBRIGATÓRIA: Almoço e Jantar EXATAMENTE IGUAIS
