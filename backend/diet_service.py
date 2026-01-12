@@ -1872,7 +1872,7 @@ def validate_and_fix_food(food: Dict, preferred: Set[str] = None) -> Dict:
     """
     # Se food é None ou vazio, cria default
     if not food:
-        return calc_food("frango", 100)
+        return calc_food(get_restriction_safe_protein(), 100)
     
     # Extrai valores existentes
     food_key = food.get("key", "frango")
@@ -2561,7 +2561,7 @@ class DietAIService:
             # Garante que refeição não está vazia
             foods = m.get("foods", [])
             if not foods:
-                foods = [calc_food("frango", 100)]
+                foods = [calc_food(get_restriction_safe_protein(), 100)]
                 mp, mc, mf, mcal = sum_foods(foods)
             
             final_meals.append(Meal(
@@ -2581,7 +2581,7 @@ class DietAIService:
             # Adiciona comida até atingir mínimo
             extra_foods = []
             while total_cal < MIN_DAILY_CALORIES:
-                extra = calc_food("frango", 100)
+                extra = calc_food(get_restriction_safe_protein(), 100)
                 extra_foods.append(extra)
                 total_cal += extra["calories"]
             
@@ -2748,7 +2748,7 @@ def adjust_diet_quantities(diet_plan: Dict, adjustment_type: str, adjustment_per
         
         # ✅ Garante que refeição não está vazia
         if not validated_foods:
-            validated_foods = [calc_food("frango", 100)]
+            validated_foods = [calc_food(get_restriction_safe_protein(), 100)]
         
         meal["foods"] = validated_foods
         
@@ -2772,7 +2772,7 @@ def adjust_diet_quantities(diet_plan: Dict, adjustment_type: str, adjustment_per
     if total_cal < MIN_DAILY_CALORIES:
         # Adiciona proteína ao almoço
         if len(meals) >= 3:
-            extra = calc_food("frango", 150)
+            extra = calc_food(get_restriction_safe_protein(), 150)
             meals[2]["foods"].append(extra)
             total_cal += extra["calories"]
             total_p += extra["protein"]
