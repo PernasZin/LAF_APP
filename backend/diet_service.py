@@ -320,7 +320,7 @@ FOODS = {
     "peru": {"name": "Peru", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "fatias finas", "unit_g": 50},
     "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
     "iogurte_zero": {"name": "Iogurte Zero", "p": 10.0, "c": 4.0, "f": 0.5, "category": "protein", "subcategory": "light", "unit": "garrafa", "unit_g": 1150, "max_g": 500},
-    "iogurte_natural": {"name": "Iogurte Natural", "p": 5.0, "c": 6.0, "f": 3.0, "category": "protein", "subcategory": "light", "unit": "pote", "unit_g": 170},
+    # REMOVIDO: iogurte_natural - usar apenas iogurte_zero
     "whey_protein": {"name": "Whey Protein", "p": 80.0, "c": 8.0, "f": 3.0, "category": "protein", "subcategory": "supplement", "unit": "scoop", "unit_g": 30},
     "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
     "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
