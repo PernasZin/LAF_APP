@@ -1043,11 +1043,6 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
     }
     
     return ABSOLUTE_FALLBACKS.get(category)
-    for p in priority:
-        if p in available:
-            return p
-    
-    return available[0]
 
 
 # ==================== GERAÇÃO DE DIETA ====================
