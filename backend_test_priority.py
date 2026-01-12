@@ -10,7 +10,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend .env
-BASE_URL = "https://fit-track-hub.preview.emergentagent.com/api"
+BASE_URL = "https://workoutgenerator.preview.emergentagent.com/api"
 
 class LAFBackendTester:
     def __init__(self):
