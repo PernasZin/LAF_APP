@@ -495,12 +495,20 @@ def calc_food(food_key: str, grams: float, round_down: bool = False) -> Dict:
         # Calcula quantas unidades seriam necessárias
         units_needed = grams / unit_weight
         
+        # MÍNIMO DE UNIDADES para certos alimentos
+        MIN_UNITS = {
+            "pao_integral": 2,  # Mínimo 2 fatias de pão integral
+            "pao_forma": 2,     # Mínimo 2 fatias de pão de forma
+            "pao": 1,           # Mínimo 1 pão francês
+        }
+        min_units = MIN_UNITS.get(food_key, 1)
+        
         # IMPORTANTE: Arredondar para baixo quando round_down=True
         # Isso ajuda a manter os macros abaixo do target para ajuste fino posterior
         if round_down:
-            units_int = max(1, int(units_needed))  # Arredonda para BAIXO (floor)
+            units_int = max(min_units, int(units_needed))  # Arredonda para BAIXO (floor)
         else:
-            units_int = max(1, round(units_needed))  # Arredonda normal
+            units_int = max(min_units, round(units_needed))  # Arredonda normal
         
         # Limita a um máximo razoável
         max_units = 10 if food_key in ["ovos", "claras"] else 4
