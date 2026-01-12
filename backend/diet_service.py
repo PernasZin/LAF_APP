@@ -1047,9 +1047,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     light_protein_priority_cafe = get_preferred_first(
         ["ovos", "cottage", "cottage", "claras"], "protein")
     
-    light_protein_priority_ceia = get_preferred_first(
-        ["cottage", "cottage"], "protein")  # NUNCA OVOS NA CEIA!
-    
     # Carboidratos principais (para almoço/jantar) - APENAS ARROZ ou MACARRÃO!
     # Batata doce é COMPLEMENTO, não principal
     carb_priority = get_preferred_first(
@@ -1063,10 +1060,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     light_carb_priority = get_preferred_first(
         ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "granola"], 
         "carb", exclude_complements=True)
-    
-    # Prioridade para lanches (proteínas leves com carbs)
-    light_protein_priority_lanche = get_preferred_first(
-        ["cottage", "cottage"], "protein")
     
     fat_priority_lanche = get_preferred_first(
         ["castanhas", "amendoas", "nozes", "pasta_amendoim"], "fat")
