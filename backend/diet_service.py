@@ -2461,6 +2461,10 @@ class DietAIService:
         # Converte preferências para chaves normalizadas
         raw_preferred = get_user_preferred_foods(food_preferences)
         
+        # ✅ CONFIGURA RESTRIÇÕES GLOBAIS PARA FALLBACKS
+        # Isso garante que todos os fallbacks respeitam as restrições
+        set_diet_restrictions(dietary_restrictions)
+        
         # ✅ AUTO-COMPLETAR INTELIGENTE
         # Prioriza alimentos do usuário, completa automaticamente se necessário
         preferred_foods, auto_completed, auto_message = validate_user_foods(
