@@ -961,16 +961,17 @@ def get_allowed_foods(meal_type: str, preferred: Set[str], restrictions: List[st
             return list(filter_by_restrictions(set(available), restrictions))
         return []
     
-    # Para outras categorias, usa a whitelist da refeição
+    # 🚫 REGRA ABSOLUTA: Usa APENAS alimentos selecionados pelo usuário!
+    # Filtra os alimentos da whitelist para incluir apenas os que o usuário selecionou
     allowed_in_meal = rules.get(f"{category}s", set())
     
     if not allowed_in_meal:
         return []
     
-    # REGRA: Se o usuário tem preferências, prioriza elas, mas usa outros se necessário
+    # Intersecção: alimentos permitidos na refeição E selecionados pelo usuário
     available = []
     for food_key in allowed_in_meal:
-        if food_key in FOODS:
+        if food_key in FOODS and food_key in preferred:  # Adiciona filtro de preferência!
             available.append(food_key)
     
     return list(filter_by_restrictions(set(available), restrictions))
@@ -979,17 +980,26 @@ def get_allowed_foods(meal_type: str, preferred: Set[str], restrictions: List[st
 def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str], 
                      category: str, priority: List[str], exclude: Set[str] = None) -> Optional[str]:
     """
-    Seleciona o melhor alimento respeitando as regras da refeição.
+    🚫 REGRA ABSOLUTA: Seleciona APENAS dentre os alimentos do usuário!
+    
+    Nunca retorna alimentos que o usuário não selecionou.
     """
+    # Usa apenas alimentos que o usuário selecionou
     available = get_allowed_foods(meal_type, preferred, restrictions, category)
     
     if exclude:
         available = [f for f in available if f not in exclude]
     
     if not available:
+        # Se não há alimentos da categoria disponíveis nas preferências,
+        # tenta usar qualquer alimento da categoria que o usuário selecionou
+        fallback = [f for f in preferred if f in FOODS and FOODS[f]["category"] == category]
+        fallback = [f for f in fallback if f not in (exclude or set())]
+        if fallback:
+            return fallback[0]
         return None
     
-    # Segue prioridade se possível
+    # Segue prioridade se possível (prioridade também vem das preferências do usuário)
     for p in priority:
         if p in available:
             return p
