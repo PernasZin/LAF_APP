@@ -1159,9 +1159,42 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     # - Variedade de proteínas é AO LONGO DOS DIAS, não dentro do mesmo dia!
     # Proporção: Almoço + Jantar = ~55% dos macros totais
     
-    main_meal_p = target_p * 0.27  # Proteína por refeição principal
-    main_meal_c = target_c * 0.27  # Carbs por refeição principal
-    main_meal_f = target_f * 0.30  # Gordura por refeição principal
+    # ==================== DISTRIBUIÇÃO PROPORCIONAL POR NÚMERO DE REFEIÇÕES ====================
+    # 🎯 O TOTAL DE MACROS DEVE SER MANTIDO, independente do número de refeições!
+    # Apenas redistribui proporcionalmente entre as refeições disponíveis
+    
+    if meal_count == 4:
+        # 4 refeições: Café (20%), Almoço (35%), Lanche (10%), Jantar (35%)
+        MEAL_DISTRIBUTION = {
+            'cafe': {'p': 0.20, 'c': 0.20, 'f': 0.15},
+            'almoco': {'p': 0.35, 'c': 0.35, 'f': 0.40},
+            'lanche_tarde': {'p': 0.10, 'c': 0.10, 'f': 0.10},
+            'jantar': {'p': 0.35, 'c': 0.35, 'f': 0.35}
+        }
+    elif meal_count == 5:
+        # 5 refeições: Café (18%), L.Manhã (8%), Almoço (32%), L.Tarde (8%), Jantar (34%)
+        MEAL_DISTRIBUTION = {
+            'cafe': {'p': 0.18, 'c': 0.18, 'f': 0.15},
+            'lanche_manha': {'p': 0.08, 'c': 0.08, 'f': 0.10},
+            'almoco': {'p': 0.32, 'c': 0.32, 'f': 0.35},
+            'lanche_tarde': {'p': 0.08, 'c': 0.08, 'f': 0.10},
+            'jantar': {'p': 0.34, 'c': 0.34, 'f': 0.30}
+        }
+    else:  # 6 refeições
+        # 6 refeições: Café (15%), L.Manhã (8%), Almoço (27%), L.Tarde (8%), Jantar (27%), Ceia (15%)
+        MEAL_DISTRIBUTION = {
+            'cafe': {'p': 0.15, 'c': 0.15, 'f': 0.12},
+            'lanche_manha': {'p': 0.08, 'c': 0.08, 'f': 0.10},
+            'almoco': {'p': 0.27, 'c': 0.27, 'f': 0.30},
+            'lanche_tarde': {'p': 0.08, 'c': 0.08, 'f': 0.10},
+            'jantar': {'p': 0.27, 'c': 0.27, 'f': 0.28},
+            'ceia': {'p': 0.15, 'c': 0.15, 'f': 0.10}
+        }
+    
+    # Calcular macros para refeições principais (almoço/jantar)
+    main_meal_p = target_p * MEAL_DISTRIBUTION.get('almoco', {}).get('p', 0.27)
+    main_meal_c = target_c * MEAL_DISTRIBUTION.get('almoco', {}).get('c', 0.27)
+    main_meal_f = target_f * MEAL_DISTRIBUTION.get('almoco', {}).get('f', 0.30)
     
     # Selecionar UMA proteína para AMBOS almoço e jantar (iguais!)
     main_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
@@ -1170,17 +1203,17 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     # Calcular quantidades para UMA refeição principal (igual para almoço e jantar)
     if main_protein and main_protein in FOODS:
-        protein_grams = round_to_10(clamp(main_meal_p / (FOODS[main_protein]["p"] / 100), 150, 250))
+        protein_grams = round_to_10(clamp(main_meal_p / (FOODS[main_protein]["p"] / 100), 150, 280))
     else:
         main_protein = "frango"
         protein_grams = 180
     
     if main_carb and main_carb in FOODS:
         # ARROZ: mínimo 150g por refeição para ser uma porção decente
-        carb_grams = round_to_10(clamp(main_meal_c * 0.5 / (FOODS[main_carb]["c"] / 100), 150, 300))
+        carb_grams = round_to_10(clamp(main_meal_c * 0.6 / (FOODS[main_carb]["c"] / 100), 150, 350))
     else:
         main_carb = "arroz_branco"
-        carb_grams = 180
+        carb_grams = 200
     
     # Feijão: só se nas preferências
     feijao_nas_preferencias = "feijao" in preferred
