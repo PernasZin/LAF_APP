@@ -1417,8 +1417,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
     # Alimentos que podem ser ajustados em incrementos pequenos (não-contáveis)
     ADJUSTABLE_PROTEINS = {"frango", "patinho", "tilapia", "atum", "salmao", "camarao", 
                            "carne_moida", "suino", "peru", "tofu"}
+    # NOTA: Aveia e tapioca REMOVIDOS - eles só podem aparecer no café/lanche, não no almoço/jantar
     ADJUSTABLE_CARBS = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_integral",
-                        "feijao", "lentilha", "farofa", "aveia", "tapioca"}
+                        "feijao", "lentilha", "farofa", "batata_doce"}
     ADJUSTABLE_FATS = {"azeite", "oleo_coco", "pasta_amendoim", "castanhas", "amendoas", "nozes", "chia"}
     
     # Determina índices das refeições baseado no número
