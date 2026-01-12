@@ -1134,26 +1134,33 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     # 🧠 FALLBACKS INTELIGENTES por tipo de refeição
     FALLBACKS = {
-        "protein_principal": ["frango", "patinho", "tilapia", "atum"],
-        "protein_leve": ["ovos", "whey_protein", "iogurte_zero", "cottage"],
-        "carb_principal": ["arroz_branco", "batata_doce", "macarrao"],
-        "carb_leve": ["aveia", "pao_integral", "tapioca"],
-        "fat": ["azeite", "castanhas", "pasta_amendoim"],
+        "protein_principal": ["frango", "patinho", "tilapia", "atum", "tofu"],
+        "protein_leve": ["ovos", "whey_protein", "iogurte_zero", "cottage", "tofu"],
+        "carb_principal": ["arroz_branco", "batata_doce", "macarrao", "tapioca"],
+        "carb_leve": ["aveia", "pao_integral", "tapioca", "batata_doce"],
+        "fat": ["azeite", "castanhas", "pasta_amendoim", "abacate"],
         "fruit": ["banana", "maca", "morango", "laranja"]
     }
     
+    # 🔒 Calcula alimentos excluídos por restrições UMA VEZ
+    excluded_by_restrictions = set()
+    for r in restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded_by_restrictions.update(RESTRICTION_EXCLUSIONS[r])
+    
     def get_user_foods_with_fallback(category: str, meal_type: str = "geral") -> List[str]:
         """
-        🧠 AUTO-COMPLETAR INTELIGENTE
+        🧠 AUTO-COMPLETAR INTELIGENTE COM RESPEITO ÀS RESTRIÇÕES
         
         1. Prioriza alimentos escolhidos pelo usuário
         2. Se não tiver da categoria, usa fallback adequado
         3. NUNCA deixa refeição vazia
+        4. ✅ SEMPRE filtra restrições alimentares!
         """
-        # Primeiro: tenta pegar alimentos do usuário
+        # Primeiro: tenta pegar alimentos do usuário (já filtrados por restrições)
         user_foods = []
         for p in preferred:
-            if p in FOODS:
+            if p in FOODS and p not in excluded_by_restrictions:
                 if FOODS[p]["category"] == category:
                     user_foods.append(p)
         
@@ -1161,22 +1168,25 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             return user_foods
         
         # Se não tem, usa fallback baseado no tipo de refeição
+        # ✅ FILTRA RESTRIÇÕES nos fallbacks também!
+        fallback_list = []
         if category == "protein":
             if meal_type in ["cafe", "lanche", "ceia"]:
-                return FALLBACKS["protein_leve"]
+                fallback_list = FALLBACKS["protein_leve"]
             else:
-                return FALLBACKS["protein_principal"]
+                fallback_list = FALLBACKS["protein_principal"]
         elif category == "carb":
             if meal_type in ["cafe", "lanche"]:
-                return FALLBACKS["carb_leve"]
+                fallback_list = FALLBACKS["carb_leve"]
             else:
-                return FALLBACKS["carb_principal"]
+                fallback_list = FALLBACKS["carb_principal"]
         elif category == "fat":
-            return FALLBACKS["fat"]
+            fallback_list = FALLBACKS["fat"]
         elif category == "fruit":
-            return FALLBACKS["fruit"]
+            fallback_list = FALLBACKS["fruit"]
         
-        return []
+        # ✅ FILTRA RESTRIÇÕES dos fallbacks
+        return [f for f in fallback_list if f not in excluded_by_restrictions]
     
     # 🧠 Prioridades - usando FALLBACK INTELIGENTE
     # Prioriza alimentos do usuário, usa fallback se não tiver
