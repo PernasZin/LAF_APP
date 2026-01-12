@@ -1038,42 +1038,22 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
     COMPLEMENT_FOODS = {"feijao", "lentilha"}
     
-    def get_preferred_first(default_list: List[str], category: str = None, exclude_complements: bool = False) -> List[str]:
-        """Retorna lista com alimentos preferidos primeiro"""
-        if not preferred:
-            return default_list
+    def get_user_foods_only(category: str = None, exclude_complements: bool = False) -> List[str]:
+        """
+        🚫 REGRA ABSOLUTA: Retorna APENAS alimentos selecionados pelo usuário!
         
-        original_in_category = []
-        for p in original_preferred:
+        NUNCA adiciona alimentos padrão ou defaults.
+        Se o usuário não selecionou nada da categoria, retorna lista vazia.
+        """
+        user_foods = []
+        for p in preferred:
             if p in FOODS:
                 if category is None or FOODS[p]["category"] == category:
                     if exclude_complements and p in COMPLEMENT_FOODS:
                         continue
-                    original_in_category.append(p)
+                    user_foods.append(p)
         
-        auto_completed_in_category = []
-        for p in preferred:
-            if p not in original_preferred and p in FOODS:
-                if category is None or FOODS[p]["category"] == category:
-                    if exclude_complements and p in COMPLEMENT_FOODS:
-                        continue
-                    auto_completed_in_category.append(p)
-        
-        result = original_in_category.copy()
-        
-        for ac in auto_completed_in_category:
-            if ac not in result:
-                if ac in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
-                    continue
-                result.append(ac)
-        
-        for d in default_list:
-            if d not in result and d in FOODS:
-                if d in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
-                    continue
-                result.append(d)
-        
-        return result if result else default_list
+        return user_foods
     
     # Prioridades - usando subcategorias do PRD
     # PROTEÍNAS PRINCIPAIS para almoço/jantar
