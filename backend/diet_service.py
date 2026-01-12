@@ -626,93 +626,76 @@ def filter_by_restrictions(foods: Set[str], restrictions: List[str]) -> Set[str]
     return foods - excluded
 
 
-# ==================== AUTO-COMPLETE INTELIGENTE ====================
+# ==================== VALIDAÇÃO DE ALIMENTOS (SEM AUTO-COMPLETE) ====================
 
-def smart_auto_complete(preferred: Set[str], restrictions: List[str], goal: str = "manutencao") -> Tuple[Set[str], bool, str]:
+def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[Set[str], bool, str]:
     """
-    Verifica mínimos e auto-completa se necessário.
+    🚫 NOVA REGRA: NUNCA adicionar alimentos automaticamente!
     
-    NUNCA TRAVA - sempre retorna algo funcional.
+    Valida se o usuário selecionou alimentos suficientes para montar uma dieta.
+    Se não tiver, retorna erro com mensagem clara explicando o que falta.
+    
+    ❗ PROIBIÇÃO ABSOLUTA:
+    - NUNCA utilizar alimentos que o usuário não selecionou
+    - NUNCA sugerir ou substituir automaticamente
+    - NUNCA "completar lista" com alimentos padrão
     
     Returns:
-        - Set de alimentos (preferidos + auto-completados)
-        - bool: True se auto-completou
-        - str: Mensagem amigável (ou None)
+        - Set de alimentos (APENAS os selecionados pelo usuário)
+        - bool: True se está OK, False se falta algo
+        - str: Mensagem de erro (ou None se OK)
     """
-    # Conta por categoria (filtrando restrições)
+    # Filtra restrições dos alimentos selecionados
     available = filter_by_restrictions(preferred, restrictions)
     
+    # Conta por categoria
     proteins = [f for f in available if f in FOODS and FOODS[f]["category"] == "protein"]
     carbs = [f for f in available if f in FOODS and FOODS[f]["category"] == "carb"]
     fats = [f for f in available if f in FOODS and FOODS[f]["category"] == "fat"]
     fruits = [f for f in available if f in FOODS and FOODS[f]["category"] == "fruit"]
     
-    auto_added = []
-    final_foods = set(available)
+    # Verifica mínimos necessários
+    missing_categories = []
     
-    # Auto-complete PROTEÍNAS (mínimo 3)
-    if len(proteins) < MIN_PROTEINS:
-        for default_p in DEFAULT_PROTEINS:
-            if default_p not in final_foods and default_p not in filter_by_restrictions({default_p}, restrictions):
-                continue
-            if default_p in FOODS and default_p not in final_foods:
-                final_foods.add(default_p)
-                auto_added.append(FOODS[default_p]["name"])
-                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "protein"]) >= MIN_PROTEINS:
-                    break
+    if len(proteins) < 1:
+        missing_categories.append("PROTEÍNA (ex: frango, patinho, ovos, tilápia)")
     
-    # Auto-complete CARBOIDRATOS (mínimo 3)
-    # REGRA: Se já tem um tipo de arroz, não adiciona outro
-    TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
-    tem_arroz = any(c in TIPOS_ARROZ for c in carbs)
+    if len(carbs) < 1:
+        missing_categories.append("CARBOIDRATO (ex: arroz, batata doce, aveia, pão)")
     
-    if len(carbs) < MIN_CARBS:
-        for default_c in DEFAULT_CARBS:
-            # Se já tem um tipo de arroz, pula outros tipos
-            if tem_arroz and default_c in TIPOS_ARROZ:
-                continue
-            if default_c not in filter_by_restrictions({default_c}, restrictions):
-                continue
-            if default_c in FOODS and default_c not in final_foods:
-                final_foods.add(default_c)
-                auto_added.append(FOODS[default_c]["name"])
-                # Atualiza flag se adicionou arroz
-                if default_c in TIPOS_ARROZ:
-                    tem_arroz = True
-                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "carb"]) >= MIN_CARBS:
-                    break
+    if len(fats) < 1:
+        missing_categories.append("GORDURA (ex: azeite, castanhas, pasta de amendoim)")
     
-    # Auto-complete GORDURAS (mínimo 2)
-    if len(fats) < MIN_FATS:
-        for default_f in DEFAULT_FATS:
-            if default_f not in filter_by_restrictions({default_f}, restrictions):
-                continue
-            if default_f in FOODS and default_f not in final_foods:
-                final_foods.add(default_f)
-                auto_added.append(FOODS[default_f]["name"])
-                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "fat"]) >= MIN_FATS:
-                    break
+    if len(fruits) < 1:
+        missing_categories.append("FRUTA (ex: banana, maçã, morango)")
     
-    # Auto-complete FRUTAS (mínimo 2)
-    if len(fruits) < MIN_FRUITS:
-        for default_fr in DEFAULT_FRUITS:
-            if default_fr not in filter_by_restrictions({default_fr}, restrictions):
-                continue
-            if default_fr in FOODS and default_fr not in final_foods:
-                final_foods.add(default_fr)
-                auto_added.append(FOODS[default_fr]["name"])
-                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "fruit"]) >= MIN_FRUITS:
-                    break
+    # Se falta algo, retorna erro
+    if missing_categories:
+        error_msg = "Não foi possível montar uma dieta completa. Faltam alimentos nas seguintes categorias:\n"
+        for cat in missing_categories:
+            error_msg += f"• {cat}\n"
+        error_msg += "\nPor favor, adicione pelo menos um alimento de cada categoria nas suas preferências."
+        return available, False, error_msg
     
-    # Gera mensagem amigável se auto-completou
-    if auto_added:
-        message = "Você selecionou poucas opções. Para garantir uma dieta funcional, adicionei automaticamente: " + ", ".join(auto_added[:5])
-        if len(auto_added) > 5:
-            message += f" e mais {len(auto_added)-5} alimentos."
-        message += " Você pode alterar depois nas configurações."
-        return final_foods, True, message
+    # Tudo OK - retorna apenas os alimentos selecionados pelo usuário
+    return available, True, None
+
+
+# FUNÇÃO LEGADA - MANTIDA PARA COMPATIBILIDADE MAS DESATIVADA
+def smart_auto_complete(preferred: Set[str], restrictions: List[str], goal: str = "manutencao") -> Tuple[Set[str], bool, str]:
+    """
+    ⚠️ FUNÇÃO DESATIVADA - Agora apenas valida sem auto-completar!
     
-    return final_foods, False, None
+    Redireciona para validate_user_foods() que NÃO adiciona alimentos automaticamente.
+    """
+    available, is_valid, error_msg = validate_user_foods(preferred, restrictions)
+    
+    if not is_valid:
+        # Retorna os alimentos disponíveis + flag de erro
+        return available, False, error_msg
+    
+    # Retorna apenas os alimentos do usuário, sem auto-complete
+    return available, False, None
 
 
 def get_user_preferred_foods(food_preferences: List[str]) -> Set[str]:
