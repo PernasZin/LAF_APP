@@ -105,6 +105,46 @@ RESTRICTION_EXCLUSIONS = {
 # ==================== REGRAS OBRIGATÓRIAS POR REFEIÇÃO ====================
 # Estas regras NUNCA devem ser violadas
 
+# ==================== SUBCATEGORIAS DE ALIMENTOS (PRD) ====================
+
+# 🍗 PROTEÍNAS
+# Proteínas Principais (base da refeição)
+PROTEINS_PRINCIPAIS = {"frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "peru"}
+
+# Proteínas Secundárias / Leves (lanches, café, ceia)
+PROTEINS_LEVES = {"ovos", "cottage", "whey_protein", "iogurte_zero", "iogurte_natural"}
+
+# 🍚 CARBOIDRATOS
+# Carboidratos Principais (base energética da refeição)
+CARBS_PRINCIPAIS = {"arroz_branco", "arroz_integral", "batata_doce", "macarrao"}
+
+# Carboidratos Complementares (acompanham o carb principal, não são base)
+CARBS_COMPLEMENTARES = {"feijao", "lentilha"}
+
+# Carboidratos de Lanche / Rápidos
+CARBS_LANCHE = {"pao_integral", "pao", "tapioca", "aveia"}
+
+# 🥑 GORDURAS
+# Gorduras Saudáveis Principais
+GORDURAS_PRINCIPAIS = {"azeite", "abacate"}
+
+# Gorduras de Apoio / Snacks
+GORDURAS_SNACKS = {"castanhas", "amendoas", "nozes", "pasta_amendoim"}
+
+# 🍎 FRUTAS
+# Frutas de Uso Frequente
+FRUTAS_FREQUENTES = {"banana", "maca", "laranja", "mamao"}
+
+# Frutas Opcionais
+FRUTAS_OPCIONAIS = {"morango", "melancia", "uva", "pera", "manga", "abacaxi", "kiwi"}
+
+# 🥦 VEGETAIS E LEGUMES
+# Legumes Principais (acompanhamento do prato)
+LEGUMES_PRINCIPAIS = {"brocolis", "espinafre", "couve", "cenoura", "abobrinha"}
+
+# Verduras Base de Salada
+VERDURAS_SALADA = {"alface", "pepino", "tomate", "salada"}
+
 # Carboidrato principal para almoço/jantar - SEMPRE arroz ou macarrão
 CARBS_ALMOCO_JANTAR = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"}
 
@@ -112,7 +152,7 @@ CARBS_ALMOCO_JANTAR = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_i
 PROTEINS_ALMOCO_JANTAR = {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "camarao", "peru", "suino"}
 
 # Alimentos EXCLUSIVOS para café da manhã e lanche da manhã
-FOODS_CAFE_LANCHE_MANHA = {"ovos", "claras", "pao", "pao_integral", "pao_forma", "cottage", "cottage", "tapioca"}
+FOODS_CAFE_LANCHE_MANHA = {"ovos", "claras", "pao", "pao_integral", "pao_forma", "cottage", "tapioca"}
 
 # Alimentos EXCLUSIVOS para lanche da tarde (doces)
 FOODS_LANCHE_TARDE = {"mel", "leite_condensado", "granola"}
