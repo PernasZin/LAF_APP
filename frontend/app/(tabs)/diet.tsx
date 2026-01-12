@@ -678,10 +678,156 @@ const styles = StyleSheet.create({
   emptySubstitutes: {
     paddingVertical: spacing.xl,
     alignItems: 'center',
+    gap: spacing.md,
   },
   emptySubstitutesText: {
     fontSize: 14,
     textAlign: 'center',
+  },
+  
+  // Modal Premium Styles
+  modalHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  modalIconBg: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  modalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currentFoodCard: {
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    marginBottom: spacing.lg,
+  },
+  currentFoodLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  currentFoodName: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  currentFoodInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.sm,
+  },
+  currentFoodGrams: {
+    fontSize: 14,
+  },
+  currentFoodMacrosRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  macroChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.md,
+  },
+  macroChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  substitutesLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    gap: spacing.md,
+  },
+  loadingText: {
+    fontSize: 14,
+  },
+  substituteCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    marginBottom: spacing.sm,
+  },
+  substituteCardContent: {
+    flex: 1,
+  },
+  substituteCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  substituteCardName: {
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
+  },
+  substituteCalorieBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.md,
+    marginLeft: spacing.sm,
+  },
+  substituteCalorieText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFF',
+  },
+  substituteCardGrams: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  substituteCardMacros: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  substituteCardMacro: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  macroSeparator: {
+    marginHorizontal: 4,
+    color: '#9CA3AF',
+  },
+  substituteSelectBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: spacing.md,
+  },
+  modalCancelBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    marginTop: spacing.md,
+  },
+  modalCancelText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
 
   // Empty State Styles
