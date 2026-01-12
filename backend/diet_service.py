@@ -1247,61 +1247,57 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         if excess_f > MAX_EXCESS and not adjusted:
             reduce_needed = excess_f - MAX_EXCESS + 3
             
-            # Tenta reduzir/remover azeite em TODAS as refeições
-            for m_idx in all_indices:
+            # NOVA REGRA: Quando ajustar azeite no almoço/jantar, ajustar em AMBOS igualmente
+            # Primeiro tenta reduzir/remover azeite nos lanches e café
+            non_main_indices = [i for i in all_indices if i not in main_meal_indices]
+            
+            for m_idx in non_main_indices:
                 if m_idx >= num_meals or adjusted:
                     break
                 for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    if food.get("key") == "azeite":
+                    food_key = food.get("key")
+                    if food_key in ADJUSTABLE_FATS:
                         current_g = food["grams"]
-                        f_per_100 = FOODS["azeite"]["f"]
+                        f_per_100 = FOODS[food_key]["f"]
                         reduce_grams = reduce_needed / (f_per_100 / 100)
                         new_g = max(0, current_g - reduce_grams)
                         
                         if new_g < 5:
-                            # Remove o azeite completamente
                             meals[m_idx]["foods"].pop(f_idx)
                             adjusted = True
                             break
                         elif current_g - new_g >= 2:
-                            meals[m_idx]["foods"][f_idx] = calc_food("azeite", new_g)
+                            meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                             adjusted = True
                             break
             
-            # Tenta reduzir castanhas/oleaginosas nos lanches
+            # Se ainda precisar ajustar, ajusta azeite em AMBOS almoço e jantar IGUALMENTE
             if not adjusted:
-                for m_idx in lanche_indices:
-                    if m_idx >= num_meals or adjusted:
-                        break
+                # Primeiro verifica se ambos têm azeite
+                azeite_indices = {}  # {meal_idx: (food_idx, grams)}
+                for m_idx in main_meal_indices:
+                    if m_idx >= num_meals:
+                        continue
                     for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                        food_key = food.get("key")
-                        if food_key in ADJUSTABLE_FATS and food_key != "azeite":
-                            current_g = food["grams"]
-                            f_per_100 = FOODS[food_key]["f"]
-                            reduce_grams = reduce_needed / (f_per_100 / 100)
-                            new_g = max(0, current_g - reduce_grams)
-                            
-                            if new_g < 10:
-                                meals[m_idx]["foods"].pop(f_idx)
-                                adjusted = True
-                                break
-                            elif current_g - new_g >= 5:
-                                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
-                                adjusted = True
-                                break
-            
-            # Última opção: reduz proteínas gordurosas (ovos têm gordura)
-            if not adjusted:
-                for m_idx in all_indices:
-                    if m_idx >= num_meals or adjusted:
-                        break
-                    for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                        food_key = food.get("key")
-                        if food_key == "ovos" and food.get("fat", 0) > 5:
-                            # Ovos são contáveis, então não podemos ajustar em gramas pequenas
-                            # Mas podemos substituir por claras que têm menos gordura
-                            # Por enquanto, pula
-                            continue
+                        if food.get("key") == "azeite":
+                            azeite_indices[m_idx] = (f_idx, food["grams"])
+                            break
+                
+                if len(azeite_indices) >= 2:
+                    # Reduz em AMBOS igualmente
+                    reduce_each = (reduce_needed / 2) / (FOODS["azeite"]["f"] / 100)
+                    for m_idx, (f_idx, current_g) in azeite_indices.items():
+                        new_g = max(0, current_g - reduce_each)
+                        if new_g < 5:
+                            meals[m_idx]["foods"].pop(f_idx)
+                        else:
+                            meals[m_idx]["foods"][f_idx] = calc_food("azeite", new_g)
+                    adjusted = True
+                elif len(azeite_indices) == 1:
+                    # Só tem azeite em um, remove
+                    m_idx, (f_idx, _) = list(azeite_indices.items())[0]
+                    meals[m_idx]["foods"].pop(f_idx)
+                    adjusted = True
         
         # ========== PRIORIDADE 2: REDUZIR PROTEÍNA EM EXCESSO ==========
         # NOTA: Usa MAX_PROTEIN_EXCESS que é mais permissivo para não reduzir demais o frango
