@@ -2106,7 +2106,7 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
 
 
 def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, target_f: int,
-                          preferred: Set[str] = None, meal_count: int = 6) -> List[Dict]:
+                          preferred: Set[str] = None, meal_count: int = 6, restrictions: List[str] = None) -> List[Dict]:
     """
     ✅ CHECKLIST FINAL OBRIGATÓRIO
     
@@ -2118,13 +2118,23 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     ☑ Dieta consistente e utilizável
     ☑ Estrutura JSON válida
     ☑ Número correto de refeições (4, 5 ou 6)
+    ☑ RESPEITA RESTRIÇÕES ALIMENTARES
     
     Se qualquer item falhar → CORRIGE AUTOMATICAMENTE
     """
+    if restrictions is None:
+        restrictions = []
+    
+    # Calcula alimentos excluídos por restrições
+    excluded_by_restrictions = set()
+    for r in restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded_by_restrictions.update(RESTRICTION_EXCLUSIONS[r])
+    
     # Valida cada refeição (apenas as que existem)
     validated_meals = []
     for idx, meal in enumerate(meals[:meal_count]):
-        validated_meal = validate_and_fix_meal(meal, idx, preferred)
+        validated_meal = validate_and_fix_meal(meal, idx, preferred, restrictions)
         validated_meals.append(validated_meal)
     
     # Verifica totais
@@ -2150,7 +2160,13 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
             if validated_meals[main_meal_indices[0]].get("total_calories", 0) > validated_meals[main_meal_indices[1]].get("total_calories", 0):
                 target_meal = main_meal_indices[1]
         
-        validated_meals[target_meal]["foods"].append(calc_food("frango", 100))
+        # ✅ ADICIONA PROTEÍNA RESPEITANDO RESTRIÇÕES
+        safe_protein = get_safe_fallback("protein", restrictions, ["tofu", "ovos", "frango"])
+        if safe_protein:
+            validated_meals[target_meal]["foods"].append(calc_food(safe_protein, 100))
+        else:
+            # Se nenhuma proteína é válida, adiciona carb
+            validated_meals[target_meal]["foods"].append(calc_food("arroz_branco", 100))
         
         # Recalcula totais da refeição
         mp, mc, mf, mcal = sum_foods(validated_meals[target_meal]["foods"])
