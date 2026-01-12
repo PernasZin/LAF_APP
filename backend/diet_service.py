@@ -1831,6 +1831,37 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
         meal["total_calories"] = mcal
         meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
     
+    # ========== PASSO 4: IOGURTE ZERO MÁXIMO 1X POR DIA ==========
+    # Conta ocorrências de iogurte_zero
+    iogurte_count = 0
+    for meal in meals:
+        for food in meal.get("foods", []):
+            if food.get("key") == "iogurte_zero":
+                iogurte_count += 1
+    
+    # Se aparecer mais de 1x, remove as extras (substitui por fruta)
+    if iogurte_count > MAX_IOGURTE_OCORRENCIAS:
+        occurrences_found = 0
+        for meal in meals:
+            foods_to_keep = []
+            for food in meal.get("foods", []):
+                if food.get("key") == "iogurte_zero":
+                    occurrences_found += 1
+                    if occurrences_found <= MAX_IOGURTE_OCORRENCIAS:
+                        foods_to_keep.append(food)
+                    else:
+                        # Substitui por fruta
+                        foods_to_keep.append(calc_food("banana", 150))
+                else:
+                    foods_to_keep.append(food)
+            
+            meal["foods"] = foods_to_keep
+            
+            # Recalcula macros da refeição
+            mp, mc, mf, mcal = sum_foods(meal["foods"])
+            meal["total_calories"] = mcal
+            meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
     return meals
 
 
