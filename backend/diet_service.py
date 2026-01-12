@@ -1157,16 +1157,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods = [calc_food("pao_integral", 60), calc_food("ovos", 100), calc_food("banana", 120)]
                 
         elif meal_type == 'lanche_manha':
-            # Lanche Manhã: iogurte/pão + fruta (mesmo estilo do café)
-            protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
+            # Lanche Manhã: fruta + gordura saudável (NÃO cottage - limite muito baixo)
             fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
-            
-            # Iogurte ou cottage - MÁXIMO 1 POTE (170g)
-            if protein and protein in FOODS:
-                max_protein_grams = 170 if protein in ["cottage", "cottage"] else 200
-                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
-                foods.append(calc_food(protein, p_grams))
             
             # Fruta - MÁXIMO 1 UNIDADE
             if fruit and fruit in FOODS:
@@ -1176,11 +1169,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # Gordura saudável (castanhas/amendoas)
             if fat and fat in FOODS and meal_f > 5:
-                fat_grams = clamp(meal_f * 0.5 / max(FOODS[fat]["f"] / 100, 0.1), 10, 30)
+                fat_grams = clamp(meal_f * 0.5 / max(FOODS[fat]["f"] / 100, 0.1), 10, 40)
                 foods.append(calc_food(fat, fat_grams))
                 
             if not foods:
-                foods = [calc_food("cottage", 150), calc_food("banana", 100)]
+                foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
                 
         elif meal_type == 'lanche_tarde':
             # Lanche Tarde: iogurte/fruta + DOCES (mel/leite condensado)
