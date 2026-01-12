@@ -96,6 +96,7 @@ class UserProfileUpdate(BaseModel):
     goal: Optional[str] = None  # "cutting", "bulking", "manutencao"
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
+    meal_count: Optional[int] = None  # 4, 5, ou 6 refeições
 
 # ==================== PROGRESS MODELS ====================
 
