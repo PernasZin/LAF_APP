@@ -531,7 +531,9 @@ export default function DietScreen() {
                         </View>
                       </View>
                       <Text style={[styles.substituteCardGrams, { color: theme.textTertiary }]}>
-                        Quantidade: {Math.round(sub.grams)}g
+                        {sub.unit_equivalent 
+                          ? `${Math.round(sub.grams)}g ${sub.unit_equivalent}` 
+                          : `${Math.round(sub.grams)}g`}
                       </Text>
                       <View style={styles.substituteCardMacros}>
                         <Text style={[styles.substituteCardMacro, { color: '#3B82F6' }]}>P {Math.round(sub.protein || 0)}g</Text>
