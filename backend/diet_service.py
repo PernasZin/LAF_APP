@@ -920,7 +920,7 @@ def calculate_macros(tdee: float, goal: str, weight: float, gender: str = "mascu
 
 MEAL_RULES = {
     "cafe_da_manha": {
-        # PERMITIDOS: Ovos, Cottage, Iogurte Grego + Aveia, Pão Integral, Tapioca + Frutas
+        # PERMITIDOS: Ovos, Cottage + Aveia, Pão Integral, Tapioca + Frutas
         "proteins": {"ovos", "cottage", "claras"},
         "carbs": {"aveia", "pao_integral", "tapioca", "cuscuz", "pao"},
         "fats": {"pasta_amendoim", "chia", "linhaca"},  # Gorduras saudáveis para café
@@ -929,13 +929,14 @@ MEAL_RULES = {
         "description": "Café da manhã: proteínas leves + aveia/pão/tapioca + frutas"
     },
     "lanche": {
-        # PERMITIDOS: Frutas + Iogurte Zero/Natural/Cottage + Castanhas, Amêndoas, Nozes
-        "proteins": {"cottage", "iogurte_zero", "iogurte_natural"},  # OVOS PROIBIDOS em lanches!
+        # PERMITIDOS: Frutas + Iogurte Zero/Cottage + Castanhas, Amêndoas, Nozes
+        # NOTA: iogurte_natural REMOVIDO - usar apenas iogurte_zero
+        "proteins": {"cottage", "iogurte_zero"},  # OVOS PROIBIDOS em lanches!
         "carbs": {"aveia"},  # Aveia também pode ser lanche
         "fats": {"castanhas", "amendoas", "nozes", "pasta_amendoim"},
         "fruits": True,
         # PROIBIDOS: Frango, Peixe, Carne, Peru, Ovos, Azeite, Queijo
-        "description": "Lanche leve: frutas + iogurte/cottage + castanhas/amêndoas/nozes"
+        "description": "Lanche leve: frutas + iogurte zero/cottage + castanhas/amêndoas/nozes"
     },
     "almoco_jantar": {
         # OBRIGATÓRIO: 1 proteína MAGRA + carboidratos (principal + complemento)
@@ -949,8 +950,9 @@ MEAL_RULES = {
         "description": "Refeição completa: 1 proteína + carboidratos (principal + feijão/lentilha) + azeite"
     },
     "ceia": {
-        # PERMITIDOS: Iogurte Zero/Natural/Cottage + Frutas - NUNCA OVOS!
-        "proteins": {"cottage", "iogurte_zero", "iogurte_natural"},  # OVOS REMOVIDOS DA CEIA!
+        # PERMITIDOS: Iogurte Zero/Cottage + Frutas - NUNCA OVOS!
+        # NOTA: iogurte_natural REMOVIDO - usar apenas iogurte_zero
+        "proteins": {"cottage", "iogurte_zero"},  # OVOS REMOVIDOS DA CEIA!
         "carbs": set(),  # PROIBIDO: Arroz, Batatas, Massas, Leguminosas
         "fats": {"castanhas", "amendoas"},  # Gorduras leves permitidas na ceia
         "fruits": True,
