@@ -16,7 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { 
   Utensils, Sun, Coffee, Moon, Apple, ChefHat, RefreshCw,
-  ChevronRight, Check, X, Flame, Beef, Wheat, Droplets
+  ChevronRight, Check, X, Flame, Beef, Wheat, Droplets, AlertCircle
 } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
