@@ -422,9 +422,8 @@ def calc_food(food_key: str, grams: float, round_down: bool = False) -> Dict:
         "pao_integral": 30,   # 1 fatia = ~30g
         "pao_forma": 25,      # 1 fatia = ~25g
         
-        # Iogurtes - sempre em potes inteiros
-        "cottage": 170,     # 1 pote = 170g
-        "cottage": 170,   # 1 pote = 170g
+        # Cottage - ajuste por colheres (30g cada)
+        "cottage": 30,     # 1 colher = 30g
         
         # Frutas unitárias
         "banana": 120,        # 1 unidade = ~120g
