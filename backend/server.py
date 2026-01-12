@@ -568,9 +568,15 @@ async def generate_diet(user_id: str):
             meal_count = user_settings.get('meal_count', 6)
             meal_times = user_settings.get('meal_times', None)
         
+        # FALLBACK: também verifica meal_count no próprio perfil
+        if user_profile.get('meal_count') and user_profile.get('meal_count') in [4, 5, 6]:
+            meal_count = user_profile.get('meal_count')
+        
         # Valida meal_count
         if meal_count not in [4, 5, 6]:
             meal_count = 6
+        
+        print(f"[DIET] Gerando dieta com meal_count={meal_count} para user={user_id}")
         
         # Importa serviço de dieta
         from diet_service import DietAIService
