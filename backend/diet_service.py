@@ -1169,22 +1169,37 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods = [calc_food("ovos", 100), calc_food("pao_integral", 60), calc_food("banana", 120)]
                 
         elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
-            # Lanches: fruta + gordura saudável
+            # Lanches: iogurte zero + fruta + gordura saudável
+            light_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
             fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
             
+            # Iogurte zero/natural (1 pote = 170g)
+            if light_protein and light_protein in FOODS:
+                foods.append(calc_food(light_protein, 170))
+            
             if fruit and fruit in FOODS:
-                foods.append(calc_food(fruit, 120))
+                foods.append(calc_food(fruit, 100))
             
             if fat and fat in FOODS:
-                foods.append(calc_food(fat, 20))
+                foods.append(calc_food(fat, 15))
             
             if not foods:
-                foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
+                foods = [calc_food("iogurte_zero", 170), calc_food("banana", 100), calc_food("castanhas", 15)]
                 
-        elif meal_type in ['almoco', 'jantar']:
-            # ALMOÇO E JANTAR: IGUAIS!
-            foods.append(calc_food(main_protein, protein_grams))
+        elif meal_type == 'almoco':
+            # ALMOÇO: usa proteína 1
+            foods.append(calc_food(main_protein_1, protein_grams_1))
+            foods.append(calc_food(main_carb, carb_grams))
+            
+            if use_feijao:
+                foods.append(calc_food("feijao", feijao_grams))
+            
+            foods.append(calc_food("azeite", azeite_grams))
+            
+        elif meal_type == 'jantar':
+            # JANTAR: usa proteína 2 (diferente do almoço)
+            foods.append(calc_food(main_protein_2, protein_grams_2))
             foods.append(calc_food(main_carb, carb_grams))
             
             if use_feijao:
@@ -1193,18 +1208,19 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'ceia':
-            # Ceia: fruta + castanhas
+            # Ceia: iogurte zero + fruta (sem castanhas, é tarde)
+            light_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_lanche)
             fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
-            fat = select_best_food("ceia", preferred, restrictions, "fat", fat_priority_lanche)
+            
+            # Iogurte zero/natural (1 pote = 170g)
+            if light_protein and light_protein in FOODS:
+                foods.append(calc_food(light_protein, 170))
             
             if fruit and fruit in FOODS:
-                foods.append(calc_food(fruit, 150))
-            
-            if fat and fat in FOODS:
-                foods.append(calc_food(fat, 30))
+                foods.append(calc_food(fruit, 120))
             
             if not foods:
-                foods = [calc_food("morango", 150), calc_food("castanhas", 20)]
+                foods = [calc_food("iogurte_zero", 170), calc_food("morango", 120)]
         
         meals.append({
             "name": meal_info['name'],
