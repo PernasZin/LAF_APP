@@ -1176,21 +1176,20 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
                 
         elif meal_type == 'lanche_tarde':
-            # Lanche Tarde: iogurte/fruta + DOCES (mel/leite condensado)
-            protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
+            # Lanche Tarde: fruta + DOCES (mel/leite condensado) + gordura saudável
             fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
-            
-            # Iogurte ou cottage
-            if protein and protein in FOODS:
-                max_protein_grams = 170 if protein in ["cottage", "cottage"] else 200
-                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
-                foods.append(calc_food(protein, p_grams))
+            fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
             
             # Fruta
             if fruit and fruit in FOODS:
                 max_fruit_grams = 150
                 fruit_grams = clamp(meal_c * 0.4 / max(FOODS[fruit]["c"] / 100, 0.1), 80, max_fruit_grams)
                 foods.append(calc_food(fruit, fruit_grams))
+            
+            # Gordura saudável (castanhas/amendoas)
+            if fat and fat in FOODS and meal_f > 5:
+                fat_grams = clamp(meal_f * 0.5 / max(FOODS[fat]["f"] / 100, 0.1), 10, 40)
+                foods.append(calc_food(fat, fat_grams))
             
             # DOCES: Mel ou Leite Condensado (exclusivos do lanche da tarde)
             carbs_so_far = sum(f.get("carbs", 0) for f in foods)
@@ -1212,7 +1211,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                         foods.append(calc_food("granola", extra_grams))
                 
             if not foods:
-                foods = [calc_food("cottage", 150), calc_food("banana", 100)]
+                foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
                 
         elif meal_type == 'lanche':
             # Lanche: iogurte/cottage + fruta + opcionalmente extra doce (mel/leite condensado)
