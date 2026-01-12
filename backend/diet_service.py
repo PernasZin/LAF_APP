@@ -1227,30 +1227,54 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # ✅ Permitido: ovos, whey, iogurte, cottage, pão, aveia, frutas
             # ❌ Proibido: carne, arroz, macarrão
             protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
-            carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
             fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("cafe_da_manha", preferred, restrictions, "fat", fat_priority_cafe)
             
+            # Carboidratos para café: pão + aveia (ou apenas um se o usuário não tiver)
+            CAFE_CARBS_PAO = ["pao_integral", "pao", "tapioca"]
+            CAFE_CARBS_AVEIA = ["aveia"]
+            
+            # Procura pão nas preferências do usuário
+            carb_pao = None
+            for c in CAFE_CARBS_PAO:
+                if c in preferred:
+                    carb_pao = c
+                    break
+            
+            # Procura aveia nas preferências do usuário
+            carb_aveia = None
+            for c in CAFE_CARBS_AVEIA:
+                if c in preferred:
+                    carb_aveia = c
+                    break
+            
+            # Proteína
             if protein and protein in FOODS:
                 p_grams = 150 if protein == "ovos" else 100
                 foods.append(calc_food(protein, p_grams))
             else:
-                # 🧠 FALLBACK: ovos se não tiver proteína
+                # 🧠 FALLBACK: ovos
                 foods.append(calc_food("ovos", 150))
             
-            if carb and carb in FOODS:
-                c_grams = 60 if carb == "aveia" else 60
-                foods.append(calc_food(carb, c_grams))
+            # 🍞 PÃO (sempre presente no café)
+            if carb_pao and carb_pao in FOODS:
+                foods.append(calc_food(carb_pao, 60))
             else:
-                # 🧠 FALLBACK: aveia se não tiver carb
-                foods.append(calc_food("aveia", 60))
+                # 🧠 FALLBACK: pão integral
+                foods.append(calc_food("pao_integral", 60))
             
+            # 🥣 AVEIA (opcional, se o usuário tiver)
+            if carb_aveia and carb_aveia in FOODS:
+                foods.append(calc_food(carb_aveia, 40))
+            
+            # Fruta
             if fruit and fruit in FOODS:
                 foods.append(calc_food(fruit, 120))
             else:
-                # 🧠 FALLBACK: banana se não tiver fruta
+                # 🧠 FALLBACK: banana
                 foods.append(calc_food("banana", 120))
             
+            # Gordura (opcional)
             if fat and fat in FOODS:
                 foods.append(calc_food(fat, 15))
                 
