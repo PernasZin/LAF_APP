@@ -2465,7 +2465,7 @@ class DietAIService:
         # ✅ VALIDAÇÃO BULLETPROOF FINAL
         # Garante que NUNCA retorna dieta inválida
         # ✅ PASSA RESTRIÇÕES para garantir que fallbacks respeitam dietas!
-        meals = validate_and_fix_diet(meals, target_p, target_c, target_f, preferred_foods, meal_count, restrictions)
+        meals = validate_and_fix_diet(meals, target_p, target_c, target_f, preferred_foods, meal_count, dietary_restrictions)
         
         # ✅ APLICA LIMITES GLOBAIS (cottage max 20g, aveia max 80g, feijão só com arroz)
         meals = apply_global_limits(meals, raw_preferred)
