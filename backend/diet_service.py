@@ -703,7 +703,7 @@ def select_food(preferred: Set[str], category: str, restrictions: List[str], pri
 
 def calculate_tdee(weight: float, height: float, age: int, gender: str, 
                    activity_level: str, training_level: str) -> float:
-    """Calcula TDEE (Total Daily Energy Expenditure)"""
+    """Calcula TDEE (Total Daily Energy Expenditure) usando Mifflin-St Jeor"""
     if gender.lower() in ['masculino', 'male', 'm']:
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
     else:
@@ -730,106 +730,127 @@ def calculate_tdee(weight: float, height: float, age: int, gender: str,
     return bmr * multiplier + bonus
 
 
-def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
+def calculate_macros(tdee: float, goal: str, weight: float, gender: str = "masculino") -> Dict[str, float]:
     """
-    Calcula macros baseado no objetivo.
+    Calcula macros baseado no objetivo seguindo o PRD nutricional.
     
-    REGRAS OBRIGATÓRIAS PARA GORDURAS:
+    ⚖️ REGRAS DE MACRONUTRIENTES (por objetivo):
     
-    1️⃣ POR PESO CORPORAL (método principal):
-       - Manutenção: 1g/kg
-       - Cutting: 0.4g a 1g/kg (máx 1g/kg)
-       - Bulking: 1g a 1.5g/kg (máx 1.5g/kg)
+    🟥 CUTTING (Perda de gordura):
+       - Calorias: TDEE × 0,75 – 0,90 (usamos 0.85)
+       - Proteína: 1,8 – 2,4 g/kg
+       - Gordura: 20 – 25% das calorias
+       - Carboidrato: calorias restantes
+       - ❌ Erro se calorias ≥ 95% do TDEE
+       - ⚠️ Alerta se gordura > 30%
     
-    2️⃣ LIMITE POR PERCENTUAL DE CALORIAS:
-       - Mínimo: 20% das calorias
-       - Máximo: 35% das calorias
-       - Se ultrapassar → ajusta automaticamente
+    🟨 MANUTENÇÃO:
+       - Calorias: TDEE × 0,95 – 1,05 (usamos 1.0)
+       - Proteína: 1,6 – 2,2 g/kg
+       - Gordura: 25 – 30% das calorias
+       - Carboidrato: calorias restantes
+       - ⚠️ Alerta se proteína < 1,6 g/kg
+    
+    🟩 BULKING (Ganho de massa):
+       - Calorias: TDEE × 1,05 – 1,15 (usamos 1.10)
+       - Proteína: 1,6 – 2,0 g/kg
+       - Gordura: 25 – 30% das calorias
+       - Carboidrato: calorias restantes
+       - ❌ Erro se superávit > 20%
+       - ⚠️ Alerta se gordura < 20%
     """
-    # Configurações por objetivo
+    # Configurações por objetivo (seguindo PRD)
     goal_adjustments = {
         'cutting': {
-            'cal_mult': 0.85, 
-            'p_mult': 2.4,
-            'fat_min_per_kg': 0.6,   # Mínimo 0.6g/kg em cutting
-            'fat_max_per_kg': 1.0    # Máximo 1g/kg em cutting
+            'cal_mult': 0.85,           # TDEE × 0.85 (meio da faixa 0.75-0.90)
+            'p_min': 1.8, 'p_max': 2.4, # Proteína: 1.8-2.4 g/kg
+            'fat_percent_min': 0.20,    # Gordura: 20-25%
+            'fat_percent_max': 0.25,
         },
         'manutencao': {
-            'cal_mult': 1.0, 
-            'p_mult': 2.0,
-            'fat_min_per_kg': 0.9,   # ~1g/kg para manutenção
-            'fat_max_per_kg': 1.0    # Máximo 1g/kg
+            'cal_mult': 1.0,            # TDEE × 1.0 (meio da faixa 0.95-1.05)
+            'p_min': 1.6, 'p_max': 2.2, # Proteína: 1.6-2.2 g/kg
+            'fat_percent_min': 0.25,    # Gordura: 25-30%
+            'fat_percent_max': 0.30,
         },
         'bulking': {
-            'cal_mult': 1.15, 
-            'p_mult': 2.2,
-            'fat_min_per_kg': 1.0,   # Mínimo 1g/kg em bulking
-            'fat_max_per_kg': 1.5    # Máximo 1.5g/kg em bulking
+            'cal_mult': 1.10,           # TDEE × 1.10 (meio da faixa 1.05-1.15)
+            'p_min': 1.6, 'p_max': 2.0, # Proteína: 1.6-2.0 g/kg
+            'fat_percent_min': 0.25,    # Gordura: 25-30%
+            'fat_percent_max': 0.30,
         }
     }
     
     adj = goal_adjustments.get(goal.lower(), goal_adjustments['manutencao'])
     
-    # Cálculo base de calorias
+    # ==================== CÁLCULO DE CALORIAS ====================
     target_calories = tdee * adj['cal_mult']
     
-    # Proteína baseada no peso
-    protein = weight * adj['p_mult']
+    # Validação específica por objetivo
+    if goal.lower() == 'cutting':
+        # ❌ Erro se calorias ≥ 95% do TDEE
+        if target_calories >= tdee * 0.95:
+            target_calories = tdee * 0.85  # Força 85%
+    elif goal.lower() == 'bulking':
+        # ❌ Erro se superávit > 20%
+        if target_calories > tdee * 1.20:
+            target_calories = tdee * 1.15  # Força 115%
+    
+    # ==================== CÁLCULO DE PROTEÍNA ====================
+    # Usa o MÁXIMO da faixa para garantir massa muscular
+    protein = weight * adj['p_max']
     
     # ==================== CÁLCULO DE GORDURA ====================
-    # Método 1: Por peso corporal (principal)
-    fat_by_weight = weight * adj['fat_max_per_kg']  # Usa o máximo da faixa
-    fat_min_by_weight = weight * adj['fat_min_per_kg']
+    # Usa o MEIO da faixa de percentual
+    fat_percent = (adj['fat_percent_min'] + adj['fat_percent_max']) / 2
+    fat_calories = target_calories * fat_percent
+    fat = fat_calories / 9
     
-    # Método 2: Por percentual de calorias (validação)
-    fat_min_by_percent = (target_calories * 0.20) / 9  # 20% das calorias
-    fat_max_by_percent = (target_calories * 0.35) / 9  # 35% das calorias
+    # Validação: mínimo 20% das calorias
+    fat_min = (target_calories * 0.20) / 9
+    fat_max = (target_calories * adj['fat_percent_max']) / 9
     
-    # Usa o valor por peso, mas valida contra percentual
-    fat = fat_by_weight
+    fat = max(fat_min, min(fat, fat_max))
     
-    # Validação: não pode ultrapassar 35% das calorias
-    if fat > fat_max_by_percent:
-        fat = fat_max_by_percent
-    
-    # Validação: não pode ser menos que 20% das calorias (exceto se respeitar mínimo por kg)
-    if fat < fat_min_by_percent and fat < fat_min_by_weight:
-        fat = max(fat_min_by_percent, fat_min_by_weight)
-    
-    # Garante que está dentro dos limites por peso corporal
-    fat = max(fat_min_by_weight, min(fat, weight * adj['fat_max_per_kg']))
-    
-    # Cálculo final de calorias
+    # ==================== CÁLCULO DE CARBOIDRATOS ====================
+    # Calorias restantes
     protein_cal = protein * 4
     fat_cal = fat * 9
     carbs_cal = target_calories - protein_cal - fat_cal
     carbs = carbs_cal / 4
     
-    # Garante mínimo de carboidratos
+    # Garante mínimo de carboidratos (100g para função cerebral)
     if carbs < 100:
         carbs = 100
         carbs_cal = carbs * 4
         target_calories = protein_cal + fat_cal + carbs_cal
     
-    # VALIDAÇÃO FINAL: Verifica se gordura está dentro dos limites
-    fat_percent = (fat * 9) / target_calories * 100
+    # ==================== VALIDAÇÃO FINAL ====================
+    # Verifica percentual de gordura
+    actual_fat_percent = (fat * 9) / target_calories * 100
     
-    # Se ainda estiver fora dos limites, ajusta
-    if fat_percent > 35:
-        fat = (target_calories * 0.35) / 9
-    elif fat_percent < 20:
-        fat = (target_calories * 0.20) / 9
+    if goal.lower() == 'cutting' and actual_fat_percent > 30:
+        # ⚠️ Alerta se gordura > 30% em cutting
+        fat = (target_calories * 0.25) / 9  # Ajusta para 25%
+        carbs_cal = target_calories - protein_cal - (fat * 9)
+        carbs = max(100, carbs_cal / 4)
     
-    # Recalcula carboidratos após ajuste de gordura
-    fat_cal = fat * 9
-    carbs_cal = target_calories - protein_cal - fat_cal
-    carbs = max(100, carbs_cal / 4)
+    if goal.lower() == 'bulking' and actual_fat_percent < 20:
+        # ⚠️ Alerta se gordura < 20% em bulking
+        fat = (target_calories * 0.25) / 9  # Ajusta para 25%
+        carbs_cal = target_calories - protein_cal - (fat * 9)
+        carbs = max(100, carbs_cal / 4)
+    
+    # ==================== FIBRA MÍNIMA ====================
+    # 25g/dia (mulheres), 30g/dia (homens) - guardado para validação posterior
+    fiber_target = 30 if gender.lower() in ['masculino', 'male', 'm'] else 25
     
     return {
         'calories': round(target_calories),
         'protein': round(protein),
         'carbs': round(carbs),
-        'fat': round(fat)
+        'fat': round(fat),
+        'fiber_target': fiber_target
     }
 
 
