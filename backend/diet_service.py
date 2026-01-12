@@ -872,8 +872,8 @@ MEAL_RULES = {
         "description": "Café da manhã: proteínas leves + aveia/pão/tapioca + frutas"
     },
     "lanche": {
-        # PERMITIDOS: Frutas + Cottage, Iogurte Grego + Castanhas, Amêndoas, Nozes
-        "proteins": {"cottage"},  # OVOS PROIBIDOS em lanches!
+        # PERMITIDOS: Frutas + Iogurte Zero/Natural/Cottage + Castanhas, Amêndoas, Nozes
+        "proteins": {"cottage", "iogurte_zero", "iogurte_natural"},  # OVOS PROIBIDOS em lanches!
         "carbs": {"aveia"},  # Aveia também pode ser lanche
         "fats": {"castanhas", "amendoas", "nozes", "pasta_amendoim"},
         "fruits": True,
