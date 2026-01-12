@@ -277,10 +277,11 @@ FOODS = {
     "camarao": {"name": "Camarão", "p": 24.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "porção média", "unit_g": 100},
     "sardinha": {"name": "Sardinha", "p": 25.0, "c": 0.0, "f": 11.0, "category": "protein", "unit": "lata drenada", "unit_g": 90},
     "peru": {"name": "Peru", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "fatias finas", "unit_g": 50},
-    "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "unit": "colher sopa", "unit_g": 30},
-    "iogurte_zero": {"name": "Iogurte Grego Zero", "p": 10.0, "c": 4.0, "f": 0.5, "category": "protein", "unit": "pote", "unit_g": 170},
-    "iogurte_natural": {"name": "Iogurte Natural", "p": 5.0, "c": 6.0, "f": 3.0, "category": "protein", "unit": "pote", "unit_g": 170},
-    "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "unit": "colher sopa", "unit_g": 30},
+    "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
+    "iogurte_zero": {"name": "Iogurte Grego Zero", "p": 10.0, "c": 4.0, "f": 0.5, "category": "protein", "subcategory": "light", "unit": "pote", "unit_g": 170},
+    "iogurte_natural": {"name": "Iogurte Natural", "p": 5.0, "c": 6.0, "f": 3.0, "category": "protein", "subcategory": "light", "unit": "pote", "unit_g": 170},
+    "whey_protein": {"name": "Whey Protein", "p": 80.0, "c": 8.0, "f": 3.0, "category": "protein", "subcategory": "supplement", "unit": "scoop", "unit_g": 30},
+    "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
     "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
     
     # === CARBOIDRATOS ===
