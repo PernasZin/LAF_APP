@@ -1326,17 +1326,30 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # 🌙 CEIA - Somente leve
             # ✅ Permitido: iogurte, leite, whey, aveia, fruta leve
             # ❌ Proibido: carne, peixe, arroz, macarrão
-            light_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_lanche)
-            fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
             
-            if light_protein and light_protein in FOODS:
-                foods.append(calc_food(light_protein, 170))
+            # Para ceia, NÃO usar proteínas principais - usar lista específica de leves
+            CEIA_PROTEINS = ["iogurte_zero", "cottage", "whey_protein"]
+            ceia_protein = None
+            for p in CEIA_PROTEINS:
+                if p in preferred:
+                    ceia_protein = p
+                    break
+            
+            # Fruta para ceia
+            ceia_fruit = None
+            for f in fruit_priority:
+                if f in preferred:
+                    ceia_fruit = f
+                    break
+            
+            if ceia_protein and ceia_protein in FOODS:
+                foods.append(calc_food(ceia_protein, 170))
             else:
-                # 🧠 FALLBACK: iogurte zero
+                # 🧠 FALLBACK CEIA: iogurte zero (NUNCA carne!)
                 foods.append(calc_food("iogurte_zero", 170))
             
-            if fruit and fruit in FOODS:
-                foods.append(calc_food(fruit, 120))
+            if ceia_fruit and ceia_fruit in FOODS:
+                foods.append(calc_food(ceia_fruit, 120))
             else:
                 # 🧠 FALLBACK: banana
                 foods.append(calc_food("banana", 120))
