@@ -892,8 +892,8 @@ MEAL_RULES = {
         "description": "Refeição completa: 1 proteína + carboidratos (principal + feijão/lentilha) + azeite"
     },
     "ceia": {
-        # PERMITIDOS: Cottage, Iogurte Grego + Frutas - NUNCA OVOS!
-        "proteins": {"cottage"},  # OVOS REMOVIDOS DA CEIA!
+        # PERMITIDOS: Iogurte Zero/Natural/Cottage + Frutas - NUNCA OVOS!
+        "proteins": {"cottage", "iogurte_zero", "iogurte_natural"},  # OVOS REMOVIDOS DA CEIA!
         "carbs": set(),  # PROIBIDO: Arroz, Batatas, Massas, Leguminosas
         "fats": {"castanhas", "amendoas"},  # Gorduras leves permitidas na ceia
         "fruits": True,
