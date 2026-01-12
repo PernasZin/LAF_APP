@@ -124,7 +124,9 @@ const MealCard = ({ meal, index, isDark, theme, onFoodPress, language }: any) =>
                     {translateFood(food.name, language)}
                   </Text>
                   <Text style={[styles.foodAmount, { color: theme.textTertiary }]}>
-                    {Math.round(food.grams)}g
+                    {food.quantity_display || food.unit_equivalent 
+                      ? `${Math.round(food.grams)}g ${food.unit_equivalent || ''}` 
+                      : `${Math.round(food.grams)}g`}
                   </Text>
                 </View>
                 <View style={styles.foodMacros}>
