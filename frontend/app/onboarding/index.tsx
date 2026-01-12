@@ -112,34 +112,8 @@ export default function OnboardingScreen() {
           return false;
         }
         break;
-      case 5:
-        // 🚫 VALIDAÇÃO DE ALIMENTOS MÍNIMOS
-        // Regras: 2 proteínas, 2 carboidratos, 1 gordura, 1 fruta
-        const selectedFoods = formData.food_preferences || [];
-        
-        // Categorias de alimentos (keys)
-        const PROTEIN_KEYS = ['frango', 'patinho', 'carne_moida', 'ovos', 'tilapia', 'atum', 'salmao', 'peru', 'cottage', 'whey_protein', 'iogurte_zero', 'claras'];
-        const CARB_KEYS = ['arroz_branco', 'arroz_integral', 'batata_doce', 'macarrao', 'aveia', 'pao_integral', 'pao', 'tapioca', 'feijao', 'lentilha', 'cuscuz'];
-        const FAT_KEYS = ['azeite', 'castanhas', 'amendoas', 'nozes', 'pasta_amendoim', 'abacate', 'chia'];
-        const FRUIT_KEYS = ['banana', 'maca', 'laranja', 'morango', 'mamao', 'melancia', 'uva', 'pera', 'manga', 'abacaxi', 'kiwi'];
-        
-        const proteinCount = selectedFoods.filter((f: string) => PROTEIN_KEYS.includes(f)).length;
-        const carbCount = selectedFoods.filter((f: string) => CARB_KEYS.includes(f)).length;
-        const fatCount = selectedFoods.filter((f: string) => FAT_KEYS.includes(f)).length;
-        const fruitCount = selectedFoods.filter((f: string) => FRUIT_KEYS.includes(f)).length;
-        
-        const missing: string[] = [];
-        if (proteinCount < 2) missing.push(`• ${2 - proteinCount} PROTEÍNA(S) (ex: frango, carne, ovos, whey)`);
-        if (carbCount < 2) missing.push(`• ${2 - carbCount} CARBOIDRATO(S) (ex: arroz, aveia, pão, batata)`);
-        if (fatCount < 1) missing.push(`• 1 GORDURA (ex: azeite, pasta de amendoim, castanhas)`);
-        if (fruitCount < 1) missing.push(`• 1 FRUTA (ex: banana, maçã, morango)`);
-        
-        if (missing.length > 0) {
-          const message = `Para garantir que a IA consiga montar uma dieta completa para você, é necessário selecionar no mínimo:\n\n• 2 PROTEÍNAS\n• 2 CARBOIDRATOS\n• 1 GORDURA\n• 1 FRUTA\n\nFalta adicionar:\n${missing.join('\n')}\n\nAdicione os alimentos que faltam e tente novamente.`;
-          showAlert('Seleção insuficiente', message);
-          return false;
-        }
-        break;
+      // 🧠 Passo 5 (Preferências): Não bloqueia mais!
+      // O sistema auto-completa com alimentos padrão se necessário
     }
     return true;
   };
