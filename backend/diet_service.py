@@ -2241,8 +2241,8 @@ class DietAIService:
             computed_macros={"protein": total_p, "carbs": total_c, "fat": total_f},
             supplements=supplements,
             notes=notes,
-            auto_completed=auto_completed,
-            auto_complete_message=auto_message
+            auto_completed=False,
+            auto_complete_message=None
         )
     
     def to_strict_json(self, diet_plan: DietPlan) -> Dict:
