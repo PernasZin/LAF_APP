@@ -1300,12 +1300,12 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 # 🧠 FALLBACK: ovos
                 foods.append(calc_food("ovos", 150))
             
-            # 🍞 PÃO (sempre presente no café)
+            # 🍞 PÃO (sempre presente no café) - MÍNIMO 50g (1 fatia)
             if carb_pao and carb_pao in FOODS:
-                foods.append(calc_food(carb_pao, 60))
+                foods.append(calc_food(carb_pao, 50))  # Mínimo 1 fatia = 50g
             else:
                 # 🧠 FALLBACK: pão integral
-                foods.append(calc_food("pao_integral", 60))
+                foods.append(calc_food("pao_integral", 50))
             
             # 🥣 AVEIA (opcional, se o usuário tiver)
             if carb_aveia and carb_aveia in FOODS:
