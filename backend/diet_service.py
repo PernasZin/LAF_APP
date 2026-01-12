@@ -437,7 +437,7 @@ FOODS = {
     # === EXTRAS/DOCES (APENAS para café da manhã e lanches - MÁXIMO 30g) ===
     "leite_condensado": {"name": "Leite Condensado", "p": 8.0, "c": 55.0, "f": 8.0, "category": "extra", "unit": "colher sopa", "unit_g": 20},
     "mel": {"name": "Mel", "p": 0.3, "c": 82.0, "f": 0.0, "category": "extra", "unit": "colher sopa", "unit_g": 21},
-    "whey_protein": {"name": "Whey Protein", "p": 80.0, "c": 5.0, "f": 3.0, "category": "extra", "unit": "scoop", "unit_g": 30},
+    # whey_protein já está definido como proteína acima - não duplicar aqui
 }
 
 
