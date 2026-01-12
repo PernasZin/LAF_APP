@@ -939,44 +939,238 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     """
     Gera dieta seguindo regras rígidas por tipo de refeição.
     
-    IMPORTANTE: O TOTAL de alimentos é SEMPRE o mesmo, independente do número de refeições!
-    A única diferença é como os alimentos são DISTRIBUÍDOS:
+    ⭐ REGRA NOVA: DISTRIBUIÇÃO IGUAL ENTRE ALMOÇO E JANTAR
+    - Mesma proteína, mesma quantidade
+    - Mesmo arroz, mesma quantidade
+    - Mesmo feijão (se nas preferências), mesma quantidade
     
-    - 6 refeições: Comida dividida em 6 porções menores
-    - 5 refeições: Mesma comida dividida em 5 porções
-    - 4 refeições: Mesma comida dividida em 4 porções maiores
+    PRIORIDADES:
+    1. ARROZ sempre tem prioridade sobre batata doce
+    2. Feijão só aparece se nas preferências E junto com arroz
     
-    REGRAS OBRIGATÓRIAS:
-    ☀️ Café da Manhã: proteínas leves + carbs leves + frutas (SEM carnes, SEM azeite)
-    🍎 Lanches: frutas + iogurte/cottage + castanhas/amêndoas (SEM carnes, SEM ovos, SEM azeite)
-    🍽️ Almoço/Jantar: 1 proteína + carboidratos (pode ter múltiplos) + azeite
-    🌙 Ceia: proteína leve (iogurte/cottage) + frutas - NUNCA OVOS NA CEIA!
-    
-    ⭐ REGRA IMPORTANTE: Todos os alimentos selecionados pelo usuário DEVEM aparecer na dieta!
-    
-    Parâmetros:
-    - original_preferred: Preferências ORIGINAIS do usuário (antes do auto-complete)
-                          Esses alimentos têm PRIORIDADE MÁXIMA
-    - goal: Objetivo (bulking, cutting, manutencao)
-            Afeta principalmente a quantidade de feijão
+    REGRAS POR REFEIÇÃO:
+    ☀️ Café da Manhã: proteínas leves + carbs leves + frutas
+    🍎 Lanches: frutas + castanhas/amêndoas
+    🍽️ Almoço/Jantar: IGUAIS - proteína + arroz + feijão (se preferência) + azeite
+    🌙 Ceia: frutas + castanhas
     """
     
-    # Se não foi passado original_preferred, assume que preferred são as originais
     if original_preferred is None:
         original_preferred = preferred
     
     # ==================== QUANTIDADES DE FEIJÃO POR OBJETIVO ====================
-    # Regras específicas para quantidade de feijão baseado no objetivo
     FEIJAO_POR_OBJETIVO = {
-        # BULK (ganho de massa): 160-180g por refeição
         "bulking": {"min": 160, "max": 180},
-        
-        # MANUTENÇÃO: 130-160g por refeição
         "manutencao": {"min": 130, "max": 160},
-        
-        # CUT (perda de gordura): 100-130g por refeição
         "cutting": {"min": 100, "max": 130},
     }
+    
+    feijao_limits = FEIJAO_POR_OBJETIVO.get(goal, FEIJAO_POR_OBJETIVO["manutencao"])
+    feijao_grams = (feijao_limits["min"] + feijao_limits["max"]) // 2  # Média
+    
+    # ==================== SELEÇÃO DE ALIMENTOS ====================
+    TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
+    COMPLEMENT_FOODS = {"feijao", "lentilha"}
+    
+    def get_preferred_first(default_list: List[str], category: str = None, exclude_complements: bool = False) -> List[str]:
+        """Retorna lista com alimentos preferidos primeiro"""
+        if not preferred:
+            return default_list
+        
+        original_in_category = []
+        for p in original_preferred:
+            if p in FOODS:
+                if category is None or FOODS[p]["category"] == category:
+                    if exclude_complements and p in COMPLEMENT_FOODS:
+                        continue
+                    original_in_category.append(p)
+        
+        auto_completed_in_category = []
+        for p in preferred:
+            if p not in original_preferred and p in FOODS:
+                if category is None or FOODS[p]["category"] == category:
+                    if exclude_complements and p in COMPLEMENT_FOODS:
+                        continue
+                    auto_completed_in_category.append(p)
+        
+        result = original_in_category.copy()
+        
+        for ac in auto_completed_in_category:
+            if ac not in result:
+                if ac in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
+                    continue
+                result.append(ac)
+        
+        for d in default_list:
+            if d not in result and d in FOODS:
+                if d in TIPOS_ARROZ and any(r in TIPOS_ARROZ for r in result):
+                    continue
+                result.append(d)
+        
+        return result if result else default_list
+    
+    # Prioridades
+    protein_priority = get_preferred_first(
+        ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos", 
+         "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"], "protein")
+    
+    light_protein_priority_cafe = get_preferred_first(
+        ["ovos", "cottage", "claras"], "protein")
+    
+    # ARROZ tem PRIORIDADE sobre tudo - sempre primeiro na lista!
+    carb_priority = get_preferred_first(
+        ["arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"], 
+        "carb", exclude_complements=True)
+    
+    light_carb_priority = get_preferred_first(
+        ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "granola"], 
+        "carb", exclude_complements=True)
+    
+    fat_priority_lanche = get_preferred_first(
+        ["castanhas", "amendoas", "nozes", "pasta_amendoim"], "fat")
+    
+    fat_priority_cafe = get_preferred_first(
+        ["pasta_amendoim", "chia"], "fat")
+    
+    fruit_priority = get_preferred_first(
+        ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
+         "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"], "fruit")
+    
+    # ==================== CALCULAR ALMOÇO/JANTAR PRIMEIRO (IGUAIS) ====================
+    # Proporção: Almoço + Jantar = ~55% dos macros totais
+    # Cada um = ~27.5% (vamos usar 27% cada = 54% total)
+    
+    main_meal_p = target_p * 0.27  # Proteína por refeição principal
+    main_meal_c = target_c * 0.27  # Carbs por refeição principal
+    main_meal_f = target_f * 0.30  # Gordura por refeição principal
+    
+    # Selecionar alimentos para almoço/jantar (serão IGUAIS)
+    main_protein = select_best_food("almoco_jantar", preferred, restrictions, "protein", protein_priority)
+    main_carb = select_best_food("almoco_jantar", preferred, restrictions, "carb", carb_priority)
+    
+    # Calcular quantidades para UMA refeição principal
+    if main_protein and main_protein in FOODS:
+        protein_grams = round_to_10(clamp(main_meal_p / (FOODS[main_protein]["p"] / 100), 150, 250))
+    else:
+        main_protein = "frango"
+        protein_grams = 180
+    
+    if main_carb and main_carb in FOODS:
+        # ARROZ: mínimo 150g por refeição para ser uma porção decente
+        carb_grams = round_to_10(clamp(main_meal_c * 0.5 / (FOODS[main_carb]["c"] / 100), 150, 300))
+    else:
+        main_carb = "arroz_branco"
+        carb_grams = 180
+    
+    # Feijão: só se nas preferências
+    feijao_nas_preferencias = "feijao" in preferred
+    use_feijao = feijao_nas_preferencias and main_carb in TIPOS_ARROZ
+    
+    # Azeite fixo
+    azeite_grams = 10
+    
+    # ==================== MONTAR REFEIÇÕES ====================
+    meals = []
+    
+    # Estrutura base
+    if meal_count == 4:
+        meal_structure = [
+            {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe'},
+            {'name': 'Almoço', 'time': '12:00', 'type': 'almoco'},
+            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche_tarde'},
+            {'name': 'Jantar', 'time': '20:00', 'type': 'jantar'},
+        ]
+    elif meal_count == 5:
+        meal_structure = [
+            {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe'},
+            {'name': 'Lanche Manhã', 'time': '10:00', 'type': 'lanche_manha'},
+            {'name': 'Almoço', 'time': '12:30', 'type': 'almoco'},
+            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche_tarde'},
+            {'name': 'Jantar', 'time': '19:30', 'type': 'jantar'},
+        ]
+    else:  # 6 refeições
+        meal_structure = [
+            {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe'},
+            {'name': 'Lanche Manhã', 'time': '10:00', 'type': 'lanche_manha'},
+            {'name': 'Almoço', 'time': '12:30', 'type': 'almoco'},
+            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche_tarde'},
+            {'name': 'Jantar', 'time': '19:30', 'type': 'jantar'},
+            {'name': 'Ceia', 'time': '21:30', 'type': 'ceia'},
+        ]
+    
+    for meal_info in meal_structure:
+        meal_type = meal_info['type']
+        foods = []
+        
+        if meal_type == 'cafe':
+            # Café da Manhã
+            protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
+            carb = select_best_food("cafe_da_manha", preferred, restrictions, "carb", light_carb_priority)
+            fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
+            fat = select_best_food("cafe_da_manha", preferred, restrictions, "fat", fat_priority_cafe)
+            
+            if protein and protein in FOODS:
+                p_grams = 150 if protein == "ovos" else 100
+                foods.append(calc_food(protein, p_grams))
+            
+            if carb and carb in FOODS:
+                c_grams = 60 if carb == "aveia" else 60
+                foods.append(calc_food(carb, c_grams))
+            
+            if fruit and fruit in FOODS:
+                foods.append(calc_food(fruit, 120))
+            
+            if fat and fat in FOODS:
+                foods.append(calc_food(fat, 15))
+            
+            if not foods:
+                foods = [calc_food("ovos", 100), calc_food("pao_integral", 60), calc_food("banana", 120)]
+                
+        elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
+            # Lanches: fruta + gordura saudável
+            fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
+            fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
+            
+            if fruit and fruit in FOODS:
+                foods.append(calc_food(fruit, 120))
+            
+            if fat and fat in FOODS:
+                foods.append(calc_food(fat, 20))
+            
+            if not foods:
+                foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
+                
+        elif meal_type in ['almoco', 'jantar']:
+            # ALMOÇO E JANTAR: IGUAIS!
+            foods.append(calc_food(main_protein, protein_grams))
+            foods.append(calc_food(main_carb, carb_grams))
+            
+            if use_feijao:
+                foods.append(calc_food("feijao", feijao_grams))
+            
+            foods.append(calc_food("azeite", azeite_grams))
+            
+        elif meal_type == 'ceia':
+            # Ceia: fruta + castanhas
+            fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
+            fat = select_best_food("ceia", preferred, restrictions, "fat", fat_priority_lanche)
+            
+            if fruit and fruit in FOODS:
+                foods.append(calc_food(fruit, 150))
+            
+            if fat and fat in FOODS:
+                foods.append(calc_food(fat, 30))
+            
+            if not foods:
+                foods = [calc_food("morango", 150), calc_food("castanhas", 20)]
+        
+        meals.append({
+            "name": meal_info['name'],
+            "time": meal_info['time'],
+            "foods": foods
+        })
+    
+    return meals
     
     # Pega os limites de feijão para o objetivo atual
     feijao_limits = FEIJAO_POR_OBJETIVO.get(goal, FEIJAO_POR_OBJETIVO["manutencao"])
