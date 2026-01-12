@@ -1349,22 +1349,22 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'ceia':
-            # Ceia: proteína leve + fruta (NUNCA OVOS!)
-            protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_ceia)
+            # Ceia: proteína leve + fruta (NUNCA OVOS! SEM COTTAGE - limite muito baixo)
             fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
+            fat = select_best_food("ceia", preferred, restrictions, "fat", fat_priority_lanche)
             
-            if protein and protein in FOODS:
-                # LIMITE COTTAGE: Máximo 150g (não 300g que é 1 pote inteiro)
-                max_protein = 150 if protein in ["cottage", "cottage", "cottage"] else 200
-                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 80, max_protein)
-                foods.append(calc_food(protein, p_grams))
-            
+            # Fruta principal
             if fruit and fruit in FOODS:
                 fruit_grams = clamp(meal_c / max(FOODS[fruit]["c"] / 100, 0.1), 100, 200)
                 foods.append(calc_food(fruit, fruit_grams))
             
+            # Gordura saudável (castanhas) para completar proteína
+            if fat and fat in FOODS and meal_p > 3:
+                fat_grams = clamp(meal_p / max(FOODS[fat]["p"] / 100, 0.1), 15, 40)
+                foods.append(calc_food(fat, fat_grams))
+            
             if not foods:
-                foods = [calc_food("cottage", 170), calc_food("morango", 120)]
+                foods = [calc_food("morango", 150), calc_food("castanhas", 20)]
         
         meals.append({
             "name": meal_info['name'],
