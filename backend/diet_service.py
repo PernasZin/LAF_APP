@@ -1279,11 +1279,12 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # Arroz + Feijão é permitido se feijão estiver nas preferências
             
             if carb_main and carb_main in FOODS:
-                # Carboidrato principal (arroz OU batata doce OU macarrão)
-                # LIMITE MÁXIMO 250g de arroz para evitar porções excessivas
-                carb_main_ratio = 0.45
+                # Carboidrato principal (arroz OU macarrão) - PORÇÕES REALISTAS
+                # MÍNIMO: 100g arroz | MÁXIMO: 250g arroz
+                carb_main_ratio = 0.50  # 50% dos carbs da refeição vem do carb principal
+                min_carb_main = 100  # Mínimo 100g de arroz/macarrão
                 max_carb_main = 250 if carb_main in {"arroz_branco", "arroz_integral"} else 300
-                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), 80, max_carb_main)
+                c_main_grams = clamp((meal_c * carb_main_ratio) / max(FOODS[carb_main]["c"] / 100, 0.1), min_carb_main, max_carb_main)
                 foods.append(calc_food(carb_main, c_main_grams))
                 
                 # Lista de tipos de arroz (não misturar)
