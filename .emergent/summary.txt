@@ -1,157 +1,135 @@
 <analysis>
-**original_problem_statement**: The user wants to build a highly reliable, rule-based diet and workout generation application. The user has been providing iterative feedback to fix bugs and refine the logic.
 
-Recent user requests include:
-1.  **Logout is broken**: The user cannot sign out of their account.
-2.  **Diet generation is wrong**:
-    *   It includes foods the user doesn't want (e.g., Greek Yogurt, which should be removed from the app entirely).
-    *   It doesn't respect strict rules about which foods can be in which meals (e.g., oats were appearing in lunch/dinner).
-    *   Carbohydrate choices were wrong (e.g., using batata doce instead of rice/pasta as the primary carb).
-    *   Food quantities are incorrect, leading to macro targets being missed and unrealistic meal portions (e.g., only 40g of rice for lunch).
-    *   Only one main carbohydrate should be present in lunch or dinner.
-3.  **Substitution screen UI is ugly**: The user wants the food substitution modal to be redesigned.
-4.  **Food preferences are not being saved**: Preferences selected during onboarding were not being respected by the diet generator.
+**original_problem_statement**: The user is iteratively refining a rule-based diet generation application. The requests in this session focused on auditing existing rules, adding new constraints, and fixing complex bugs related to diet generation logic, user preferences, and data persistence.
+
+The main requirements implemented and debugged in this session include:
+1.  **Strict User Preferences**: A major back-and-forth feature. First, the diet engine was modified to *only* use foods selected by the user, erroring out if selections were insufficient. This was then completely reversed to a smart auto-complete system, where user foods are prioritized, but the engine automatically adds default foods to complete meals if necessary, without erroring.
+2.  **Meal Count Adherence**: The engine must generate the exact number of meals (4, 5, or 6) selected by the user. If the user changes the meal count, total daily macros must be preserved by redistributing them proportionally across the new meal structure.
+3.  **Dietary Restriction Enforcement**: The system must strictly respect user-selected restrictions like 'Vegetariano', 'Sem Lactose', and 'Sem Glúten' by excluding forbidden foods during generation and auto-completion.
+4.  **Frontend Validation**: A validation was added to the onboarding process to ensure users select a minimum number of foods (2 proteins, 2 carbs, 1 fat, 1 fruit) before proceeding. This was later removed when the smart auto-complete feature was re-introduced.
+5.  **Specific Food Rules**:
+    *   Iogurte Natural was removed, leaving only Iogurte Zero, which was limited to appearing only once per diet.
+    *   Bread was added as a default carbohydrate for breakfast, with a minimum quantity of 50g.
+    *   Meal-specific food rules were reinforced (e.g., no heavy proteins in snacks or supper).
 
 **User's preferred language**: Portuguese (Brasil). The next agent MUST respond in Portuguese.
 
 **what currently exists?**
-The application consists of an Expo frontend and a FastAPI backend. The agent has performed a series of significant fixes to address the user's complaints. The backend diet generation logic in  has been heavily modified with a complex set of rules to control food selection and quantities. The frontend has been updated to fix UI issues and data mapping problems. The backend was tested and is believed to be working correctly according to the latest rules, but is pending user validation.
+The application consists of an Expo frontend and a FastAPI backend. The core logic is heavily concentrated in , which has evolved into a highly complex, multi-stage, rule-based diet generator. It now features a smart auto-complete system that prioritizes user food preferences but uses meal-specific, restriction-aware fallbacks to ensure a complete diet is always generated. The backend server logic in  has been updated to correctly save and retrieve user profile settings, including  and , from the correct database ().
 
 **Last working item**:
-    - Last item agent was working: Implementing a final, strict set of diet generation rules provided by the user. This involved three main actions:
-        1.  Completely removing iogurte grego (Greek Yogurt) from the entire application, including the backend food database, diet rules, and the frontend onboarding preferences. It was replaced with cottage cheese.
-        2.  Enforcing a minimum of 100g for primary carbohydrates (arroz, macarrao, batata doce) in lunch and dinner.
-        3.  Ensuring only one primary carbohydrate is selected per major meal.
+    - Last item agent was working: The agent addressed a critical user report that three major features were failing simultaneously:
+        1.  The selected number of meals was being ignored (always defaulting to 6).
+        2.  Dietary restrictions (Vegetarian, Lactose-Free) were not working.
+        3.  Carbohydrate balancing rules for bread were not applied.
     - Status: USER VERIFICATION PENDING
-    - Agent Testing Done: Y (Backend only, via a script that generates a diet and checks the output against the new rules).
-    - Which testing method agent to use? The user needs to test the full flow in the app. A new account should be created to ensure the onboarding and preference fixes are also validated. If issues persist, use the backend testing agent to create specific tests for the  in .
+    - Agent Testing Done: Y (The agent conducted extensive debugging, including inspecting the database, and ran multiple Python test scripts to confirm that all three issues were resolved after a series of fixes.)
+    - Which testing method agent to use? Manual testing by the user is required. If issues persist, the next agent should use Python scripts () to test the  function in  with specific user profiles (e.g., 4 meals, vegetarian, lactose-free) to replicate the user's scenario.
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Diet generation logic does not meet user's strict requirements (P0).
-  - Issue 2: User is unable to log out of the application (P1).
-  - Issue 3: Food preferences selected during onboarding are not saved or respected (P2).
-  - Issue 4: The UI for the food substitution modal is ugly (P3).
+  - Issue 1: Final user validation of the last batch of critical bug fixes (P0).
 
   Issues Detail:
   - Issue 1: 
-     - Attempted fixes: This was a recurring and complex issue. The agent performed multiple fixes:
-        1.  Identified and fixed a bug in  where aveia (oats) was being added to lunch/dinner to adjust macros, ignoring meal-specific rules.
-        2.  Added an explicit validation step in  to forcibly remove oats from any meal that isn't breakfast.
-        3.  Corrected the logic in  that was reducing main carbohydrate amounts below a realistic portion size (e.g., 40g of rice). The minimum was raised to 100g.
-        4.  Completely removed iogurte_grego from all backend logic and food lists.
-        5.  Ensured only one main carbohydrate is selected for lunch/dinner.
-     - Next debug checklist: 
-        1.  Ask the user to create a **new account** and generate a new diet.
-        2.  Confirm if the diet now respects all rules: no Greek yogurt, correct food in correct meals, and realistic quantities (e.g., >= 100g of rice).
-        3.  If macros are still wrong, re-run the backend test script to analyze the generated diet's food list and quantities.
-     - Why fix this issue and what will be achieved with the fix? This is the core feature of the application. Fixing it will make the app usable and align it with the user's primary vision.
+     - Attempted fixes: The agent performed a deep-dive debugging session and implemented several fixes:
+        1.  **Meal Count Fix**: Corrected how  is saved during profile creation/updates and retrieved during diet generation. Discovered and corrected the code to use the right database name ( instead of ).
+        2.  **Restrictions Fix**: Discovered that restrictions were saved in lowercase () but the logic checked for uppercase (). The  dictionary was updated to include lowercase keys, making the check case-insensitive. Also, fallbacks in meal generation were refactored to be restriction-aware.
+        3.  **Carb Balance Fix**: Updated the logic to ensure a minimum of 50g for bread and to balance it with other carbs.
+     - Next debug checklist:
+        1.  Ask the user to create a new profile from scratch.
+        2.  Instruct the user to select **4 meals** and the **Vegetariano** and **Sem Lactose** restrictions.
+        3.  Ask the user to generate a diet and verify:
+            - Does the diet have exactly 4 meals?
+            - Does the diet contain any meat, fish, or dairy (e.g., chicken, whey, yogurt)? It should not.
+            - Is there bread in the breakfast?
+     - Why fix this issue and what will be achieved with the fix? To confirm that the core diet generation engine is now stable and correctly respects all major user configurations after a complex debugging session.
      - Status:  USER VERIFICATION PENDING
-     - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? Both (User must test frontend, if fails, debug backend).
+     - Is recurring issue? Y (The meal count and restrictions issues were reported multiple times).
+     - Should Test frontend/backend/both after fix? Both (User must test the full flow).
      - Blocked on other issue: None
-  - Issue 2: 
-     - Attempted fixes: 
-        1.  The agent fixed a race condition in  where state was set before  was cleared.
-        2.  The agent identified that  works poorly on web and implemented a platform-specific check in  to handle logout confirmation correctly.
-        3.  The agent's last test (via screenshot) showed the app on the initial welcome screen, suggesting the logout was successful. The agent believes the user may have been confused by the app's navigation flow post-logout.
-     - Next debug checklist: Ask the user to test the logout button again and confirm if it works as expected.
-     - Why fix this issue and what will be achieved with the fix? Basic account management functionality is essential for user trust and security.
-     - Status:  USER VERIFICATION PENDING
-     - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? Frontend (User testing).
-     - Blocked on other issue: None
-  - Issue 3:
-     - Attempted fixes: The agent discovered that the s for foods in the frontend onboarding screen () did not match the keys in the backend  database (e.g.,  vs. ). This was corrected.
-     - Next debug checklist: This can only be verified by creating a new user account, selecting preferences during onboarding, and checking if the subsequently generated diet respects those choices.
-     - Why fix this issue and what will be achieved with the fix? This is critical for personalization, which is a core requirement.
-     - Status:  USER VERIFICATION PENDING
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? Both (Full user flow).
-     - Blocked on other issue: None
-  - Issue 4:
-      - Attempted fixes: The agent completely refactored the JSX and StyleSheet for the substitution modal in , aiming for a cleaner, more professional design with better spacing and icons.
-      - Next debug checklist: Ask the user to open the substitution modal and provide feedback on the new design.
-      - Why fix this issue and what will be achieved with the fix? Improves the user experience and perceived quality of the app.
-      - Status: USER VERIFICATION PENDING
-      - Is recurring issue? N
-      - Should Test frontend/backend/both after fix? Frontend (User testing).
-      - Blocked on other issue: none
 
 **In progress Task List**:
 - None.
 
 **Upcoming and Future Tasks**
 - **Upcoming Tasks**:
-    - **P0 - Full PRD-based Workout Refactor:** Systematically review and re-implement the workout generation logic in  to match all rules from the user's PRD. This is a major pending task.
+    - **P0 - Full PRD-based Workout Refactor:** Systematically review and re-implement the workout generation logic in  to match all rules from the user's PRD. This has been postponed for two sessions.
 - **Future Tasks**:
-    - **P1 - Full PRD-based Diet Audit:** Although many fixes have been applied, the  file has become very complex. A systematic audit and potential refactor against the user's PRD is needed to ensure long-term stability.
+    - **P1 -  Stability Refactor:** This file is now over 2,400 lines and is extremely complex and brittle. It urgently needs to be refactored into smaller, more manageable modules/classes (e.g., MealGenerator, DietTuner, RestrictionValidator, MacroDistributor) to improve stability and maintainability.
     - **P2 - Incomplete Translations:** Dynamic content from the backend (e.g., exercise names) is not translated.
     - **P3 - Implement Cardio Completion:** Add a mechanism for users to mark cardio sessions as complete.
 
 **Completed work in this session**
-- **Fixed Diet Generation Logic (major fixes)**:
-  - Implemented strict rules in  to control which foods appear in which meals (e.g., no oats in lunch/dinner).
-  - Enforced a minimum quantity of 100g for main carbohydrates in lunch and dinner by fixing logic in .
-  - Ensured only one main carbohydrate is selected for lunch/dinner.
-- **Removed Greek Yogurt**: Systematically removed  from all backend food lists, diet rules, and the frontend onboarding UI.
-- **Fixed Logout Functionality**: Corrected a race condition in  and implemented a platform-aware confirmation dialog in .
-- **Fixed Onboarding Preferences Bug**: Corrected the food  mismatch between  and the backend, which prevented preferences from being saved.
-- **Fixed Calorie Display Bug**: Corrected  to use  instead of  to display the total for each meal.
-- **Redesigned Substitution Modal**: Refactored the UI of the food substitution modal in  for a better user experience.
+- **Fixed Meal Count & Restrictions**: Resolved a critical bug where the user's selected meal count and dietary restrictions were ignored. This involved fixing data persistence in  and making the restriction logic case-insensitive in .
+- **Implemented Smart Auto-Complete**: Refactored the diet engine to prioritize user-selected foods but automatically add appropriate, restriction-aware default foods if needed to prevent incomplete meals. This replaced a previous, stricter implementation that would error out.
+- **Implemented Proportional Macro Distribution**: Reworked the logic to dynamically distribute daily macros across 4, 5, or 6 meals based on user settings, ensuring total daily calories are preserved.
+- **Fixed Carb Autocomplete**: Corrected a bug where main meals could be generated without carbohydrates. Ensured the autocomplete always provides a default carb if none are selected by the user.
+- **Refined Food Rules**: Removed Iogurte Natural, limited Iogurte Zero to one occurrence, and added Pão (bread) as a default for breakfast.
+- **Corrected Meal Symmetry**: Fixed a bug where lunch and dinner were not identical, ensuring they now share the exact same foods and quantities as per user requirements.
+- **Fixed Database Connection Issue**: Discovered the agent was attempting to use an incorrect database name (). Corrected all database operations to use the correct name ().
+
+**Earlier issues found/mentioned but not fixed**
+- None. The agent addressed all issues raised by the user in this session.
+
+**Known issue recurrence from previous fork**
+- None.
 
 **Code Architecture**
-
+meal_countdietary_restrictionsuser_profilesuser_settings
 
 **Key Technical Concepts**
-- **Rule-Based Logic Engine**: The core of the work was evolving  into a complex rule-based engine. This involved defining explicit rules (), handling priorities, and adding multiple layers of validation (, , ).
-- **Iterative Debugging**: The agent had to debug issues that spanned multiple functions and stages of the diet generation process, requiring backend test scripts and careful analysis of the generated output.
-- **Data Consistency**: A key bug was found and fixed related to data inconsistency between frontend s and backend database s for food preferences.
-- **Platform-Specific UI**: The logout issue required a platform-specific solution () to handle UI confirmation dialogs correctly.
+- **Deep-Dive Debugging**: The session involved extensive debugging, tracing data from frontend requests through backend models, endpoints, and services, and finally into the database to find the root cause of issues. Key discoveries included incorrect DB names and case-sensitivity bugs.
+- **Rule-Based Engine with Safe Fallbacks**: The diet generator evolved from a strict system to one that uses smart auto-complete. Fallback mechanisms were made aware of dietary restrictions to prevent invalid suggestions.
+- **Stateful Logic Reversal**: The agent successfully implemented a major feature (strict user-food-only) and then completely reversed it to implement a conflicting feature (smart auto-complete) based on user feedback, demonstrating adaptability.
+- **Dynamic Configuration**: The diet generation logic was refactored to be dynamic based on user settings () rather than using hardcoded values, making the system more flexible.
 
 **key DB schema**
-- **user_profiles**: Stores user profile data, including . A key bug was that this field was not being populated correctly from onboarding.
+- The application uses MongoDB with the database name .
+- : Stores user profile data, including , , , , etc.
+- : Stores user-specific settings, notably . The agent fixed logic to ensure this collection is created and updated correctly alongside the user profile.
 
 **changes in tech stack**
   - No changes.
 
 **All files of reference**
-- : The most critical file in this session. It contains all the new diet generation rules and fixes.
-- : Modified for the substitution modal redesign and calorie display fix.
-- : Modified to fix the logout functionality.
-- : Modified to fix the bug where food preferences were not being saved.
-- : Modified to fix a bug in the logout logic.
+- : Contains the entire, now highly complex, diet generation logic. All major rule changes occurred here.
+- : Contains the FastAPI endpoints. Was critical for debugging and fixing the data persistence issues related to  and .
 
 **Areas that need refactoring**:
-- ****: This file has become extremely complex due to iterative patching. It is a prime candidate for a full refactor to simplify the logic and make it more maintainable.
-- ****: Still pending a full refactor to align with the user's PRD.
+- ****: This file is critically overdue for a major refactor. Its size, complexity, and intertwined logic make it extremely difficult to maintain and debug. It should be broken down into smaller, single-responsibility modules or classes.
 
 **key api endpoints**
-- : The primary endpoint for diet generation, which relies on the heavily modified .
+- : Endpoint for creating a user profile. Was fixed to correctly save .
+- : Endpoint for updating a profile. Was updated to allow changing .
+- : The main endpoint that triggers the diet generation. Was the focus of most of the session's work.
 
 **Critical Info for New Agent**
-1.  **Verify, Verify, Verify**: Your first action is to communicate with the user and have them test all the recent, major fixes. Do not start new work until the status of the current fixes is known.
-2.  **Create a New Account for Testing**: To properly test the food preferences fix, you MUST guide the user to **create a new account**. This is the only way to verify the entire flow from onboarding to diet generation.
-3.  **Checklist for User**: Ask the user to specifically check:
-    *   **The Diet**: Is Greek Yogurt gone? Are main carbs (rice/pasta) over 100g in lunch/dinner? Are food choices logical for each meal?
-    *   **Logout**: Does the logout button work correctly now?
-    *   **Substitution UI**: What do they think of the new substitution screen design?
-4.  **The  is Fragile**: Be extremely cautious when modifying . It contains many interconnected rules. Any change can have unintended consequences. The oats in lunch bug was very persistent because of this complexity. Prioritize a full refactor of this service over more patches.
-5.  **Communicate in Portuguese**: All communication with the user must be in Portuguese.
+1.  **FIRST ACTION: USER VERIFICATION**: Your immediate priority is to guide the user through testing the latest fixes. Do not start new work until they confirm if the meal count and dietary restriction issues are resolved. Use the checklist under All Pending/In progress Issue list.
+2.  **Database Name is **: A critical bug was caused by the agent assuming the DB name was . All database operations **must** use , which is correctly configured in the environment variables.
+3.  **Dietary Restrictions are Case-Sensitive**: A major bug was fixed by making the restriction logic handle lowercase values (e.g., ). Be mindful of this if you modify the restriction logic. The fix is in the  dictionary in .
+4.  ** is Fragile**: This file is over 2400 lines long. Changes can have unintended consequences. Before editing, understand the flow:  ->  ->  (with meal-specific fallbacks) ->  -> .
+5.  **Communicate in Portuguese**: All user communication must be in Portuguese.
 
 **documents created in this job**
--  was updated several times to guide backend and frontend testing agents.
+- None.
 
 **Last 10 User Messages and any pending HUMAN messages** 
-- **(LATEST)**  - **Status: COMPLETED (Pending Verification)**. User provided final, strict rules for the diet. Agent implemented them.
--  - **Status: IN PROGRESS (Now Believed Fixed)**. User reported wrong quantities. Agent found the issue with  reducing rice below 100g and fixed it.
--  - **Status: IN PROGRESS (Now Believed Fixed)**. User reported wrong macros. Agent found and fixed the bug causing oats in lunch/dinner.
--  - **Status: IN PROGRESS (Now Implemented)**. User gave a list of strict diet rules, a bad UI complaint, and said logout was still broken.
--  - **Status: IN PROGRESS (Partially Fixed)**. User reported diet preferences not being followed and logout being broken.
--  (Previous messages led to the discovery and fixing of bugs related to calorie display and onboarding preference keys).
+-  - **Status: COMPLETED (Pending Verification)**. User reported that restrictions and meal count (4 meals) were not working. The agent debugged and found the root causes (case-sensitivity, data not being saved/updated) and fixed them.
+-  - **Status: COMPLETED (Pending Verification)**. User reported the meal count fix didn't work. The agent did a deep dive, found the database was empty/not being created correctly, and implemented several fixes to ensure user settings are saved and read correctly.
+-  - **Status: COMPLETED (Pending Verification)**. User reported three issues at once: meal count not respected, bread rules not respected, and dietary restrictions not respected. This kicked off the final, major debugging session.
+-  - **Status: COMPLETED**. User requested that the diet engine respect the exact number of meals chosen and redistribute macros proportionally, which the agent implemented.
+-  - **Status: COMPLETED**. User requested bread in the breakfast. The agent added it as a default.
+-  - **Status: COMPLETED**. User reversed a previous requirement, asking for a smart auto-complete system instead of a strict error-throwing system. The agent re-refactored the entire logic to support this.
+-  - **Status: COMPLETED (but later removed)**. User requested frontend validation to block users from proceeding without enough foods. The agent implemented this, but it was later removed to support the auto-complete feature.
+-  - **Status: COMPLETED (but later reversed)**. User requested a strict mode where only user-selected foods could be used. The agent implemented this complex change, which was later replaced by the auto-complete logic.
+-  - **Status: COMPLETED**. User requested to remove Iogurte Natural and limit the frequency of Iogurte Zero.
+-  - **Status: COMPLETED**. The initial request of the session, asking the agent to perform a full audit, which led to the first bug fix (meal symmetry).
 
 **Project Health Check:**
-- **Broken**: The core diet generation feature was critically broken but has undergone major repairs. Its health is now **pending user verification**. If the user confirms the fixes, the health will be significantly improved.
+- **Broken**: Nothing is confirmed broken, but the latest fixes are pending user verification.
+- **Mocked**: No mocks are in use.
+- **Risk**: The project is at high risk for regressions due to the extreme complexity and lack of modularity in .
 
 **3rd Party Integrations**
 - 
@@ -159,14 +137,15 @@ The application consists of an Expo frontend and a FastAPI backend. The agent ha
 - 
 
 **Testing status**
-  - Testing agent used after significant changes: YES (both backend and frontend agents were used).
+  - Testing agent used after significant changes: NO
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None.
-  - Known regressions: The diet generation logic has been a source of recurring regressions as complexity increased. The latest fixes are intended to be more robust.
+  - Test files created: None. The agent used ad-hoc  scripts for all testing.
+  - Known regressions: None known, but the risk is high.
 
 **Credentials to test flow:**
-- No fixed credentials. **A new user must be created** via the app's signup flow to test the onboarding preference fix.
+- User should create a new account to ensure they get all the latest backend fixes and avoid any cached data issues.
 
 **What agent forgot to execute**
-- The agent has not yet performed a full, systematic refactor of the workout () and diet () generation logic based on the user's comprehensive PRDs. It has only patched the existing code, increasing its complexity.
+- The Workout Refactor task from the initial handover summary has been pending for two sessions and was not addressed. All focus was on the diet engine.
+
 </analysis>

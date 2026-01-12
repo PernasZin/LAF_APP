@@ -15,7 +15,7 @@ import json
 import sys
 from datetime import datetime
 
-BACKEND_URL = "https://smart-meal-creator.preview.emergentagent.com/api"
+BACKEND_URL = "https://diet-fixer.preview.emergentagent.com/api"
 
 def test_exact_review_scenarios():
     """Run the exact tests from the review request"""
