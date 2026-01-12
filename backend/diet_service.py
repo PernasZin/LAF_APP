@@ -273,8 +273,6 @@ FOODS = {
     "sardinha": {"name": "Sardinha", "p": 25.0, "c": 0.0, "f": 11.0, "category": "protein", "unit": "lata drenada", "unit_g": 90},
     "peru": {"name": "Peru", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "fatias finas", "unit_g": 50},
     "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "unit": "colher sopa", "unit_g": 30},
-    "cottage": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "category": "protein", "unit": "pote", "unit_g": 170},
-    "cottage": {"name": "Iogurte Natural", "p": 4.0, "c": 6.0, "f": 3.0, "category": "protein", "unit": "pote", "unit_g": 170},
     "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "unit": "colher sopa", "unit_g": 30},
     "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
     
