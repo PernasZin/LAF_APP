@@ -1073,36 +1073,40 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         
         return result if result else default_list
     
-    # Prioridades
+    # Prioridades - usando subcategorias do PRD
+    # PROTEÍNAS PRINCIPAIS para almoço/jantar
     protein_priority = get_preferred_first(
-        ["frango", "patinho", "tilapia", "atum", "salmao", "peru", "ovos", 
-         "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"], "protein")
+        list(PROTEINS_PRINCIPAIS), "protein")
     
+    # PROTEÍNAS LEVES para café/lanches/ceia
     light_protein_priority_cafe = get_preferred_first(
-        ["ovos", "iogurte_zero", "iogurte_natural", "cottage", "claras"], "protein")
+        ["ovos", "iogurte_zero", "iogurte_natural", "cottage", "whey_protein"], "protein")
     
     # Proteína leve para lanches (iogurte zero tem prioridade!)
     light_protein_priority_lanche = get_preferred_first(
-        ["iogurte_zero", "iogurte_natural", "cottage"], "protein")
+        ["iogurte_zero", "iogurte_natural", "cottage", "whey_protein"], "protein")
     
-    # ARROZ tem PRIORIDADE sobre tudo - sempre primeiro na lista!
+    # CARBOIDRATOS PRINCIPAIS (arroz tem prioridade!)
     carb_priority = get_preferred_first(
-        ["arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"], 
+        list(CARBS_PRINCIPAIS), 
         "carb", exclude_complements=True)
     
+    # CARBOIDRATOS DE LANCHE
     light_carb_priority = get_preferred_first(
-        ["pao_integral", "pao_forma", "pao", "aveia", "tapioca", "granola"], 
+        list(CARBS_LANCHE), 
         "carb", exclude_complements=True)
     
+    # GORDURAS SNACKS para lanches
     fat_priority_lanche = get_preferred_first(
-        ["castanhas", "amendoas", "nozes", "pasta_amendoim"], "fat")
+        list(GORDURAS_SNACKS), "fat")
     
+    # GORDURAS para café
     fat_priority_cafe = get_preferred_first(
         ["pasta_amendoim", "chia"], "fat")
     
+    # FRUTAS (frequentes primeiro)
     fruit_priority = get_preferred_first(
-        ["banana", "maca", "laranja", "mamao", "morango", "melancia", 
-         "manga", "abacate", "uva", "abacaxi", "melao", "kiwi", "pera", "pessego"], "fruit")
+        list(FRUTAS_FREQUENTES) + list(FRUTAS_OPCIONAIS), "fruit")
     
     # ==================== CALCULAR ALMOÇO/JANTAR ====================
     # NOVA REGRA: Proteínas DIFERENTES no almoço e jantar para variedade
