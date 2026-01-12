@@ -2009,15 +2009,13 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
             
             # REGRA ABSOLUTA FINAL: NUNCA OVOS NA CEIA (apenas em 6 refeições, índice 5)
             if meal_count == 6 and meal_idx == 5 and food.get("key") == "ovos":
-                # Substitui ovos por cottage na ceia
+                # Substitui ovos por fruta na ceia (sem cottage - limite muito baixo)
                 grams = food.get("grams", 100)
-                validated_meals[meal_idx]["foods"][food_idx] = calc_food("cottage", grams)
+                validated_meals[meal_idx]["foods"][food_idx] = calc_food("banana", grams)
                 # Recalcula totais da refeição
                 mp, mc, mf, mcal = sum_foods(validated_meals[meal_idx]["foods"])
                 validated_meals[meal_idx]["total_calories"] = mcal
                 validated_meals[meal_idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
-    
-    return validated_meals
     
     return validated_meals
 
