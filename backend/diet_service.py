@@ -1075,22 +1075,51 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
     COMPLEMENT_FOODS = {"feijao", "lentilha"}
     
-    def get_user_foods_only(category: str = None, exclude_complements: bool = False) -> List[str]:
+    # 🧠 FALLBACKS INTELIGENTES por tipo de refeição
+    FALLBACKS = {
+        "protein_principal": ["frango", "patinho", "tilapia", "atum"],
+        "protein_leve": ["ovos", "whey_protein", "iogurte_zero", "cottage"],
+        "carb_principal": ["arroz_branco", "batata_doce", "macarrao"],
+        "carb_leve": ["aveia", "pao_integral", "tapioca"],
+        "fat": ["azeite", "castanhas", "pasta_amendoim"],
+        "fruit": ["banana", "maca", "morango", "laranja"]
+    }
+    
+    def get_user_foods_with_fallback(category: str, meal_type: str = "geral") -> List[str]:
         """
-        🚫 REGRA ABSOLUTA: Retorna APENAS alimentos selecionados pelo usuário!
+        🧠 AUTO-COMPLETAR INTELIGENTE
         
-        NUNCA adiciona alimentos padrão ou defaults.
-        Se o usuário não selecionou nada da categoria, retorna lista vazia.
+        1. Prioriza alimentos escolhidos pelo usuário
+        2. Se não tiver da categoria, usa fallback adequado
+        3. NUNCA deixa refeição vazia
         """
+        # Primeiro: tenta pegar alimentos do usuário
         user_foods = []
         for p in preferred:
             if p in FOODS:
-                if category is None or FOODS[p]["category"] == category:
-                    if exclude_complements and p in COMPLEMENT_FOODS:
-                        continue
+                if FOODS[p]["category"] == category:
                     user_foods.append(p)
         
-        return user_foods
+        if user_foods:
+            return user_foods
+        
+        # Se não tem, usa fallback baseado no tipo de refeição
+        if category == "protein":
+            if meal_type in ["cafe", "lanche", "ceia"]:
+                return FALLBACKS["protein_leve"]
+            else:
+                return FALLBACKS["protein_principal"]
+        elif category == "carb":
+            if meal_type in ["cafe", "lanche"]:
+                return FALLBACKS["carb_leve"]
+            else:
+                return FALLBACKS["carb_principal"]
+        elif category == "fat":
+            return FALLBACKS["fat"]
+        elif category == "fruit":
+            return FALLBACKS["fruit"]
+        
+        return []
     
     # Prioridades - usando APENAS alimentos selecionados pelo usuário
     # 🚫 NUNCA usa listas padrão!
