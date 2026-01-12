@@ -1316,37 +1316,46 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             CAFE_CARBS_PAO = ["pao_integral", "pao", "tapioca"]
             CAFE_CARBS_AVEIA = ["aveia"]
             
-            # Procura pão nas preferências do usuário
+            # Procura pão nas preferências do usuário (respeitando restrições)
+            excluded_restrictions = set()
+            for r in restrictions:
+                if r in RESTRICTION_EXCLUSIONS:
+                    excluded_restrictions.update(RESTRICTION_EXCLUSIONS[r])
+            
             carb_pao = None
             for c in CAFE_CARBS_PAO:
-                if c in preferred:
+                if c in preferred and c not in excluded_restrictions:
                     carb_pao = c
                     break
             
-            # Procura aveia nas preferências do usuário
+            # Procura aveia nas preferências do usuário (respeitando restrições)
             carb_aveia = None
             for c in CAFE_CARBS_AVEIA:
-                if c in preferred:
+                if c in preferred and c not in excluded_restrictions:
                     carb_aveia = c
                     break
             
             # Proteína
-            if protein and protein in FOODS:
+            if protein and protein in FOODS and protein not in excluded_restrictions:
                 p_grams = 150 if protein == "ovos" else 100
                 foods.append(calc_food(protein, p_grams))
             else:
-                # 🧠 FALLBACK: ovos
-                foods.append(calc_food("ovos", 150))
+                # 🧠 FALLBACK: proteína segura
+                safe_protein = get_safe_fallback("protein", restrictions, ["ovos", "whey_protein", "tofu"])
+                if safe_protein:
+                    foods.append(calc_food(safe_protein, 150))
             
             # 🍞 PÃO (sempre presente no café) - MÍNIMO 50g (1 fatia)
             if carb_pao and carb_pao in FOODS:
                 foods.append(calc_food(carb_pao, 50))  # Mínimo 1 fatia = 50g
             else:
-                # 🧠 FALLBACK: pão integral
-                foods.append(calc_food("pao_integral", 50))
+                # 🧠 FALLBACK: carb de café seguro (respeita sem glúten)
+                safe_carb = get_safe_fallback("carb_cafe", restrictions, ["pao_integral", "tapioca", "batata_doce"])
+                if safe_carb:
+                    foods.append(calc_food(safe_carb, 50))
             
-            # 🥣 AVEIA (opcional, se o usuário tiver)
-            if carb_aveia and carb_aveia in FOODS:
+            # 🥣 AVEIA (opcional, se o usuário tiver e não for sem glúten)
+            if carb_aveia and carb_aveia in FOODS and carb_aveia not in excluded_restrictions:
                 foods.append(calc_food(carb_aveia, 40))
             
             # Fruta
