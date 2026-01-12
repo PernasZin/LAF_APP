@@ -1007,9 +1007,11 @@ def get_allowed_foods(meal_type: str, preferred: Set[str], restrictions: List[st
 def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str], 
                      category: str, priority: List[str], exclude: Set[str] = None) -> Optional[str]:
     """
-    🚫 REGRA ABSOLUTA: Seleciona APENAS dentre os alimentos do usuário!
+    🧠 AUTOCOMPLETE INTELIGENTE: Seleciona alimento da categoria.
     
-    Nunca retorna alimentos que o usuário não selecionou.
+    1. Primeiro tenta alimentos do usuário
+    2. Se não encontrar, usa FALLBACK da lista de prioridade
+    3. NUNCA retorna None para categorias essenciais (proteína, carb)
     """
     # Usa apenas alimentos que o usuário selecionou
     available = get_allowed_foods(meal_type, preferred, restrictions, category)
@@ -1017,16 +1019,30 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
     if exclude:
         available = [f for f in available if f not in exclude]
     
-    if not available:
-        # Se não há alimentos da categoria disponíveis nas preferências,
-        # tenta usar qualquer alimento da categoria que o usuário selecionou
-        fallback = [f for f in preferred if f in FOODS and FOODS[f]["category"] == category]
-        fallback = [f for f in fallback if f not in (exclude or set())]
-        if fallback:
-            return fallback[0]
-        return None
+    if available:
+        # Segue prioridade se possível
+        for p in priority:
+            if p in available:
+                return p
+        return available[0]
     
-    # Segue prioridade se possível (prioridade também vem das preferências do usuário)
+    # 🧠 AUTOCOMPLETE: Se não há alimentos do usuário, usa a lista de prioridade (que já tem fallbacks)
+    for p in priority:
+        if p in FOODS and p not in (exclude or set()):
+            # Verifica se não está nas restrições
+            if p not in filter_by_restrictions({p}, restrictions):
+                continue
+            return p
+    
+    # Último recurso: fallback absoluto por categoria
+    ABSOLUTE_FALLBACKS = {
+        "protein": "frango",
+        "carb": "arroz_branco",
+        "fat": "azeite",
+        "fruit": "banana"
+    }
+    
+    return ABSOLUTE_FALLBACKS.get(category)
     for p in priority:
         if p in available:
             return p
