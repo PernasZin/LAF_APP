@@ -2098,6 +2098,11 @@ class DietAIService:
         - Remove processados/ultraprocessados
         - Peak Week: alimentos ultra-selecionados para máximo controle
         
+        🚫 REGRA ABSOLUTA:
+        - NUNCA adiciona alimentos automaticamente
+        - Usa APENAS os alimentos selecionados pelo usuário
+        - Se faltar algo, retorna erro com mensagem clara
+        
         Parâmetros:
         - meal_count: 4, 5 ou 6 refeições por dia
         - meal_times: lista opcional com horários personalizados
@@ -2111,10 +2116,15 @@ class DietAIService:
         # Converte preferências para chaves normalizadas
         raw_preferred = get_user_preferred_foods(food_preferences)
         
-        # AUTO-COMPLETE INTELIGENTE: garante mínimos necessários
-        preferred_foods, auto_completed, auto_message = smart_auto_complete(
-            raw_preferred, dietary_restrictions, goal
+        # ✅ NOVA VALIDAÇÃO: Verifica se usuário selecionou alimentos suficientes
+        # 🚫 NÃO FAZ AUTO-COMPLETE - apenas valida!
+        preferred_foods, is_valid, validation_error = validate_user_foods(
+            raw_preferred, dietary_restrictions
         )
+        
+        # Se validação falhou, levanta exceção com mensagem clara
+        if not is_valid:
+            raise ValueError(validation_error)
         
         supplements = get_user_supplements(food_preferences)
         
@@ -2133,7 +2143,7 @@ class DietAIService:
         
         target_cal_int = max(MIN_DAILY_CALORIES, int(round(target_calories)))
         
-        # Gera dieta com alimentos auto-completados se necessário
+        # Gera dieta APENAS com alimentos selecionados pelo usuário
         meals = generate_diet(target_p, target_c, target_f, preferred_foods, dietary_restrictions, meal_count,
                               original_preferred=raw_preferred, goal=goal)
         
