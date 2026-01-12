@@ -110,7 +110,7 @@ class LAFBackendTester:
         if success and response:
             try:
                 login_result = response.json()
-                login_token = login_result.get("token")
+                login_token = login_result.get("access_token")
                 
                 self.log_test(
                     "AUTH - Login", 
