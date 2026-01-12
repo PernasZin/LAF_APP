@@ -1085,25 +1085,25 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         meal_structure = [
             {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe', 'p': 0.25, 'c': 0.25, 'f': 0.10},
             {'name': 'Almoço', 'time': '12:00', 'type': 'almoco', 'p': 0.35, 'c': 0.35, 'f': 0.45},
-            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche', 'p': 0.10, 'c': 0.15, 'f': 0.15},
+            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche_tarde', 'p': 0.10, 'c': 0.15, 'f': 0.15},
             {'name': 'Jantar', 'time': '20:00', 'type': 'jantar', 'p': 0.30, 'c': 0.25, 'f': 0.30},
         ]
     elif meal_count == 5:
         # Café(20%), LancheManhã(10%), Almoço(30%), LancheTarde(10%), Jantar(30%)
         meal_structure = [
             {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe', 'p': 0.20, 'c': 0.20, 'f': 0.10},
-            {'name': 'Lanche Manhã', 'time': '10:00', 'type': 'lanche', 'p': 0.05, 'c': 0.10, 'f': 0.15},
+            {'name': 'Lanche Manhã', 'time': '10:00', 'type': 'lanche_manha', 'p': 0.05, 'c': 0.10, 'f': 0.15},
             {'name': 'Almoço', 'time': '12:30', 'type': 'almoco', 'p': 0.30, 'c': 0.30, 'f': 0.35},
-            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche', 'p': 0.10, 'c': 0.10, 'f': 0.15},
+            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche_tarde', 'p': 0.10, 'c': 0.10, 'f': 0.15},
             {'name': 'Jantar', 'time': '19:30', 'type': 'jantar', 'p': 0.35, 'c': 0.30, 'f': 0.25},
         ]
     else:  # 6 refeições
         # Café(15%), LancheManhã(8%), Almoço(27%), LancheTarde(10%), Jantar(25%), Ceia(15%)
         meal_structure = [
             {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe', 'p': 0.15, 'c': 0.15, 'f': 0.10},
-            {'name': 'Lanche Manhã', 'time': '10:00', 'type': 'lanche', 'p': 0.05, 'c': 0.10, 'f': 0.10},
+            {'name': 'Lanche Manhã', 'time': '10:00', 'type': 'lanche_manha', 'p': 0.05, 'c': 0.10, 'f': 0.10},
             {'name': 'Almoço', 'time': '12:30', 'type': 'almoco', 'p': 0.27, 'c': 0.27, 'f': 0.30},
-            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche', 'p': 0.08, 'c': 0.10, 'f': 0.15},
+            {'name': 'Lanche Tarde', 'time': '16:00', 'type': 'lanche_tarde', 'p': 0.08, 'c': 0.10, 'f': 0.15},
             {'name': 'Jantar', 'time': '19:30', 'type': 'jantar', 'p': 0.25, 'c': 0.25, 'f': 0.30},
             {'name': 'Ceia', 'time': '21:30', 'type': 'ceia', 'p': 0.20, 'c': 0.13, 'f': 0.05},
         ]
