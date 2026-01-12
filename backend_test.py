@@ -643,7 +643,7 @@ class LAFBackendTester:
             if success and response:
                 try:
                     workout = response.json()
-                    workouts = workout.get("workouts", [])
+                    workouts = workout.get("workout_days", [])
                     
                     # Validações
                     correct_workout_count = len(workouts) == scenario["expected_workouts"]
