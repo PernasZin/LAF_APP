@@ -1277,12 +1277,25 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if fat and fat in FOODS:
                 foods.append(calc_food(fat, 15))
             
-            # 🚫 SEM FALLBACK! Usa apenas os alimentos que o usuário selecionou
+            
+            if fat and fat in FOODS:
+                foods.append(calc_food(fat, 15))
                 
         elif meal_type == 'almoco':
-            # ⭐ ALMOÇO: EXATAMENTE IGUAL AO JANTAR (mesma proteína, mesmas quantidades)
-            foods.append(calc_food(main_protein, protein_grams))
-            foods.append(calc_food(main_carb, carb_grams))
+            # 🍛 ALMOÇO - Refeição completa
+            # ✅ Permitido: proteína principal, arroz, batata, macarrão, feijão, legumes, azeite
+            # ⭐ IGUAL AO JANTAR
+            if main_protein and main_protein in FOODS:
+                foods.append(calc_food(main_protein, protein_grams))
+            else:
+                # 🧠 FALLBACK: frango
+                foods.append(calc_food("frango", 180))
+            
+            if main_carb and main_carb in FOODS:
+                foods.append(calc_food(main_carb, carb_grams))
+            else:
+                # 🧠 FALLBACK: arroz branco
+                foods.append(calc_food("arroz_branco", 200))
             
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
@@ -1290,9 +1303,19 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'jantar':
-            # ⭐ JANTAR: EXATAMENTE IGUAL AO ALMOÇO (mesma proteína, mesmas quantidades)
-            foods.append(calc_food(main_protein, protein_grams))
-            foods.append(calc_food(main_carb, carb_grams))
+            # 🍽️ JANTAR - Mesmo conceito do almoço
+            # ⭐ IGUAL AO ALMOÇO (preferir proteína diferente quando possível, mas aqui mantemos igual)
+            if main_protein and main_protein in FOODS:
+                foods.append(calc_food(main_protein, protein_grams))
+            else:
+                # 🧠 FALLBACK: frango
+                foods.append(calc_food("frango", 180))
+            
+            if main_carb and main_carb in FOODS:
+                foods.append(calc_food(main_carb, carb_grams))
+            else:
+                # 🧠 FALLBACK: arroz branco
+                foods.append(calc_food("arroz_branco", 200))
             
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
@@ -1300,18 +1323,23 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             foods.append(calc_food("azeite", azeite_grams))
             
         elif meal_type == 'ceia':
-            # Ceia: 🚫 APENAS alimentos selecionados pelo usuário!
+            # 🌙 CEIA - Somente leve
+            # ✅ Permitido: iogurte, leite, whey, aveia, fruta leve
+            # ❌ Proibido: carne, peixe, arroz, macarrão
             light_protein = select_best_food("ceia", preferred, restrictions, "protein", light_protein_priority_lanche)
             fruit = select_best_food("ceia", preferred, restrictions, "fruit", fruit_priority)
             
-            # Iogurte zero (1 pote = 170g)
             if light_protein and light_protein in FOODS:
                 foods.append(calc_food(light_protein, 170))
+            else:
+                # 🧠 FALLBACK: iogurte zero
+                foods.append(calc_food("iogurte_zero", 170))
             
             if fruit and fruit in FOODS:
                 foods.append(calc_food(fruit, 120))
-            
-            # 🚫 SEM FALLBACK! Usa apenas os alimentos que o usuário selecionou
+            else:
+                # 🧠 FALLBACK: banana
+                foods.append(calc_food("banana", 120))
         
         meals.append({
             "name": meal_info['name'],
