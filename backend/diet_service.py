@@ -1412,12 +1412,6 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                     new_g = round_to_10(min(400, current_g + increase_each))
                     meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                 adjusted = True
-                            increase_grams = increase_needed / (c_per_100 / 100)
-                            new_g = min(MAX_CARB_GRAMS, current_g + increase_grams)
-                            if new_g - current_g >= 10:
-                                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
-                                adjusted = True
-                                break
         
         # GORDURA muito abaixo - adiciona azeite se precisar
         if excess_f < -tol_f_below and not adjusted:
