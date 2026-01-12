@@ -1909,6 +1909,10 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
     Se um alimento aparecer mais de 2 vezes:
     1. Remove a terceira ocorrência
     2. Substitui por alimento da mesma categoria
+    
+    ⚠️ REGRA ESPECIAL CEIA (índice 5):
+    - Na ceia, só pode substituir por: iogurte_zero, iogurte_natural, cottage, frutas
+    - NUNCA substituir por carnes/peixes na ceia!
     """
     # Conta ocorrências de cada alimento
     food_count = {}
@@ -1932,12 +1936,22 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
         "fruit": ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
     }
     
+    # Substitutos permitidos na CEIA (só proteínas leves!)
+    CEIA_SUBSTITUTES = {
+        "protein": ["iogurte_natural", "cottage", "banana", "morango"],  # Frutas como fallback
+        "fat": ["castanhas", "amendoas"],
+        "fruit": ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
+    }
+    
+    num_meals = len(meals)
+    ceia_index = 5 if num_meals == 6 else (4 if num_meals == 5 else 3)
+    
     # Processa cada alimento com excesso
     for food_key, count in foods_to_limit.items():
         occurrences_to_keep = 2
         current_count = 0
         
-        for meal in meals:
+        for meal_idx, meal in enumerate(meals):
             new_foods = []
             for food in meal.get("foods", []):
                 if food.get("key") == food_key:
@@ -1947,12 +1961,25 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
                     else:
                         # Substitui por outro alimento da mesma categoria
                         category = FOODS.get(food_key, {}).get("category", "protein")
-                        substitutes = [s for s in SUBSTITUTES.get(category, []) if s != food_key and s not in food_count]
+                        
+                        # Na CEIA, usa substitutos especiais (sem carnes/peixes)
+                        if meal_idx == ceia_index:
+                            substitutes = [s for s in CEIA_SUBSTITUTES.get(category, []) 
+                                          if s != food_key and food_count.get(s, 0) < 2]
+                        else:
+                            substitutes = [s for s in SUBSTITUTES.get(category, []) 
+                                          if s != food_key and food_count.get(s, 0) < 2]
                         
                         if substitutes:
                             new_key = substitutes[0]
                             new_food = calc_food(new_key, food.get("grams", 100))
                             new_foods.append(new_food)
+                            food_count[new_key] = food_count.get(new_key, 0) + 1
+                        else:
+                            # Se não encontrou substituto, mantém uma fruta na ceia
+                            if meal_idx == ceia_index:
+                                new_foods.append(calc_food("morango", 150))
+                            # Nas outras refeições, simplesmente não adiciona (já tem 2x)
                 else:
                     new_foods.append(food)
             
