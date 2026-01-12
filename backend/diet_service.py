@@ -2023,14 +2023,15 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
                         new_foods.append(food)
                     else:
                         # Substitui por outro alimento da mesma categoria
+                        # 🚫 APENAS usando alimentos que o usuário selecionou!
                         category = FOODS.get(food_key, {}).get("category", "protein")
                         
                         # Na CEIA, usa substitutos especiais (sem carnes/peixes)
                         if meal_idx == ceia_index:
-                            substitutes = [s for s in CEIA_SUBSTITUTES.get(category, []) 
+                            substitutes = [s for s in user_ceia_substitutes.get(category, []) 
                                           if s != food_key and food_count.get(s, 0) < 2]
                         else:
-                            substitutes = [s for s in SUBSTITUTES.get(category, []) 
+                            substitutes = [s for s in user_substitutes.get(category, []) 
                                           if s != food_key and food_count.get(s, 0) < 2]
                         
                         if substitutes:
@@ -2038,11 +2039,7 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
                             new_food = calc_food(new_key, food.get("grams", 100))
                             new_foods.append(new_food)
                             food_count[new_key] = food_count.get(new_key, 0) + 1
-                        else:
-                            # Se não encontrou substituto, mantém uma fruta na ceia
-                            if meal_idx == ceia_index:
-                                new_foods.append(calc_food("morango", 150))
-                            # Nas outras refeições, simplesmente não adiciona (já tem 2x)
+                        # 🚫 Sem fallback padrão! Se não encontrou substituto do usuário, não adiciona
                 else:
                     new_foods.append(food)
             
