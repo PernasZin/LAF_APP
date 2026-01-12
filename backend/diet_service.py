@@ -107,7 +107,7 @@ CARBS_ALMOCO_JANTAR = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_i
 PROTEINS_ALMOCO_JANTAR = {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "camarao", "peru", "suino"}
 
 # Alimentos EXCLUSIVOS para café da manhã e lanche da manhã
-FOODS_CAFE_LANCHE_MANHA = {"ovos", "claras", "pao", "pao_integral", "pao_forma", "iogurte_grego", "iogurte_natural", "tapioca"}
+FOODS_CAFE_LANCHE_MANHA = {"ovos", "claras", "pao", "pao_integral", "pao_forma", "cottage", "cottage", "tapioca"}
 
 # Alimentos EXCLUSIVOS para lanche da tarde (doces)
 FOODS_LANCHE_TARDE = {"mel", "leite_condensado", "granola"}
@@ -173,14 +173,14 @@ def get_allowed_proteins_for_meal(meal_type: str, available_proteins: Set[str]) 
     """Retorna proteínas permitidas para o tipo de refeição"""
     if meal_type in {MEAL_TYPE_CAFE, MEAL_TYPE_LANCHE_MANHA}:
         # Café/Lanche manhã: ovos, iogurte, cottage
-        allowed = {"ovos", "claras", "iogurte_grego", "iogurte_natural", "cottage"}
+        allowed = {"ovos", "claras", "cottage", "cottage", "cottage"}
         return available_proteins & allowed
     elif meal_type in {MEAL_TYPE_ALMOCO, MEAL_TYPE_JANTAR}:
         # Almoço/Jantar: carnes e peixes, NUNCA ovos
         return available_proteins & PROTEINS_ALMOCO_JANTAR
     else:
         # Lanches: iogurte, cottage
-        allowed = {"iogurte_grego", "iogurte_natural", "cottage"}
+        allowed = {"cottage", "cottage", "cottage"}
         return available_proteins & allowed
 
 
@@ -215,7 +215,7 @@ FOOD_NORMALIZATION = {
     "pork": "suino", "eggs": "ovos", "egg_whites": "claras",
     "tilapia": "tilapia", "tuna": "atum", "salmon": "salmao",
     "shrimp": "camarao", "sardine": "sardinha", "turkey": "peru", "fish": "tilapia",
-    "greek_yogurt": "iogurte_grego", "natural_yogurt": "iogurte_natural", "tofu": "tofu",
+    "greek_yogurt": "cottage", "natural_yogurt": "cottage", "tofu": "tofu",
     
     # CARBOIDRATOS
     "white_rice": "arroz_branco", "brown_rice": "arroz_integral", "rice": "arroz_branco",
@@ -273,8 +273,8 @@ FOODS = {
     "sardinha": {"name": "Sardinha", "p": 25.0, "c": 0.0, "f": 11.0, "category": "protein", "unit": "lata drenada", "unit_g": 90},
     "peru": {"name": "Peru", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "fatias finas", "unit_g": 50},
     "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "unit": "colher sopa", "unit_g": 30},
-    "iogurte_grego": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "category": "protein", "unit": "pote", "unit_g": 170},
-    "iogurte_natural": {"name": "Iogurte Natural", "p": 4.0, "c": 6.0, "f": 3.0, "category": "protein", "unit": "pote", "unit_g": 170},
+    "cottage": {"name": "Iogurte Grego", "p": 10.0, "c": 4.0, "f": 5.0, "category": "protein", "unit": "pote", "unit_g": 170},
+    "cottage": {"name": "Iogurte Natural", "p": 4.0, "c": 6.0, "f": 3.0, "category": "protein", "unit": "pote", "unit_g": 170},
     "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "unit": "colher sopa", "unit_g": 30},
     "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
     
@@ -425,8 +425,8 @@ def calc_food(food_key: str, grams: float, round_down: bool = False) -> Dict:
         "pao_forma": 25,      # 1 fatia = ~25g
         
         # Iogurtes - sempre em potes inteiros
-        "iogurte_grego": 170,     # 1 pote = 170g
-        "iogurte_natural": 170,   # 1 pote = 170g
+        "cottage": 170,     # 1 pote = 170g
+        "cottage": 170,   # 1 pote = 170g
         
         # Frutas unitárias
         "banana": 120,        # 1 unidade = ~120g
@@ -839,7 +839,7 @@ def calculate_macros(tdee: float, goal: str, weight: float) -> Dict[str, float]:
 MEAL_RULES = {
     "cafe_da_manha": {
         # PERMITIDOS: Ovos, Cottage, Iogurte Grego + Aveia, Pão Integral, Tapioca + Frutas
-        "proteins": {"ovos", "iogurte_grego", "claras"},
+        "proteins": {"ovos", "cottage", "claras"},
         "carbs": {"aveia", "pao_integral", "tapioca", "cuscuz", "pao"},
         "fats": {"pasta_amendoim", "chia", "linhaca"},  # Gorduras saudáveis para café
         "fruits": True,
@@ -848,7 +848,7 @@ MEAL_RULES = {
     },
     "lanche": {
         # PERMITIDOS: Frutas + Cottage, Iogurte Grego + Castanhas, Amêndoas, Nozes
-        "proteins": {"iogurte_grego"},  # OVOS PROIBIDOS em lanches!
+        "proteins": {"cottage"},  # OVOS PROIBIDOS em lanches!
         "carbs": {"aveia"},  # Aveia também pode ser lanche
         "fats": {"castanhas", "amendoas", "nozes", "pasta_amendoim"},
         "fruits": True,
@@ -868,7 +868,7 @@ MEAL_RULES = {
     },
     "ceia": {
         # PERMITIDOS: Cottage, Iogurte Grego + Frutas - NUNCA OVOS!
-        "proteins": {"iogurte_grego"},  # OVOS REMOVIDOS DA CEIA!
+        "proteins": {"cottage"},  # OVOS REMOVIDOS DA CEIA!
         "carbs": set(),  # PROIBIDO: Arroz, Batatas, Massas, Leguminosas
         "fats": {"castanhas", "amendoas"},  # Gorduras leves permitidas na ceia
         "fruits": True,
@@ -1043,10 +1043,10 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
          "coxa_frango", "carne_moida", "camarao", "sardinha", "suino", "tofu"], "protein")
     
     light_protein_priority_cafe = get_preferred_first(
-        ["ovos", "iogurte_grego", "iogurte_natural", "claras"], "protein")
+        ["ovos", "cottage", "cottage", "claras"], "protein")
     
     light_protein_priority_ceia = get_preferred_first(
-        ["iogurte_grego", "iogurte_natural"], "protein")  # NUNCA OVOS NA CEIA!
+        ["cottage", "cottage"], "protein")  # NUNCA OVOS NA CEIA!
     
     # Carboidratos principais (para almoço/jantar) - APENAS ARROZ ou MACARRÃO!
     # Batata doce é COMPLEMENTO, não principal
@@ -1064,7 +1064,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     # Prioridade para lanches (proteínas leves com carbs)
     light_protein_priority_lanche = get_preferred_first(
-        ["iogurte_grego", "iogurte_natural"], "protein")
+        ["cottage", "cottage"], "protein")
     
     fat_priority_lanche = get_preferred_first(
         ["castanhas", "amendoas", "nozes", "pasta_amendoim"], "fat")
@@ -1162,7 +1162,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # Iogurte ou cottage - MÁXIMO 1 POTE (170g)
             if protein and protein in FOODS:
-                max_protein_grams = 170 if protein in ["iogurte_grego", "iogurte_natural"] else 200
+                max_protein_grams = 170 if protein in ["cottage", "cottage"] else 200
                 p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
                 foods.append(calc_food(protein, p_grams))
             
@@ -1178,7 +1178,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(fat, fat_grams))
                 
             if not foods:
-                foods = [calc_food("iogurte_grego", 150), calc_food("banana", 100)]
+                foods = [calc_food("cottage", 150), calc_food("banana", 100)]
                 
         elif meal_type == 'lanche_tarde':
             # Lanche Tarde: iogurte/fruta + DOCES (mel/leite condensado)
@@ -1187,7 +1187,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # Iogurte ou cottage
             if protein and protein in FOODS:
-                max_protein_grams = 170 if protein in ["iogurte_grego", "iogurte_natural"] else 200
+                max_protein_grams = 170 if protein in ["cottage", "cottage"] else 200
                 p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
                 foods.append(calc_food(protein, p_grams))
             
@@ -1217,7 +1217,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                         foods.append(calc_food("granola", extra_grams))
                 
             if not foods:
-                foods = [calc_food("iogurte_grego", 150), calc_food("banana", 100)]
+                foods = [calc_food("cottage", 150), calc_food("banana", 100)]
                 
         elif meal_type == 'lanche':
             # Lanche: iogurte/cottage + fruta + opcionalmente extra doce (mel/leite condensado)
@@ -1228,7 +1228,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # Iogurte ou cottage - MÁXIMO 1 POTE (170g)
             if protein and protein in FOODS:
                 # Limita a 170g (1 pote) para evitar desperdício
-                max_protein_grams = 170 if protein in ["iogurte_grego", "iogurte_natural"] else 200
+                max_protein_grams = 170 if protein in ["cottage", "cottage"] else 200
                 p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
                 foods.append(calc_food(protein, p_grams))
             
@@ -1252,7 +1252,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # O iogurte já tem gordura suficiente e o fine_tune adicionará azeite se precisar
             
             if not foods:
-                foods = [calc_food("iogurte_natural", 170), calc_food("banana", 120), calc_food("mel", 20)]
+                foods = [calc_food("cottage", 170), calc_food("banana", 120), calc_food("mel", 20)]
                 
         elif meal_type in ['almoco', 'jantar']:
             # Almoço/Jantar: proteína principal + carboidratos (principal + complemento) + vegetais + azeite
@@ -1367,7 +1367,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             if protein and protein in FOODS:
                 # LIMITE COTTAGE: Máximo 150g (não 300g que é 1 pote inteiro)
-                max_protein = 150 if protein in ["cottage", "iogurte_grego", "iogurte_natural"] else 200
+                max_protein = 150 if protein in ["cottage", "cottage", "cottage"] else 200
                 p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 80, max_protein)
                 foods.append(calc_food(protein, p_grams))
             
@@ -1376,7 +1376,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(fruit, fruit_grams))
             
             if not foods:
-                foods = [calc_food("iogurte_grego", 170), calc_food("morango", 120)]
+                foods = [calc_food("cottage", 170), calc_food("morango", 120)]
         
         meals.append({
             "name": meal_info['name'],
@@ -1745,14 +1745,14 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
             foods = [calc_food("frango", 150), calc_food("arroz_branco", 150), calc_food("salada", 100), calc_food("azeite", 10)]
         elif meal_index == 3:  # Lanche tarde
             # PERMITIDO: frutas, iogurte | PROIBIDO: carnes, azeite
-            foods = [calc_food("laranja", 150), calc_food("iogurte_grego", 170)]
+            foods = [calc_food("laranja", 150), calc_food("cottage", 170)]
         elif meal_index == 4:  # Jantar
             # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
             foods = [calc_food("tilapia", 150), calc_food("arroz_integral", 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
         else:  # Ceia
             # PERMITIDO: iogurte + frutas | PROIBIDO: carnes, carbs complexos, OVOS!
             # REGRA ABSOLUTA: NUNCA OVOS NA CEIA!
-            foods = [calc_food("iogurte_grego", 170), calc_food("morango", 100)]
+            foods = [calc_food("cottage", 170), calc_food("morango", 100)]
     
     # Valida cada alimento
     validated_foods = []
@@ -1859,8 +1859,8 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     # ALIMENTOS PROIBIDOS por tipo de refeição
     PROHIBITED_FOODS = {
         # Almoço e Jantar: NUNCA aveia, pão, tapioca, iogurte
-        2: {"aveia", "pao", "pao_integral", "tapioca", "iogurte_grego", "iogurte_natural"},  # Almoço (6 refeições)
-        4: {"aveia", "pao", "pao_integral", "tapioca", "iogurte_grego", "iogurte_natural"},  # Jantar (6 refeições)
+        2: {"aveia", "pao", "pao_integral", "tapioca", "cottage", "cottage"},  # Almoço (6 refeições)
+        4: {"aveia", "pao", "pao_integral", "tapioca", "cottage", "cottage"},  # Jantar (6 refeições)
     }
     
     # REMOÇÃO DE ALIMENTOS PROIBIDOS
