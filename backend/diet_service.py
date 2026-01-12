@@ -635,6 +635,12 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     Valida se o usuário selecionou alimentos suficientes para montar uma dieta.
     Se não tiver, retorna erro com mensagem clara explicando o que falta.
     
+    ✅ MÍNIMOS OBRIGATÓRIOS:
+    - 2 PROTEÍNAS
+    - 2 CARBOIDRATOS  
+    - 1 GORDURA
+    - 1 FRUTA
+    
     ❗ PROIBIÇÃO ABSOLUTA:
     - NUNCA utilizar alimentos que o usuário não selecionou
     - NUNCA sugerir ou substituir automaticamente
@@ -654,27 +660,31 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     fats = [f for f in available if f in FOODS and FOODS[f]["category"] == "fat"]
     fruits = [f for f in available if f in FOODS and FOODS[f]["category"] == "fruit"]
     
-    # Verifica mínimos necessários
+    # ✅ NOVOS MÍNIMOS: 2 proteínas, 2 carbs, 1 gordura, 1 fruta
     missing_categories = []
     
-    if len(proteins) < 1:
-        missing_categories.append("PROTEÍNA (ex: frango, patinho, ovos, tilápia)")
+    if len(proteins) < 2:
+        falta = 2 - len(proteins)
+        missing_categories.append(f"{falta} PROTEÍNA(S) (ex: frango, carne, ovos, whey)")
     
-    if len(carbs) < 1:
-        missing_categories.append("CARBOIDRATO (ex: arroz, batata doce, aveia, pão)")
+    if len(carbs) < 2:
+        falta = 2 - len(carbs)
+        missing_categories.append(f"{falta} CARBOIDRATO(S) (ex: arroz, aveia, pão, batata)")
     
     if len(fats) < 1:
-        missing_categories.append("GORDURA (ex: azeite, castanhas, pasta de amendoim)")
+        missing_categories.append("1 GORDURA (ex: azeite, pasta de amendoim, castanhas)")
     
     if len(fruits) < 1:
-        missing_categories.append("FRUTA (ex: banana, maçã, morango)")
+        missing_categories.append("1 FRUTA (ex: banana, maçã, morango)")
     
     # Se falta algo, retorna erro
     if missing_categories:
-        error_msg = "Não foi possível montar uma dieta completa. Faltam alimentos nas seguintes categorias:\n"
+        error_msg = "Para garantir que a IA consiga montar uma dieta completa para você, é necessário selecionar no mínimo:\n\n"
+        error_msg += "• 2 PROTEÍNAS\n• 2 CARBOIDRATOS\n• 1 GORDURA\n• 1 FRUTA\n\n"
+        error_msg += "Falta adicionar:\n"
         for cat in missing_categories:
             error_msg += f"• {cat}\n"
-        error_msg += "\nPor favor, adicione pelo menos um alimento de cada categoria nas suas preferências."
+        error_msg += "\nAdicione os alimentos que faltam nas suas preferências."
         return available, False, error_msg
     
     # Tudo OK - retorna apenas os alimentos selecionados pelo usuário
