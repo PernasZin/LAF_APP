@@ -1214,23 +1214,20 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
                 
         elif meal_type == 'lanche':
-            # Lanche: iogurte/cottage + fruta + opcionalmente extra doce (mel/leite condensado)
-            protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
+            # Lanche: fruta + gordura saudável (SEM cottage - limite muito baixo)
             fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
             fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
-            
-            # Iogurte ou cottage - MÁXIMO 1 POTE (170g)
-            if protein and protein in FOODS:
-                # Limita a 170g (1 pote) para evitar desperdício
-                max_protein_grams = 170 if protein in ["cottage", "cottage"] else 200
-                p_grams = clamp(meal_p / max(FOODS[protein]["p"] / 100, 0.1), 100, max_protein_grams)
-                foods.append(calc_food(protein, p_grams))
             
             # Fruta - MÁXIMO 1 UNIDADE
             if fruit and fruit in FOODS:
                 max_fruit_grams = 150  # Limita para não ter fruta demais
                 fruit_grams = clamp(meal_c * 0.6 / max(FOODS[fruit]["c"] / 100, 0.1), 80, max_fruit_grams)
                 foods.append(calc_food(fruit, fruit_grams))
+            
+            # Gordura saudável (castanhas/amendoas)
+            if fat and fat in FOODS and meal_f > 5:
+                fat_grams = clamp(meal_f * 0.5 / max(FOODS[fat]["f"] / 100, 0.1), 10, 40)
+                foods.append(calc_food(fat, fat_grams))
             
             # Extra doce (mel ou leite condensado) - MÁXIMO 30g, apenas em lanches/café
             carbs_so_far = sum(f.get("carbs", 0) for f in foods)
@@ -1242,11 +1239,8 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     extra_grams = clamp(carbs_remaining / max(FOODS[extra]["c"] / 100, 0.1), 10, 30)
                     foods.append(calc_food(extra, extra_grams))
             
-            # NÃO adiciona gordura extra nos lanches por padrão
-            # O iogurte já tem gordura suficiente e o fine_tune adicionará azeite se precisar
-            
             if not foods:
-                foods = [calc_food("cottage", 170), calc_food("banana", 120), calc_food("mel", 20)]
+                foods = [calc_food("banana", 120), calc_food("castanhas", 20)]
                 
         elif meal_type in ['almoco', 'jantar']:
             # Almoço/Jantar: proteína principal + carboidratos (principal + complemento) + vegetais + azeite
