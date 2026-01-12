@@ -1375,31 +1375,34 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # ❌ Proibido: nada pesado (carne, peixe)
             
             # Para lanches, NÃO usar proteínas principais - usar lista específica de leves
+            # Respeitando restrições alimentares
             LANCHE_PROTEINS = ["iogurte_zero", "cottage", "whey_protein"]
             lanche_protein = None
             for p in LANCHE_PROTEINS:
-                if p in preferred:
+                if p in preferred and p not in excluded_restrictions:
                     lanche_protein = p
                     break
             
             # Fruta e gordura para lanche
             lanche_fruit = None
             for f in fruit_priority:
-                if f in preferred:
+                if f in preferred and f not in excluded_restrictions:
                     lanche_fruit = f
                     break
             
             lanche_fat = None
             for f in fat_priority_lanche:
-                if f in preferred:
+                if f in preferred and f not in excluded_restrictions:
                     lanche_fat = f
                     break
             
             if lanche_protein and lanche_protein in FOODS:
                 foods.append(calc_food(lanche_protein, 170))
             else:
-                # 🧠 FALLBACK: whey (NUNCA carne no lanche!)
-                foods.append(calc_food("whey_protein", 30))
+                # 🧠 FALLBACK: proteína leve segura (respeita sem lactose)
+                safe_lanche_protein = get_safe_fallback("protein", restrictions, ["whey_protein", "ovos"])
+                if safe_lanche_protein:
+                    foods.append(calc_food(safe_lanche_protein, 100 if safe_lanche_protein == "ovos" else 30))
             
             if lanche_fruit and lanche_fruit in FOODS:
                 foods.append(calc_food(lanche_fruit, 100))
@@ -1414,17 +1417,21 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # 🍛 ALMOÇO - Refeição completa
             # ✅ Permitido: proteína principal, arroz, batata, macarrão, feijão, legumes, azeite
             # ⭐ IGUAL AO JANTAR
-            if main_protein and main_protein in FOODS:
+            if main_protein and main_protein in FOODS and main_protein not in excluded_restrictions:
                 foods.append(calc_food(main_protein, protein_grams))
             else:
-                # 🧠 FALLBACK: frango
-                foods.append(calc_food("frango", 180))
+                # 🧠 FALLBACK: proteína segura (respeita vegetariano)
+                safe_main_protein = get_safe_fallback("protein", restrictions, ["frango", "ovos", "tofu"])
+                if safe_main_protein:
+                    foods.append(calc_food(safe_main_protein, 180 if safe_main_protein != "ovos" else 200))
             
-            if main_carb and main_carb in FOODS:
+            if main_carb and main_carb in FOODS and main_carb not in excluded_restrictions:
                 foods.append(calc_food(main_carb, carb_grams))
             else:
-                # 🧠 FALLBACK: arroz branco
-                foods.append(calc_food("arroz_branco", 200))
+                # 🧠 FALLBACK: carb seguro
+                safe_carb = get_safe_fallback("carb_principal", restrictions, ["arroz_branco", "batata_doce", "tapioca"])
+                if safe_carb:
+                    foods.append(calc_food(safe_carb, 200))
             
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
