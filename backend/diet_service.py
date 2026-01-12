@@ -1444,14 +1444,18 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if main_protein and main_protein in FOODS:
                 foods.append(calc_food(main_protein, protein_grams))
             else:
-                # 🧠 FALLBACK: frango
-                foods.append(calc_food("frango", 180))
+                # 🧠 FALLBACK: proteína segura (respeita vegetariano)
+                safe_main_protein = get_safe_fallback("protein", restrictions, ["frango", "ovos", "tofu"])
+                if safe_main_protein:
+                    foods.append(calc_food(safe_main_protein, 180 if safe_main_protein != "ovos" else 200))
             
-            if main_carb and main_carb in FOODS:
+            if main_carb and main_carb in FOODS and main_carb not in excluded_restrictions:
                 foods.append(calc_food(main_carb, carb_grams))
             else:
-                # 🧠 FALLBACK: arroz branco
-                foods.append(calc_food("arroz_branco", 200))
+                # 🧠 FALLBACK: carb seguro
+                safe_carb = get_safe_fallback("carb_principal", restrictions, ["arroz_branco", "batata_doce", "tapioca"])
+                if safe_carb:
+                    foods.append(calc_food(safe_carb, 200))
             
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
@@ -1464,25 +1468,28 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # ❌ Proibido: carne, peixe, arroz, macarrão
             
             # Para ceia, NÃO usar proteínas principais - usar lista específica de leves
+            # Respeitando restrições alimentares
             CEIA_PROTEINS = ["iogurte_zero", "cottage", "whey_protein"]
             ceia_protein = None
             for p in CEIA_PROTEINS:
-                if p in preferred:
+                if p in preferred and p not in excluded_restrictions:
                     ceia_protein = p
                     break
             
             # Fruta para ceia
             ceia_fruit = None
             for f in fruit_priority:
-                if f in preferred:
+                if f in preferred and f not in excluded_restrictions:
                     ceia_fruit = f
                     break
             
             if ceia_protein and ceia_protein in FOODS:
                 foods.append(calc_food(ceia_protein, 170))
             else:
-                # 🧠 FALLBACK CEIA: iogurte zero (NUNCA carne!)
-                foods.append(calc_food("iogurte_zero", 170))
+                # 🧠 FALLBACK CEIA: proteína leve segura (respeita sem lactose)
+                safe_ceia_protein = get_safe_fallback("protein", restrictions, ["whey_protein", "ovos"])
+                if safe_ceia_protein:
+                    foods.append(calc_food(safe_ceia_protein, 100 if safe_ceia_protein == "ovos" else 30))
             
             if ceia_fruit and ceia_fruit in FOODS:
                 foods.append(calc_food(ceia_fruit, 120))
