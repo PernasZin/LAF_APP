@@ -1053,8 +1053,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         ["arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"], 
         "carb", exclude_complements=True)
     
-    # Carboidratos complementares (batata doce, feijão, lentilha - para acompanhar)
-    carb_complement = get_preferred_first(["batata_doce", "feijao", "lentilha"], "carb")
+    # Carboidratos complementares (feijão, lentilha, batata doce - para acompanhar)
+    # Feijão tem prioridade se estiver nas preferências
+    carb_complement = get_preferred_first(["feijao", "lentilha", "batata_doce"], "carb")
     
     # Carboidratos leves (para café da manhã) - EXCLUI feijão/lentilha
     light_carb_priority = get_preferred_first(
