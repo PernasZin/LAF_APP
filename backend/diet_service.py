@@ -1257,29 +1257,43 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
             # 🥪 Lanches
             # ✅ Permitido: frutas, whey, iogurte, castanhas
-            # ❌ Proibido: nada pesado
-            light_protein = select_best_food("lanche", preferred, restrictions, "protein", light_protein_priority_lanche)
-            fruit = select_best_food("lanche", preferred, restrictions, "fruit", fruit_priority)
-            fat = select_best_food("lanche", preferred, restrictions, "fat", fat_priority_lanche)
+            # ❌ Proibido: nada pesado (carne, peixe)
             
-            if light_protein and light_protein in FOODS:
-                foods.append(calc_food(light_protein, 170))
+            # Para lanches, NÃO usar proteínas principais - usar lista específica de leves
+            LANCHE_PROTEINS = ["iogurte_zero", "cottage", "whey_protein"]
+            lanche_protein = None
+            for p in LANCHE_PROTEINS:
+                if p in preferred:
+                    lanche_protein = p
+                    break
+            
+            # Fruta e gordura para lanche
+            lanche_fruit = None
+            for f in fruit_priority:
+                if f in preferred:
+                    lanche_fruit = f
+                    break
+            
+            lanche_fat = None
+            for f in fat_priority_lanche:
+                if f in preferred:
+                    lanche_fat = f
+                    break
+            
+            if lanche_protein and lanche_protein in FOODS:
+                foods.append(calc_food(lanche_protein, 170))
             else:
-                # 🧠 FALLBACK: whey se não tiver proteína leve
+                # 🧠 FALLBACK: whey (NUNCA carne no lanche!)
                 foods.append(calc_food("whey_protein", 30))
             
-            if fruit and fruit in FOODS:
-                foods.append(calc_food(fruit, 100))
+            if lanche_fruit and lanche_fruit in FOODS:
+                foods.append(calc_food(lanche_fruit, 100))
             else:
                 # 🧠 FALLBACK: banana
                 foods.append(calc_food("banana", 100))
             
-            if fat and fat in FOODS:
-                foods.append(calc_food(fat, 15))
-            
-            
-            if fat and fat in FOODS:
-                foods.append(calc_food(fat, 15))
+            if lanche_fat and lanche_fat in FOODS:
+                foods.append(calc_food(lanche_fat, 15))
                 
         elif meal_type == 'almoco':
             # 🍛 ALMOÇO - Refeição completa
