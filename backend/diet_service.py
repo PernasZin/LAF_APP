@@ -112,7 +112,8 @@ RESTRICTION_EXCLUSIONS = {
 PROTEINS_PRINCIPAIS = {"frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "peru"}
 
 # Proteínas Secundárias / Leves (lanches, café, ceia)
-PROTEINS_LEVES = {"ovos", "cottage", "whey_protein", "iogurte_zero", "iogurte_natural"}
+# NOTA: iogurte_natural REMOVIDO - usar apenas iogurte_zero
+PROTEINS_LEVES = {"ovos", "cottage", "whey_protein", "iogurte_zero"}
 
 # 🍚 CARBOIDRATOS
 # Carboidratos Principais (base energética da refeição)
