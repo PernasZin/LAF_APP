@@ -2019,6 +2019,9 @@ class DietAIService:
         # ✅ APLICA LIMITES GLOBAIS (cottage max 20g, aveia max 80g, feijão só com arroz)
         meals = apply_global_limits(meals, raw_preferred)
         
+        # ✅ VALIDA FREQUÊNCIA DE ALIMENTOS (nenhum alimento > 2x/dia)
+        meals = validate_food_frequency(meals)
+        
         # Ajusta para o número de refeições configurado
         if len(meals) > meal_count:
             meals = meals[:meal_count]
