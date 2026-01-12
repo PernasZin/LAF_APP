@@ -552,7 +552,10 @@ def calc_food(food_key: str, grams: float, round_down: bool = False) -> Dict:
     else:
         # Alimentos não-contáveis: usa lógica normal (múltiplos de 10g)
         g = round_to_10(grams)
-        g = max(MIN_FOOD_GRAMS, min(max_grams, g))
+        
+        # Verifica se tem limite máximo específico do alimento
+        food_max_g = f.get("max_g", max_grams)
+        g = max(MIN_FOOD_GRAMS, min(food_max_g, g))
         
         # GARANTIA: Sempre > 0
         if g <= 0:
