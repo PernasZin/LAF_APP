@@ -2021,9 +2021,9 @@ def validate_food_frequency(meals: List[Dict]) -> List[Dict]:
         "fruit": ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
     }
     
-    # Substitutos permitidos na CEIA (só proteínas leves!)
+    # Substitutos permitidos na CEIA (só proteínas leves! iogurte_natural removido)
     CEIA_SUBSTITUTES = {
-        "protein": ["iogurte_natural", "cottage", "banana", "morango"],  # Frutas como fallback
+        "protein": ["iogurte_zero", "cottage", "banana", "morango"],  # Frutas como fallback
         "fat": ["castanhas", "amendoas"],
         "fruit": ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
     }
