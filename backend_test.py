@@ -82,7 +82,7 @@ class LAFBackendTester:
         if success and response:
             try:
                 signup_result = response.json()
-                self.auth_token = signup_result.get("token")
+                self.auth_token = signup_result.get("access_token")
                 self.test_user_id = signup_result.get("user_id")
                 
                 # Adiciona token ao header para próximas requisições
