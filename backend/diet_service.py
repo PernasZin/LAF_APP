@@ -1057,6 +1057,32 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
     return None
 
 
+def get_safe_fallback(category: str, restrictions: List[str], fallback_list: List[str] = None) -> Optional[str]:
+    """
+    Retorna um fallback seguro que respeita as restrições.
+    """
+    excluded = set()
+    for r in restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded.update(RESTRICTION_EXCLUSIONS[r])
+    
+    DEFAULT_FALLBACKS = {
+        "protein": ["ovos", "whey_protein", "tofu"],
+        "carb_cafe": ["tapioca", "batata_doce"],  # Para café sem glúten
+        "carb_principal": ["arroz_branco", "batata_doce", "tapioca"],
+        "fat": ["azeite", "castanhas", "abacate"],
+        "fruit": ["banana", "maca", "morango"]
+    }
+    
+    options = fallback_list if fallback_list else DEFAULT_FALLBACKS.get(category, [])
+    
+    for fb in options:
+        if fb not in excluded and fb in FOODS:
+            return fb
+    
+    return None
+
+
 # ==================== GERAÇÃO DE DIETA ====================
 
 def generate_diet(target_p: int, target_c: int, target_f: int,
