@@ -1012,8 +1012,15 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
     1. Primeiro tenta alimentos do usuário
     2. Se não encontrar, usa FALLBACK da lista de prioridade
     3. NUNCA retorna None para categorias essenciais (proteína, carb)
+    4. SEMPRE respeita restrições alimentares
     """
-    # Usa apenas alimentos que o usuário selecionou
+    # Calcula alimentos excluídos por restrições
+    excluded_by_restrictions = set()
+    for r in restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded_by_restrictions.update(RESTRICTION_EXCLUSIONS[r])
+    
+    # Usa apenas alimentos que o usuário selecionou (já filtra restrições)
     available = get_allowed_foods(meal_type, preferred, restrictions, category)
     
     if exclude:
@@ -1022,27 +1029,32 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
     if available:
         # Segue prioridade se possível
         for p in priority:
-            if p in available:
+            if p in available and p not in excluded_by_restrictions:
                 return p
-        return available[0]
+        # Retorna primeiro disponível que não viole restrições
+        for a in available:
+            if a not in excluded_by_restrictions:
+                return a
     
     # 🧠 AUTOCOMPLETE: Se não há alimentos do usuário, usa a lista de prioridade (que já tem fallbacks)
     for p in priority:
-        if p in FOODS and p not in (exclude or set()):
-            # Verifica se não está nas restrições
-            if p not in filter_by_restrictions({p}, restrictions):
-                continue
+        if p in FOODS and p not in (exclude or set()) and p not in excluded_by_restrictions:
             return p
     
-    # Último recurso: fallback absoluto por categoria
+    # Último recurso: fallback absoluto por categoria (RESPEITANDO RESTRIÇÕES)
     ABSOLUTE_FALLBACKS = {
-        "protein": "frango",
-        "carb": "arroz_branco",
-        "fat": "azeite",
-        "fruit": "banana"
+        "protein": ["frango", "ovos", "whey_protein", "tofu"],
+        "carb": ["arroz_branco", "batata_doce", "aveia", "tapioca"],
+        "fat": ["azeite", "castanhas", "abacate"],
+        "fruit": ["banana", "maca", "morango", "laranja"]
     }
     
-    return ABSOLUTE_FALLBACKS.get(category)
+    fallbacks = ABSOLUTE_FALLBACKS.get(category, [])
+    for fb in fallbacks:
+        if fb not in excluded_by_restrictions:
+            return fb
+    
+    return None
 
 
 # ==================== GERAÇÃO DE DIETA ====================
