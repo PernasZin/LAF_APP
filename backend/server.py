@@ -545,7 +545,7 @@ async def logout(authorization: Optional[str] = Header(None)):
 # ==================== DIET ENDPOINTS ====================
 
 @api_router.post("/diet/generate")
-async def generate_diet(user_id: str):
+async def generate_diet(user_id: str, request_meal_count: Optional[int] = None):
     """
     Gera um plano de dieta personalizado.
     
