@@ -469,6 +469,8 @@ test_plan:
 
 agent_communication:
   - agent: "main"
+    message: "🔍 AUDITORIA COMPLETA SOLICITADA - Usuário quer testar TODAS as funcionalidades, TODAS as combinações, TODAS as preferências. Testar especialmente: (1) Dietas com 4, 5 e 6 refeições, (2) Todas as restrições alimentares (Vegetariano, Sem Lactose, Sem Glúten), (3) Todos os objetivos (Cutting, Bulking, Manutenção), (4) Substituição de alimentos, (5) Treinos com diferentes tempos e frequências. IDENTIFICAR E REPORTAR TODOS OS ERROS ENCONTRADOS."
+  - agent: "main"
     message: "FASE 1 implemented - Backend has user profile CRUD with TDEE/macros calculation. Frontend has complete 5-step onboarding flow and home screen. Backend POST /api/user/profile tested successfully with curl. Need to test: GET/PUT endpoints, complete onboarding flow, profile display on home screen. All APIs use /api prefix."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETE - All user profile APIs tested successfully: GET/PUT endpoints working correctly with proper TDEE/macros calculations and automatic recalculation. Tested edge cases: female profiles, different goals (cutting/bulking/atleta), minimal data profiles. All 8 backend tests passed. Backend is fully functional for FASE 1."
