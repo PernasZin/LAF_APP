@@ -1468,12 +1468,15 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if fruit and fruit in FOODS:
                 foods.append(calc_food(fruit, 120))
             else:
-                # 🧠 FALLBACK: banana
+                # 🧠 FALLBACK: fruta segura
                 foods.append(calc_food(get_restriction_safe_fruit(), 120))
             
-            # Gordura (opcional)
-            if fat and fat in FOODS:
+            # Gordura (opcional) - NO CAFÉ APENAS CASTANHAS, NÃO AZEITE!
+            if fat and fat in FOODS and fat != "azeite":
                 foods.append(calc_food(fat, 15))
+            elif "castanhas" not in excluded_restrictions:
+                # Fallback: castanhas (não azeite no café!)
+                foods.append(calc_food("castanhas", 15))
                 
         elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
             # 🥪 Lanches
