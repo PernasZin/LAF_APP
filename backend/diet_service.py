@@ -129,16 +129,22 @@ RESTRICTION_EXCLUSIONS = {
     "Vegetariano": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", 
                    "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
     "Sem Lactose": {"cottage", "queijo", "cream_cheese", "manteiga", "iogurte_zero", "iogurte_natural", "whey_protein"},
-    "Sem Glúten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma"},
+    "Sem Glúten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma", "seitan"},
     "Low Carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", 
                  "macarrao", "pao", "pao_integral", "banana", "manga", "uva"},
+    "Diabético": {"mel", "leite_condensado", "granola", "banana", "manga", "uva", 
+                  "melancia", "abacaxi", "mamao", "tapioca", "pao", "pao_integral", 
+                  "pao_forma", "farofa", "arroz_branco"},
     # Versões lowercase (como vem do frontend)
     "vegetariano": {"frango", "coxa_frango", "patinho", "carne_moida", "suino", 
                    "tilapia", "atum", "salmao", "camarao", "sardinha", "peru"},
     "sem_lactose": {"cottage", "queijo", "cream_cheese", "manteiga", "iogurte_zero", "iogurte_natural", "whey_protein"},
-    "sem_gluten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma"},
+    "sem_gluten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma", "seitan"},
     "low_carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", 
                  "macarrao", "pao", "pao_integral", "banana", "manga", "uva"},
+    "diabetico": {"mel", "leite_condensado", "granola", "banana", "manga", "uva", 
+                  "melancia", "abacaxi", "mamao", "tapioca", "pao", "pao_integral", 
+                  "pao_forma", "farofa", "arroz_branco"},
 }
 
 
