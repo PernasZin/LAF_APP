@@ -2111,10 +2111,14 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     # Garante calorias mínimas (RESPEITANDO regras da refeição E RESTRIÇÕES)
     if mcal < MIN_MEAL_CALORIES:
         if meal_index in [0, 5]:  # Café ou Ceia - adicionar carb ou fruta
-            safe_carb = "tapioca" if "tapioca" not in excluded_by_restrictions else "batata_doce"
+            # Para diabéticos: não usar tapioca, usar aveia ou fruta
+            if "diabetico" in (restrictions or []) or "tapioca" in excluded_by_restrictions:
+                safe_carb = "aveia" if "aveia" not in excluded_by_restrictions else get_restriction_safe_fruit()
+            else:
+                safe_carb = "tapioca" if "tapioca" not in excluded_by_restrictions else "aveia"
             validated_foods.append(calc_food(safe_carb, 50) if meal_index == 0 else calc_food(get_restriction_safe_fruit(), 100))
         elif meal_index in [1, 3]:  # Lanches - adicionar fruta (NUNCA carne!)
-            validated_foods.append(calc_food("maca", 150))
+            validated_foods.append(calc_food(get_restriction_safe_fruit(), 150))
         else:  # Almoço/Jantar - adicionar proteína segura
             safe_protein = get_safe_protein_main()
             validated_foods.append(calc_food(safe_protein, 100))
