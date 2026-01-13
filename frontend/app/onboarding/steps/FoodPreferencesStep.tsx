@@ -40,6 +40,13 @@ const FOOD_CATEGORIES = {
       { key: 'salmao', name: 'Salmão' },
       { key: 'peru', name: 'Peru' },
       { key: 'cottage', name: 'Queijo Cottage' },
+      // Proteínas Vegetais
+      { key: 'tofu', name: 'Tofu' },
+      { key: 'tempeh', name: 'Tempeh' },
+      { key: 'edamame', name: 'Edamame' },
+      { key: 'seitan', name: 'Seitan' },
+      { key: 'grao_de_bico', name: 'Grão de Bico' },
+      { key: 'proteina_ervilha', name: 'Proteína de Ervilha' },
     ],
   },
   carbs: {
