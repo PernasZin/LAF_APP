@@ -1200,13 +1200,26 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     COMPLEMENT_FOODS = {"feijao", "lentilha"}
     
     # 🧠 FALLBACKS INTELIGENTES por tipo de refeição
+    # ✅ ORDEM: Proteínas vegetais primeiro (para vegetarianos)
     FALLBACKS = {
-        "protein_principal": ["frango", "patinho", "tilapia", "atum", "tofu"],
-        "protein_leve": ["ovos", "whey_protein", "iogurte_zero", "cottage", "tofu"],
+        "protein_principal": ["tofu", "tempeh", "grao_de_bico", "frango", "patinho", "tilapia"],
+        "protein_leve": ["ovos", "tofu", "edamame", "iogurte_zero", "cottage"],
         "carb_principal": ["arroz_branco", "batata_doce", "macarrao", "tapioca"],
         "carb_leve": ["aveia", "pao_integral", "tapioca", "batata_doce"],
         "fat": ["azeite", "castanhas", "pasta_amendoim", "abacate"],
         "fruit": ["banana", "maca", "morango", "laranja"]
+    }
+    
+    # 🔒 LIMITES DE PROTEÍNA para evitar excesso calórico
+    PROTEIN_LIMITS = {
+        "tofu": {"min": 100, "max": 200},
+        "tempeh": {"min": 80, "max": 150},
+        "grao_de_bico": {"min": 100, "max": 180},
+        "edamame": {"min": 80, "max": 150},
+        "ovos": {"min": 100, "max": 200},
+        "frango": {"min": 150, "max": 250},
+        "whey_protein": {"min": 25, "max": 35},  # MÁXIMO 35g de whey!
+        "proteina_ervilha": {"min": 25, "max": 35},
     }
     
     # 🔒 Calcula alimentos excluídos por restrições UMA VEZ
