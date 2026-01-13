@@ -2625,6 +2625,33 @@ class DietAIService:
             if abs(total_p - target_p) <= 15 and abs(total_c - target_c) <= 30 and abs(total_f - target_f) <= 10:
                 break
         
+        # 🔒 COMPENSAÇÃO PARA RESTRIÇÕES SEVERAS
+        # Se a dieta ainda está muito abaixo das calorias alvo, adiciona mais comida
+        total_cal = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
+        cal_diff = target_calories - total_cal
+        
+        # Se está mais de 20% abaixo do target, compensa nas refeições principais
+        if cal_diff > target_calories * 0.20:
+            # Determina índices das refeições principais (almoço e jantar)
+            if meal_count == 4:
+                main_meal_indices = [1, 3]  # Almoço, Jantar
+            elif meal_count == 5:
+                main_meal_indices = [2, 4]  # Almoço, Jantar
+            else:
+                main_meal_indices = [2, 4]  # Almoço, Jantar
+            
+            # Adiciona carboidrato seguro nas refeições principais
+            safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["batata_doce", "arroz_integral", "arroz_branco"])
+            if safe_carb:
+                extra_grams = round_to_10(min(cal_diff / 3, 200))  # Máximo 200g extra
+                for idx in main_meal_indices:
+                    if idx < len(meals):
+                        meals[idx]["foods"].append(calc_food(safe_carb, extra_grams))
+                        # Recalcula totais da refeição
+                        mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                        meals[idx]["total_calories"] = mcal
+                        meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+        
         # Aplica horários personalizados se fornecidos
         if meal_times and len(meal_times) == len(meals):
             for i, mt in enumerate(meal_times):
