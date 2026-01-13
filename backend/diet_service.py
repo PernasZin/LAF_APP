@@ -2633,8 +2633,8 @@ class DietAIService:
         total_cal = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
         cal_diff = target_calories - total_cal
         
-        # Se está mais de 20% abaixo do target, compensa nas refeições principais
-        if cal_diff > target_calories * 0.20:
+        # Se está mais de 15% abaixo do target, compensa nas refeições principais
+        if cal_diff > target_calories * 0.15:
             # Determina índices das refeições principais (almoço e jantar)
             if meal_count == 4:
                 main_meal_indices = [1, 3]  # Almoço, Jantar
@@ -2646,14 +2646,35 @@ class DietAIService:
             # Adiciona carboidrato seguro nas refeições principais
             safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["batata_doce", "arroz_integral", "arroz_branco"])
             if safe_carb:
-                extra_grams = round_to_10(min(cal_diff / 3, 200))  # Máximo 200g extra
+                # Calcula quanto de carb é necessário para compensar
+                # Batata doce: ~26 kcal/100g * C = cal_diff
+                carb_per_100g = FOODS.get(safe_carb, {}).get("c", 20) * 4  # kcal de carbs por 100g
+                fat_per_100g = FOODS.get(safe_carb, {}).get("f", 0) * 9    # kcal de gordura por 100g  
+                total_per_100g = carb_per_100g + fat_per_100g
+                
+                # Distribui a compensação entre almoço e jantar
+                extra_grams_each = round_to_10(min((cal_diff / 2) / (total_per_100g / 100), 250))  # Máximo 250g extra por refeição
+                
                 for idx in main_meal_indices:
                     if idx < len(meals):
-                        meals[idx]["foods"].append(calc_food(safe_carb, extra_grams))
+                        meals[idx]["foods"].append(calc_food(safe_carb, extra_grams_each))
                         # Recalcula totais da refeição
                         mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
                         meals[idx]["total_calories"] = mcal
                         meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            # Se ainda está muito abaixo (>25% de déficit), adiciona proteína também
+            total_cal_after_carbs = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
+            if target_calories - total_cal_after_carbs > target_calories * 0.25:
+                safe_protein = get_restriction_safe_protein()
+                if safe_protein:
+                    extra_protein_grams = 100
+                    for idx in main_meal_indices:
+                        if idx < len(meals):
+                            meals[idx]["foods"].append(calc_food(safe_protein, extra_protein_grams))
+                            mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                            meals[idx]["total_calories"] = mcal
+                            meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
         
         # Aplica horários personalizados se fornecidos
         if meal_times and len(meal_times) == len(meals):
