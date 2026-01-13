@@ -2672,8 +2672,11 @@ class DietAIService:
             if not pao_found and pao_allowed:
                 meals[cafe_idx]["foods"].append(calc_food("pao_integral", 75))  # 3 fatias
             elif not pao_found:
-                # Para diabéticos/sem glúten: adiciona mais batata doce no café
-                meals[cafe_idx]["foods"].append(calc_food("batata_doce", 100))
+                # Para diabéticos/sem glúten: adiciona tapioca ou aveia no café (NÃO batata!)
+                if "sem_gluten" not in dietary_restrictions:
+                    meals[cafe_idx]["foods"].append(calc_food("aveia", 60))
+                else:
+                    meals[cafe_idx]["foods"].append(calc_food("tapioca", 80))
             
             # Recalcula déficit após ajuste do pão/batata
             total_cal_after_pao = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
