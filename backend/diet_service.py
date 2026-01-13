@@ -2695,8 +2695,10 @@ class DietAIService:
                     fat_per_100g = FOODS.get(safe_carb, {}).get("f", 0) * 9
                     total_per_100g = carb_per_100g + fat_per_100g
                     
-                    # Distribui a compensação entre almoço e jantar (máximo 200g cada)
-                    extra_grams_each = round_to_10(min((cal_diff_remaining / 2) / (total_per_100g / 100), 200))
+                    # Distribui a compensação entre almoço e jantar
+                    # Para diabéticos (que não tem arroz/pão), permite mais batata (até 300g cada)
+                    max_extra = 300 if "diabetico" in dietary_restrictions else 200
+                    extra_grams_each = round_to_10(min((cal_diff_remaining / 2) / (total_per_100g / 100), max_extra))
                     
                     for idx in main_meal_indices:
                         if idx < len(meals):
