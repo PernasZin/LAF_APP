@@ -119,7 +119,30 @@ def get_restriction_safe_protein() -> str:
         if p not in excluded:
             return p
     
-    return "banana"  # Último fallback - fruta (não é proteína, mas não dá erro)
+    return "maca"  # Último fallback - fruta segura para diabéticos
+
+def get_restriction_safe_fruit() -> str:
+    """
+    Retorna uma fruta segura que respeita as restrições alimentares atuais.
+    Para diabéticos: exclui frutas com alto índice glicêmico (banana, manga, uva, etc.)
+    """
+    global _current_diet_restrictions
+    
+    # Calcula exclusões
+    excluded = set()
+    for r in _current_diet_restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded.update(RESTRICTION_EXCLUSIONS[r])
+    
+    # Lista de frutas em ordem de prioridade (diabético-friendly primeiro)
+    # Frutas com baixo IG: maçã, pera, morango, laranja, kiwi
+    fruits = ["maca", "pera", "morango", "laranja", "kiwi", "banana", "mamao", "melancia"]
+    
+    for f in fruits:
+        if f not in excluded:
+            return f
+    
+    return "maca"  # Último fallback
 
 
 # ==================== RESTRIÇÕES ALIMENTARES ====================
