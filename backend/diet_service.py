@@ -1518,11 +1518,22 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if lanche_fruit and lanche_fruit in FOODS:
                 foods.append(calc_food(lanche_fruit, 100))
             else:
-                # 🧠 FALLBACK: banana (sempre segura)
+                # 🧠 FALLBACK: fruta segura (respeita diabético)
                 foods.append(calc_food(get_restriction_safe_fruit(), 100))
             
             if lanche_fat and lanche_fat in FOODS:
                 foods.append(calc_food(lanche_fat, 15))
+            else:
+                # 🧠 FALLBACK: castanhas (sempre seguro)
+                foods.append(calc_food("castanhas", 20))
+            
+            # 🔒 GARANTIA: Se o lanche está muito leve, adiciona mais alimentos
+            meal_cal = sum(f.get('calories', 0) for f in foods if isinstance(f, dict))
+            if meal_cal < 200:
+                # Adiciona mais uma fruta ou proteína
+                safe_protein = get_safe_fallback("protein", restrictions, ["ovos", "tofu", "edamame"])
+                if safe_protein:
+                    foods.append(calc_food(safe_protein, 100))
                 
         elif meal_type == 'almoco':
             # 🍛 ALMOÇO - Refeição completa
