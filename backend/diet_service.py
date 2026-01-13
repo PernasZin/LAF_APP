@@ -102,7 +102,7 @@ def set_diet_restrictions(restrictions: List[str]):
 def get_restriction_safe_protein() -> str:
     """
     Retorna uma proteína segura que respeita as restrições alimentares atuais.
-    Prioriza: tofu (vegetariano) > ovos > frango (se permitido)
+    Prioriza proteínas vegetais para vegetarianos: tofu > tempeh > edamame > ovos > frango
     """
     global _current_diet_restrictions
     
@@ -113,7 +113,7 @@ def get_restriction_safe_protein() -> str:
             excluded.update(RESTRICTION_EXCLUSIONS[r])
     
     # Lista de proteínas em ordem de prioridade (vegetariano-friendly primeiro)
-    proteins = ["tofu", "ovos", "frango", "patinho", "tilapia"]
+    proteins = ["tofu", "tempeh", "edamame", "grao_de_bico", "ovos", "frango", "patinho", "tilapia"]
     
     for p in proteins:
         if p not in excluded:
