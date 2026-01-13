@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Check, Leaf, Fish, Milk, Wheat, Egg, Shell, AlertTriangle, Activity } from 'lucide-react-native';
+import { Check, Leaf, Milk, Wheat, Egg, AlertTriangle, Activity } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
