@@ -1466,7 +1466,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(carb_pao, pao_grams))
             else:
                 # 🧠 FALLBACK: carb de café seguro (respeita sem glúten)
-                safe_carb = get_safe_fallback("carb_cafe", restrictions, ["pao_integral", "tapioca", "batata_doce"])
+                safe_carb = get_safe_fallback("carb_cafe", restrictions, ["pao_integral", "tapioca", "aveia"])
                 if safe_carb:
                     foods.append(calc_food(safe_carb, pao_grams))
             
