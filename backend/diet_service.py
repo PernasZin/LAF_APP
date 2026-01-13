@@ -1451,14 +1451,24 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if safe_protein:
                     foods.append(calc_food(safe_protein, 150))
             
-            # 🍞 PÃO (sempre presente no café) - MÍNIMO 50g (1 fatia)
+            # 🍞 PÃO (sempre presente no café)
+            # MÍNIMO: 2 fatias (50g) | PODE AUMENTAR: 4-5 fatias (100-125g) se precisar de mais carbs
+            # Isso ajuda a não sobrecarregar o arroz nas refeições principais
+            pao_grams = 50  # Base: 2 fatias
+            
+            # Se o objetivo é bulking ou a meta de carbs é alta, aumenta o pão
+            if goal == "bulking" or target_c > 300:
+                pao_grams = 100  # 4 fatias para bulking
+            elif target_c > 250:
+                pao_grams = 75   # 3 fatias para metas intermediárias
+            
             if carb_pao and carb_pao in FOODS:
-                foods.append(calc_food(carb_pao, 50))  # Mínimo 1 fatia = 50g
+                foods.append(calc_food(carb_pao, pao_grams))
             else:
                 # 🧠 FALLBACK: carb de café seguro (respeita sem glúten)
                 safe_carb = get_safe_fallback("carb_cafe", restrictions, ["pao_integral", "tapioca", "batata_doce"])
                 if safe_carb:
-                    foods.append(calc_food(safe_carb, 50))
+                    foods.append(calc_food(safe_carb, pao_grams))
             
             # 🥣 AVEIA (opcional, se o usuário tiver e não for sem glúten)
             if carb_aveia and carb_aveia in FOODS and carb_aveia not in excluded_restrictions:
