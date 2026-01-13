@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad } from 'lucide-react-native';
+import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad, Activity } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
@@ -20,7 +20,7 @@ const RESTRICTIONS = [
   { value: 'vegano', label: 'Vegano', icon: Leaf, color: '#10B981' },
   { value: 'sem_lactose', label: 'Sem Lactose', icon: Milk, color: '#3B82F6' },
   { value: 'sem_gluten', label: 'Sem Glúten', icon: Wheat, color: '#F59E0B' },
-  { value: 'sem_frutos_mar', label: 'Sem Frutos do Mar', icon: AlertTriangle, color: '#06B6D4' },
+  { value: 'diabetico', label: 'Diabético', icon: Activity, color: '#8B5CF6' },
 ];
 
 // Alimentos disponíveis organizados por categoria
