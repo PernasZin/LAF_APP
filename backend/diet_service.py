@@ -102,7 +102,10 @@ def set_diet_restrictions(restrictions: List[str]):
 def get_restriction_safe_protein() -> str:
     """
     Retorna uma proteína segura que respeita as restrições alimentares atuais.
-    Prioriza proteínas vegetais para vegetarianos: tofu > tempeh > edamame > ovos > frango
+    
+    REGRA IMPORTANTE:
+    - Para vegetarianos: prioriza tofu > tempeh > edamame > ovos
+    - Para NÃO vegetarianos: prioriza frango > patinho > tilapia > ovos
     """
     global _current_diet_restrictions
     
@@ -112,14 +115,21 @@ def get_restriction_safe_protein() -> str:
         if r in RESTRICTION_EXCLUSIONS:
             excluded.update(RESTRICTION_EXCLUSIONS[r])
     
-    # Lista de proteínas em ordem de prioridade (vegetariano-friendly primeiro)
-    proteins = ["tofu", "tempeh", "edamame", "grao_de_bico", "ovos", "frango", "patinho", "tilapia"]
+    # Verifica se é vegetariano
+    is_vegetarian = "vegetariano" in _current_diet_restrictions or "vegano" in _current_diet_restrictions
+    
+    if is_vegetarian:
+        # Ordem para vegetarianos: proteínas vegetais primeiro
+        proteins = ["tofu", "tempeh", "edamame", "grao_de_bico", "ovos"]
+    else:
+        # Ordem para não-vegetarianos: carnes e ovos primeiro (mais comum e acessível)
+        proteins = ["frango", "patinho", "tilapia", "ovos", "atum"]
     
     for p in proteins:
         if p not in excluded:
             return p
     
-    return "maca"  # Último fallback - fruta segura para diabéticos
+    return "ovos"  # Último fallback - ovos são geralmente aceitos
 
 def get_restriction_safe_fruit() -> str:
     """
