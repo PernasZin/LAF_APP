@@ -1495,12 +1495,24 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     break
             
             if lanche_protein and lanche_protein in FOODS:
-                foods.append(calc_food(lanche_protein, 170))
+                # Ajusta quantidade baseado no tipo de proteína
+                if lanche_protein == 'whey_protein' or lanche_protein == 'proteina_ervilha':
+                    foods.append(calc_food(lanche_protein, 30))  # Máximo 1 scoop
+                elif lanche_protein == 'iogurte_zero':
+                    foods.append(calc_food(lanche_protein, 170))
+                else:
+                    foods.append(calc_food(lanche_protein, 100))
             else:
                 # 🧠 FALLBACK: proteína leve segura (respeita sem lactose e vegetariano)
-                safe_lanche_protein = get_safe_fallback("protein", restrictions, ["iogurte_zero", "whey_protein", "ovos", "tofu"])
+                # Prioriza proteínas vegetais para vegetarianos
+                safe_lanche_protein = get_safe_fallback("protein", restrictions, ["ovos", "tofu", "edamame", "iogurte_zero"])
                 if safe_lanche_protein:
-                    grams = 100 if safe_lanche_protein in ["ovos", "tofu"] else 170 if safe_lanche_protein == "iogurte_zero" else 30
+                    if safe_lanche_protein == "iogurte_zero":
+                        grams = 170
+                    elif safe_lanche_protein in ["ovos", "tofu", "edamame"]:
+                        grams = 100
+                    else:
+                        grams = 80
                     foods.append(calc_food(safe_lanche_protein, grams))
             
             if lanche_fruit and lanche_fruit in FOODS:
