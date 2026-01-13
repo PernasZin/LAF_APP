@@ -1937,6 +1937,27 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         if not adjusted:
             break
     
+    # 🔒 GARANTIA FINAL: Nenhuma refeição pode ficar vazia ou só com azeite/castanhas
+    for m_idx, meal in enumerate(meals):
+        foods = meal.get("foods", [])
+        
+        # Verifica se a refeição está vazia ou só tem gordura
+        non_fat_foods = [f for f in foods if f.get("key") not in {"azeite", "castanhas", "pasta_amendoim"}]
+        
+        if len(non_fat_foods) == 0:
+            # Refeição está vazia ou só com gordura - adiciona alimento adequado
+            if m_idx == 0:  # Café
+                meals[m_idx]["foods"].insert(0, calc_food("ovos", 100))
+                meals[m_idx]["foods"].insert(1, calc_food("tapioca", 80))
+            elif m_idx in [1, 3]:  # Lanches
+                meals[m_idx]["foods"].insert(0, calc_food("maca", 150))
+                meals[m_idx]["foods"].insert(1, calc_food("ovos", 100))
+            elif m_idx == 5:  # Ceia
+                meals[m_idx]["foods"].insert(0, calc_food("morango", 150))
+            else:  # Almoço/Jantar
+                meals[m_idx]["foods"].insert(0, calc_food("frango", 150))
+                meals[m_idx]["foods"].insert(1, calc_food("arroz_branco", 200))
+    
     return meals
 
 
