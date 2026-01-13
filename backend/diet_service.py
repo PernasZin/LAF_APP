@@ -1448,7 +1448,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(fruit, 120))
             else:
                 # 🧠 FALLBACK: banana
-                foods.append(calc_food("banana", 120))
+                foods.append(calc_food(get_restriction_safe_fruit(), 120))
             
             # Gordura (opcional)
             if fat and fat in FOODS:
@@ -1494,7 +1494,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(lanche_fruit, 100))
             else:
                 # 🧠 FALLBACK: banana (sempre segura)
-                foods.append(calc_food("banana", 100))
+                foods.append(calc_food(get_restriction_safe_fruit(), 100))
             
             if lanche_fat and lanche_fat in FOODS:
                 foods.append(calc_food(lanche_fat, 15))
@@ -1581,7 +1581,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(ceia_fruit, 120))
             else:
                 # 🧠 FALLBACK: banana
-                foods.append(calc_food("banana", 120))
+                foods.append(calc_food(get_restriction_safe_fruit(), 120))
         
         meals.append({
             "name": meal_info['name'],
@@ -1994,7 +1994,7 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
             # PERMITIDO: ovos, aveia, frutas | PROIBIDO: carnes, azeite
             safe_protein = get_safe_protein_light()
             safe_carb = "aveia" if "aveia" not in excluded_by_restrictions else "tapioca"
-            foods = [calc_food(safe_protein, 100), calc_food(safe_carb, 40), calc_food("banana", 100)]
+            foods = [calc_food(safe_protein, 100), calc_food(safe_carb, 40), calc_food(get_restriction_safe_fruit(), 100)]
         elif meal_index == 1:  # Lanche manhã
             # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
             foods = [calc_food("maca", 150), calc_food("castanhas", 20)]
@@ -2021,7 +2021,7 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         if validated_food:
             # REGRA ABSOLUTA: Se for CEIA, NUNCA permite ovos
             if meal_index == 5 and validated_food.get("key") == "ovos":
-                validated_food = calc_food("banana", validated_food.get("grams", 100))
+                validated_food = calc_food(get_restriction_safe_fruit(), validated_food.get("grams", 100))
             validated_foods.append(validated_food)
     
     # Garante que tem pelo menos 1 alimento (RESPEITANDO regras da refeição E RESTRIÇÕES)
@@ -2032,7 +2032,7 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         elif meal_index == 5:  # Ceia - NUNCA OVOS, sem cottage!
             validated_foods = [calc_food("morango", 150)]
         elif meal_index in [1, 3]:  # Lanches - fruta (NUNCA carne!)
-            validated_foods = [calc_food("banana", 150)]
+            validated_foods = [calc_food(get_restriction_safe_fruit(), 150)]
         else:  # Almoço/Jantar - proteína principal
             safe_protein = get_safe_protein_main()
             validated_foods = [calc_food(safe_protein, 150)]
@@ -2044,7 +2044,7 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     if mcal < MIN_MEAL_CALORIES:
         if meal_index in [0, 5]:  # Café ou Ceia - adicionar carb ou fruta
             safe_carb = "tapioca" if "tapioca" not in excluded_by_restrictions else "batata_doce"
-            validated_foods.append(calc_food(safe_carb, 50) if meal_index == 0 else calc_food("banana", 100))
+            validated_foods.append(calc_food(safe_carb, 50) if meal_index == 0 else calc_food(get_restriction_safe_fruit(), 100))
         elif meal_index in [1, 3]:  # Lanches - adicionar fruta (NUNCA carne!)
             validated_foods.append(calc_food("maca", 150))
         else:  # Almoço/Jantar - adicionar proteína segura
@@ -2194,7 +2194,7 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
                         foods_to_keep.append(food)
                     else:
                         # Substitui por fruta
-                        foods_to_keep.append(calc_food("banana", 150))
+                        foods_to_keep.append(calc_food(get_restriction_safe_fruit(), 150))
                 else:
                     foods_to_keep.append(food)
             
@@ -2335,7 +2335,7 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
             if meal_count == 6 and meal_idx == 5 and food.get("key") == "ovos":
                 # Substitui ovos por fruta na ceia (sem cottage - limite muito baixo)
                 grams = food.get("grams", 100)
-                validated_meals[meal_idx]["foods"][food_idx] = calc_food("banana", grams)
+                validated_meals[meal_idx]["foods"][food_idx] = calc_food(get_restriction_safe_fruit(), grams)
                 # Recalcula totais da refeição
                 mp, mc, mf, mcal = sum_foods(validated_meals[meal_idx]["foods"])
                 validated_meals[meal_idx]["total_calories"] = mcal
