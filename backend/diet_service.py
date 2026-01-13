@@ -1938,8 +1938,15 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
             break
     
     # 🔒 GARANTIA FINAL: Nenhuma refeição pode ficar vazia ou só com azeite/castanhas
+    # E azeite SÓ pode aparecer no almoço/jantar!
     for m_idx, meal in enumerate(meals):
         foods = meal.get("foods", [])
+        
+        # REMOVE azeite de refeições que não são almoço/jantar (índices 2 e 4)
+        is_main_meal = m_idx in [2, 4] if num_meals == 6 else m_idx in [1, 3] if num_meals == 4 else m_idx in [2, 4]
+        if not is_main_meal:
+            meals[m_idx]["foods"] = [f for f in foods if f.get("key") != "azeite"]
+            foods = meals[m_idx]["foods"]
         
         # Verifica se a refeição está vazia ou só tem gordura
         non_fat_foods = [f for f in foods if f.get("key") not in {"azeite", "castanhas", "pasta_amendoim"}]
