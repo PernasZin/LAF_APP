@@ -2661,11 +2661,21 @@ class DietAIService:
                         pao_found = True
                     break
             
-            # Se não tinha pão, adiciona (se não for sem glúten)
-            if not pao_found and "sem_gluten" not in dietary_restrictions and "sem_glúten" not in dietary_restrictions:
+            # Se não tinha pão, adiciona (se não for sem glúten E não for diabético)
+            # Diabéticos não podem pão!
+            pao_allowed = (
+                "sem_gluten" not in dietary_restrictions and 
+                "sem_glúten" not in dietary_restrictions and
+                "diabetico" not in dietary_restrictions and
+                "Diabético" not in dietary_restrictions
+            )
+            if not pao_found and pao_allowed:
                 meals[cafe_idx]["foods"].append(calc_food("pao_integral", 75))  # 3 fatias
+            elif not pao_found:
+                # Para diabéticos/sem glúten: adiciona mais batata doce no café
+                meals[cafe_idx]["foods"].append(calc_food("batata_doce", 100))
             
-            # Recalcula déficit após ajuste do pão
+            # Recalcula déficit após ajuste do pão/batata
             total_cal_after_pao = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
             cal_diff_remaining = target_calories - total_cal_after_pao
             
