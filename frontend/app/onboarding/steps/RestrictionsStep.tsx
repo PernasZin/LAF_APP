@@ -3,7 +3,7 @@
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { Check, Leaf, Fish, Milk, Wheat, Egg, Shell, AlertTriangle } from 'lucide-react-native';
+import { Check, Leaf, Fish, Milk, Wheat, Egg, Shell, AlertTriangle, Activity } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 
 interface Props {
@@ -18,6 +18,7 @@ const RESTRICTIONS = [
   { value: 'vegano', label: 'Vegano', icon: Leaf, color: '#10B981' },
   { value: 'sem_lactose', label: 'Sem Lactose', icon: Milk, color: '#3B82F6' },
   { value: 'sem_gluten', label: 'Sem Glúten', icon: Wheat, color: '#F59E0B' },
+  { value: 'diabetico', label: 'Diabético', icon: Activity, color: '#8B5CF6' },
   { value: 'sem_frutos_mar', label: 'Sem Frutos do Mar', icon: Fish, color: '#06B6D4' },
   { value: 'sem_ovo', label: 'Sem Ovos', icon: Egg, color: '#EAB308' },
   { value: 'sem_amendoim', label: 'Sem Amendoim', icon: AlertTriangle, color: '#EF4444' },
