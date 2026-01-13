@@ -365,6 +365,13 @@ FOODS = {
     "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
     "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
     
+    # === PROTEÍNAS VEGETAIS (para vegetarianos/veganos) ===
+    "tempeh": {"name": "Tempeh", "p": 19.0, "c": 9.0, "f": 11.0, "category": "protein", "subcategory": "vegetal", "unit": "fatia média", "unit_g": 100},
+    "seitan": {"name": "Seitan", "p": 25.0, "c": 4.0, "f": 2.0, "category": "protein", "subcategory": "vegetal", "unit": "porção", "unit_g": 100},
+    "edamame": {"name": "Edamame", "p": 11.0, "c": 10.0, "f": 5.0, "category": "protein", "subcategory": "vegetal", "unit": "xícara", "unit_g": 100},
+    "grao_de_bico": {"name": "Grão de Bico", "p": 9.0, "c": 27.0, "f": 3.0, "category": "protein", "subcategory": "vegetal", "unit": "concha média", "unit_g": 100},
+    "proteina_ervilha": {"name": "Proteína de Ervilha", "p": 80.0, "c": 4.0, "f": 2.0, "category": "protein", "subcategory": "supplement_vegetal", "unit": "scoop", "unit_g": 30},
+    
     # === CARBOIDRATOS ===
     "arroz_branco": {"name": "Arroz Branco", "p": 2.6, "c": 28.0, "f": 0.3, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
     "arroz_integral": {"name": "Arroz Integral", "p": 2.6, "c": 23.0, "f": 0.9, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
