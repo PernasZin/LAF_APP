@@ -1210,12 +1210,13 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     COMPLEMENT_FOODS = {"feijao", "lentilha"}
     
     # 🧠 FALLBACKS INTELIGENTES por tipo de refeição
-    # ✅ ORDEM: Proteínas vegetais primeiro (para vegetarianos)
+    # ✅ ORDEM: Proteínas tradicionais primeiro (frango, ovos)
+    # ✅ Proteínas vegetais (tofu, tempeh) são filtradas pelo get_safe_fallback quando vegetariano
     FALLBACKS = {
-        "protein_principal": ["tofu", "tempeh", "grao_de_bico", "frango", "patinho", "tilapia"],
-        "protein_leve": ["ovos", "tofu", "edamame", "iogurte_zero", "cottage"],
+        "protein_principal": ["frango", "patinho", "tilapia", "tofu", "tempeh", "grao_de_bico"],
+        "protein_leve": ["ovos", "iogurte_zero", "cottage", "tofu", "edamame"],
         "carb_principal": ["arroz_branco", "batata_doce", "macarrao", "tapioca"],
-        "carb_leve": ["aveia", "pao_integral", "tapioca", "batata_doce"],
+        "carb_leve": ["aveia", "pao_integral", "tapioca"],
         "fat": ["azeite", "castanhas", "pasta_amendoim", "abacate"],
         "fruit": ["banana", "maca", "morango", "laranja"]
     }
