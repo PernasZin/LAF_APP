@@ -1,10 +1,13 @@
 /**
  * Premium Restrictions Step
+ * Com suporte a i18n
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Check, Leaf, Milk, Wheat, Egg, AlertTriangle, Activity } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   formData: any;
@@ -13,24 +16,27 @@ interface Props {
   isDark: boolean;
 }
 
-const RESTRICTIONS = [
-  { value: 'vegetariano', label: 'Vegetariano', icon: Leaf, color: '#22C55E' },
-  { value: 'vegano', label: 'Vegano', icon: Leaf, color: '#10B981' },
-  { value: 'sem_lactose', label: 'Sem Lactose', icon: Milk, color: '#3B82F6' },
-  { value: 'sem_gluten', label: 'Sem Glúten', icon: Wheat, color: '#F59E0B' },
-  { value: 'diabetico', label: 'Diabético', icon: Activity, color: '#8B5CF6' },
-  { value: 'sem_ovo', label: 'Sem Ovos', icon: Egg, color: '#EAB308' },
-  { value: 'sem_amendoim', label: 'Sem Amendoim', icon: AlertTriangle, color: '#EF4444' },
-];
-
-const PREFERENCES = [
-  { value: 'low_carb', label: 'Low Carb' },
-  { value: 'high_protein', label: 'Alta Proteína' },
-  { value: 'mediterranean', label: 'Mediterrânea' },
-  { value: 'whole_foods', label: 'Comida Real' },
-];
-
 export default function RestrictionsStep({ formData, updateFormData, theme, isDark }: Props) {
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+
+  const RESTRICTIONS = [
+    { value: 'vegetariano', label: t.vegetarian, icon: Leaf, color: '#22C55E' },
+    { value: 'vegano', label: t.vegan, icon: Leaf, color: '#10B981' },
+    { value: 'sem_lactose', label: t.lactoseFree, icon: Milk, color: '#3B82F6' },
+    { value: 'sem_gluten', label: t.glutenFree, icon: Wheat, color: '#F59E0B' },
+    { value: 'diabetico', label: t.diabetic, icon: Activity, color: '#8B5CF6' },
+    { value: 'sem_ovo', label: t.eggFree, icon: Egg, color: '#EAB308' },
+    { value: 'sem_amendoim', label: t.peanutFree, icon: AlertTriangle, color: '#EF4444' },
+  ];
+
+  const PREFERENCES = [
+    { value: 'low_carb', label: t.lowCarb || 'Low Carb' },
+    { value: 'high_protein', label: t.highProtein },
+    { value: 'mediterranean', label: t.mediterranean },
+    { value: 'whole_foods', label: t.wholeFoods },
+  ];
+
   const toggleRestriction = (value: string) => {
     const current = formData.dietary_restrictions || [];
     const updated = current.includes(value)
@@ -50,9 +56,9 @@ export default function RestrictionsStep({ formData, updateFormData, theme, isDa
   return (
     <View style={styles.container}>
       {/* Restrictions */}
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Restrições Alimentares</Text>
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.restrictions}</Text>
       <Text style={[styles.sectionDesc, { color: theme.textTertiary }]}>
-        Selecione suas restrições (opcional)
+        {t.restrictionsDesc}
       </Text>
       
       <View style={styles.restrictionsGrid}>
@@ -93,10 +99,10 @@ export default function RestrictionsStep({ formData, updateFormData, theme, isDa
 
       {/* Preferences */}
       <Text style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: spacing.xl }]}>
-        Preferências
+        {t.preferences}
       </Text>
       <Text style={[styles.sectionDesc, { color: theme.textTertiary }]}>
-        Estilo de alimentação preferido (opcional)
+        {t.preferencesDesc}
       </Text>
       
       <View style={styles.preferencesRow}>
