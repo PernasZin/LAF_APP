@@ -1983,15 +1983,19 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         if len(non_fat_foods) == 0:
             # Refeição está vazia ou só com gordura - adiciona alimento adequado
             if m_idx == 0:  # Café
-                meals[m_idx]["foods"].insert(0, calc_food("ovos", 100))
-                meals[m_idx]["foods"].insert(1, calc_food("tapioca", 80))
+                safe_protein = get_safe_protein_light()
+                safe_carb = get_restriction_safe_breakfast_carb()
+                meals[m_idx]["foods"].insert(0, calc_food(safe_protein, 100))
+                meals[m_idx]["foods"].insert(1, calc_food(safe_carb, 80))
             elif m_idx in [1, 3]:  # Lanches
-                meals[m_idx]["foods"].insert(0, calc_food("maca", 150))
-                meals[m_idx]["foods"].insert(1, calc_food("ovos", 100))
+                meals[m_idx]["foods"].insert(0, calc_food(get_restriction_safe_fruit(), 150))
+                safe_protein = get_safe_protein_light()
+                meals[m_idx]["foods"].insert(1, calc_food(safe_protein, 100))
             elif m_idx == 5:  # Ceia
-                meals[m_idx]["foods"].insert(0, calc_food("morango", 150))
+                meals[m_idx]["foods"].insert(0, calc_food(get_restriction_safe_fruit(), 150))
             else:  # Almoço/Jantar
-                meals[m_idx]["foods"].insert(0, calc_food("frango", 150))
+                safe_protein = get_safe_protein_main()
+                meals[m_idx]["foods"].insert(0, calc_food(safe_protein, 150))
                 meals[m_idx]["foods"].insert(1, calc_food("arroz_branco", 200))
     
     return meals
