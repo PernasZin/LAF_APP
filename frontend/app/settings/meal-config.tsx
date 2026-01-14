@@ -15,6 +15,7 @@ import { ArrowLeft, Utensils, Clock, Check, Plus, Minus } from 'lucide-react-nat
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
+import { useTranslation, translateMealName } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
