@@ -361,10 +361,10 @@ export default function WorkoutScreen() {
                     <Dumbbell size={40} color={premiumColors.primary} strokeWidth={1.5} />
                   </View>
                   <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                    Nenhum treino gerado
+                    {t.workout.noData}
                   </Text>
                   <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
-                    Gere seu treino personalizado baseado no seu perfil e objetivos
+                    {t.workout.generating.replace('...', '')}
                   </Text>
                   <TouchableOpacity
                     style={[styles.generateButton, { opacity: generating ? 0.7 : 1 }]}
@@ -382,7 +382,7 @@ export default function WorkoutScreen() {
                       ) : (
                         <>
                           <Target size={20} color="#FFF" strokeWidth={2} />
-                          <Text style={styles.generateButtonText}>Gerar Meu Treino</Text>
+                          <Text style={styles.generateButtonText}>{t.workout.generateWorkout}</Text>
                         </>
                       )}
                     </LinearGradient>
