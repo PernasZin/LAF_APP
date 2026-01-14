@@ -265,7 +265,7 @@ export default function OnboardingScreen() {
                 ) : (
                   <>
                     <Text style={styles.nextButtonText}>
-                      {currentStep === steps.length - 1 ? 'Finalizar' : 'Continuar'}
+                      {currentStep === steps.length - 1 ? (t.finish || 'Finalizar') : (t.continue || 'Continuar')}
                     </Text>
                     {currentStep === steps.length - 1 ? (
                       <Check size={20} color="#FFF" strokeWidth={3} />
