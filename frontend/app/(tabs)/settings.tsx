@@ -98,6 +98,7 @@ export default function SettingsScreen() {
   const authLogout = useAuthStore((state) => state.logout);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  const { t } = useTranslation();
   
   const [profile, setProfile] = useState<any>(null);
 
