@@ -36,8 +36,8 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
   const language = useSettingsStore((state) => state.language) as SupportedLanguage;
   const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
 
+  // Usar apenas as chaves que existem no translations.ts
   const LEVELS = [
-    { value: 'sedentario', label: t.sedentary || 'Sedentário', desc: t.sedentaryDesc || 'Não pratica atividades', icon: Baby },
     { value: 'iniciante', label: t.beginner || 'Iniciante', desc: t.beginnerDesc || '0-1 ano de treino', icon: User },
     { value: 'intermediario', label: t.intermediate || 'Intermediário', desc: t.intermediateDesc || '1-3 anos', icon: Dumbbell },
     { value: 'avancado', label: t.advanced || 'Avançado', desc: t.advancedDesc || '3+ anos', icon: Trophy },
