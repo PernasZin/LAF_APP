@@ -69,7 +69,7 @@ export default function PrivacyScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>{t('privacy.title')}</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t.privacy.title}</Text>
             <View style={{ width: 44 }} />
           </Animated.View>
 
@@ -78,31 +78,31 @@ export default function PrivacyScreen() {
             <GlassCard isDark={isDark} style={styles.card}>
               <Section
                 icon={Shield}
-                title={t('privacy.dataSecurity')}
-                content={t('privacy.dataSecurityDesc')}
+                title={t.privacy.dataSecurity}
+                content={t.privacy.dataSecurityDesc}
                 isDark={isDark}
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <Section
                 icon={Lock}
-                title={t('privacy.protectedAccess')}
-                content={t('privacy.protectedAccessDesc')}
+                title={t.privacy.protectedAccess}
+                content={t.privacy.protectedAccessDesc}
                 isDark={isDark}
                 color="#3B82F6"
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <Section
                 icon={Eye}
-                title={t('privacy.transparency')}
-                content={t('privacy.transparencyDesc')}
+                title={t.privacy.transparency}
+                content={t.privacy.transparencyDesc}
                 isDark={isDark}
                 color="#8B5CF6"
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <Section
                 icon={Database}
-                title={t('privacy.localStorage')}
-                content={t('privacy.localStorageDesc')}
+                title={t.privacy.localStorage}
+                content={t.privacy.localStorageDesc}
                 isDark={isDark}
                 color="#F59E0B"
               />
@@ -113,7 +113,7 @@ export default function PrivacyScreen() {
           <Animated.View entering={FadeInDown.delay(200).springify()}>
             <TouchableOpacity style={[styles.deleteButton, { borderColor: '#EF4444' }]}>
               <Trash2 size={18} color="#EF4444" />
-              <Text style={styles.deleteButtonText}>{t('privacy.requestDeletion')}</Text>
+              <Text style={styles.deleteButtonText}>{t.privacy.requestDeletion}</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
