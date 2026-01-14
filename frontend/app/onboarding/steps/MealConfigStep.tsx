@@ -1,10 +1,13 @@
 /**
  * Premium Meal Config Step
+ * Com suporte a i18n
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Utensils, Plus, Minus, Clock } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   formData: any;
@@ -13,31 +16,47 @@ interface Props {
   isDark: boolean;
 }
 
-const MEAL_PRESETS: Record<number, { name: string; time: string }[]> = {
-  4: [
-    { name: 'Café da Manhã', time: '07:00' },
-    { name: 'Almoço', time: '12:00' },
-    { name: 'Lanche Tarde', time: '16:00' },
-    { name: 'Jantar', time: '20:00' },
-  ],
-  5: [
-    { name: 'Café da Manhã', time: '07:00' },
-    { name: 'Lanche Manhã', time: '10:00' },
-    { name: 'Almoço', time: '12:30' },
-    { name: 'Lanche Tarde', time: '16:00' },
-    { name: 'Jantar', time: '19:30' },
-  ],
-  6: [
-    { name: 'Café da Manhã', time: '07:00' },
-    { name: 'Lanche Manhã', time: '10:00' },
-    { name: 'Almoço', time: '12:30' },
-    { name: 'Lanche Tarde', time: '16:00' },
-    { name: 'Jantar', time: '19:30' },
-    { name: 'Ceia', time: '21:30' },
-  ],
-};
-
 export default function MealConfigStep({ formData, updateFormData, theme, isDark }: Props) {
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+  const tMeals = translations[language]?.diet || translations['pt-BR'].diet;
+
+  const MEAL_PRESETS: Record<number, { nameKey: string; time: string }[]> = {
+    4: [
+      { nameKey: 'breakfast', time: '07:00' },
+      { nameKey: 'lunch', time: '12:00' },
+      { nameKey: 'afternoonSnack', time: '16:00' },
+      { nameKey: 'dinner', time: '20:00' },
+    ],
+    5: [
+      { nameKey: 'breakfast', time: '07:00' },
+      { nameKey: 'morningSnack', time: '10:00' },
+      { nameKey: 'lunch', time: '12:30' },
+      { nameKey: 'afternoonSnack', time: '16:00' },
+      { nameKey: 'dinner', time: '19:30' },
+    ],
+    6: [
+      { nameKey: 'breakfast', time: '07:00' },
+      { nameKey: 'morningSnack', time: '10:00' },
+      { nameKey: 'lunch', time: '12:30' },
+      { nameKey: 'afternoonSnack', time: '16:00' },
+      { nameKey: 'dinner', time: '19:30' },
+      { nameKey: 'eveningSnack', time: '21:30' },
+    ],
+  };
+
+  const getMealName = (nameKey: string): string => {
+    const mealNames: Record<string, string> = {
+      breakfast: tMeals.breakfast,
+      morningSnack: tMeals.morningSnack,
+      lunch: tMeals.lunch,
+      afternoonSnack: tMeals.afternoonSnack,
+      dinner: tMeals.dinner,
+      eveningSnack: tMeals.eveningSnack,
+    };
+    return mealNames[nameKey] || nameKey;
+  };
+
   const mealCount = formData.meal_count || 5;
   const meals = MEAL_PRESETS[mealCount] || MEAL_PRESETS[5];
 
@@ -62,7 +81,7 @@ export default function MealConfigStep({ formData, updateFormData, theme, isDark
       ]}>
         <View style={styles.countHeader}>
           <Utensils size={20} color={premiumColors.primary} />
-          <Text style={[styles.countLabel, { color: theme.text }]}>Refeições por dia</Text>
+          <Text style={[styles.countLabel, { color: theme.text }]}>{t.mealsPerDay}</Text>
         </View>
         
         <View style={styles.countControls}>
@@ -95,7 +114,7 @@ export default function MealConfigStep({ formData, updateFormData, theme, isDark
       </View>
 
       {/* Meals Preview */}
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Distribuição</Text>
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.distribution}</Text>
       <View style={styles.mealsContainer}>
         {meals.map((meal, index) => (
           <View
@@ -111,7 +130,7 @@ export default function MealConfigStep({ formData, updateFormData, theme, isDark
             <View style={[styles.mealNumber, { backgroundColor: `${premiumColors.primary}20` }]}>
               <Text style={[styles.mealNumberText, { color: premiumColors.primary }]}>{index + 1}</Text>
             </View>
-            <Text style={[styles.mealName, { color: theme.text }]}>{meal.name}</Text>
+            <Text style={[styles.mealName, { color: theme.text }]}>{getMealName(meal.nameKey)}</Text>
             <View style={styles.mealTime}>
               <Clock size={14} color={theme.textTertiary} />
               <Text style={[styles.mealTimeText, { color: theme.textTertiary }]}>{meal.time}</Text>
