@@ -37,32 +37,8 @@ const GlassCard = ({ children, style, isDark }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
-// Frequências de treino
-const FREQUENCIES = [
-  { value: 2, label: '2x por semana', desc: 'Full Body' },
-  { value: 3, label: '3x por semana', desc: 'ABC' },
-  { value: 4, label: '4x por semana', desc: 'ABCD' },
-  { value: 5, label: '5x por semana', desc: 'ABCDE' },
-  { value: 6, label: '6x por semana', desc: 'PPL 2x' },
-];
-
-// Tempo de treino
-const DURATIONS = [
-  { value: 30, label: '30 minutos', desc: 'Treino rápido' },
-  { value: 60, label: '1 hora', desc: 'Treino padrão' },
-  { value: 90, label: '1h 30min', desc: 'Treino completo' },
-  { value: 120, label: '2 horas', desc: 'Treino extenso' },
-];
-
-// Níveis de treino
-const LEVELS = [
-  { value: 'novato', label: '🆕 Novato', desc: 'Nunca treinei' },
-  { value: 'iniciante', label: '🌱 Iniciante', desc: '0-1 anos de academia' },
-  { value: 'intermediario', label: '💪 Intermediário', desc: '1-2 anos de academia' },
-  { value: 'avancado', label: '🏆 Avançado', desc: '3+ anos de academia' },
-];
-
 export default function TrainingConfigScreen() {
+  const { t } = useTranslation();
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
@@ -74,6 +50,31 @@ export default function TrainingConfigScreen() {
   const [frequency, setFrequency] = useState(3);
   const [duration, setDuration] = useState(60);
   const [level, setLevel] = useState('intermediario');
+
+  // Níveis de treino - usando traduções
+  const LEVELS = [
+    { value: 'novato', label: t('trainingConfig.novice'), desc: t('trainingConfig.noviceDesc') },
+    { value: 'iniciante', label: t('trainingConfig.beginner'), desc: t('trainingConfig.beginnerDesc') },
+    { value: 'intermediario', label: t('trainingConfig.intermediate'), desc: t('trainingConfig.intermediateDesc') },
+    { value: 'avancado', label: t('trainingConfig.advanced'), desc: t('trainingConfig.advancedDesc') },
+  ];
+
+  // Frequências de treino - usando traduções
+  const FREQUENCIES = [
+    { value: 2, label: t('trainingConfig.freq2x'), desc: t('trainingConfig.freq2xDesc') },
+    { value: 3, label: t('trainingConfig.freq3x'), desc: t('trainingConfig.freq3xDesc') },
+    { value: 4, label: t('trainingConfig.freq4x'), desc: t('trainingConfig.freq4xDesc') },
+    { value: 5, label: t('trainingConfig.freq5x'), desc: t('trainingConfig.freq5xDesc') },
+    { value: 6, label: t('trainingConfig.freq6x'), desc: t('trainingConfig.freq6xDesc') },
+  ];
+
+  // Tempo de treino - usando traduções
+  const DURATIONS = [
+    { value: 30, label: t('trainingConfig.dur30'), desc: t('trainingConfig.dur30Desc') },
+    { value: 60, label: t('trainingConfig.dur60'), desc: t('trainingConfig.dur60Desc') },
+    { value: 90, label: t('trainingConfig.dur90'), desc: t('trainingConfig.dur90Desc') },
+    { value: 120, label: t('trainingConfig.dur120'), desc: t('trainingConfig.dur120Desc') },
+  ];
 
   useEffect(() => {
     loadConfig();
@@ -133,16 +134,16 @@ export default function TrainingConfigScreen() {
         }
         
         Alert.alert(
-          'Sucesso!', 
-          'Configurações salvas e treino atualizado!',
+          t('trainingConfig.successTitle'), 
+          t('trainingConfig.successMessage'),
           [{ text: 'OK', onPress: () => router.back() }]
         );
       } else {
-        Alert.alert('Erro', 'Não foi possível salvar');
+        Alert.alert(t('trainingConfig.errorTitle'), t('trainingConfig.errorSave'));
       }
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      Alert.alert(t('trainingConfig.errorTitle'), t('trainingConfig.errorConnect'));
     } finally {
       setSaving(false);
     }
@@ -152,7 +153,7 @@ export default function TrainingConfigScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={{ color: theme.text }}>Carregando...</Text>
+          <Text style={{ color: theme.text }}>{t('common.loading')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -175,7 +176,7 @@ export default function TrainingConfigScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>Configurar Treino</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t('trainingConfig.title')}</Text>
             <View style={{ width: 44 }} />
           </Animated.View>
 
@@ -183,7 +184,7 @@ export default function TrainingConfigScreen() {
           <Animated.View entering={FadeInDown.delay(100).springify()}>
             <View style={styles.sectionHeader}>
               <Dumbbell size={18} color={premiumColors.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Nível de Experiência</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('trainingConfig.experienceLevel')}</Text>
             </View>
             <GlassCard isDark={isDark} style={styles.card}>
               {LEVELS.map((item, index) => (
@@ -215,7 +216,7 @@ export default function TrainingConfigScreen() {
             {level === 'novato' && (
               <View style={[styles.infoBox, { backgroundColor: premiumColors.primary + '15' }]}>
                 <Text style={[styles.infoText, { color: premiumColors.primary }]}>
-                  💡 Novatos começam com treino de adaptação por 4-8 semanas. Após 30 treinos concluídos, você receberá treinos para hipertrofia!
+                  {t('trainingConfig.noviceHint')}
                 </Text>
               </View>
             )}
@@ -225,7 +226,7 @@ export default function TrainingConfigScreen() {
           <Animated.View entering={FadeInDown.delay(200).springify()}>
             <View style={styles.sectionHeader}>
               <Calendar size={18} color={premiumColors.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Frequência Semanal</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('trainingConfig.weeklyFrequency')}</Text>
             </View>
             <GlassCard isDark={isDark} style={styles.card}>
               {FREQUENCIES.map((item, index) => (
@@ -259,7 +260,7 @@ export default function TrainingConfigScreen() {
           <Animated.View entering={FadeInDown.delay(300).springify()}>
             <View style={styles.sectionHeader}>
               <Clock size={18} color={premiumColors.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Tempo Disponível</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('trainingConfig.availableTime')}</Text>
             </View>
             <GlassCard isDark={isDark} style={styles.card}>
               {DURATIONS.map((item, index) => (
@@ -303,7 +304,7 @@ export default function TrainingConfigScreen() {
               >
                 <Check size={20} color="#FFF" />
                 <Text style={styles.saveButtonText}>
-                  {saving ? 'Salvando...' : 'Salvar Configurações'}
+                  {saving ? t('trainingConfig.savingSettings') : t('trainingConfig.saveSettings')}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
