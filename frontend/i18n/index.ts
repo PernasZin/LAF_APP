@@ -225,40 +225,73 @@ export function translateExerciseFocus(focus: string, language: SupportedLanguag
     'Peitoral Médio': { 'pt-BR': 'Peitoral Médio', 'en-US': 'Mid Chest', 'es-ES': 'Pectoral Medio' },
     'Peitoral Superior': { 'pt-BR': 'Peitoral Superior', 'en-US': 'Upper Chest', 'es-ES': 'Pectoral Superior' },
     'Peitoral Inferior': { 'pt-BR': 'Peitoral Inferior', 'en-US': 'Lower Chest', 'es-ES': 'Pectoral Inferior' },
+    'Peito': { 'pt-BR': 'Peito', 'en-US': 'Chest', 'es-ES': 'Pecho' },
     // Back
     'Dorsal': { 'pt-BR': 'Dorsal', 'en-US': 'Lats', 'es-ES': 'Dorsales' },
     'Dorsais': { 'pt-BR': 'Dorsais', 'en-US': 'Lats', 'es-ES': 'Dorsales' },
     'Costas Média': { 'pt-BR': 'Costas Média', 'en-US': 'Mid Back', 'es-ES': 'Espalda Media' },
     'Costas Superior': { 'pt-BR': 'Costas Superior', 'en-US': 'Upper Back', 'es-ES': 'Espalda Superior' },
+    'Costas Inferior': { 'pt-BR': 'Costas Inferior', 'en-US': 'Lower Back', 'es-ES': 'Espalda Baja' },
     'Trapézio': { 'pt-BR': 'Trapézio', 'en-US': 'Traps', 'es-ES': 'Trapecios' },
+    'Trapézio Superior': { 'pt-BR': 'Trapézio Superior', 'en-US': 'Upper Traps', 'es-ES': 'Trapecios Superiores' },
+    'Trapézio Médio': { 'pt-BR': 'Trapézio Médio', 'en-US': 'Mid Traps', 'es-ES': 'Trapecios Medios' },
     'Lombar': { 'pt-BR': 'Lombar', 'en-US': 'Lower Back', 'es-ES': 'Lumbar' },
+    'Romboides': { 'pt-BR': 'Romboides', 'en-US': 'Rhomboids', 'es-ES': 'Romboides' },
     // Shoulders
-    'Deltóide Anterior': { 'pt-BR': 'Deltóide Anterior', 'en-US': 'Front Deltoid', 'es-ES': 'Deltoides Anterior' },
-    'Deltóide Lateral': { 'pt-BR': 'Deltóide Lateral', 'en-US': 'Side Deltoid', 'es-ES': 'Deltoides Lateral' },
-    'Deltóide Posterior': { 'pt-BR': 'Deltóide Posterior', 'en-US': 'Rear Deltoid', 'es-ES': 'Deltoides Posterior' },
+    'Deltóide Anterior': { 'pt-BR': 'Deltóide Anterior', 'en-US': 'Front Delt', 'es-ES': 'Deltoides Anterior' },
+    'Deltóide Lateral': { 'pt-BR': 'Deltóide Lateral', 'en-US': 'Side Delt', 'es-ES': 'Deltoides Lateral' },
+    'Deltóide Posterior': { 'pt-BR': 'Deltóide Posterior', 'en-US': 'Rear Delt', 'es-ES': 'Deltoides Posterior' },
     'Ombros': { 'pt-BR': 'Ombros', 'en-US': 'Shoulders', 'es-ES': 'Hombros' },
-    // Arms
+    'Ombro Frontal': { 'pt-BR': 'Ombro Frontal', 'en-US': 'Front Shoulder', 'es-ES': 'Hombro Frontal' },
+    // Arms - Biceps
     'Bíceps': { 'pt-BR': 'Bíceps', 'en-US': 'Biceps', 'es-ES': 'Bíceps' },
     'Cabeça Curta': { 'pt-BR': 'Cabeça Curta', 'en-US': 'Short Head', 'es-ES': 'Cabeza Corta' },
     'Cabeça Longa': { 'pt-BR': 'Cabeça Longa', 'en-US': 'Long Head', 'es-ES': 'Cabeza Larga' },
+    'Braquial': { 'pt-BR': 'Braquial', 'en-US': 'Brachialis', 'es-ES': 'Braquial' },
+    'Braquiorradial': { 'pt-BR': 'Braquiorradial', 'en-US': 'Brachioradialis', 'es-ES': 'Braquiorradial' },
+    // Arms - Triceps
+    'Tríceps': { 'pt-BR': 'Tríceps', 'en-US': 'Triceps', 'es-ES': 'Tríceps' },
     'Cabeça Lateral': { 'pt-BR': 'Cabeça Lateral', 'en-US': 'Lateral Head', 'es-ES': 'Cabeza Lateral' },
     'Cabeça Medial': { 'pt-BR': 'Cabeça Medial', 'en-US': 'Medial Head', 'es-ES': 'Cabeza Medial' },
-    'Tríceps': { 'pt-BR': 'Tríceps', 'en-US': 'Triceps', 'es-ES': 'Tríceps' },
-    'Braquial': { 'pt-BR': 'Braquial', 'en-US': 'Brachialis', 'es-ES': 'Braquial' },
+    // Forearms
     'Antebraço': { 'pt-BR': 'Antebraço', 'en-US': 'Forearm', 'es-ES': 'Antebrazo' },
-    // Legs
+    'Antebraços': { 'pt-BR': 'Antebraços', 'en-US': 'Forearms', 'es-ES': 'Antebrazos' },
+    'Flexores do Punho': { 'pt-BR': 'Flexores do Punho', 'en-US': 'Wrist Flexors', 'es-ES': 'Flexores de Muñeca' },
+    'Extensores do Punho': { 'pt-BR': 'Extensores do Punho', 'en-US': 'Wrist Extensors', 'es-ES': 'Extensores de Muñeca' },
+    // Legs - Quadriceps
     'Quadríceps': { 'pt-BR': 'Quadríceps', 'en-US': 'Quadriceps', 'es-ES': 'Cuádriceps' },
+    'Vasto Lateral': { 'pt-BR': 'Vasto Lateral', 'en-US': 'Outer Quad', 'es-ES': 'Vasto Lateral' },
+    'Vasto Medial': { 'pt-BR': 'Vasto Medial', 'en-US': 'Inner Quad', 'es-ES': 'Vasto Medial' },
+    'Reto Femoral': { 'pt-BR': 'Reto Femoral', 'en-US': 'Rectus Femoris', 'es-ES': 'Recto Femoral' },
+    // Legs - Hamstrings
     'Posterior': { 'pt-BR': 'Posterior', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
+    'Posterior de Coxa': { 'pt-BR': 'Posterior de Coxa', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
     'Isquiotibiais': { 'pt-BR': 'Isquiotibiais', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
+    'Bíceps Femoral': { 'pt-BR': 'Bíceps Femoral', 'en-US': 'Bicep Femoris', 'es-ES': 'Bíceps Femoral' },
+    // Legs - Glutes
     'Glúteos': { 'pt-BR': 'Glúteos', 'en-US': 'Glutes', 'es-ES': 'Glúteos' },
+    'Glúteo Máximo': { 'pt-BR': 'Glúteo Máximo', 'en-US': 'Gluteus Maximus', 'es-ES': 'Glúteo Mayor' },
+    'Glúteo Médio': { 'pt-BR': 'Glúteo Médio', 'en-US': 'Gluteus Medius', 'es-ES': 'Glúteo Medio' },
+    // Legs - Calves
     'Panturrilha': { 'pt-BR': 'Panturrilha', 'en-US': 'Calves', 'es-ES': 'Gemelos' },
+    'Panturrilhas': { 'pt-BR': 'Panturrilhas', 'en-US': 'Calves', 'es-ES': 'Gemelos' },
+    'Gastrocnêmio': { 'pt-BR': 'Gastrocnêmio', 'en-US': 'Gastrocnemius', 'es-ES': 'Gastrocnemio' },
+    'Sóleo': { 'pt-BR': 'Sóleo', 'en-US': 'Soleus', 'es-ES': 'Sóleo' },
+    // Legs - Adductors/Abductors
     'Adutores': { 'pt-BR': 'Adutores', 'en-US': 'Adductors', 'es-ES': 'Aductores' },
     'Abdutores': { 'pt-BR': 'Abdutores', 'en-US': 'Abductors', 'es-ES': 'Abductores' },
     // Core
     'Abdômen': { 'pt-BR': 'Abdômen', 'en-US': 'Abs', 'es-ES': 'Abdominales' },
+    'Abdominal': { 'pt-BR': 'Abdominal', 'en-US': 'Abs', 'es-ES': 'Abdominales' },
     'Reto Abdominal': { 'pt-BR': 'Reto Abdominal', 'en-US': 'Rectus Abdominis', 'es-ES': 'Recto Abdominal' },
     'Oblíquos': { 'pt-BR': 'Oblíquos', 'en-US': 'Obliques', 'es-ES': 'Oblicuos' },
+    'Oblíquo Externo': { 'pt-BR': 'Oblíquo Externo', 'en-US': 'External Obliques', 'es-ES': 'Oblicuo Externo' },
+    'Oblíquo Interno': { 'pt-BR': 'Oblíquo Interno', 'en-US': 'Internal Obliques', 'es-ES': 'Oblicuo Interno' },
     'Core': { 'pt-BR': 'Core', 'en-US': 'Core', 'es-ES': 'Core' },
+    'Transverso': { 'pt-BR': 'Transverso', 'en-US': 'Transverse', 'es-ES': 'Transverso' },
+    // Full body
+    'Corpo Inteiro': { 'pt-BR': 'Corpo Inteiro', 'en-US': 'Full Body', 'es-ES': 'Cuerpo Completo' },
+    'Composto': { 'pt-BR': 'Composto', 'en-US': 'Compound', 'es-ES': 'Compuesto' },
   };
   
   if (focus in focusTranslations) {
