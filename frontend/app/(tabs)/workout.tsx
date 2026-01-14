@@ -285,9 +285,9 @@ export default function WorkoutScreen() {
           {/* Header */}
           <Animated.View entering={FadeInDown.springify()} style={styles.header}>
             <View>
-              <Text style={[styles.headerTitle, { color: theme.text }]}>Seu Treino</Text>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>{t.workout.title}</Text>
               <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-                {workoutPlan?.weekly_split || 'Treino personalizado'}
+                {workoutPlan?.weekly_split || t.workout.customWorkout}
               </Text>
             </View>
             <TouchableOpacity
