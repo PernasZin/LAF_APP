@@ -109,10 +109,26 @@ export interface Translations {
     thisWeek: string;
     completeHint: string;
     weekProgress: string;
+    customWorkout: string;
+    training: string;
+  };
+  // Cardio screen
+  cardio: {
+    title: string;
+    sessionsPerWeek: string;
+    minPerWeek: string;
+    kcalPerWeek: string;
+    yourExercises: string;
+    perWeek: string;
+    substitutes: string;
+    tip: string;
+    moderate: string;
+    zone: string;
   };
   // Progress screen
   progress: {
     title: string;
+    subtitle: string;
     currentWeight: string;
     targetWeight: string;
     remaining: string;
@@ -124,6 +140,12 @@ export interface Translations {
     addWeight: string;
     enterWeight: string;
     inPeriod: string;
+    nextRecordIn: string;
+    days: string;
+    total: string;
+    records: string;
+    recordEvery2Weeks: string;
+    history: string;
   };
   // Settings screen
   settings: {
