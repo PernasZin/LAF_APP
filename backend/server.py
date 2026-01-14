@@ -83,6 +83,7 @@ class UserProfileCreate(BaseModel):
     food_preferences: List[str] = Field(default_factory=list)
     injury_history: List[str] = Field(default_factory=list)
     meal_count: Optional[int] = 6  # 4, 5, ou 6 refeições por dia
+    language: str = "pt-BR"  # "pt-BR", "en-US", "es-ES"
 
 class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
