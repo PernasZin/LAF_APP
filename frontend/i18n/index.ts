@@ -215,3 +215,55 @@ export function translateWorkoutName(dayName: string, language: SupportedLanguag
   
   return dayName;
 }
+
+/**
+ * Translate exercise focus (muscle target) based on language
+ */
+export function translateExerciseFocus(focus: string, language: SupportedLanguage): string {
+  const focusTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    // Chest
+    'Peitoral Médio': { 'pt-BR': 'Peitoral Médio', 'en-US': 'Mid Chest', 'es-ES': 'Pectoral Medio' },
+    'Peitoral Superior': { 'pt-BR': 'Peitoral Superior', 'en-US': 'Upper Chest', 'es-ES': 'Pectoral Superior' },
+    'Peitoral Inferior': { 'pt-BR': 'Peitoral Inferior', 'en-US': 'Lower Chest', 'es-ES': 'Pectoral Inferior' },
+    // Back
+    'Dorsal': { 'pt-BR': 'Dorsal', 'en-US': 'Lats', 'es-ES': 'Dorsales' },
+    'Dorsais': { 'pt-BR': 'Dorsais', 'en-US': 'Lats', 'es-ES': 'Dorsales' },
+    'Costas Média': { 'pt-BR': 'Costas Média', 'en-US': 'Mid Back', 'es-ES': 'Espalda Media' },
+    'Costas Superior': { 'pt-BR': 'Costas Superior', 'en-US': 'Upper Back', 'es-ES': 'Espalda Superior' },
+    'Trapézio': { 'pt-BR': 'Trapézio', 'en-US': 'Traps', 'es-ES': 'Trapecios' },
+    'Lombar': { 'pt-BR': 'Lombar', 'en-US': 'Lower Back', 'es-ES': 'Lumbar' },
+    // Shoulders
+    'Deltóide Anterior': { 'pt-BR': 'Deltóide Anterior', 'en-US': 'Front Deltoid', 'es-ES': 'Deltoides Anterior' },
+    'Deltóide Lateral': { 'pt-BR': 'Deltóide Lateral', 'en-US': 'Side Deltoid', 'es-ES': 'Deltoides Lateral' },
+    'Deltóide Posterior': { 'pt-BR': 'Deltóide Posterior', 'en-US': 'Rear Deltoid', 'es-ES': 'Deltoides Posterior' },
+    'Ombros': { 'pt-BR': 'Ombros', 'en-US': 'Shoulders', 'es-ES': 'Hombros' },
+    // Arms
+    'Bíceps': { 'pt-BR': 'Bíceps', 'en-US': 'Biceps', 'es-ES': 'Bíceps' },
+    'Cabeça Curta': { 'pt-BR': 'Cabeça Curta', 'en-US': 'Short Head', 'es-ES': 'Cabeza Corta' },
+    'Cabeça Longa': { 'pt-BR': 'Cabeça Longa', 'en-US': 'Long Head', 'es-ES': 'Cabeza Larga' },
+    'Cabeça Lateral': { 'pt-BR': 'Cabeça Lateral', 'en-US': 'Lateral Head', 'es-ES': 'Cabeza Lateral' },
+    'Cabeça Medial': { 'pt-BR': 'Cabeça Medial', 'en-US': 'Medial Head', 'es-ES': 'Cabeza Medial' },
+    'Tríceps': { 'pt-BR': 'Tríceps', 'en-US': 'Triceps', 'es-ES': 'Tríceps' },
+    'Braquial': { 'pt-BR': 'Braquial', 'en-US': 'Brachialis', 'es-ES': 'Braquial' },
+    'Antebraço': { 'pt-BR': 'Antebraço', 'en-US': 'Forearm', 'es-ES': 'Antebrazo' },
+    // Legs
+    'Quadríceps': { 'pt-BR': 'Quadríceps', 'en-US': 'Quadriceps', 'es-ES': 'Cuádriceps' },
+    'Posterior': { 'pt-BR': 'Posterior', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
+    'Isquiotibiais': { 'pt-BR': 'Isquiotibiais', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
+    'Glúteos': { 'pt-BR': 'Glúteos', 'en-US': 'Glutes', 'es-ES': 'Glúteos' },
+    'Panturrilha': { 'pt-BR': 'Panturrilha', 'en-US': 'Calves', 'es-ES': 'Gemelos' },
+    'Adutores': { 'pt-BR': 'Adutores', 'en-US': 'Adductors', 'es-ES': 'Aductores' },
+    'Abdutores': { 'pt-BR': 'Abdutores', 'en-US': 'Abductors', 'es-ES': 'Abductores' },
+    // Core
+    'Abdômen': { 'pt-BR': 'Abdômen', 'en-US': 'Abs', 'es-ES': 'Abdominales' },
+    'Reto Abdominal': { 'pt-BR': 'Reto Abdominal', 'en-US': 'Rectus Abdominis', 'es-ES': 'Recto Abdominal' },
+    'Oblíquos': { 'pt-BR': 'Oblíquos', 'en-US': 'Obliques', 'es-ES': 'Oblicuos' },
+    'Core': { 'pt-BR': 'Core', 'en-US': 'Core', 'es-ES': 'Core' },
+  };
+  
+  if (focus in focusTranslations) {
+    return focusTranslations[focus][language] || focus;
+  }
+  
+  return focus;
+}
