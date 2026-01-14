@@ -92,14 +92,15 @@ export default function SignupScreen() {
         await AsyncStorage.setItem('token', data.access_token || '');
         await AsyncStorage.setItem('profileCompleted', 'false');
         
+        // ✅ Atualiza AuthStore - o AuthGuard vai redirecionar automaticamente para /onboarding
+        // NÃO fazer router.replace() aqui para evitar duplicação de tela!
         await useAuthStore.getState().login(
           data.user_id, 
           data.access_token || '', 
           false
         );
         
-        await new Promise(resolve => setTimeout(resolve, 200));
-        router.replace('/onboarding');
+        // O AuthGuard vai detectar que profileCompleted=false e redirecionar para /onboarding
       } else {
         Alert.alert('Erro', data.detail || data.message || (language === 'en-US' ? 'Could not create account' : 'Não foi possível criar a conta'));
       }
