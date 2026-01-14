@@ -99,7 +99,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert('Campo obrigatório', 'Preencha o nome.');
+      Alert.alert(t.onboarding.requiredFields, t.onboarding.fillName || 'Please fill in your name');
       return;
     }
 
@@ -121,14 +121,14 @@ export default function EditProfileScreen() {
         if (email.trim()) {
           await AsyncStorage.setItem('userEmail', email.trim());
         }
-        Alert.alert('Sucesso', 'Perfil atualizado!', [
+        Alert.alert(t.common.success, t.settingsScreen?.profileUpdated || 'Profile updated!', [
           { text: 'OK', onPress: () => router.back() }
         ]);
       } else {
-        Alert.alert('Erro', 'Não foi possível salvar');
+        Alert.alert(t.common.error, t.common.connectionError || 'Could not save');
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      Alert.alert(t.common.error, t.common.connectionError || 'Could not connect to server');
     } finally {
       setSaving(false);
     }
