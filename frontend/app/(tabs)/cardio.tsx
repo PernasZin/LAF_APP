@@ -306,6 +306,7 @@ export default function CardioScreen() {
               isDark={isDark}
               theme={theme}
               language={language}
+              t={t}
             />
           ))}
 
