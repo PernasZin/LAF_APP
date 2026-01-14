@@ -13,6 +13,7 @@ import { ArrowLeft, Shield, Lock, Eye, Database, Trash2 } from 'lucide-react-nat
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
+import { useTranslation } from '../../i18n';
 
 const GlassCard = ({ children, style, isDark }: any) => {
   const cardStyle = {
@@ -45,6 +46,7 @@ const Section = ({ icon: Icon, title, content, isDark, color = premiumColors.pri
 };
 
 export default function PrivacyScreen() {
+  const { t } = useTranslation();
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
@@ -67,7 +69,7 @@ export default function PrivacyScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>Privacidade</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t('privacy.title')}</Text>
             <View style={{ width: 44 }} />
           </Animated.View>
 
@@ -76,31 +78,31 @@ export default function PrivacyScreen() {
             <GlassCard isDark={isDark} style={styles.card}>
               <Section
                 icon={Shield}
-                title="Segurança dos Dados"
-                content="Seus dados são armazenados de forma segura e criptografada. Não compartilhamos suas informações com terceiros."
+                title={t('privacy.dataSecurity')}
+                content={t('privacy.dataSecurityDesc')}
                 isDark={isDark}
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <Section
                 icon={Lock}
-                title="Acesso Protegido"
-                content="Suas credenciais são protegidas e apenas você tem acesso aos seus dados pessoais e de saúde."
+                title={t('privacy.protectedAccess')}
+                content={t('privacy.protectedAccessDesc')}
                 isDark={isDark}
                 color="#3B82F6"
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <Section
                 icon={Eye}
-                title="Transparência"
-                content="Você pode visualizar, editar ou excluir seus dados a qualquer momento através das configurações do app."
+                title={t('privacy.transparency')}
+                content={t('privacy.transparencyDesc')}
                 isDark={isDark}
                 color="#8B5CF6"
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <Section
                 icon={Database}
-                title="Armazenamento Local"
-                content="Parte dos seus dados são armazenados localmente no seu dispositivo para melhor performance."
+                title={t('privacy.localStorage')}
+                content={t('privacy.localStorageDesc')}
                 isDark={isDark}
                 color="#F59E0B"
               />
@@ -111,7 +113,7 @@ export default function PrivacyScreen() {
           <Animated.View entering={FadeInDown.delay(200).springify()}>
             <TouchableOpacity style={[styles.deleteButton, { borderColor: '#EF4444' }]}>
               <Trash2 size={18} color="#EF4444" />
-              <Text style={styles.deleteButtonText}>Solicitar Exclusão de Dados</Text>
+              <Text style={styles.deleteButtonText}>{t('privacy.requestDeletion')}</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
