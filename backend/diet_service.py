@@ -2118,7 +2118,7 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         if meal_index == 0:  # Café da Manhã
             # PERMITIDO: ovos, aveia, frutas | PROIBIDO: carnes, azeite
             safe_protein = get_safe_protein_light()
-            safe_carb = "aveia" if "aveia" not in excluded_by_restrictions else "tapioca"
+            safe_carb = get_restriction_safe_breakfast_carb()  # Usa função inteligente
             foods = [calc_food(safe_protein, 100), calc_food(safe_carb, 40), calc_food(get_restriction_safe_fruit(), 100)]
         elif meal_index == 1:  # Lanche manhã
             # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
