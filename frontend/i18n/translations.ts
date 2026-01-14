@@ -382,6 +382,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       home: 'Início',
       diet: 'Dieta',
       workout: 'Treino',
+      cardio: 'Cardio',
       progress: 'Progresso',
       settings: 'Config',
     },
