@@ -899,6 +899,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       supplements: 'Supplements',
       supplementsDesc: 'Does not replace meals',
       separate: 'SEPARATE',
+      mealsPerDay: 'Meals per day',
+      distribution: 'Distribution',
       athleteInfoBox: 'Athlete diet: quantities in multiples of 10g for precise measurement.',
       generalInfoBox: 'You can adjust your preferences later in settings.',
       skipHint: 'You can skip this step and adjust later in settings.',
