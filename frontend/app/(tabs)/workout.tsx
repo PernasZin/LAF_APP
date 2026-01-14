@@ -348,6 +348,7 @@ export default function WorkoutScreen() {
                   theme={theme}
                   onExercisePress={handleExercisePress}
                   language={language}
+                  t={t}
                 />
               ))}
             </>
