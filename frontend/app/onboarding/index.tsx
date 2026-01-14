@@ -167,11 +167,11 @@ export default function OnboardingScreen() {
         router.replace('/(tabs)');
       } else {
         const error = await response.json();
-        showAlert('Erro', error.detail || 'Não foi possível salvar o perfil');
+        showAlert(t.error, error.detail || t.couldNotSaveProfile);
       }
     } catch (error) {
       console.error('Submit error:', error);
-      showAlert('Erro', 'Não foi possível conectar ao servidor');
+      showAlert(t.error, t.couldNotSaveProfile);
     } finally {
       setLoading(false);
     }
