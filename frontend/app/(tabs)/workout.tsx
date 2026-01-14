@@ -22,7 +22,7 @@ import {
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { WorkoutSkeleton } from '../../components';
-import { useTranslation, translateExercise, translateWorkoutName } from '../../i18n';
+import { useTranslation, translateExercise, translateWorkoutName, translateExerciseFocus } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
