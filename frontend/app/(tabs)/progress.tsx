@@ -299,29 +299,29 @@ export default function ProgressScreen() {
               <Text style={[styles.statValue, { color: theme.text }]}>
                 {stats.total_change ? `${stats.total_change > 0 ? '+' : ''}${stats.total_change.toFixed(1)}` : '0'}kg
               </Text>
-              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Total</Text>
+              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>{t.progress.total}</Text>
             </GlassCard>
             <GlassCard isDark={isDark} style={styles.statCard}>
               <Calendar size={20} color="#F59E0B" />
               <Text style={[styles.statValue, { color: theme.text }]}>
                 {stats.total_records || history.length || 0}
               </Text>
-              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>Registros</Text>
+              <Text style={[styles.statLabel, { color: theme.textTertiary }]}>{t.progress.records}</Text>
             </GlassCard>
           </Animated.View>
 
           {/* History */}
           <Animated.View entering={FadeInDown.delay(300).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Histórico</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.progress.history}</Text>
             <GlassCard isDark={isDark} style={styles.historyCard}>
               {history.length === 0 ? (
                 <View style={styles.emptyHistory}>
                   <Scale size={40} color={theme.textTertiary} />
                   <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                    Nenhum registro ainda
+                    {t.progress.noRecords}
                   </Text>
                   <Text style={[styles.emptySubtext, { color: theme.textTertiary }]}>
-                    Registre seu peso a cada 2 semanas
+                    {t.progress.recordEvery2Weeks}
                   </Text>
                 </View>
               ) : (
@@ -330,7 +330,7 @@ export default function ProgressScreen() {
                     <View style={styles.historyDate}>
                       <Calendar size={14} color={theme.textTertiary} />
                       <Text style={[styles.historyDateText, { color: theme.textSecondary }]}>
-                        {new Date(record.recorded_at).toLocaleDateString('pt-BR')}
+                        {new Date(record.recorded_at).toLocaleDateString(language || 'pt-BR')}
                       </Text>
                     </View>
                     <View style={styles.historyRight}>
