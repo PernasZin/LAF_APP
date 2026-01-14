@@ -186,7 +186,8 @@ def get_restriction_safe_breakfast_carb() -> str:
 
 def get_restriction_safe_protein_light() -> str:
     """
-    Retorna uma proteína leve (para lanches/café) que respeita restrições.
+    Retorna uma proteína leve (para CAFÉ DA MANHÃ) que respeita restrições.
+    NÃO USAR PARA LANCHES - usar get_lanche_safe_food() em vez disso.
     
     Ordem de prioridade:
     1. ovos (geralmente aceito por todos)
@@ -203,7 +204,7 @@ def get_restriction_safe_protein_light() -> str:
         if r in RESTRICTION_EXCLUSIONS:
             excluded.update(RESTRICTION_EXCLUSIONS[r])
     
-    # Ordem de preferência para proteína leve
+    # Ordem de preferência para proteína leve (CAFÉ DA MANHÃ)
     proteins = ["ovos", "tofu", "iogurte_zero", "cottage"]
     
     for p in proteins:
@@ -212,6 +213,65 @@ def get_restriction_safe_protein_light() -> str:
     
     # Se tudo estiver excluído, usa fruta
     return get_restriction_safe_fruit()
+
+
+def get_lanche_safe_food(food_type: str = "protein") -> str:
+    """
+    Retorna um alimento seguro para LANCHES que respeita restrições.
+    
+    REGRA: Lanches devem conter APENAS:
+    - Frutas (maçã, banana, laranja, morango, etc.)
+    - Pão/carboidratos leves (pão integral, aveia)
+    - Iogurte (se não for sem lactose)
+    - Mel (se não for diabético)
+    - Oleaginosas (castanhas, amêndoas)
+    
+    PROIBIDO em lanches: carnes, ovos, cottage, tofu
+    """
+    global _current_diet_restrictions
+    
+    # Calcula exclusões
+    excluded = set()
+    for r in _current_diet_restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded.update(RESTRICTION_EXCLUSIONS[r])
+    
+    if food_type == "protein":
+        # Para "proteína" em lanches, usamos iogurte ou fruta (NUNCA carnes/ovos)
+        options = ["iogurte_zero", "iogurte_natural"]
+        for opt in options:
+            if opt not in excluded:
+                return opt
+        # Se não pode iogurte, retorna fruta
+        return get_restriction_safe_fruit()
+    
+    elif food_type == "carb":
+        # Carboidratos leves para lanches
+        options = ["pao_integral", "aveia", "tapioca"]
+        for opt in options:
+            if opt not in excluded:
+                return opt
+        return get_restriction_safe_fruit()
+    
+    elif food_type == "sweet":
+        # Doces para lanches (se permitido)
+        if "mel" not in excluded:
+            return "mel"
+        return get_restriction_safe_fruit()
+    
+    else:  # fruit ou qualquer outro
+        return get_restriction_safe_fruit()
+
+
+# Alimentos PERMITIDOS em lanches (lista branca)
+ALIMENTOS_PERMITIDOS_LANCHE = {
+    "maca", "banana", "laranja", "morango", "pera", "kiwi", "mamao", "melancia", "abacaxi", "manga", "uva",  # Frutas
+    "castanhas", "amendoas", "nozes", "pasta_amendoim",  # Oleaginosas
+    "iogurte_zero", "iogurte_natural",  # Iogurtes
+    "pao_integral", "pao", "pao_forma", "aveia", "tapioca",  # Carboidratos leves
+    "mel", "granola",  # Doces
+    "whey_protein",  # Suplemento
+}
 
 
 # ==================== RESTRIÇÕES ALIMENTARES ====================
