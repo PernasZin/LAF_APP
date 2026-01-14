@@ -1,11 +1,14 @@
 /**
  * Premium Training Level Step
+ * Com suporte a i18n
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Baby, User, Dumbbell, Trophy, Clock, Calendar } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   formData: any;
@@ -13,13 +16,6 @@ interface Props {
   theme: any;
   isDark: boolean;
 }
-
-const LEVELS = [
-  { value: 'sedentario', label: 'Sedentário', desc: 'Sem atividade física', icon: Baby },
-  { value: 'iniciante', label: 'Iniciante', desc: 'Até 6 meses de treino', icon: User },
-  { value: 'intermediario', label: 'Intermediário', desc: '6 meses a 2 anos', icon: Dumbbell },
-  { value: 'avancado', label: 'Avançado', desc: 'Mais de 2 anos', icon: Trophy },
-];
 
 const FREQUENCIES = [
   { value: '2', label: '2x' },
@@ -32,15 +28,31 @@ const FREQUENCIES = [
 const DURATIONS = [
   { value: '30', label: '30 min' },
   { value: '45', label: '45 min' },
-  { value: '60', label: '1 hora' },
-  { value: '90', label: '1h30' },
+  { value: '60', labelKey: 'oneHour' },
+  { value: '90', labelKey: 'oneHourHalf' },
 ];
 
 export default function TrainingLevelStep({ formData, updateFormData, theme, isDark }: Props) {
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+
+  const LEVELS = [
+    { value: 'sedentario', label: t.sedentary, desc: t.sedentaryDesc, icon: Baby },
+    { value: 'iniciante', label: t.beginner, desc: t.beginnerDesc, icon: User },
+    { value: 'intermediario', label: t.intermediate, desc: t.intermediateDesc, icon: Dumbbell },
+    { value: 'avancado', label: t.advanced, desc: t.advancedDesc, icon: Trophy },
+  ];
+
+  const getDurationLabel = (dur: any) => {
+    if (dur.labelKey === 'oneHour') return t.oneHour || '1 hora';
+    if (dur.labelKey === 'oneHourHalf') return t.oneHourHalf || '1h30';
+    return dur.label;
+  };
+
   return (
     <View style={styles.container}>
       {/* Training Level */}
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Nível de Treino</Text>
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.trainingLevel}</Text>
       <View style={styles.levelsGrid}>
         {LEVELS.map((level) => {
           const isSelected = formData.training_level === level.value;
@@ -80,7 +92,7 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Calendar size={18} color={premiumColors.primary} />
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Frequência Semanal</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.weeklyFrequency}</Text>
         </View>
         <View style={styles.optionsRow}>
           {FREQUENCIES.map((freq) => {
@@ -113,7 +125,7 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Clock size={18} color={premiumColors.primary} />
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Duração do Treino</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.trainingDuration}</Text>
         </View>
         <View style={styles.optionsRow}>
           {DURATIONS.map((dur) => {
@@ -134,7 +146,7 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
                   styles.optionChipText,
                   { color: isSelected ? '#FFF' : theme.text }
                 ]}>
-                  {dur.label}
+                  {getDurationLabel(dur)}
                 </Text>
               </TouchableOpacity>
             );
