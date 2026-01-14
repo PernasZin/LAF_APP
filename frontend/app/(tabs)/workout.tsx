@@ -416,7 +416,7 @@ export default function WorkoutScreen() {
                   <View style={[styles.focusBadge, { backgroundColor: premiumColors.primary + '15' }]}>
                     <Target size={16} color={premiumColors.primary} />
                     <Text style={[styles.focusBadgeText, { color: premiumColors.primary }]}>
-                      {selectedExercise.focus}
+                      {translateExerciseFocus(selectedExercise.focus, language)}
                     </Text>
                   </View>
                 )}
@@ -427,21 +427,21 @@ export default function WorkoutScreen() {
                     <Text style={[styles.exerciseModalStatValue, { color: theme.text }]}>
                       {selectedExercise.sets || 3}
                     </Text>
-                    <Text style={[styles.exerciseModalStatLabel, { color: theme.textTertiary }]}>Séries</Text>
+                    <Text style={[styles.exerciseModalStatLabel, { color: theme.textTertiary }]}>{t.workout.sets}</Text>
                   </View>
                   <View style={[styles.exerciseModalStat, { backgroundColor: '#F59E0B15' }]}>
                     <Target size={20} color="#F59E0B" />
                     <Text style={[styles.exerciseModalStatValue, { color: theme.text }]}>
                       {selectedExercise.reps || '8-12'}
                     </Text>
-                    <Text style={[styles.exerciseModalStatLabel, { color: theme.textTertiary }]}>Reps</Text>
+                    <Text style={[styles.exerciseModalStatLabel, { color: theme.textTertiary }]}>{t.workout.reps}</Text>
                   </View>
                   <View style={[styles.exerciseModalStat, { backgroundColor: '#3B82F615' }]}>
                     <Timer size={20} color="#3B82F6" />
                     <Text style={[styles.exerciseModalStatValue, { color: theme.text }]}>
                       {selectedExercise.rest || 60}s
                     </Text>
-                    <Text style={[styles.exerciseModalStatLabel, { color: theme.textTertiary }]}>Descanso</Text>
+                    <Text style={[styles.exerciseModalStatLabel, { color: theme.textTertiary }]}>{t.workout.rest}</Text>
                   </View>
                 </View>
 
@@ -467,7 +467,7 @@ export default function WorkoutScreen() {
                     style={styles.startTimerBtnGradient}
                   >
                     <Timer size={20} color="#FFF" />
-                    <Text style={styles.startTimerBtnText}>Iniciar Timer</Text>
+                    <Text style={styles.startTimerBtnText}>{t.workout.start} Timer</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
