@@ -278,14 +278,14 @@ export default function ProgressScreen() {
                     style={styles.addWeightButton}
                   >
                     <Plus size={20} color="#FFF" />
-                    <Text style={styles.addWeightButtonText}>Registrar Peso</Text>
+                    <Text style={styles.addWeightButtonText}>{t.progress.recordWeight}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               ) : (
                 <View style={[styles.blockedBanner, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}>
                   <Clock size={18} color={theme.textTertiary} />
                   <Text style={[styles.blockedText, { color: theme.textSecondary }]}>
-                    Próximo registro em {daysUntilNext} dias
+                    {t.progress.nextRecordIn} {daysUntilNext} {t.progress.days}
                   </Text>
                 </View>
               )}
