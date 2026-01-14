@@ -70,7 +70,7 @@ export default function OnboardingScreen() {
     { title: t.steps.physicalData, component: PhysicalDataStep },
     { title: t.steps.trainingLevel, component: TrainingLevelStep },
     { title: t.steps.yourGoal, component: GoalStep },
-    { title: 'Refeições', component: MealConfigStep },
+    { title: t.steps.meals || 'Refeições', component: MealConfigStep },
     { title: t.steps.preferences, component: FoodPreferencesStep },
   ];
 
