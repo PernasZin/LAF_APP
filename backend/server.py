@@ -697,6 +697,17 @@ async def get_user_diet(user_id: str):
         raise HTTPException(status_code=404, detail="Plano de dieta não encontrado")
     
     diet_plan["id"] = diet_plan["_id"]
+    
+    # Traduz baseado no idioma do perfil do usuário
+    user_profile = await db.user_profiles.find_one({"_id": user_id})
+    if user_profile:
+        user_language = user_profile.get('language', 'pt-BR')
+        lang_code = user_language.split('-')[0] if user_language else 'pt'
+        
+        if lang_code in ['en', 'es']:
+            from diet.translations import translate_diet
+            return translate_diet(diet_plan, lang_code)
+    
     return diet_plan
 
 
