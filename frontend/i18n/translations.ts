@@ -27,6 +27,7 @@ export interface Translations {
     home: string;
     diet: string;
     workout: string;
+    cardio: string;
     progress: string;
     settings: string;
   };
@@ -51,6 +52,15 @@ export interface Translations {
     comingSoonText: string;
     waterTracker: string;
     waterGoalReached: string;
+    viewDiet: string;
+    macrosOfDay: string;
+    cups: string;
+    ofCups: string;
+    active: string;
+    welcome: string;
+    completeProfile: string;
+    perWeek: string;
+    workouts: string;
   };
   // Diet screen
   diet: {
