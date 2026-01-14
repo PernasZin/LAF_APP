@@ -267,3 +267,136 @@ export function translateExerciseFocus(focus: string, language: SupportedLanguag
   
   return focus;
 }
+
+/**
+ * Translate food portion units based on language
+ */
+export function translateFoodPortion(portion: string, language: SupportedLanguage): string {
+  if (!portion) return '';
+  
+  const portionTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    // Units
+    'unidade': { 'pt-BR': 'unidade', 'en-US': 'unit', 'es-ES': 'unidad' },
+    'unidades': { 'pt-BR': 'unidades', 'en-US': 'units', 'es-ES': 'unidades' },
+    'unidade grande': { 'pt-BR': 'unidade grande', 'en-US': 'large unit', 'es-ES': 'unidad grande' },
+    'unidades grandes': { 'pt-BR': 'unidades grandes', 'en-US': 'large units', 'es-ES': 'unidades grandes' },
+    'unidade média': { 'pt-BR': 'unidade média', 'en-US': 'medium unit', 'es-ES': 'unidad mediana' },
+    'unidades médias': { 'pt-BR': 'unidades médias', 'en-US': 'medium units', 'es-ES': 'unidades medianas' },
+    'unidade pequena': { 'pt-BR': 'unidade pequena', 'en-US': 'small unit', 'es-ES': 'unidad pequeña' },
+    'unidades pequenas': { 'pt-BR': 'unidades pequenas', 'en-US': 'small units', 'es-ES': 'unidades pequeñas' },
+    // Slices
+    'fatia': { 'pt-BR': 'fatia', 'en-US': 'slice', 'es-ES': 'rebanada' },
+    'fatias': { 'pt-BR': 'fatias', 'en-US': 'slices', 'es-ES': 'rebanadas' },
+    'fatia fina': { 'pt-BR': 'fatia fina', 'en-US': 'thin slice', 'es-ES': 'rebanada fina' },
+    'fatias finas': { 'pt-BR': 'fatias finas', 'en-US': 'thin slices', 'es-ES': 'rebanadas finas' },
+    'fatia grossa': { 'pt-BR': 'fatia grossa', 'en-US': 'thick slice', 'es-ES': 'rebanada gruesa' },
+    'fatias grossas': { 'pt-BR': 'fatias grossas', 'en-US': 'thick slices', 'es-ES': 'rebanadas gruesas' },
+    // Scoops/Spoons
+    'colher': { 'pt-BR': 'colher', 'en-US': 'spoon', 'es-ES': 'cuchara' },
+    'colheres': { 'pt-BR': 'colheres', 'en-US': 'spoons', 'es-ES': 'cucharas' },
+    'colher de sopa': { 'pt-BR': 'colher de sopa', 'en-US': 'tablespoon', 'es-ES': 'cucharada' },
+    'colheres de sopa': { 'pt-BR': 'colheres de sopa', 'en-US': 'tablespoons', 'es-ES': 'cucharadas' },
+    'colher de chá': { 'pt-BR': 'colher de chá', 'en-US': 'teaspoon', 'es-ES': 'cucharadita' },
+    'colheres de chá': { 'pt-BR': 'colheres de chá', 'en-US': 'teaspoons', 'es-ES': 'cucharaditas' },
+    'scoop': { 'pt-BR': 'scoop', 'en-US': 'scoop', 'es-ES': 'medida' },
+    'scoops': { 'pt-BR': 'scoops', 'en-US': 'scoops', 'es-ES': 'medidas' },
+    // Cups/Glass
+    'copo': { 'pt-BR': 'copo', 'en-US': 'glass', 'es-ES': 'vaso' },
+    'copos': { 'pt-BR': 'copos', 'en-US': 'glasses', 'es-ES': 'vasos' },
+    'xícara': { 'pt-BR': 'xícara', 'en-US': 'cup', 'es-ES': 'taza' },
+    'xícaras': { 'pt-BR': 'xícaras', 'en-US': 'cups', 'es-ES': 'tazas' },
+    // Eggs
+    'ovo': { 'pt-BR': 'ovo', 'en-US': 'egg', 'es-ES': 'huevo' },
+    'ovos': { 'pt-BR': 'ovos', 'en-US': 'eggs', 'es-ES': 'huevos' },
+    'ovo inteiro': { 'pt-BR': 'ovo inteiro', 'en-US': 'whole egg', 'es-ES': 'huevo entero' },
+    'ovos inteiros': { 'pt-BR': 'ovos inteiros', 'en-US': 'whole eggs', 'es-ES': 'huevos enteros' },
+    // Portions
+    'porção': { 'pt-BR': 'porção', 'en-US': 'serving', 'es-ES': 'porción' },
+    'porções': { 'pt-BR': 'porções', 'en-US': 'servings', 'es-ES': 'porciones' },
+    'porção pequena': { 'pt-BR': 'porção pequena', 'en-US': 'small serving', 'es-ES': 'porción pequeña' },
+    'porção média': { 'pt-BR': 'porção média', 'en-US': 'medium serving', 'es-ES': 'porción mediana' },
+    'porção grande': { 'pt-BR': 'porção grande', 'en-US': 'large serving', 'es-ES': 'porción grande' },
+    // Fillets
+    'filé': { 'pt-BR': 'filé', 'en-US': 'fillet', 'es-ES': 'filete' },
+    'filés': { 'pt-BR': 'filés', 'en-US': 'fillets', 'es-ES': 'filetes' },
+    'filé médio': { 'pt-BR': 'filé médio', 'en-US': 'medium fillet', 'es-ES': 'filete mediano' },
+    'filé grande': { 'pt-BR': 'filé grande', 'en-US': 'large fillet', 'es-ES': 'filete grande' },
+    // Pieces
+    'pedaço': { 'pt-BR': 'pedaço', 'en-US': 'piece', 'es-ES': 'trozo' },
+    'pedaços': { 'pt-BR': 'pedaços', 'en-US': 'pieces', 'es-ES': 'trozos' },
+    // Pots
+    'pote': { 'pt-BR': 'pote', 'en-US': 'container', 'es-ES': 'envase' },
+    'potes': { 'pt-BR': 'potes', 'en-US': 'containers', 'es-ES': 'envases' },
+  };
+  
+  // Try exact match first
+  const lowerPortion = portion.toLowerCase();
+  for (const [key, translations] of Object.entries(portionTranslations)) {
+    if (lowerPortion.includes(key)) {
+      return portion.replace(new RegExp(key, 'gi'), translations[language]);
+    }
+  }
+  
+  // Pattern matching for numbered portions (e.g., "3 unidades grandes")
+  let translated = portion;
+  for (const [key, translations] of Object.entries(portionTranslations)) {
+    const regex = new RegExp(`\\b${key}\\b`, 'gi');
+    if (regex.test(translated)) {
+      translated = translated.replace(regex, translations[language]);
+    }
+  }
+  
+  return translated;
+}
+
+/**
+ * Translate workout day/muscle group name
+ */
+export function translateWorkoutDayName(name: string, language: SupportedLanguage): string {
+  const dayTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    // Muscle groups
+    'Peito': { 'pt-BR': 'Peito', 'en-US': 'Chest', 'es-ES': 'Pecho' },
+    'Costas': { 'pt-BR': 'Costas', 'en-US': 'Back', 'es-ES': 'Espalda' },
+    'Ombros': { 'pt-BR': 'Ombros', 'en-US': 'Shoulders', 'es-ES': 'Hombros' },
+    'Pernas': { 'pt-BR': 'Pernas', 'en-US': 'Legs', 'es-ES': 'Piernas' },
+    'Bíceps': { 'pt-BR': 'Bíceps', 'en-US': 'Biceps', 'es-ES': 'Bíceps' },
+    'Tríceps': { 'pt-BR': 'Tríceps', 'en-US': 'Triceps', 'es-ES': 'Tríceps' },
+    'Braços': { 'pt-BR': 'Braços', 'en-US': 'Arms', 'es-ES': 'Brazos' },
+    'Abdômen': { 'pt-BR': 'Abdômen', 'en-US': 'Abs', 'es-ES': 'Abdominales' },
+    'Glúteos': { 'pt-BR': 'Glúteos', 'en-US': 'Glutes', 'es-ES': 'Glúteos' },
+    'Panturrilha': { 'pt-BR': 'Panturrilha', 'en-US': 'Calves', 'es-ES': 'Gemelos' },
+    // Combinations
+    'Peito e Tríceps': { 'pt-BR': 'Peito e Tríceps', 'en-US': 'Chest & Triceps', 'es-ES': 'Pecho y Tríceps' },
+    'Costas e Bíceps': { 'pt-BR': 'Costas e Bíceps', 'en-US': 'Back & Biceps', 'es-ES': 'Espalda y Bíceps' },
+    'Ombros e Braços': { 'pt-BR': 'Ombros e Braços', 'en-US': 'Shoulders & Arms', 'es-ES': 'Hombros y Brazos' },
+    'Pernas e Glúteos': { 'pt-BR': 'Pernas e Glúteos', 'en-US': 'Legs & Glutes', 'es-ES': 'Piernas y Glúteos' },
+    // Workout labels
+    'Treino A': { 'pt-BR': 'Treino A', 'en-US': 'Workout A', 'es-ES': 'Entreno A' },
+    'Treino B': { 'pt-BR': 'Treino B', 'en-US': 'Workout B', 'es-ES': 'Entreno B' },
+    'Treino C': { 'pt-BR': 'Treino C', 'en-US': 'Workout C', 'es-ES': 'Entreno C' },
+    'Treino D': { 'pt-BR': 'Treino D', 'en-US': 'Workout D', 'es-ES': 'Entreno D' },
+    'Treino E': { 'pt-BR': 'Treino E', 'en-US': 'Workout E', 'es-ES': 'Entreno E' },
+    'Treino F': { 'pt-BR': 'Treino F', 'en-US': 'Workout F', 'es-ES': 'Entreno F' },
+    // Full day names
+    'Treino A - Peito': { 'pt-BR': 'Treino A - Peito', 'en-US': 'Workout A - Chest', 'es-ES': 'Entreno A - Pecho' },
+    'Treino B - Costas': { 'pt-BR': 'Treino B - Costas', 'en-US': 'Workout B - Back', 'es-ES': 'Entreno B - Espalda' },
+    'Treino C - Pernas': { 'pt-BR': 'Treino C - Pernas', 'en-US': 'Workout C - Legs', 'es-ES': 'Entreno C - Piernas' },
+    'Treino D - Ombros': { 'pt-BR': 'Treino D - Ombros', 'en-US': 'Workout D - Shoulders', 'es-ES': 'Entreno D - Hombros' },
+    'Treino E - Braços': { 'pt-BR': 'Treino E - Braços', 'en-US': 'Workout E - Arms', 'es-ES': 'Entreno E - Brazos' },
+  };
+  
+  // Exact match
+  if (name in dayTranslations) {
+    return dayTranslations[name][language];
+  }
+  
+  // Try to translate parts
+  let translated = name;
+  for (const [key, translations] of Object.entries(dayTranslations)) {
+    if (translated.includes(key)) {
+      translated = translated.replace(key, translations[language]);
+    }
+  }
+  
+  return translated;
+}
