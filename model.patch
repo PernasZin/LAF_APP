@@ -1,82 +1,279 @@
 diff --git a/frontend/i18n/translations.ts b/frontend/i18n/translations.ts
-index 4ba5132c..2e2d651d 100644
+index 274539a4..e3f9786b 100644
 --- a/frontend/i18n/translations.ts
 +++ b/frontend/i18n/translations.ts
-@@ -11,16 +11,19 @@ export interface Translations {
-     loading: string;
-     error: string;
-     success: string;
--    cancel: string;
-+    warning: string;
-     save: string;
+@@ -156,28 +156,29 @@ export interface Translations {
+   // Settings screen
+   settings: {
+     title: string;
++    subtitle: string;
+     account: string;
+     editProfile: string;
+-    logout: string;
++    diet: string;
++    mealsPerDay: string;
++    meals: string;
++    training: string;
++    configureTraining: string;
++    timesPerWeek: string;
++    preferences: string;
++    lightMode: string;
+     notifications: string;
+-    enableNotifications: string;
+-    notificationsDesc: string;
+-    configureReminders: string;
+-    remindersDesc: string;
+-    appearance: string;
+-    theme: string;
+-    themeDesc: string;
+-    system: string;
+-    light: string;
+-    dark: string;
+-    language: string;
+-    data: string;
+-    clearCache: string;
+-    clearCacheDesc: string;
+-    legal: string;
++    support: string;
+     privacy: string;
+-    terms: string;
++    termsOfUse: string;
++    help: string;
++    logout: string;
++    logoutTitle: string;
++    logoutConfirm: string;
 +    cancel: string;
-     confirm: string;
-     delete: string;
-     edit: string;
-     back: string;
-     next: string;
-     done: string;
-+    connectionError: string;
-     yes: string;
-     no: string;
-+    saving: string;
+     version: string;
++    madeWithLove: string;
++    user: string;
    };
-   // Tab names
-   tabs: {
-@@ -367,6 +370,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
-       loading: 'Carregando...',
-       error: 'Erro',
-       success: 'Sucesso',
-+      warning: 'Aviso',
-       cancel: 'Cancelar',
-       save: 'Salvar',
-       confirm: 'Confirmar',
-@@ -375,8 +379,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
-       back: 'Voltar',
-       next: 'Próximo',
-       done: 'Concluído',
-+      connectionError: 'Erro de Conexão',
-       yes: 'Sim',
-       no: 'Não',
-+      saving: 'Salvando...',
+   // Notifications settings
+   notificationSettings: {
+@@ -511,28 +512,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
      },
-     tabs: {
-       home: 'Início',
-@@ -699,6 +705,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
-       loading: 'Loading...',
-       error: 'Error',
-       success: 'Success',
-+      warning: 'Warning',
-       cancel: 'Cancel',
-       save: 'Save',
-       confirm: 'Confirm',
-@@ -707,8 +714,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
-       back: 'Back',
-       next: 'Next',
-       done: 'Done',
-+      connectionError: 'Connection Error',
-       yes: 'Yes',
-       no: 'No',
-+      saving: 'Saving...',
+     settings: {
+       title: 'Configurações',
++      subtitle: 'Personalize sua experiência',
+       account: 'Conta',
+       editProfile: 'Editar Perfil',
+-      logout: 'Sair da Conta',
++      diet: 'Dieta',
++      mealsPerDay: 'Refeições por dia',
++      meals: 'Refeições',
++      training: 'Treino',
++      configureTraining: 'Configurar Treino',
++      timesPerWeek: 'vezes por semana',
++      preferences: 'Preferências',
++      lightMode: 'Modo Claro',
+       notifications: 'Notificações',
+-      enableNotifications: 'Ativar Notificações',
+-      notificationsDesc: 'Receba lembretes de refeições e treinos',
+-      configureReminders: 'Configurar Lembretes',
+-      remindersDesc: 'Horários de refeições, treino e peso',
+-      appearance: 'Aparência',
+-      theme: 'Tema',
+-      themeDesc: 'Escolha como o app deve aparecer',
+-      system: 'Sistema',
+-      light: 'Claro',
+-      dark: 'Escuro',
+-      language: 'Idioma',
+-      data: 'Dados',
+-      clearCache: 'Limpar Cache',
+-      clearCacheDesc: 'Remove dados em cache localmente',
+-      legal: 'Legal',
++      support: 'Suporte',
+       privacy: 'Política de Privacidade',
+-      terms: 'Termos de Uso',
++      termsOfUse: 'Termos de Uso',
++      help: 'Ajuda',
++      logout: 'Sair',
++      logoutTitle: 'Sair da Conta',
++      logoutConfirm: 'Tem certeza que deseja sair?',
++      cancel: 'Cancelar',
+       version: 'Versão',
++      madeWithLove: 'Feito com ❤️',
++      user: 'Usuário',
      },
-     tabs: {
-       home: 'Home',
-@@ -1031,6 +1040,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
-       loading: 'Cargando...',
-       error: 'Error',
-       success: 'Éxito',
-+      warning: 'Advertencia',
-       cancel: 'Cancelar',
-       save: 'Guardar',
-       confirm: 'Confirmar',
-@@ -1039,8 +1049,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
-       back: 'Volver',
-       next: 'Siguiente',
-       done: 'Hecho',
-+      connectionError: 'Error de Conexión',
-       yes: 'Sí',
-       no: 'No',
-+      saving: 'Guardando...',
+     notificationSettings: {
+       title: 'Notificações',
+@@ -849,28 +851,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
      },
-     tabs: {
-       home: 'Inicio',
+     settings: {
+       title: 'Settings',
++      subtitle: 'Customize your experience',
+       account: 'Account',
+       editProfile: 'Edit Profile',
+-      logout: 'Log Out',
++      diet: 'Diet',
++      mealsPerDay: 'Meals per day',
++      meals: 'Meals',
++      training: 'Training',
++      configureTraining: 'Configure Training',
++      timesPerWeek: 'times per week',
++      preferences: 'Preferences',
++      lightMode: 'Light Mode',
+       notifications: 'Notifications',
+-      enableNotifications: 'Enable Notifications',
+-      notificationsDesc: 'Receive meal and workout reminders',
+-      configureReminders: 'Configure Reminders',
+-      remindersDesc: 'Meal, workout, and weight schedules',
+-      appearance: 'Appearance',
+-      theme: 'Theme',
+-      themeDesc: 'Choose how the app should look',
+-      system: 'System',
+-      light: 'Light',
+-      dark: 'Dark',
+-      language: 'Language',
+-      data: 'Data',
+-      clearCache: 'Clear Cache',
+-      clearCacheDesc: 'Remove locally cached data',
+-      legal: 'Legal',
++      support: 'Support',
+       privacy: 'Privacy Policy',
+-      terms: 'Terms of Use',
++      termsOfUse: 'Terms of Use',
++      help: 'Help',
++      logout: 'Log Out',
++      logoutTitle: 'Log Out',
++      logoutConfirm: 'Are you sure you want to log out?',
++      cancel: 'Cancel',
+       version: 'Version',
++      madeWithLove: 'Made with ❤️',
++      user: 'User',
+     },
+     notificationSettings: {
+       title: 'Notifications',
+@@ -1187,28 +1190,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
+     },
+     settings: {
+       title: 'Configuración',
++      subtitle: 'Personaliza tu experiencia',
+       account: 'Cuenta',
+       editProfile: 'Editar Perfil',
+-      logout: 'Cerrar Sesión',
++      diet: 'Dieta',
++      mealsPerDay: 'Comidas por día',
++      meals: 'Comidas',
++      training: 'Entreno',
++      configureTraining: 'Configurar Entreno',
++      timesPerWeek: 'veces por semana',
++      preferences: 'Preferencias',
++      lightMode: 'Modo Claro',
+       notifications: 'Notificaciones',
+-      enableNotifications: 'Activar Notificaciones',
+-      notificationsDesc: 'Recibe recordatorios de comidas y entrenos',
+-      configureReminders: 'Configurar Recordatorios',
+-      remindersDesc: 'Horarios de comidas, entreno y peso',
+-      appearance: 'Apariencia',
+-      theme: 'Tema',
+-      themeDesc: 'Elige cómo debe verse la app',
+-      system: 'Sistema',
+-      light: 'Claro',
+-      dark: 'Oscuro',
+-      language: 'Idioma',
+-      data: 'Datos',
+-      clearCache: 'Limpiar Caché',
+-      clearCacheDesc: 'Elimina datos en caché localmente',
+-      legal: 'Legal',
++      support: 'Soporte',
+       privacy: 'Política de Privacidad',
+-      terms: 'Términos de Uso',
++      termsOfUse: 'Términos de Uso',
++      help: 'Ayuda',
++      logout: 'Cerrar Sesión',
++      logoutTitle: 'Cerrar Sesión',
++      logoutConfirm: '¿Estás seguro de que quieres cerrar sesión?',
++      cancel: 'Cancelar',
+       version: 'Versión',
++      madeWithLove: 'Hecho con ❤️',
++      user: 'Usuario',
+     },
+     notificationSettings: {
+       title: 'Notificaciones',
+diff --git a/model.patch b/model.patch
+index cefb6296..074b4fc1 100644
+--- a/model.patch
++++ b/model.patch
+@@ -1,82 +0,0 @@
+-diff --git a/frontend/i18n/translations.ts b/frontend/i18n/translations.ts
+-index 4ba5132c..2e2d651d 100644
+---- a/frontend/i18n/translations.ts
+-+++ b/frontend/i18n/translations.ts
+-@@ -11,16 +11,19 @@ export interface Translations {
+-     loading: string;
+-     error: string;
+-     success: string;
+--    cancel: string;
+-+    warning: string;
+-     save: string;
+-+    cancel: string;
+-     confirm: string;
+-     delete: string;
+-     edit: string;
+-     back: string;
+-     next: string;
+-     done: string;
+-+    connectionError: string;
+-     yes: string;
+-     no: string;
+-+    saving: string;
+-   };
+-   // Tab names
+-   tabs: {
+-@@ -367,6 +370,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-       loading: 'Carregando...',
+-       error: 'Erro',
+-       success: 'Sucesso',
+-+      warning: 'Aviso',
+-       cancel: 'Cancelar',
+-       save: 'Salvar',
+-       confirm: 'Confirmar',
+-@@ -375,8 +379,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-       back: 'Voltar',
+-       next: 'Próximo',
+-       done: 'Concluído',
+-+      connectionError: 'Erro de Conexão',
+-       yes: 'Sim',
+-       no: 'Não',
+-+      saving: 'Salvando...',
+-     },
+-     tabs: {
+-       home: 'Início',
+-@@ -699,6 +705,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-       loading: 'Loading...',
+-       error: 'Error',
+-       success: 'Success',
+-+      warning: 'Warning',
+-       cancel: 'Cancel',
+-       save: 'Save',
+-       confirm: 'Confirm',
+-@@ -707,8 +714,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-       back: 'Back',
+-       next: 'Next',
+-       done: 'Done',
+-+      connectionError: 'Connection Error',
+-       yes: 'Yes',
+-       no: 'No',
+-+      saving: 'Saving...',
+-     },
+-     tabs: {
+-       home: 'Home',
+-@@ -1031,6 +1040,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-       loading: 'Cargando...',
+-       error: 'Error',
+-       success: 'Éxito',
+-+      warning: 'Advertencia',
+-       cancel: 'Cancelar',
+-       save: 'Guardar',
+-       confirm: 'Confirmar',
+-@@ -1039,8 +1049,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-       back: 'Volver',
+-       next: 'Siguiente',
+-       done: 'Hecho',
+-+      connectionError: 'Error de Conexión',
+-       yes: 'Sí',
+-       no: 'No',
+-+      saving: 'Guardando...',
+-     },
+-     tabs: {
+-       home: 'Inicio',
