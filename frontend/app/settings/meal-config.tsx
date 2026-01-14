@@ -35,38 +35,40 @@ const GlassCard = ({ children, style, isDark }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
-const MEAL_PRESETS: Record<number, { name: string; time: string }[]> = {
-  4: [
-    { name: 'Café da Manhã', time: '07:00' },
-    { name: 'Almoço', time: '12:00' },
-    { name: 'Lanche Tarde', time: '16:00' },
-    { name: 'Jantar', time: '20:00' },
-  ],
-  5: [
-    { name: 'Café da Manhã', time: '07:00' },
-    { name: 'Lanche Manhã', time: '10:00' },
-    { name: 'Almoço', time: '12:30' },
-    { name: 'Lanche Tarde', time: '16:00' },
-    { name: 'Jantar', time: '19:30' },
-  ],
-  6: [
-    { name: 'Café da Manhã', time: '07:00' },
-    { name: 'Lanche Manhã', time: '10:00' },
-    { name: 'Almoço', time: '12:30' },
-    { name: 'Lanche Tarde', time: '16:00' },
-    { name: 'Jantar', time: '19:30' },
-    { name: 'Ceia', time: '21:30' },
-  ],
-};
-
 export default function MealConfigScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const language = useSettingsStore((state) => state.language) as any;
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  const { t } = useTranslation();
 
   const [mealCount, setMealCount] = useState(5);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
+  const MEAL_PRESETS: Record<number, { name: string; time: string }[]> = {
+    4: [
+      { name: 'Café da Manhã', time: '07:00' },
+      { name: 'Almoço', time: '12:00' },
+      { name: 'Lanche Tarde', time: '16:00' },
+      { name: 'Jantar', time: '20:00' },
+    ],
+    5: [
+      { name: 'Café da Manhã', time: '07:00' },
+      { name: 'Lanche Manhã', time: '10:00' },
+      { name: 'Almoço', time: '12:30' },
+      { name: 'Lanche Tarde', time: '16:00' },
+      { name: 'Jantar', time: '19:30' },
+    ],
+    6: [
+      { name: 'Café da Manhã', time: '07:00' },
+      { name: 'Lanche Manhã', time: '10:00' },
+      { name: 'Almoço', time: '12:30' },
+      { name: 'Lanche Tarde', time: '16:00' },
+      { name: 'Jantar', time: '19:30' },
+      { name: 'Ceia', time: '21:30' },
+    ],
+  };
 
   useEffect(() => {
     loadData();
