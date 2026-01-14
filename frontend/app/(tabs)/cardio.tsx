@@ -253,9 +253,9 @@ export default function CardioScreen() {
           {/* Header */}
           <Animated.View entering={FadeInDown.springify()} style={styles.header}>
             <View>
-              <Text style={[styles.headerTitle, { color: theme.text }]}>Cardio</Text>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>{t.cardio.title}</Text>
               <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-                {totalSessions} sessões/semana • {goalLabel}
+                {totalSessions} {t.cardio.sessionsPerWeek} • {goalLabel}
               </Text>
             </View>
           </Animated.View>
@@ -273,13 +273,13 @@ export default function CardioScreen() {
                 <View style={styles.summaryStat}>
                   <Clock size={24} color={premiumColors.primary} />
                   <Text style={[styles.summaryValue, { color: theme.text }]}>{totalMinutes}</Text>
-                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>min/semana</Text>
+                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>{t.cardio.minPerWeek}</Text>
                 </View>
                 <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
                 <View style={styles.summaryStat}>
                   <Flame size={24} color="#EF4444" />
                   <Text style={[styles.summaryValue, { color: theme.text }]}>{totalCalories}</Text>
-                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>kcal/semana</Text>
+                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>{t.cardio.kcalPerWeek}</Text>
                 </View>
               </View>
             </GlassCard>
