@@ -815,6 +815,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
         trainingLevel: 'Training Level',
         yourGoal: 'Your Goal',
         preferences: 'Preferences',
+        meals: 'Meals',
       },
       saving: 'Saving...',
       finish: 'Finish',
