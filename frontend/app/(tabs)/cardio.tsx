@@ -297,7 +297,7 @@ export default function CardioScreen() {
           )}
 
           {/* Exercises */}
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Seus Exercícios</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.cardio.yourExercises}</Text>
           {cardioData?.exercises?.map((exercise: any, index: number) => (
             <CardioExerciseCard
               key={index}
@@ -313,7 +313,7 @@ export default function CardioScreen() {
             <GlassCard isDark={isDark} style={styles.emptyCard}>
               <Activity size={48} color={theme.textTertiary} />
               <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-                Nenhuma sessão de cardio planejada
+                {t.workout.noData}
               </Text>
             </GlassCard>
           )}
