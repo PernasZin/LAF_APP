@@ -19,7 +19,7 @@ interface Props {
 export default function MealConfigStep({ formData, updateFormData, theme, isDark }: Props) {
   const language = useSettingsStore((state) => state.language) as SupportedLanguage;
   const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
-  const tMeals = translations[language]?.diet || translations['pt-BR'].diet;
+  const tMeals = translations[language]?.meals || translations['pt-BR'].meals;
 
   const MEAL_PRESETS: Record<number, { nameKey: string; time: string }[]> = {
     4: [
