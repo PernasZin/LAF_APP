@@ -11,16 +11,19 @@ export interface Translations {
     loading: string;
     error: string;
     success: string;
-    cancel: string;
+    warning: string;
     save: string;
+    cancel: string;
     confirm: string;
     delete: string;
     edit: string;
     back: string;
     next: string;
     done: string;
+    connectionError: string;
     yes: string;
     no: string;
+    saving: string;
   };
   // Tab names
   tabs: {
