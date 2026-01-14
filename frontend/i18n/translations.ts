@@ -517,6 +517,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
         trainingLevel: 'Nível de Treino',
         yourGoal: 'Seu Objetivo',
         preferences: 'Preferências',
+        meals: 'Refeições',
       },
       saving: 'Salvando...',
       finish: 'Finalizar',
