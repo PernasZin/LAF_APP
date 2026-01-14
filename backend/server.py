@@ -58,6 +58,9 @@ class UserProfile(BaseModel):
     food_preferences: List[str] = Field(default_factory=list)
     injury_history: List[str] = Field(default_factory=list)
     
+    # Configurações
+    language: str = "pt-BR"  # "pt-BR", "en-US", "es-ES"
+    
     # Calculados
     tdee: Optional[float] = None  # Calorias diárias
     target_calories: Optional[float] = None  # Calorias ajustadas para objetivo
