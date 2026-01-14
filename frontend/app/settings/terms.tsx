@@ -54,7 +54,7 @@ export default function TermsScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>{t('terms.title')}</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t.terms.title}</Text>
             <View style={{ width: 44 }} />
           </Animated.View>
 
@@ -64,10 +64,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <FileText size={20} color={premiumColors.primary} />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.acceptance')}</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.terms.acceptance}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  {t('terms.acceptanceDesc')}
+                  {t.terms.acceptanceDesc}
                 </Text>
               </View>
 
@@ -76,10 +76,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Scale size={20} color="#3B82F6" />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.responsibleUse')}</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.terms.responsibleUse}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  {t('terms.responsibleUseDesc')}
+                  {t.terms.responsibleUseDesc}
                 </Text>
               </View>
 
@@ -88,10 +88,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <AlertTriangle size={20} color="#F59E0B" />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.limitations')}</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.terms.limitations}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  {t('terms.limitationsDesc')}
+                  {t.terms.limitationsDesc}
                 </Text>
               </View>
 
@@ -100,10 +100,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Heart size={20} color="#EC4899" />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.health')}</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.terms.health}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  {t('terms.healthDesc')}
+                  {t.terms.healthDesc}
                 </Text>
               </View>
             </GlassCard>
@@ -112,7 +112,7 @@ export default function TermsScreen() {
           {/* Version */}
           <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: theme.textTertiary }]}>
-              {t('terms.lastUpdate')}
+              {t.terms.lastUpdate}
             </Text>
           </Animated.View>
         </ScrollView>
