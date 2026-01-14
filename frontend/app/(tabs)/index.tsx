@@ -393,8 +393,8 @@ export default function HomeScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={styles.emptyContainer}>
           <User size={60} color={premiumColors.primary} />
-          <Text style={[styles.emptyTitle, { color: theme.text }]}>Bem-vindo ao LAF!</Text>
-          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Complete seu perfil para começar</Text>
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>{t.home.welcome}</Text>
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>{t.home.completeProfile}</Text>
         </View>
       </SafeAreaView>
     );
@@ -429,10 +429,10 @@ export default function HomeScreen() {
           <Animated.View entering={FadeInDown.springify()} style={styles.header}>
             <View>
               <Text style={[styles.greeting, { color: theme.text }]}>
-                Olá, {profile.name?.split(' ')[0]}! 👋
+                {t.home.greeting}, {profile.name?.split(' ')[0]}! 👋
               </Text>
               <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-                Vamos alcançar seus objetivos hoje
+                {t.home.subtitle}
               </Text>
             </View>
             <TouchableOpacity style={[styles.profileButton, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}>
@@ -446,7 +446,7 @@ export default function HomeScreen() {
               icon={<Flame size={26} color="#EF4444" strokeWidth={2.5} />}
               value={Math.round(profile.target_calories || 0)}
               unit="kcal"
-              label="META DIÁRIA"
+              label={t.home.dailyGoal}
               color="#EF4444"
               isDark={isDark}
               delay={100}
@@ -455,8 +455,8 @@ export default function HomeScreen() {
             <StatCard
               icon={<Dumbbell size={26} color={premiumColors.primary} strokeWidth={2.5} />}
               value={profile.weekly_training_frequency || 0}
-              unit="treinos"
-              label="POR SEMANA"
+              unit={t.home.workouts}
+              label={t.home.perWeek}
               color={premiumColors.primary}
               isDark={isDark}
               delay={200}
@@ -467,18 +467,18 @@ export default function HomeScreen() {
           <Animated.View entering={FadeInDown.delay(300).springify()}>
             <GlassCard isDark={isDark} style={styles.macrosCard}>
               <View style={styles.macrosHeader}>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>Macros do Dia</Text>
+                <Text style={[styles.cardTitle, { color: theme.text }]}>{t.home.macrosOfDay}</Text>
                 <TouchableOpacity style={styles.seeAllBtn}>
-                  <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>Ver dieta</Text>
+                  <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>{t.home.viewDiet}</Text>
                   <ChevronRight size={16} color={premiumColors.primary} />
                 </TouchableOpacity>
               </View>
               
               {profile.macros && (
                 <View style={styles.macrosContent}>
-                  <MacroBar label="Proteína" current={0} target={profile.macros.protein || 150} color="#3B82F6" isDark={isDark} />
-                  <MacroBar label="Carboidratos" current={0} target={profile.macros.carbs || 200} color="#F59E0B" isDark={isDark} />
-                  <MacroBar label="Gorduras" current={0} target={profile.macros.fat || 60} color="#EF4444" isDark={isDark} />
+                  <MacroBar label={t.home.protein} current={0} target={profile.macros.protein || 150} color="#3B82F6" isDark={isDark} />
+                  <MacroBar label={t.home.carbs} current={0} target={profile.macros.carbs || 200} color="#F59E0B" isDark={isDark} />
+                  <MacroBar label={t.home.fat} current={0} target={profile.macros.fat || 60} color="#EF4444" isDark={isDark} />
                 </View>
               )}
             </GlassCard>
