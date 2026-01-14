@@ -782,6 +782,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       afternoonSnack: 'Afternoon Snack',
       dinner: 'Dinner',
       supper: 'Supper',
+      eveningSnack: 'Evening Snack',
     },
     weekDays: {
       sunday: 'Sunday',
