@@ -1,11 +1,14 @@
 /**
  * Premium Goal Step
+ * Com suporte a i18n
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { TrendingDown, Scale, TrendingUp, Check } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   formData: any;
@@ -14,38 +17,41 @@ interface Props {
   isDark: boolean;
 }
 
-const GOALS = [
-  {
-    value: 'cutting',
-    label: 'Emagrecimento',
-    desc: 'Perder gordura mantendo massa muscular',
-    icon: TrendingDown,
-    color: '#EF4444',
-    gradient: ['#EF4444', '#F97316'],
-  },
-  {
-    value: 'manutencao',
-    label: 'Manutenção',
-    desc: 'Manter peso e melhorar composição',
-    icon: Scale,
-    color: '#10B981',
-    gradient: ['#10B981', '#14B8A6'],
-  },
-  {
-    value: 'bulking',
-    label: 'Ganho de Massa',
-    desc: 'Aumentar massa muscular',
-    icon: TrendingUp,
-    color: '#3B82F6',
-    gradient: ['#3B82F6', '#8B5CF6'],
-  },
-];
-
 export default function GoalStep({ formData, updateFormData, theme, isDark }: Props) {
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+
+  const GOALS = [
+    {
+      value: 'cutting',
+      label: t.cutting,
+      desc: t.cuttingDesc,
+      icon: TrendingDown,
+      color: '#EF4444',
+      gradient: ['#EF4444', '#F97316'],
+    },
+    {
+      value: 'manutencao',
+      label: t.maintenance,
+      desc: t.maintenanceDesc,
+      icon: Scale,
+      color: '#10B981',
+      gradient: ['#10B981', '#14B8A6'],
+    },
+    {
+      value: 'bulking',
+      label: t.bulking,
+      desc: t.bulkingDesc,
+      icon: TrendingUp,
+      color: '#3B82F6',
+      gradient: ['#3B82F6', '#8B5CF6'],
+    },
+  ];
+
   return (
     <View style={styles.container}>
       <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-        Escolha seu objetivo principal
+        {t.goalDesc}
       </Text>
       
       <View style={styles.goalsContainer}>
