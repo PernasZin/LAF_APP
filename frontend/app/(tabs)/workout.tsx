@@ -60,9 +60,12 @@ const GlassCard = ({ children, style, isDark, onPress }: any) => {
 };
 
 // Workout Day Card
-const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language }: any) => {
+const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, t }: any) => {
   const isToday = index === new Date().getDay() - 1;
   const totalExercises = day.exercises?.length || 0;
+  
+  // Tradução para "HOJE"
+  const todayLabel = language === 'en-US' ? 'TODAY' : language === 'es-ES' ? 'HOY' : 'HOJE';
   
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
@@ -79,12 +82,12 @@ const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language }
               </Text>
               {isToday && (
                 <View style={[styles.todayBadge, { backgroundColor: premiumColors.primary }]}>
-                  <Text style={styles.todayBadgeText}>HOJE</Text>
+                  <Text style={styles.todayBadgeText}>{todayLabel}</Text>
                 </View>
               )}
             </View>
             <Text style={[styles.dayExerciseCount, { color: theme.textTertiary }]}>
-              {totalExercises} exercícios
+              {totalExercises} {t.workout.exercises}
             </Text>
           </View>
         </View>
@@ -104,7 +107,7 @@ const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language }
                 </Text>
                 {exercise.focus && (
                   <Text style={[styles.exerciseFocus, { color: premiumColors.primary }]} numberOfLines={1}>
-                    {exercise.focus}
+                    {translateExerciseFocus(exercise.focus, language)}
                   </Text>
                 )}
                 <View style={styles.exerciseDetails}>
