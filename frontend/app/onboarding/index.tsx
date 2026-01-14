@@ -90,13 +90,13 @@ export default function OnboardingScreen() {
     switch (currentStep) {
       case 0:
         if (!formData.name || !formData.age || !formData.sex) {
-          showAlert('Campos obrigatórios', 'Preencha nome, idade e sexo');
+          showAlert(t.requiredFields, t.fillNameAgeSex);
           return false;
         }
         break;
       case 1:
         if (!formData.height || !formData.weight) {
-          showAlert('Campos obrigatórios', 'Preencha altura e peso');
+          showAlert(t.requiredFields, t.fillHeightWeight);
           return false;
         }
         break;
