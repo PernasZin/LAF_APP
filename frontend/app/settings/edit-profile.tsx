@@ -51,16 +51,11 @@ const GlassCard = ({ children, style, isDark }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
-const GOALS = [
-  { id: 'cutting', label: '🔥 Cutting', desc: 'Perder gordura' },
-  { id: 'manutencao', label: '⚖️ Manutenção', desc: 'Manter peso' },
-  { id: 'bulking', label: '💪 Bulking', desc: 'Ganhar massa' },
-];
-
 export default function EditProfileScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -69,6 +64,12 @@ export default function EditProfileScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [goal, setGoal] = useState('manutencao');
+
+  const GOALS = [
+    { id: 'cutting', label: `🔥 ${t.home.cutting.split(' ')[0]}`, desc: t.home.cutting.replace(/.*\(|\)/g, '') },
+    { id: 'manutencao', label: `⚖️ ${t.home.maintenance.split(' ')[0]}`, desc: t.home.maintenance },
+    { id: 'bulking', label: `💪 ${t.home.bulking.split(' ')[0]}`, desc: t.home.bulking.replace(/.*\(|\)/g, '') },
+  ];
 
   useEffect(() => {
     loadProfile();
