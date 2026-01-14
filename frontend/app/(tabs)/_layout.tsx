@@ -13,6 +13,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-na
 import { Home, Utensils, Dumbbell, Activity, TrendingUp, Settings } from 'lucide-react-native';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
+import { useTranslation } from '../../i18n';
 
 // Animated Tab Icon
 const TabIcon = ({ Icon, focused, color }: { Icon: any; focused: boolean; color: string }) => {
@@ -38,6 +39,7 @@ export default function TabLayout() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  const { t } = useTranslation();
   
   return (
     <Tabs
@@ -92,7 +94,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Início',
+          title: t.tabs.home,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon Icon={Home} focused={focused} color={color} />
           ),
@@ -101,7 +103,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="diet"
         options={{
-          title: 'Dieta',
+          title: t.tabs.diet,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon Icon={Utensils} focused={focused} color={color} />
           ),
@@ -110,7 +112,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="workout"
         options={{
-          title: 'Treino',
+          title: t.tabs.workout,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon Icon={Dumbbell} focused={focused} color={color} />
           ),
@@ -119,7 +121,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="cardio"
         options={{
-          title: 'Cardio',
+          title: t.tabs.cardio,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon Icon={Activity} focused={focused} color={color} />
           ),
@@ -128,7 +130,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="progress"
         options={{
-          title: 'Progresso',
+          title: t.tabs.progress,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon Icon={TrendingUp} focused={focused} color={color} />
           ),
@@ -137,7 +139,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Config',
+          title: t.tabs.settings,
           tabBarIcon: ({ color, focused }) => (
             <TabIcon Icon={Settings} focused={focused} color={color} />
           ),
