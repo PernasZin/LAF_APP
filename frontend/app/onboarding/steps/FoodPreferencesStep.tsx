@@ -1,11 +1,10 @@
 /**
  * Premium Food Preferences Step - Seleção de alimentos
- * Categorias: Proteínas, Carboidratos, Gorduras, Frutas, Vegetais/Legumes, Suplementos
- * Com suporte a i18n
+ * Com suporte completo a i18n (PT/EN/ES)
  */
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad, Activity } from 'lucide-react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, Pill, Activity } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { translations, SupportedLanguage } from '../../../i18n/translations';
@@ -17,151 +16,152 @@ interface Props {
   isDark: boolean;
 }
 
-// Restrições alimentares
-const RESTRICTIONS = [
-  { value: 'vegetariano', label: 'Vegetariano', icon: Leaf, color: '#22C55E' },
-  { value: 'vegano', label: 'Vegano', icon: Leaf, color: '#10B981' },
-  { value: 'sem_lactose', label: 'Sem Lactose', icon: Milk, color: '#3B82F6' },
-  { value: 'sem_gluten', label: 'Sem Glúten', icon: Wheat, color: '#F59E0B' },
-  { value: 'diabetico', label: 'Diabético', icon: Activity, color: '#8B5CF6' },
-];
+// Traduções de alimentos
+const FOOD_TRANSLATIONS: Record<string, Record<string, string>> = {
+  // Proteínas
+  frango: { pt: 'Frango', en: 'Chicken', es: 'Pollo' },
+  patinho: { pt: 'Patinho', en: 'Lean Beef', es: 'Carne Magra' },
+  carne_moida: { pt: 'Carne Moída', en: 'Ground Beef', es: 'Carne Molida' },
+  ovos: { pt: 'Ovos', en: 'Eggs', es: 'Huevos' },
+  tilapia: { pt: 'Tilápia', en: 'Tilapia', es: 'Tilapia' },
+  atum: { pt: 'Atum', en: 'Tuna', es: 'Atún' },
+  salmao: { pt: 'Salmão', en: 'Salmon', es: 'Salmón' },
+  peru: { pt: 'Peru', en: 'Turkey', es: 'Pavo' },
+  cottage: { pt: 'Queijo Cottage', en: 'Cottage Cheese', es: 'Queso Cottage' },
+  iogurte_zero: { pt: 'Iogurte Zero', en: 'Sugar-Free Yogurt', es: 'Yogur Sin Azúcar' },
+  tofu: { pt: 'Tofu', en: 'Tofu', es: 'Tofu' },
+  tempeh: { pt: 'Tempeh', en: 'Tempeh', es: 'Tempeh' },
+  edamame: { pt: 'Edamame', en: 'Edamame', es: 'Edamame' },
+  whey_protein: { pt: 'Whey Protein', en: 'Whey Protein', es: 'Proteína Whey' },
+  
+  // Carboidratos
+  arroz_branco: { pt: 'Arroz Branco', en: 'White Rice', es: 'Arroz Blanco' },
+  arroz_integral: { pt: 'Arroz Integral', en: 'Brown Rice', es: 'Arroz Integral' },
+  batata_doce: { pt: 'Batata Doce', en: 'Sweet Potato', es: 'Batata' },
+  aveia: { pt: 'Aveia', en: 'Oats', es: 'Avena' },
+  macarrao: { pt: 'Macarrão', en: 'Pasta', es: 'Pasta' },
+  pao_integral: { pt: 'Pão Integral', en: 'Whole Wheat Bread', es: 'Pan Integral' },
+  tapioca: { pt: 'Tapioca', en: 'Tapioca', es: 'Tapioca' },
+  feijao: { pt: 'Feijão', en: 'Beans', es: 'Frijoles' },
+  lentilha: { pt: 'Lentilha', en: 'Lentils', es: 'Lentejas' },
+  granola: { pt: 'Granola', en: 'Granola', es: 'Granola' },
+  
+  // Gorduras
+  azeite: { pt: 'Azeite', en: 'Olive Oil', es: 'Aceite de Oliva' },
+  pasta_amendoim: { pt: 'Pasta de Amendoim', en: 'Peanut Butter', es: 'Mantequilla de Maní' },
+  castanhas: { pt: 'Castanhas', en: 'Cashews', es: 'Castañas' },
+  amendoas: { pt: 'Amêndoas', en: 'Almonds', es: 'Almendras' },
+  nozes: { pt: 'Nozes', en: 'Walnuts', es: 'Nueces' },
+  abacate: { pt: 'Abacate', en: 'Avocado', es: 'Aguacate' },
+  queijo: { pt: 'Queijo', en: 'Cheese', es: 'Queso' },
+  
+  // Frutas
+  banana: { pt: 'Banana', en: 'Banana', es: 'Plátano' },
+  maca: { pt: 'Maçã', en: 'Apple', es: 'Manzana' },
+  laranja: { pt: 'Laranja', en: 'Orange', es: 'Naranja' },
+  morango: { pt: 'Morango', en: 'Strawberry', es: 'Fresa' },
+  mamao: { pt: 'Mamão', en: 'Papaya', es: 'Papaya' },
+  melancia: { pt: 'Melancia', en: 'Watermelon', es: 'Sandía' },
+  uva: { pt: 'Uva', en: 'Grapes', es: 'Uvas' },
+  abacaxi: { pt: 'Abacaxi', en: 'Pineapple', es: 'Piña' },
+  kiwi: { pt: 'Kiwi', en: 'Kiwi', es: 'Kiwi' },
+  
+  // Vegetais
+  brocolis: { pt: 'Brócolis', en: 'Broccoli', es: 'Brócoli' },
+  espinafre: { pt: 'Espinafre', en: 'Spinach', es: 'Espinaca' },
+  couve: { pt: 'Couve', en: 'Kale', es: 'Col Rizada' },
+  cenoura: { pt: 'Cenoura', en: 'Carrot', es: 'Zanahoria' },
+  abobrinha: { pt: 'Abobrinha', en: 'Zucchini', es: 'Calabacín' },
+  tomate: { pt: 'Tomate', en: 'Tomato', es: 'Tomate' },
+  salada: { pt: 'Salada', en: 'Salad', es: 'Ensalada' },
+};
 
-// Alimentos disponíveis organizados por categoria
-// IMPORTANTE: As keys devem corresponder EXATAMENTE às keys do backend (diet_service.py FOODS)
+// Traduções de restrições
+const RESTRICTION_TRANSLATIONS: Record<string, Record<string, string>> = {
+  vegetariano: { pt: 'Vegetariano', en: 'Vegetarian', es: 'Vegetariano' },
+  vegano: { pt: 'Vegano', en: 'Vegan', es: 'Vegano' },
+  sem_lactose: { pt: 'Sem Lactose', en: 'Lactose Free', es: 'Sin Lactosa' },
+  sem_gluten: { pt: 'Sem Glúten', en: 'Gluten Free', es: 'Sin Gluten' },
+  diabetico: { pt: 'Diabético', en: 'Diabetic', es: 'Diabético' },
+};
+
+// Traduções de categorias
+const CATEGORY_TRANSLATIONS: Record<string, Record<string, string>> = {
+  proteins: { pt: 'Proteínas', en: 'Proteins', es: 'Proteínas' },
+  carbs: { pt: 'Carboidratos', en: 'Carbohydrates', es: 'Carbohidratos' },
+  fats: { pt: 'Gorduras', en: 'Fats', es: 'Grasas' },
+  fruits: { pt: 'Frutas', en: 'Fruits', es: 'Frutas' },
+  vegetables: { pt: 'Vegetais', en: 'Vegetables', es: 'Vegetales' },
+};
+
+// Traduções de textos da tela
+const UI_TRANSLATIONS: Record<string, Record<string, string>> = {
+  dietaryRestrictions: { pt: 'Restrições Alimentares', en: 'Dietary Restrictions', es: 'Restricciones Alimentarias' },
+  selectRestrictions: { pt: 'Selecione se tiver alguma restrição', en: 'Select if you have any restrictions', es: 'Selecciona si tienes alguna restricción' },
+  preferredFoods: { pt: 'Alimentos Preferidos', en: 'Preferred Foods', es: 'Alimentos Preferidos' },
+  selectFoods: { pt: 'Selecione os alimentos que você gosta', en: 'Select the foods you like', es: 'Selecciona los alimentos que te gustan' },
+};
+
+// Categorias de alimentos
 const FOOD_CATEGORIES = {
   proteins: {
-    title: 'Proteínas',
     icon: Beef,
     color: '#EF4444',
-    items: [
-      { key: 'frango', name: 'Frango' },
-      { key: 'patinho', name: 'Patinho' },
-      { key: 'carne_moida', name: 'Carne Moída' },
-      { key: 'ovos', name: 'Ovos' },
-      { key: 'tilapia', name: 'Tilápia' },
-      { key: 'atum', name: 'Atum' },
-      { key: 'salmao', name: 'Salmão' },
-      { key: 'peru', name: 'Peru' },
-      { key: 'cottage', name: 'Queijo Cottage' },
-      { key: 'iogurte_zero', name: 'Iogurte Zero' },
-      // Proteínas Vegetais
-      { key: 'tofu', name: 'Tofu' },
-      { key: 'tempeh', name: 'Tempeh' },
-      { key: 'edamame', name: 'Edamame' },
-      { key: 'seitan', name: 'Seitan' },
-      { key: 'grao_de_bico', name: 'Grão de Bico' },
-      { key: 'proteina_ervilha', name: 'Proteína de Ervilha' },
-    ],
+    items: ['frango', 'patinho', 'carne_moida', 'ovos', 'tilapia', 'atum', 'salmao', 'peru', 'cottage', 'iogurte_zero', 'tofu', 'tempeh', 'edamame', 'whey_protein'],
   },
   carbs: {
-    title: 'Carboidratos',
     icon: Wheat,
     color: '#F59E0B',
-    items: [
-      { key: 'arroz_branco', name: 'Arroz Branco' },
-      { key: 'arroz_integral', name: 'Arroz Integral' },
-      { key: 'batata_doce', name: 'Batata Doce' },
-      { key: 'macarrao', name: 'Macarrão' },
-      { key: 'aveia', name: 'Aveia' },
-      { key: 'pao_integral', name: 'Pão Integral' },
-      { key: 'pao', name: 'Pão Francês' },
-      { key: 'tapioca', name: 'Tapioca' },
-      { key: 'feijao', name: 'Feijão' },
-      { key: 'lentilha', name: 'Lentilha' },
-    ],
+    items: ['arroz_branco', 'arroz_integral', 'batata_doce', 'aveia', 'macarrao', 'pao_integral', 'tapioca', 'feijao', 'lentilha', 'granola'],
   },
   fats: {
-    title: 'Gorduras',
     icon: Droplets,
-    color: '#3B82F6',
-    items: [
-      { key: 'azeite', name: 'Azeite de Oliva' },
-      { key: 'castanhas', name: 'Castanhas' },
-      { key: 'amendoas', name: 'Amêndoas' },
-      { key: 'nozes', name: 'Nozes' },
-      { key: 'pasta_amendoim', name: 'Pasta de Amendoim' },
-      { key: 'abacate', name: 'Abacate' },
-    ],
+    color: '#8B5CF6',
+    items: ['azeite', 'pasta_amendoim', 'castanhas', 'amendoas', 'nozes', 'abacate', 'queijo'],
   },
   fruits: {
-    title: 'Frutas',
     icon: Apple,
-    color: '#10B981',
-    items: [
-      { key: 'banana', name: 'Banana' },
-      { key: 'maca', name: 'Maçã' },
-      { key: 'laranja', name: 'Laranja' },
-      { key: 'morango', name: 'Morango' },
-      { key: 'mamao', name: 'Mamão' },
-      { key: 'melancia', name: 'Melancia' },
-      { key: 'uva', name: 'Uva' },
-      { key: 'pera', name: 'Pera' },
-      { key: 'manga', name: 'Manga' },
-      { key: 'abacaxi', name: 'Abacaxi' },
-      { key: 'kiwi', name: 'Kiwi' },
-    ],
+    color: '#22C55E',
+    items: ['banana', 'maca', 'laranja', 'morango', 'mamao', 'melancia', 'uva', 'abacaxi', 'kiwi'],
   },
   vegetables: {
-    title: 'Vegetais e Legumes',
-    icon: Salad,
-    color: '#84CC16',
-    items: [
-      { key: 'brocolis', name: 'Brócolis' },
-      { key: 'espinafre', name: 'Espinafre' },
-      { key: 'couve', name: 'Couve' },
-      { key: 'cenoura', name: 'Cenoura' },
-      { key: 'abobrinha', name: 'Abobrinha' },
-      { key: 'tomate', name: 'Tomate' },
-      { key: 'alface', name: 'Alface' },
-      { key: 'pepino', name: 'Pepino' },
-      { key: 'salada', name: 'Salada Verde' },
-    ],
-  },
-  supplements: {
-    title: 'Suplementos',
-    icon: Pill,
-    color: '#8B5CF6',
-    items: [
-      { key: 'whey_protein', name: 'Whey Protein' },
-      { key: 'creatina', name: 'Creatina' },
-      { key: 'multivitaminico', name: 'Multivitamínico' },
-      { key: 'cafeina', name: 'Cafeína' },
-      { key: 'omega3', name: 'Ômega 3' },
-    ],
+    icon: Leaf,
+    color: '#10B981',
+    items: ['brocolis', 'espinafre', 'couve', 'cenoura', 'abobrinha', 'tomate', 'salada'],
   },
 };
 
-// Export para usar nas configurações
-export const FOOD_CATEGORIES_DATA = FOOD_CATEGORIES;
-export const RESTRICTIONS_DATA = RESTRICTIONS;
+// Restrições
+const RESTRICTIONS = [
+  { value: 'vegetariano', icon: Leaf, color: '#22C55E' },
+  { value: 'vegano', icon: Leaf, color: '#10B981' },
+  { value: 'sem_lactose', icon: Milk, color: '#3B82F6' },
+  { value: 'sem_gluten', icon: Wheat, color: '#F59E0B' },
+  { value: 'diabetico', icon: Activity, color: '#8B5CF6' },
+];
 
 export default function FoodPreferencesStep({ formData, updateFormData, theme, isDark }: Props) {
-  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
-  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+  const languageCode = useSettingsStore((state) => state.language) as SupportedLanguage;
+  // Converter 'pt-BR' -> 'pt', 'en-US' -> 'en', 'es-ES' -> 'es'
+  const lang = languageCode.split('-')[0] as 'pt' | 'en' | 'es';
   
   const selectedFoods = formData.food_preferences || [];
   const restrictions = formData.dietary_restrictions || [];
 
-  // Traduzir restrições
-  const RESTRICTIONS_TRANSLATED = [
-    { value: 'vegetariano', label: t.vegetarian, icon: Leaf, color: '#22C55E' },
-    { value: 'vegano', label: t.vegan, icon: Leaf, color: '#10B981' },
-    { value: 'sem_lactose', label: t.lactoseFree, icon: Milk, color: '#3B82F6' },
-    { value: 'sem_gluten', label: t.glutenFree, icon: Wheat, color: '#F59E0B' },
-    { value: 'diabetico', label: t.diabetic, icon: Activity, color: '#8B5CF6' },
-  ];
+  const getFoodName = (key: string): string => {
+    return FOOD_TRANSLATIONS[key]?.[lang] || FOOD_TRANSLATIONS[key]?.pt || key;
+  };
 
-  // Traduzir categorias
-  const getCategoryTitle = (key: string) => {
-    const titles: Record<string, string> = {
-      proteins: t.proteins,
-      carbs: t.carbs,
-      fats: t.fats,
-      fruits: t.fruits,
-      vegetables: t.vegetables,
-      supplements: t.supplements,
-    };
-    return titles[key] || key;
+  const getRestrictionName = (key: string): string => {
+    return RESTRICTION_TRANSLATIONS[key]?.[lang] || RESTRICTION_TRANSLATIONS[key]?.pt || key;
+  };
+
+  const getCategoryName = (key: string): string => {
+    return CATEGORY_TRANSLATIONS[key]?.[lang] || CATEGORY_TRANSLATIONS[key]?.pt || key;
+  };
+
+  const getUIText = (key: string): string => {
+    return UI_TRANSLATIONS[key]?.[lang] || UI_TRANSLATIONS[key]?.pt || key;
   };
 
   const toggleFood = (key: string) => {
@@ -180,10 +180,15 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
 
   return (
     <View style={styles.container}>
-      {/* Restrições */}
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.restrictions}</Text>
+      {/* Restrições Alimentares */}
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+        {getUIText('dietaryRestrictions')}
+      </Text>
+      <Text style={[styles.sectionDesc, { color: theme.textTertiary }]}>
+        {getUIText('selectRestrictions')}
+      </Text>
       <View style={styles.restrictionsGrid}>
-        {RESTRICTIONS_TRANSLATED.map((item) => {
+        {RESTRICTIONS.map((item) => {
           const isSelected = restrictions.includes(item.value);
           const Icon = item.icon;
           return (
@@ -200,8 +205,11 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
             >
               <Icon size={16} color={isSelected ? item.color : theme.textTertiary} />
               <Text style={[styles.restrictionLabel, { color: isSelected ? item.color : theme.text }]}>
-                {item.label}
+                {getRestrictionName(item.value)}
               </Text>
+              {isSelected && (
+                <Check size={14} color={item.color} strokeWidth={3} />
+              )}
             </TouchableOpacity>
           );
         })}
@@ -209,10 +217,10 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
 
       {/* Alimentos Preferidos */}
       <Text style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: spacing.xl }]}>
-        {t.preferredFoods}
+        {getUIText('preferredFoods')}
       </Text>
       <Text style={[styles.sectionDesc, { color: theme.textTertiary }]}>
-        {t.selectFoodsYouLike}
+        {getUIText('selectFoods')}
       </Text>
 
       {Object.entries(FOOD_CATEGORIES).map(([categoryKey, category]) => {
@@ -221,25 +229,32 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
           <View key={categoryKey} style={styles.categorySection}>
             <View style={styles.categoryHeader}>
               <CategoryIcon size={16} color={category.color} />
-              <Text style={[styles.categoryTitle, { color: theme.text }]}>{getCategoryTitle(categoryKey)}</Text>
+              <Text style={[styles.categoryTitle, { color: theme.text }]}>
+                {getCategoryName(categoryKey)}
+              </Text>
             </View>
             <View style={styles.foodsGrid}>
-              {category.items.map((food) => {
-                const isSelected = selectedFoods.includes(food.key);
+              {category.items.map((foodKey) => {
+                const isSelected = selectedFoods.includes(foodKey);
                 return (
                   <TouchableOpacity
-                    key={food.key}
+                    key={foodKey}
                     style={[
                       styles.foodChip,
                       {
-                        backgroundColor: isSelected ? `${category.color}15` : isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(255, 255, 255, 0.8)',
+                        backgroundColor: isSelected
+                          ? `${category.color}15`
+                          : isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(255, 255, 255, 0.8)',
                         borderColor: isSelected ? category.color : theme.border,
                       }
                     ]}
-                    onPress={() => toggleFood(food.key)}
+                    onPress={() => toggleFood(foodKey)}
                   >
-                    <Text style={[styles.foodLabel, { color: isSelected ? category.color : theme.text }]}>
-                      {food.name}
+                    <Text style={[
+                      styles.foodLabel,
+                      { color: isSelected ? category.color : theme.text }
+                    ]}>
+                      {getFoodName(foodKey)}
                     </Text>
                     {isSelected && (
                       <Check size={14} color={category.color} strokeWidth={3} />
@@ -256,16 +271,18 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
 }
 
 const styles = StyleSheet.create({
-  container: { paddingTop: spacing.lg },
+  container: { 
+    paddingTop: spacing.lg,
+  },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.xs,
   },
   sectionDesc: {
-    fontSize: 13,
+    fontSize: 14,
     marginBottom: spacing.md,
   },
   restrictionsGrid: {
@@ -283,21 +300,21 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   restrictionLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   categorySection: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
   categoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: spacing.sm,
     marginBottom: spacing.sm,
   },
   categoryTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
   },
   foodsGrid: {
     flexDirection: 'row',
@@ -314,7 +331,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   foodLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
   },
 });
