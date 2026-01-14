@@ -286,7 +286,7 @@ const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
               style={styles.successBannerGradient}
             >
               <Zap size={18} color="#10B981" />
-              <Text style={styles.successText}>Meta de hidratação atingida! 🎉</Text>
+              <Text style={styles.successText}>{t.home.waterGoalReached}</Text>
             </LinearGradient>
           </View>
         )}
@@ -300,9 +300,9 @@ const GoalCard = ({ goal, tdee, isDark, t }: any) => {
   const theme = isDark ? darkTheme : lightTheme;
   
   const goalConfig: any = {
-    cutting: { label: 'Cutting', icon: TrendingUp, color: '#EF4444', emoji: '🔥' },
-    bulking: { label: 'Bulking', icon: Dumbbell, color: '#10B981', emoji: '💪' },
-    manutencao: { label: 'Manutenção', icon: Target, color: '#3B82F6', emoji: '⚖️' },
+    cutting: { label: t.home.cutting, icon: TrendingUp, color: '#EF4444', emoji: '🔥' },
+    bulking: { label: t.home.bulking, icon: Dumbbell, color: '#10B981', emoji: '💪' },
+    manutencao: { label: t.home.maintenance, icon: Target, color: '#3B82F6', emoji: '⚖️' },
   };
   
   const config = goalConfig[goal] || goalConfig.manutencao;
@@ -324,7 +324,7 @@ const GoalCard = ({ goal, tdee, isDark, t }: any) => {
             </Text>
           </View>
           <View style={[styles.goalBadge, { backgroundColor: `${config.color}20` }]}>
-            <Text style={[styles.goalBadgeText, { color: config.color }]}>ATIVO</Text>
+            <Text style={[styles.goalBadgeText, { color: config.color }]}>{t.home.active}</Text>
           </View>
         </View>
       </GlassCard>
