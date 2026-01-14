@@ -155,6 +155,35 @@ def get_restriction_safe_fruit() -> str:
     return "maca"  # Último fallback
 
 
+def get_restriction_safe_breakfast_carb() -> str:
+    """
+    Retorna um carboidrato seguro para café da manhã que respeita restrições.
+    
+    Ordem de prioridade:
+    1. aveia (se não for sem glúten)
+    2. tapioca (se não for diabético)
+    3. batata_doce (sempre seguro, mas menos comum no café)
+    4. fruta (último fallback)
+    """
+    global _current_diet_restrictions
+    
+    # Calcula exclusões
+    excluded = set()
+    for r in _current_diet_restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded.update(RESTRICTION_EXCLUSIONS[r])
+    
+    # Ordem de preferência para café da manhã
+    carbs = ["aveia", "tapioca", "batata_doce"]
+    
+    for c in carbs:
+        if c not in excluded:
+            return c
+    
+    # Se tudo estiver excluído, usa fruta
+    return get_restriction_safe_fruit()
+
+
 # ==================== RESTRIÇÕES ALIMENTARES ====================
 
 RESTRICTION_EXCLUSIONS = {
