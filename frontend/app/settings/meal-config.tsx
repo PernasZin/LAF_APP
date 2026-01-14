@@ -117,7 +117,7 @@ export default function MealConfigScreen() {
       });
       
       if (!settingsResponse.ok) {
-        throw new Error('Falha ao salvar configurações');
+        throw new Error('Failed to save settings');
       }
       
       // 2. Regenera a dieta automaticamente com o novo número de refeições
@@ -131,10 +131,10 @@ export default function MealConfigScreen() {
         await AsyncStorage.setItem('userDiet', JSON.stringify(dietData));
       }
       
-      Alert.alert('Sucesso', 'Configurações salvas e dieta atualizada!', [{ text: 'OK', onPress: () => router.back() }]);
+      Alert.alert(t.common.success, t.settingsScreen?.settingsSavedDiet || 'Settings saved and diet updated!', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (error) {
-      console.error('Erro ao salvar:', error);
-      Alert.alert('Erro', 'Não foi possível salvar');
+      console.error('Error saving:', error);
+      Alert.alert(t.common.error, t.common.connectionError || 'Could not save');
     } finally {
       setSaving(false);
     }
@@ -160,13 +160,13 @@ export default function MealConfigScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>Refeições</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t.settings.meals || 'Meals'}</Text>
             <View style={{ width: 44 }} />
           </Animated.View>
 
           {/* Meal Count Selector */}
           <Animated.View entering={FadeInDown.delay(100).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>QUANTIDADE DE REFEIÇÕES</Text>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.onboarding.mealsPerDay?.toUpperCase() || 'NUMBER OF MEALS'}</Text>
             <GlassCard isDark={isDark} style={styles.card}>
               <View style={styles.countSelector}>
                 <TouchableOpacity
@@ -178,7 +178,7 @@ export default function MealConfigScreen() {
                 </TouchableOpacity>
                 <View style={styles.countDisplay}>
                   <Text style={[styles.countValue, { color: theme.text }]}>{mealCount}</Text>
-                  <Text style={[styles.countLabel, { color: theme.textTertiary }]}>refeições/dia</Text>
+                  <Text style={[styles.countLabel, { color: theme.textTertiary }]}>{t.settingsScreen?.mealsPerDayLabel || 'meals/day'}</Text>
                 </View>
                 <TouchableOpacity
                   style={[styles.countBtn, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(226, 232, 240, 0.8)' }]}
@@ -193,7 +193,7 @@ export default function MealConfigScreen() {
 
           {/* Meal Preview */}
           <Animated.View entering={FadeInDown.delay(200).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DISTRIBUIÇÃO</Text>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.onboarding.distribution?.toUpperCase() || 'DISTRIBUTION'}</Text>
             <GlassCard isDark={isDark} style={styles.card}>
               {meals.map((meal, index) => (
                 <View key={index} style={[styles.mealRow, { borderBottomColor: theme.border }]}>
@@ -201,7 +201,7 @@ export default function MealConfigScreen() {
                     <Utensils size={18} color={premiumColors.primary} />
                   </View>
                   <View style={styles.mealInfo}>
-                    <Text style={[styles.mealName, { color: theme.text }]}>{meal.name}</Text>
+                    <Text style={[styles.mealName, { color: theme.text }]}>{translateMealName(meal.name, language || 'pt-BR')}</Text>
                   </View>
                   <View style={styles.mealTimeContainer}>
                     <Clock size={14} color={theme.textTertiary} />
@@ -222,7 +222,7 @@ export default function MealConfigScreen() {
                 style={styles.saveButton}
               >
                 <Check size={20} color="#FFF" />
-                <Text style={styles.saveButtonText}>{saving ? 'Salvando...' : 'Salvar'}</Text>
+                <Text style={styles.saveButtonText}>{saving ? t.common.saving : t.common.save}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
