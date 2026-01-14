@@ -1569,6 +1569,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       mealConfigSubtitle: 'Ajusta el número de comidas por día',
       mealsPerDay: 'Comidas por día',
       mealsUpdated: '¡Comidas actualizadas con éxito!',
+      settingsSavedDiet: '¡Configuración guardada y dieta actualizada!',
+      mealsPerDayLabel: 'comidas/día',
     },
     meals: {
       breakfast: 'Desayuno',
