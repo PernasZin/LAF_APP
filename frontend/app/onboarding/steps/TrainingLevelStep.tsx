@@ -28,8 +28,8 @@ const FREQUENCIES = [
 const DURATIONS = [
   { value: '30', label: '30 min' },
   { value: '45', label: '45 min' },
-  { value: '60', labelKey: 'oneHour' },
-  { value: '90', labelKey: 'oneHourHalf' },
+  { value: '60', label: '60 min' },
+  { value: '90', label: '90 min' },
 ];
 
 export default function TrainingLevelStep({ formData, updateFormData, theme, isDark }: Props) {
@@ -37,22 +37,18 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
   const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
 
   const LEVELS = [
-    { value: 'sedentario', label: t.sedentary, desc: t.sedentaryDesc, icon: Baby },
-    { value: 'iniciante', label: t.beginner, desc: t.beginnerDesc, icon: User },
-    { value: 'intermediario', label: t.intermediate, desc: t.intermediateDesc, icon: Dumbbell },
-    { value: 'avancado', label: t.advanced, desc: t.advancedDesc, icon: Trophy },
+    { value: 'sedentario', label: t.sedentary || 'Sedentário', desc: t.sedentaryDesc || 'Não pratica atividades', icon: Baby },
+    { value: 'iniciante', label: t.beginner || 'Iniciante', desc: t.beginnerDesc || '0-1 ano de treino', icon: User },
+    { value: 'intermediario', label: t.intermediate || 'Intermediário', desc: t.intermediateDesc || '1-3 anos', icon: Dumbbell },
+    { value: 'avancado', label: t.advanced || 'Avançado', desc: t.advancedDesc || '3+ anos', icon: Trophy },
   ];
-
-  const getDurationLabel = (dur: any) => {
-    if (dur.labelKey === 'oneHour') return t.oneHour || '1 hora';
-    if (dur.labelKey === 'oneHourHalf') return t.oneHourHalf || '1h30';
-    return dur.label;
-  };
 
   return (
     <View style={styles.container}>
       {/* Training Level */}
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.trainingLevel}</Text>
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+        {t.trainingLevelTitle || t.steps?.trainingLevel || 'Nível de Treino'}
+      </Text>
       <View style={styles.levelsGrid}>
         {LEVELS.map((level) => {
           const isSelected = formData.training_level === level.value;
@@ -92,7 +88,9 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Calendar size={18} color={premiumColors.primary} />
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.weeklyFrequency}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            {t.daysPerWeek || 'Dias por semana'}
+          </Text>
         </View>
         <View style={styles.optionsRow}>
           {FREQUENCIES.map((freq) => {
@@ -125,7 +123,9 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Clock size={18} color={premiumColors.primary} />
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.trainingDuration}</Text>
+          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+            {t.timePerSession || 'Duração do treino'}
+          </Text>
         </View>
         <View style={styles.optionsRow}>
           {DURATIONS.map((dur) => {
@@ -146,7 +146,7 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
                   styles.optionChipText,
                   { color: isSelected ? '#FFF' : theme.text }
                 ]}>
-                  {getDurationLabel(dur)}
+                  {dur.label}
                 </Text>
               </TouchableOpacity>
             );
