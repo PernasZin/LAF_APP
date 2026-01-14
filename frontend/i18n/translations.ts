@@ -843,6 +843,9 @@ export const translations: Record<SupportedLanguage, Translations> = {
       records: 'Records',
       recordEvery2Weeks: 'Record your weight every 2 weeks',
       history: 'History',
+      howWasYourWeek: 'HOW WAS YOUR WEEK?',
+      sleep: 'Sleep',
+      weightSaved: 'Weight saved successfully!',
     },
     settings: {
       title: 'Settings',
