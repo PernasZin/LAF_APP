@@ -111,6 +111,12 @@ const MealCard = ({ meal, index, isDark, theme, onFoodPress, language }: any) =>
           {meal.foods?.map((food: any, foodIndex: number) => {
             const catConfig = CATEGORY_CONFIG[food.category] || { color: '#6B7280', Icon: Utensils };
             const CatIcon = catConfig.Icon;
+            
+            // Traduzir porção
+            const portionText = food.quantity_display || food.unit_equivalent 
+              ? `${Math.round(food.grams)}g ${translateFoodPortion(food.unit_equivalent || '', language)}` 
+              : `${Math.round(food.grams)}g`;
+            
             return (
               <TouchableOpacity
                 key={foodIndex}
@@ -124,9 +130,7 @@ const MealCard = ({ meal, index, isDark, theme, onFoodPress, language }: any) =>
                     {translateFood(food.name, language)}
                   </Text>
                   <Text style={[styles.foodAmount, { color: theme.textTertiary }]}>
-                    {food.quantity_display || food.unit_equivalent 
-                      ? `${Math.round(food.grams)}g ${food.unit_equivalent || ''}` 
-                      : `${Math.round(food.grams)}g`}
+                    {portionText}
                   </Text>
                 </View>
                 <View style={styles.foodMacros}>
