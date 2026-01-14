@@ -1127,6 +1127,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
     },
     diet: {
       title: 'Tu Plan de Dieta',
+      mealsPlanned: 'comidas planificadas',
+      daySummary: 'Resumen del Día',
       noData: 'Ninguna dieta generada',
       generateDiet: 'Generar Mi Dieta',
       generating: 'Generando tu plan de dieta...',
@@ -1147,6 +1149,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
         fruit: 'Fruta',
         vegetable: 'Vegetal',
       },
+      noDietGenerated: 'Aún no se ha generado ninguna dieta',
+      generateYourDiet: 'Genera tu dieta',
+      generateMyDiet: 'Generar Mi Dieta',
+      substitute: 'Sustituir',
+      success: 'Éxito',
     },
     workout: {
       title: 'Tu Plan de Entreno',
