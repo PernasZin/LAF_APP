@@ -142,13 +142,13 @@ export default function ProgressScreen() {
         // Reset questionnaire
         setQuestionnaire({ diet: 5, training: 5, cardio: 5, sleep: 5, hydration: 5 });
         await loadProgress();
-        Alert.alert('Sucesso', 'Peso registrado com sucesso!');
+        Alert.alert(t.common.success, t.progress.weightSaved || 'Weight saved successfully!');
       } else {
         const data = await response.json();
-        Alert.alert('Aviso', data.detail || 'Não foi possível salvar');
+        Alert.alert(t.common.warning || 'Warning', data.detail || t.common.error);
       }
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar o peso');
+      Alert.alert(t.common.error, t.common.connectionError || 'Could not save weight');
     } finally {
       setSaving(false);
     }
