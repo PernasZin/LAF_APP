@@ -1,11 +1,14 @@
 /**
  * Premium Food Preferences Step - Seleção de alimentos
  * Categorias: Proteínas, Carboidratos, Gorduras, Frutas, Vegetais/Legumes, Suplementos
+ * Com suporte a i18n
  */
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Check, Beef, Wheat, Apple, Droplets, Leaf, Milk, AlertTriangle, Pill, Salad, Activity } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   formData: any;
