@@ -1181,6 +1181,9 @@ export const translations: Record<SupportedLanguage, Translations> = {
       records: 'Registros',
       recordEvery2Weeks: 'Registra tu peso cada 2 semanas',
       history: 'Historial',
+      howWasYourWeek: '¿CÓMO FUE TU SEMANA?',
+      sleep: 'Sueño',
+      weightSaved: '¡Peso guardado con éxito!',
     },
     settings: {
       title: 'Configuración',
