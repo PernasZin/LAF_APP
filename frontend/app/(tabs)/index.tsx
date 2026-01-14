@@ -212,9 +212,9 @@ const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
               <Droplets size={22} color="#3B82F6" strokeWidth={2.5} />
             </View>
             <View>
-              <Text style={[styles.waterTitle, { color: theme.text }]}>Hidratação</Text>
+              <Text style={[styles.waterTitle, { color: theme.text }]}>{t.home.waterTracker}</Text>
               <Text style={[styles.waterSubtitle, { color: theme.textTertiary }]}>
-                {cupsConsumed} de {totalCups} copos
+                {cupsConsumed} {t.home.ofCups} {totalCups} {t.home.cups}
               </Text>
             </View>
           </View>
