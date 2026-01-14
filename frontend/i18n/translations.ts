@@ -287,6 +287,8 @@ export interface Translations {
     mealConfigSubtitle: string;
     mealsPerDay: string;
     mealsUpdated: string;
+    settingsSavedDiet: string;
+    mealsPerDayLabel: string;
   };
   // Meals
   meals: {
