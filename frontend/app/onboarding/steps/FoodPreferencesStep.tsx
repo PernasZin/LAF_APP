@@ -40,6 +40,7 @@ const FOOD_CATEGORIES = {
       { key: 'salmao', name: 'Salmão' },
       { key: 'peru', name: 'Peru' },
       { key: 'cottage', name: 'Queijo Cottage' },
+      { key: 'iogurte_zero', name: 'Iogurte Zero' },
       // Proteínas Vegetais
       { key: 'tofu', name: 'Tofu' },
       { key: 'tempeh', name: 'Tempeh' },
