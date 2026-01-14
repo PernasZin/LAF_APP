@@ -207,6 +207,76 @@ export interface Translations {
     time: string;
     infoText: string;
   };
+  // Training config screen
+  trainingConfig: {
+    title: string;
+    experienceLevel: string;
+    weeklyFrequency: string;
+    availableTime: string;
+    saveSettings: string;
+    savingSettings: string;
+    successTitle: string;
+    successMessage: string;
+    errorTitle: string;
+    errorSave: string;
+    errorConnect: string;
+    // Levels
+    novice: string;
+    noviceDesc: string;
+    beginner: string;
+    beginnerDesc: string;
+    intermediate: string;
+    intermediateDesc: string;
+    advanced: string;
+    advancedDesc: string;
+    noviceHint: string;
+    // Frequencies
+    freq2x: string;
+    freq2xDesc: string;
+    freq3x: string;
+    freq3xDesc: string;
+    freq4x: string;
+    freq4xDesc: string;
+    freq5x: string;
+    freq5xDesc: string;
+    freq6x: string;
+    freq6xDesc: string;
+    // Durations
+    dur30: string;
+    dur30Desc: string;
+    dur60: string;
+    dur60Desc: string;
+    dur90: string;
+    dur90Desc: string;
+    dur120: string;
+    dur120Desc: string;
+  };
+  // Privacy screen
+  privacy: {
+    title: string;
+    dataSecurity: string;
+    dataSecurityDesc: string;
+    protectedAccess: string;
+    protectedAccessDesc: string;
+    transparency: string;
+    transparencyDesc: string;
+    localStorage: string;
+    localStorageDesc: string;
+    requestDeletion: string;
+  };
+  // Terms screen
+  terms: {
+    title: string;
+    acceptance: string;
+    acceptanceDesc: string;
+    responsibleUse: string;
+    responsibleUseDesc: string;
+    limitations: string;
+    limitationsDesc: string;
+    health: string;
+    healthDesc: string;
+    lastUpdate: string;
+  };
   // Meals
   meals: {
     breakfast: string;
