@@ -149,6 +149,9 @@ export interface Translations {
     records: string;
     recordEvery2Weeks: string;
     history: string;
+    howWasYourWeek: string;
+    sleep: string;
+    weightSaved: string;
   };
   // Settings screen
   settings: {
