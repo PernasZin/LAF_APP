@@ -145,7 +145,7 @@ const CardioExerciseCard = ({ exercise, index, isDark, theme, language, t }: any
         {exercise.substitutes_detailed?.length > 0 && (
           <View style={styles.substitutesSection}>
             <Text style={[styles.substitutesTitle, { color: theme.textTertiary }]}>
-              Substitutos:
+              {t.cardio.substitutes}:
             </Text>
             <View style={styles.substitutesList}>
               {exercise.substitutes_detailed.map((sub: any, i: number) => (
