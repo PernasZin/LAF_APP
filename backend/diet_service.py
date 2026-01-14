@@ -290,6 +290,9 @@ CARBS_ALMOCO_JANTAR = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_i
 # Proteína principal para almoço/jantar - NUNCA ovo
 PROTEINS_ALMOCO_JANTAR = {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "camarao", "peru", "suino"}
 
+# Carnes que SÓ podem aparecer no almoço e jantar (NUNCA em lanches, café ou ceia)
+CARNES_APENAS_ALMOCO_JANTAR = {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "camarao", "peru", "suino", "sardinha"}
+
 # Alimentos EXCLUSIVOS para café da manhã e lanche da manhã
 FOODS_CAFE_LANCHE_MANHA = {"ovos", "claras", "pao", "pao_integral", "pao_forma", "cottage", "tapioca"}
 
