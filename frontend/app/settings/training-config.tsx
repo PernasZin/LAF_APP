@@ -53,27 +53,27 @@ export default function TrainingConfigScreen() {
 
   // Níveis de treino - usando traduções
   const LEVELS = [
-    { value: 'novato', label: t('trainingConfig.novice'), desc: t('trainingConfig.noviceDesc') },
-    { value: 'iniciante', label: t('trainingConfig.beginner'), desc: t('trainingConfig.beginnerDesc') },
-    { value: 'intermediario', label: t('trainingConfig.intermediate'), desc: t('trainingConfig.intermediateDesc') },
-    { value: 'avancado', label: t('trainingConfig.advanced'), desc: t('trainingConfig.advancedDesc') },
+    { value: 'novato', label: t.trainingConfig.novice, desc: t.trainingConfig.noviceDesc },
+    { value: 'iniciante', label: t.trainingConfig.beginner, desc: t.trainingConfig.beginnerDesc },
+    { value: 'intermediario', label: t.trainingConfig.intermediate, desc: t.trainingConfig.intermediateDesc },
+    { value: 'avancado', label: t.trainingConfig.advanced, desc: t.trainingConfig.advancedDesc },
   ];
 
   // Frequências de treino - usando traduções
   const FREQUENCIES = [
-    { value: 2, label: t('trainingConfig.freq2x'), desc: t('trainingConfig.freq2xDesc') },
-    { value: 3, label: t('trainingConfig.freq3x'), desc: t('trainingConfig.freq3xDesc') },
-    { value: 4, label: t('trainingConfig.freq4x'), desc: t('trainingConfig.freq4xDesc') },
-    { value: 5, label: t('trainingConfig.freq5x'), desc: t('trainingConfig.freq5xDesc') },
-    { value: 6, label: t('trainingConfig.freq6x'), desc: t('trainingConfig.freq6xDesc') },
+    { value: 2, label: t.trainingConfig.freq2x, desc: t.trainingConfig.freq2xDesc },
+    { value: 3, label: t.trainingConfig.freq3x, desc: t.trainingConfig.freq3xDesc },
+    { value: 4, label: t.trainingConfig.freq4x, desc: t.trainingConfig.freq4xDesc },
+    { value: 5, label: t.trainingConfig.freq5x, desc: t.trainingConfig.freq5xDesc },
+    { value: 6, label: t.trainingConfig.freq6x, desc: t.trainingConfig.freq6xDesc },
   ];
 
   // Tempo de treino - usando traduções
   const DURATIONS = [
-    { value: 30, label: t('trainingConfig.dur30'), desc: t('trainingConfig.dur30Desc') },
-    { value: 60, label: t('trainingConfig.dur60'), desc: t('trainingConfig.dur60Desc') },
-    { value: 90, label: t('trainingConfig.dur90'), desc: t('trainingConfig.dur90Desc') },
-    { value: 120, label: t('trainingConfig.dur120'), desc: t('trainingConfig.dur120Desc') },
+    { value: 30, label: t.trainingConfig.dur30, desc: t.trainingConfig.dur30Desc },
+    { value: 60, label: t.trainingConfig.dur60, desc: t.trainingConfig.dur60Desc },
+    { value: 90, label: t.trainingConfig.dur90, desc: t.trainingConfig.dur90Desc },
+    { value: 120, label: t.trainingConfig.dur120, desc: t.trainingConfig.dur120Desc },
   ];
 
   useEffect(() => {
@@ -134,16 +134,16 @@ export default function TrainingConfigScreen() {
         }
         
         Alert.alert(
-          t('trainingConfig.successTitle'), 
-          t('trainingConfig.successMessage'),
+          t.trainingConfig.successTitle, 
+          t.trainingConfig.successMessage,
           [{ text: 'OK', onPress: () => router.back() }]
         );
       } else {
-        Alert.alert(t('trainingConfig.errorTitle'), t('trainingConfig.errorSave'));
+        Alert.alert(t.trainingConfig.errorTitle, t.trainingConfig.errorSave);
       }
     } catch (error) {
       console.error('Erro ao salvar:', error);
-      Alert.alert(t('trainingConfig.errorTitle'), t('trainingConfig.errorConnect'));
+      Alert.alert(t.trainingConfig.errorTitle, t.trainingConfig.errorConnect);
     } finally {
       setSaving(false);
     }
@@ -153,7 +153,7 @@ export default function TrainingConfigScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={{ color: theme.text }}>{t('common.loading')}</Text>
+          <Text style={{ color: theme.text }}>{t.common.loading}</Text>
         </View>
       </SafeAreaView>
     );
@@ -176,7 +176,7 @@ export default function TrainingConfigScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>{t('trainingConfig.title')}</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t.trainingConfig.title}</Text>
             <View style={{ width: 44 }} />
           </Animated.View>
 
@@ -184,7 +184,7 @@ export default function TrainingConfigScreen() {
           <Animated.View entering={FadeInDown.delay(100).springify()}>
             <View style={styles.sectionHeader}>
               <Dumbbell size={18} color={premiumColors.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('trainingConfig.experienceLevel')}</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.trainingConfig.experienceLevel}</Text>
             </View>
             <GlassCard isDark={isDark} style={styles.card}>
               {LEVELS.map((item, index) => (
@@ -216,7 +216,7 @@ export default function TrainingConfigScreen() {
             {level === 'novato' && (
               <View style={[styles.infoBox, { backgroundColor: premiumColors.primary + '15' }]}>
                 <Text style={[styles.infoText, { color: premiumColors.primary }]}>
-                  {t('trainingConfig.noviceHint')}
+                  {t.trainingConfig.noviceHint}
                 </Text>
               </View>
             )}
@@ -226,7 +226,7 @@ export default function TrainingConfigScreen() {
           <Animated.View entering={FadeInDown.delay(200).springify()}>
             <View style={styles.sectionHeader}>
               <Calendar size={18} color={premiumColors.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('trainingConfig.weeklyFrequency')}</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.trainingConfig.weeklyFrequency}</Text>
             </View>
             <GlassCard isDark={isDark} style={styles.card}>
               {FREQUENCIES.map((item, index) => (
@@ -260,7 +260,7 @@ export default function TrainingConfigScreen() {
           <Animated.View entering={FadeInDown.delay(300).springify()}>
             <View style={styles.sectionHeader}>
               <Clock size={18} color={premiumColors.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('trainingConfig.availableTime')}</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>{t.trainingConfig.availableTime}</Text>
             </View>
             <GlassCard isDark={isDark} style={styles.card}>
               {DURATIONS.map((item, index) => (
@@ -304,7 +304,7 @@ export default function TrainingConfigScreen() {
               >
                 <Check size={20} color="#FFF" />
                 <Text style={styles.saveButtonText}>
-                  {saving ? t('trainingConfig.savingSettings') : t('trainingConfig.saveSettings')}
+                  {saving ? t.trainingConfig.savingSettings : t.trainingConfig.saveSettings}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
