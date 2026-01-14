@@ -136,8 +136,33 @@ export const FOOD_CATEGORIES_DATA = FOOD_CATEGORIES;
 export const RESTRICTIONS_DATA = RESTRICTIONS;
 
 export default function FoodPreferencesStep({ formData, updateFormData, theme, isDark }: Props) {
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+  
   const selectedFoods = formData.food_preferences || [];
   const restrictions = formData.dietary_restrictions || [];
+
+  // Traduzir restrições
+  const RESTRICTIONS_TRANSLATED = [
+    { value: 'vegetariano', label: t.vegetarian, icon: Leaf, color: '#22C55E' },
+    { value: 'vegano', label: t.vegan, icon: Leaf, color: '#10B981' },
+    { value: 'sem_lactose', label: t.lactoseFree, icon: Milk, color: '#3B82F6' },
+    { value: 'sem_gluten', label: t.glutenFree, icon: Wheat, color: '#F59E0B' },
+    { value: 'diabetico', label: t.diabetic, icon: Activity, color: '#8B5CF6' },
+  ];
+
+  // Traduzir categorias
+  const getCategoryTitle = (key: string) => {
+    const titles: Record<string, string> = {
+      proteins: t.proteins,
+      carbs: t.carbs,
+      fats: t.fats,
+      fruits: t.fruits,
+      vegetables: t.vegetables,
+      supplements: t.supplements,
+    };
+    return titles[key] || key;
+  };
 
   const toggleFood = (key: string) => {
     const updated = selectedFoods.includes(key)
@@ -156,9 +181,9 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
   return (
     <View style={styles.container}>
       {/* Restrições */}
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>Restrições Alimentares</Text>
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.restrictions}</Text>
       <View style={styles.restrictionsGrid}>
-        {RESTRICTIONS.map((item) => {
+        {RESTRICTIONS_TRANSLATED.map((item) => {
           const isSelected = restrictions.includes(item.value);
           const Icon = item.icon;
           return (
@@ -184,10 +209,10 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
 
       {/* Alimentos Preferidos */}
       <Text style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: spacing.xl }]}>
-        Alimentos Preferidos
+        {t.preferredFoods}
       </Text>
       <Text style={[styles.sectionDesc, { color: theme.textTertiary }]}>
-        Selecione os alimentos que você gosta
+        {t.selectFoodsYouLike}
       </Text>
 
       {Object.entries(FOOD_CATEGORIES).map(([categoryKey, category]) => {
@@ -196,7 +221,7 @@ export default function FoodPreferencesStep({ formData, updateFormData, theme, i
           <View key={categoryKey} style={styles.categorySection}>
             <View style={styles.categoryHeader}>
               <CategoryIcon size={16} color={category.color} />
-              <Text style={[styles.categoryTitle, { color: theme.text }]}>{category.title}</Text>
+              <Text style={[styles.categoryTitle, { color: theme.text }]}>{getCategoryTitle(categoryKey)}</Text>
             </View>
             <View style={styles.foodsGrid}>
               {category.items.map((food) => {
