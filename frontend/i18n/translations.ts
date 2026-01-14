@@ -1554,6 +1554,16 @@ export const translations: Record<SupportedLanguage, Translations> = {
       healthDesc: 'Antes de comenzar cualquier dieta o programa de ejercicios, consulta a un profesional de salud. Tu bienestar es nuestra prioridad.',
       lastUpdate: 'Última actualización: Enero 2025',
     },
+    settingsScreen: {
+      profileUpdated: '¡Perfil actualizado con éxito!',
+      information: 'INFORMACIÓN',
+      goal: 'OBJETIVO',
+      saveChanges: 'Guardar Cambios',
+      mealConfigTitle: 'Configurar Comidas',
+      mealConfigSubtitle: 'Ajusta el número de comidas por día',
+      mealsPerDay: 'Comidas por día',
+      mealsUpdated: '¡Comidas actualizadas con éxito!',
+    },
     meals: {
       breakfast: 'Desayuno',
       morningSnack: 'Snack Mañana',
