@@ -705,6 +705,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       loading: 'Loading...',
       error: 'Error',
       success: 'Success',
+      warning: 'Warning',
       cancel: 'Cancel',
       save: 'Save',
       confirm: 'Confirm',
@@ -713,8 +714,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
       back: 'Back',
       next: 'Next',
       done: 'Done',
+      connectionError: 'Connection Error',
       yes: 'Yes',
       no: 'No',
+      saving: 'Saving...',
     },
     tabs: {
       home: 'Home',
