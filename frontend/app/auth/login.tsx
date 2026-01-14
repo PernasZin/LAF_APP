@@ -80,21 +80,22 @@ export default function LoginScreen() {
         // Verifica se tem perfil (backend retorna profile_completed)
         const hasProfile = data.profile_completed || data.has_profile || false;
         
-        // Atualizar authStore
+        await AsyncStorage.setItem('profileCompleted', hasProfile ? 'true' : 'false');
+        if (hasProfile) {
+          await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
+        }
+        
+        // ✅ Atualiza AuthStore - o AuthGuard vai redirecionar automaticamente
+        // NÃO fazer router.replace() aqui para evitar duplicação de tela!
         await useAuthStore.getState().login(
           data.user_id, 
           data.access_token || '', 
           hasProfile
         );
         
-        if (hasProfile) {
-          await AsyncStorage.setItem('profileCompleted', 'true');
-          await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
-          router.replace('/(tabs)');
-        } else {
-          await AsyncStorage.setItem('profileCompleted', 'false');
-          router.replace('/onboarding');
-        }
+        // O AuthGuard detecta a mudança de estado e redireciona:
+        // - Se hasProfile=true → /(tabs)
+        // - Se hasProfile=false → /onboarding
       } else {
         Alert.alert('Erro', data.detail || data.message || (language === 'en-US' ? 'Invalid email or password' : language === 'es-ES' ? 'Email o contraseña incorrectos' : 'Email ou senha incorretos'));
       }
