@@ -22,6 +22,7 @@ export default function SettingsLayout() {
     >
       <Stack.Screen name="edit-profile" />
       <Stack.Screen name="meal-config" />
+      <Stack.Screen name="training-config" />
       <Stack.Screen name="notifications" />
       <Stack.Screen name="privacy" />
       <Stack.Screen name="terms" />
