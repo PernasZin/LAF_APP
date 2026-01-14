@@ -156,28 +156,29 @@ export interface Translations {
   // Settings screen
   settings: {
     title: string;
+    subtitle: string;
     account: string;
     editProfile: string;
-    logout: string;
+    diet: string;
+    mealsPerDay: string;
+    meals: string;
+    training: string;
+    configureTraining: string;
+    timesPerWeek: string;
+    preferences: string;
+    lightMode: string;
     notifications: string;
-    enableNotifications: string;
-    notificationsDesc: string;
-    configureReminders: string;
-    remindersDesc: string;
-    appearance: string;
-    theme: string;
-    themeDesc: string;
-    system: string;
-    light: string;
-    dark: string;
-    language: string;
-    data: string;
-    clearCache: string;
-    clearCacheDesc: string;
-    legal: string;
+    support: string;
     privacy: string;
-    terms: string;
+    termsOfUse: string;
+    help: string;
+    logout: string;
+    logoutTitle: string;
+    logoutConfirm: string;
+    cancel: string;
     version: string;
+    madeWithLove: string;
+    user: string;
   };
   // Notifications settings
   notificationSettings: {
