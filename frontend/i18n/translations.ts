@@ -68,6 +68,8 @@ export interface Translations {
   // Diet screen
   diet: {
     title: string;
+    mealsPlanned: string;
+    daySummary: string;
     noData: string;
     generateDiet: string;
     generating: string;
@@ -88,6 +90,11 @@ export interface Translations {
       fruit: string;
       vegetable: string;
     };
+    noDietGenerated: string;
+    generateYourDiet: string;
+    generateMyDiet: string;
+    substitute: string;
+    success: string;
   };
   // Workout screen
   workout: {
