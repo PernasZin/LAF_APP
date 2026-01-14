@@ -169,6 +169,7 @@ export interface Translations {
     afternoonSnack: string;
     dinner: string;
     supper: string;
+    eveningSnack: string;
   };
   // Days of week
   weekDays: {
