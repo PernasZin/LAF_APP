@@ -17,6 +17,7 @@ import { ArrowLeft, Check, Calendar, Clock, Dumbbell } from 'lucide-react-native
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
