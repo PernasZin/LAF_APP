@@ -120,7 +120,7 @@ export default function SettingsScreen() {
   const handleLogout = () => {
     if (Platform.OS === 'web') {
       // Para web, usar confirm do navegador
-      if (window.confirm('Tem certeza que deseja sair?')) {
+      if (window.confirm(t.settings.logoutConfirm)) {
         (async () => {
           await authLogout();
           router.replace('/auth/login');
@@ -129,12 +129,12 @@ export default function SettingsScreen() {
     } else {
       // Para mobile, usar Alert nativo
       Alert.alert(
-        'Sair da conta',
-        'Tem certeza que deseja sair?',
+        t.settings.logoutTitle,
+        t.settings.logoutConfirm,
         [
-          { text: 'Cancelar', style: 'cancel' },
+          { text: t.settings.cancel, style: 'cancel' },
           {
-            text: 'Sair',
+            text: t.settings.logout,
             style: 'destructive',
             onPress: async () => {
               await authLogout();
@@ -148,9 +148,9 @@ export default function SettingsScreen() {
 
   const getGoalLabel = (goal: string) => {
     const goals: any = {
-      cutting: '🔥 Cutting',
-      bulking: '💪 Bulking',
-      manutencao: '⚖️ Manutenção',
+      cutting: `🔥 ${t.home.cutting}`,
+      bulking: `💪 ${t.home.bulking}`,
+      manutencao: `⚖️ ${t.home.maintenance}`,
     };
     return goals[goal] || goal;
   };
