@@ -1,100 +1,123 @@
 /**
- * i18n - Internationalization System
- * Supports: Portuguese (pt), English (en), Spanish (es)
+ * i18n - Internationalization System for LAF App
+ * Re-exports from translations.ts for backwards compatibility
  */
 
-import { pt } from './pt';
-import { en } from './en';
-import { es } from './es';
+// Export everything from the main translations file
+export * from './translations';
 
-export type Language = 'pt' | 'en' | 'es';
-export type LanguageCode = 'pt-BR' | 'en-US' | 'es-ES';
+// Export the useTranslation hook
+export * from './useTranslation';
 
-export const translations = {
-  pt,
-  en,
-  es,
-};
+// Helper functions for translating specific content
 
-export type Translations = typeof pt;
+import { translations, SupportedLanguage } from './translations';
 
 /**
- * Get translations for a specific language
+ * Translate food name based on language
  */
-export function getTranslations(lang: Language | LanguageCode): Translations {
-  const langCode = lang.split('-')[0] as Language;
-  return translations[langCode] || translations.pt;
+export function translateFood(foodKey: string, foodName: string, language: SupportedLanguage): string {
+  const foodTranslations = translations[language]?.foods;
+  if (foodTranslations && foodKey in foodTranslations) {
+    return (foodTranslations as Record<string, string>)[foodKey];
+  }
+  return foodName;
 }
 
 /**
- * Get a specific translation key with optional interpolation
+ * Translate meal name based on language
  */
-export function t(
-  lang: Language | LanguageCode,
-  path: string,
-  params?: Record<string, string | number>
-): string {
-  const langCode = lang.split('-')[0] as Language;
-  const trans = translations[langCode] || translations.pt;
+export function translateMealName(mealName: string, language: SupportedLanguage): string {
+  const mealKey = mealName.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_');
   
-  // Navigate to the translation
-  const keys = path.split('.');
-  let result: any = trans;
+  const mealTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    'cafe_da_manha': { 'pt-BR': 'Café da Manhã', 'en-US': 'Breakfast', 'es-ES': 'Desayuno' },
+    'lanche_da_manha': { 'pt-BR': 'Lanche da Manhã', 'en-US': 'Morning Snack', 'es-ES': 'Merienda Mañana' },
+    'lanche_manha': { 'pt-BR': 'Lanche Manhã', 'en-US': 'Morning Snack', 'es-ES': 'Merienda Mañana' },
+    'almoco': { 'pt-BR': 'Almoço', 'en-US': 'Lunch', 'es-ES': 'Almuerzo' },
+    'lanche_da_tarde': { 'pt-BR': 'Lanche da Tarde', 'en-US': 'Afternoon Snack', 'es-ES': 'Merienda Tarde' },
+    'lanche_tarde': { 'pt-BR': 'Lanche Tarde', 'en-US': 'Afternoon Snack', 'es-ES': 'Merienda Tarde' },
+    'jantar': { 'pt-BR': 'Jantar', 'en-US': 'Dinner', 'es-ES': 'Cena' },
+    'ceia': { 'pt-BR': 'Ceia', 'en-US': 'Evening Snack', 'es-ES': 'Cena Ligera' },
+  };
   
-  for (const key of keys) {
-    if (result && typeof result === 'object' && key in result) {
-      result = result[key];
-    } else {
-      // Fallback to Portuguese if key not found
-      result = translations.pt;
-      for (const k of keys) {
-        if (result && typeof result === 'object' && k in result) {
-          result = result[k];
-        } else {
-          return path; // Return path if not found in any language
-        }
-      }
-      break;
-    }
+  if (mealKey in mealTranslations) {
+    return mealTranslations[mealKey][language] || mealName;
   }
   
-  // Interpolate parameters
-  if (typeof result === 'string' && params) {
-    Object.entries(params).forEach(([key, value]) => {
-      result = result.replace(new RegExp(`{{${key}}}`, 'g'), String(value));
-    });
-  }
-  
-  return typeof result === 'string' ? result : path;
+  return mealName;
 }
 
 /**
- * Language names for display
+ * Translate exercise name based on language
  */
-export const languageNames: Record<Language, { native: string; english: string }> = {
-  pt: { native: 'Português', english: 'Portuguese' },
-  en: { native: 'English', english: 'English' },
-  es: { native: 'Español', english: 'Spanish' },
-};
-
-/**
- * Language codes mapping
- */
-export const languageCodes: Record<Language, LanguageCode> = {
-  pt: 'pt-BR',
-  en: 'en-US',
-  es: 'es-ES',
-};
-
-/**
- * Convert language code to short code
- */
-export function toShortCode(langCode: LanguageCode | string): Language {
-  const short = langCode.split('-')[0];
-  if (short === 'pt' || short === 'en' || short === 'es') {
-    return short;
+export function translateExercise(exerciseName: string, language: SupportedLanguage): string {
+  const exerciseTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    'Supino Reto na Máquina': { 'pt-BR': 'Supino Reto na Máquina', 'en-US': 'Machine Flat Bench Press', 'es-ES': 'Press de Banca Plano en Máquina' },
+    'Supino Inclinado na Máquina': { 'pt-BR': 'Supino Inclinado na Máquina', 'en-US': 'Machine Incline Bench Press', 'es-ES': 'Press Inclinado en Máquina' },
+    'Crucifixo na Máquina (Peck Deck)': { 'pt-BR': 'Crucifixo na Máquina (Peck Deck)', 'en-US': 'Pec Deck Machine Fly', 'es-ES': 'Aperturas en Máquina (Pec Deck)' },
+    'Cross Over Polia Alta': { 'pt-BR': 'Cross Over Polia Alta', 'en-US': 'High Cable Crossover', 'es-ES': 'Cruce de Cables Alto' },
+    'Puxada Frontal Pegada Aberta': { 'pt-BR': 'Puxada Frontal Pegada Aberta', 'en-US': 'Wide Grip Lat Pulldown', 'es-ES': 'Jalón al Pecho Agarre Ancho' },
+    'Puxada Pegada Neutra (Triângulo)': { 'pt-BR': 'Puxada Pegada Neutra (Triângulo)', 'en-US': 'Neutral Grip Lat Pulldown', 'es-ES': 'Jalón Agarre Neutro (Triángulo)' },
+    'Remada Máquina Pegada Neutra': { 'pt-BR': 'Remada Máquina Pegada Neutra', 'en-US': 'Machine Row Neutral Grip', 'es-ES': 'Remo en Máquina Agarre Neutro' },
+    'Remada Baixa Polia (Triângulo)': { 'pt-BR': 'Remada Baixa Polia (Triângulo)', 'en-US': 'Seated Cable Row', 'es-ES': 'Remo Bajo en Polea' },
+    'Desenvolvimento Máquina': { 'pt-BR': 'Desenvolvimento Máquina', 'en-US': 'Machine Shoulder Press', 'es-ES': 'Press de Hombros en Máquina' },
+    'Elevação Lateral Máquina': { 'pt-BR': 'Elevação Lateral Máquina', 'en-US': 'Machine Lateral Raise', 'es-ES': 'Elevaciones Laterales en Máquina' },
+    'Elevação Lateral Halteres': { 'pt-BR': 'Elevação Lateral Halteres', 'en-US': 'Dumbbell Lateral Raise', 'es-ES': 'Elevaciones Laterales con Mancuernas' },
+    'Rosca Direta Barra': { 'pt-BR': 'Rosca Direta Barra', 'en-US': 'Barbell Curl', 'es-ES': 'Curl con Barra' },
+    'Rosca Martelo Halteres': { 'pt-BR': 'Rosca Martelo Halteres', 'en-US': 'Hammer Curl', 'es-ES': 'Curl Martillo' },
+    'Rosca Alternada Halteres': { 'pt-BR': 'Rosca Alternada Halteres', 'en-US': 'Alternating Dumbbell Curl', 'es-ES': 'Curl Alternado con Mancuernas' },
+    'Rosca Scott Máquina': { 'pt-BR': 'Rosca Scott Máquina', 'en-US': 'Preacher Curl Machine', 'es-ES': 'Curl Scott en Máquina' },
+    'Tríceps Corda (Polia Alta)': { 'pt-BR': 'Tríceps Corda (Polia Alta)', 'en-US': 'Cable Rope Tricep Pushdown', 'es-ES': 'Extensiones de Tríceps con Cuerda' },
+    'Tríceps Francês Halter': { 'pt-BR': 'Tríceps Francês Halter', 'en-US': 'Dumbbell French Press', 'es-ES': 'Press Francés con Mancuerna' },
+    'Tríceps Barra Reta (Polia Alta)': { 'pt-BR': 'Tríceps Barra Reta (Polia Alta)', 'en-US': 'Cable Bar Tricep Pushdown', 'es-ES': 'Extensiones de Tríceps con Barra' },
+    'Tríceps Máquina': { 'pt-BR': 'Tríceps Máquina', 'en-US': 'Tricep Machine', 'es-ES': 'Tríceps en Máquina' },
+    'Leg Press 45°': { 'pt-BR': 'Leg Press 45°', 'en-US': '45° Leg Press', 'es-ES': 'Prensa de Piernas 45°' },
+    'Cadeira Extensora': { 'pt-BR': 'Cadeira Extensora', 'en-US': 'Leg Extension Machine', 'es-ES': 'Extensión de Piernas' },
+    'Agachamento no Smith Machine': { 'pt-BR': 'Agachamento no Smith Machine', 'en-US': 'Smith Machine Squat', 'es-ES': 'Sentadilla en Máquina Smith' },
+    'Mesa Flexora': { 'pt-BR': 'Mesa Flexora', 'en-US': 'Lying Leg Curl', 'es-ES': 'Curl Femoral Acostado' },
+    'Cadeira Flexora (Sentado)': { 'pt-BR': 'Cadeira Flexora (Sentado)', 'en-US': 'Seated Leg Curl', 'es-ES': 'Curl Femoral Sentado' },
+    'Stiff na Máquina Smith': { 'pt-BR': 'Stiff na Máquina Smith', 'en-US': 'Smith Machine Stiff Leg Deadlift', 'es-ES': 'Peso Muerto Rumano en Smith' },
+    'Glúteo na Máquina (Kick Back)': { 'pt-BR': 'Glúteo na Máquina (Kick Back)', 'en-US': 'Glute Kickback Machine', 'es-ES': 'Glúteos en Máquina' },
+    'Panturrilha no Leg Press': { 'pt-BR': 'Panturrilha no Leg Press', 'en-US': 'Calf Press on Leg Press', 'es-ES': 'Gemelos en Prensa' },
+    'Panturrilha Sentado na Máquina': { 'pt-BR': 'Panturrilha Sentado na Máquina', 'en-US': 'Seated Calf Raise Machine', 'es-ES': 'Gemelos Sentado en Máquina' },
+    'Panturrilha em Pé na Máquina': { 'pt-BR': 'Panturrilha em Pé na Máquina', 'en-US': 'Standing Calf Raise Machine', 'es-ES': 'Gemelos de Pie en Máquina' },
+    'Abdominal na Máquina': { 'pt-BR': 'Abdominal na Máquina', 'en-US': 'Ab Machine Crunch', 'es-ES': 'Abdominales en Máquina' },
+    'Abdominal na Polia Alta (Corda)': { 'pt-BR': 'Abdominal na Polia Alta (Corda)', 'en-US': 'Cable Crunch', 'es-ES': 'Abdominales en Polea Alta' },
+    'Prancha Isométrica': { 'pt-BR': 'Prancha Isométrica', 'en-US': 'Plank Hold', 'es-ES': 'Plancha Isométrica' },
+    'Voador Invertido (Peck Deck)': { 'pt-BR': 'Voador Invertido (Peck Deck)', 'en-US': 'Reverse Pec Deck Fly', 'es-ES': 'Aperturas Invertidas (Pec Deck)' },
+  };
+  
+  if (exerciseName in exerciseTranslations) {
+    return exerciseTranslations[exerciseName][language] || exerciseName;
   }
-  return 'pt'; // Default to Portuguese
+  
+  return exerciseName;
 }
 
-export { pt, en, es };
+/**
+ * Translate workout day name based on language
+ */
+export function translateWorkoutName(dayName: string, language: SupportedLanguage): string {
+  const dayTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    'Full Body': { 'pt-BR': 'Corpo Inteiro', 'en-US': 'Full Body', 'es-ES': 'Cuerpo Completo' },
+    'Upper': { 'pt-BR': 'Superior', 'en-US': 'Upper Body', 'es-ES': 'Tren Superior' },
+    'Lower': { 'pt-BR': 'Inferior', 'en-US': 'Lower Body', 'es-ES': 'Tren Inferior' },
+    'A - Push': { 'pt-BR': 'A - Empurrar', 'en-US': 'A - Push', 'es-ES': 'A - Empuje' },
+    'B - Pull': { 'pt-BR': 'B - Puxar', 'en-US': 'B - Pull', 'es-ES': 'B - Jalón' },
+    'C - Legs': { 'pt-BR': 'C - Pernas', 'en-US': 'C - Legs', 'es-ES': 'C - Piernas' },
+    'A - Peito/Tríceps': { 'pt-BR': 'A - Peito/Tríceps', 'en-US': 'A - Chest/Triceps', 'es-ES': 'A - Pecho/Tríceps' },
+    'B - Costas/Bíceps': { 'pt-BR': 'B - Costas/Bíceps', 'en-US': 'B - Back/Biceps', 'es-ES': 'B - Espalda/Bíceps' },
+    'C - Pernas': { 'pt-BR': 'C - Pernas', 'en-US': 'C - Legs', 'es-ES': 'C - Piernas' },
+    'D - Ombros/Abdômen': { 'pt-BR': 'D - Ombros/Abdômen', 'en-US': 'D - Shoulders/Abs', 'es-ES': 'D - Hombros/Abdominales' },
+  };
+  
+  if (dayName in dayTranslations) {
+    return dayTranslations[dayName][language] || dayName;
+  }
+  
+  return dayName;
+}
