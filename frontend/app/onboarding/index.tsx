@@ -102,13 +102,13 @@ export default function OnboardingScreen() {
         break;
       case 2:
         if (!formData.training_level) {
-          showAlert('Campo obrigatório', 'Selecione seu nível de treino');
+          showAlert(t.requiredFields, t.fillTrainingFields);
           return false;
         }
         break;
       case 3:
         if (!formData.goal) {
-          showAlert('Campo obrigatório', 'Selecione seu objetivo');
+          showAlert(t.requiredFields, t.selectGoal);
           return false;
         }
         break;
