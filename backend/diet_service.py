@@ -2922,6 +2922,25 @@ class DietAIService:
                     meals[i]["name"] = mt.get("name", meals[i].get("name", f"Refeição {i+1}"))
                     meals[i]["time"] = mt.get("time", meals[i].get("time", "12:00"))
         
+        # 🔒🔒🔒 FILTRAGEM FINAL ABSOLUTA PARA LANCHES 🔒🔒🔒
+        # Esta é a ÚLTIMA linha de defesa - remove QUALQUER alimento proibido dos lanches
+        for i, meal in enumerate(meals):
+            meal_name = meal.get("name", "").lower()
+            if "lanche" in meal_name:
+                # Remove TUDO que não está na lista branca de lanches
+                original_foods = meal.get("foods", [])
+                filtered_foods = [f for f in original_foods if f.get("key") in ALIMENTOS_PERMITIDOS_LANCHE]
+                
+                # Se ficou vazio, adiciona frutas + castanhas (sempre seguros)
+                if not filtered_foods:
+                    safe_fruit = get_restriction_safe_fruit()
+                    filtered_foods = [
+                        calc_food(safe_fruit, 150),
+                        calc_food("castanhas", 20)
+                    ]
+                
+                meals[i]["foods"] = filtered_foods
+        
         # Formata resultado
         final_meals = []
         for m in meals:
