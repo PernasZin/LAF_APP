@@ -386,39 +386,39 @@ export default function ProgressScreen() {
 
               {/* Questionnaire */}
               <Text style={[styles.questionnaireTitle, { color: theme.textSecondary }]}>
-                COMO FOI SUA SEMANA?
+                {t.progress.howWasYourWeek || 'HOW WAS YOUR WEEK?'}
               </Text>
 
               <QuestionnaireSlider
-                label="Dieta"
+                label={t.tabs.diet}
                 icon={Utensils}
                 value={questionnaire.diet}
                 onChange={(v: number) => setQuestionnaire({...questionnaire, diet: v})}
                 color="#10B981"
               />
               <QuestionnaireSlider
-                label="Treino"
+                label={t.workout.training}
                 icon={Dumbbell}
                 value={questionnaire.training}
                 onChange={(v: number) => setQuestionnaire({...questionnaire, training: v})}
                 color="#3B82F6"
               />
               <QuestionnaireSlider
-                label="Cardio"
+                label={t.tabs.cardio}
                 icon={TrendingUp}
                 value={questionnaire.cardio}
                 onChange={(v: number) => setQuestionnaire({...questionnaire, cardio: v})}
                 color="#F59E0B"
               />
               <QuestionnaireSlider
-                label="Sono"
+                label={t.progress.sleep || 'Sleep'}
                 icon={Moon}
                 value={questionnaire.sleep}
                 onChange={(v: number) => setQuestionnaire({...questionnaire, sleep: v})}
                 color="#8B5CF6"
               />
               <QuestionnaireSlider
-                label="Hidratação"
+                label={t.home.waterTracker}
                 icon={Droplets}
                 value={questionnaire.hydration}
                 onChange={(v: number) => setQuestionnaire({...questionnaire, hydration: v})}
@@ -438,7 +438,7 @@ export default function ProgressScreen() {
                 >
                   <Check size={20} color="#FFF" />
                   <Text style={styles.saveButtonText}>
-                    {saving ? 'Salvando...' : 'Salvar'}
+                    {saving ? t.common.saving : t.common.save}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
