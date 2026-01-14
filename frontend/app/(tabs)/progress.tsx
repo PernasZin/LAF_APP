@@ -364,7 +364,7 @@ export default function ProgressScreen() {
         >
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundCardSolid }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>Registrar Peso</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>{t.progress.recordWeight}</Text>
               <TouchableOpacity onPress={() => setShowWeightModal(false)}>
                 <X size={24} color={theme.text} />
               </TouchableOpacity>
