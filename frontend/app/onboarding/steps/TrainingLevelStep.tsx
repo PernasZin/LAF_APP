@@ -5,7 +5,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Baby, User, Dumbbell, Trophy, Clock, Calendar } from 'lucide-react-native';
+import { User, Dumbbell, Trophy, Clock, Calendar } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { translations, SupportedLanguage } from '../../../i18n/translations';
