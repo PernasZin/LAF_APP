@@ -21,6 +21,7 @@ import {
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useAuthStore } from '../../stores/authStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
+import { useTranslation } from '../../i18n';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
