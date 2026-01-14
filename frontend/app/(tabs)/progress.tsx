@@ -217,9 +217,9 @@ export default function ProgressScreen() {
           {/* Header */}
           <Animated.View entering={FadeInDown.springify()} style={styles.header}>
             <View>
-              <Text style={[styles.headerTitle, { color: theme.text }]}>Progresso</Text>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>{t.progress.title}</Text>
               <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-                Acompanhe sua evolução
+                {t.progress.subtitle}
               </Text>
             </View>
           </Animated.View>
@@ -237,7 +237,7 @@ export default function ProgressScreen() {
                 <View style={[styles.weightIconBg, { backgroundColor: premiumColors.primary + '20' }]}>
                   <Scale size={24} color={premiumColors.primary} strokeWidth={2.5} />
                 </View>
-                <Text style={[styles.weightLabel, { color: theme.textSecondary }]}>Peso Atual</Text>
+                <Text style={[styles.weightLabel, { color: theme.textSecondary }]}>{t.progress.currentWeight}</Text>
               </View>
               <View style={styles.weightValueRow}>
                 <Text style={[styles.weightValue, { color: theme.text }]}>
