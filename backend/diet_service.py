@@ -2066,10 +2066,29 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         
         # REMOVE azeite de refeições que não são almoço/jantar (índices 2 e 4)
         is_main_meal = m_idx in [2, 4] if num_meals == 6 else m_idx in [1, 3] if num_meals == 4 else m_idx in [2, 4]
+        
+        # Identifica se é lanche (manhã ou tarde)
+        meal_name_lower = meal.get("name", "").lower()
+        is_lanche = "lanche" in meal_name_lower
+        
         if not is_main_meal:
             # Remove azeite E carnes dos lanches/café/ceia
             meals[m_idx]["foods"] = [f for f in foods if f.get("key") not in {"azeite"} and f.get("key") not in CARNES_APENAS_ALMOCO_JANTAR]
             foods = meals[m_idx]["foods"]
+        
+        # REGRA RIGOROSA PARA LANCHES: Apenas alimentos permitidos
+        if is_lanche:
+            # Filtra para manter APENAS alimentos permitidos em lanches
+            meals[m_idx]["foods"] = [f for f in foods if f.get("key") in ALIMENTOS_PERMITIDOS_LANCHE]
+            foods = meals[m_idx]["foods"]
+            
+            # Se ficou vazio, adiciona frutas e castanhas
+            if not foods:
+                meals[m_idx]["foods"] = [
+                    calc_food(get_restriction_safe_fruit(), 150),
+                    calc_food("castanhas", 20)
+                ]
+                foods = meals[m_idx]["foods"]
         
         # Verifica se a refeição está vazia ou só tem gordura
         non_fat_foods = [f for f in foods if f.get("key") not in {"azeite", "castanhas", "pasta_amendoim"}]
