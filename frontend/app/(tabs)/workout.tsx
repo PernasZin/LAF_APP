@@ -78,7 +78,7 @@ const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, 
           <View style={styles.dayHeaderContent}>
             <View style={styles.dayTitleRow}>
               <Text style={[styles.dayName, { color: theme.text }]}>
-                {translateWorkoutName(day.name || `Dia ${index + 1}`, language)}
+                {translateWorkoutDayName(day.name || `Dia ${index + 1}`, language)}
               </Text>
               {isToday && (
                 <View style={[styles.todayBadge, { backgroundColor: premiumColors.primary }]}>
