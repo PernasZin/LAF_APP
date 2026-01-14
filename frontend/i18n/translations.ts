@@ -277,6 +277,17 @@ export interface Translations {
     healthDesc: string;
     lastUpdate: string;
   };
+  // Settings screen (edit profile, meal config)
+  settingsScreen: {
+    profileUpdated: string;
+    information: string;
+    goal: string;
+    saveChanges: string;
+    mealConfigTitle: string;
+    mealConfigSubtitle: string;
+    mealsPerDay: string;
+    mealsUpdated: string;
+  };
   // Meals
   meals: {
     breakfast: string;
