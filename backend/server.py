@@ -1943,6 +1943,17 @@ async def get_user_workout(user_id: str):
         raise HTTPException(status_code=404, detail="Plano de treino não encontrado")
     
     workout_plan["id"] = workout_plan["_id"]
+    
+    # Traduz baseado no idioma do perfil do usuário
+    user_profile = await db.user_profiles.find_one({"_id": user_id})
+    if user_profile:
+        user_language = user_profile.get('language', 'pt-BR')
+        lang_code = user_language.split('-')[0] if user_language else 'pt'
+        
+        if lang_code in ['en', 'es']:
+            from workout.translations import translate_workout_plan
+            return translate_workout_plan(workout_plan, lang_code)
+    
     return workout_plan
 
 
