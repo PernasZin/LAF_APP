@@ -13,6 +13,7 @@ import { ArrowLeft, FileText, Scale, AlertTriangle, Heart } from 'lucide-react-n
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
+import { useTranslation } from '../../i18n';
 
 const GlassCard = ({ children, style, isDark }: any) => {
   const cardStyle = {
@@ -30,6 +31,7 @@ const GlassCard = ({ children, style, isDark }: any) => {
 };
 
 export default function TermsScreen() {
+  const { t } = useTranslation();
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
@@ -52,7 +54,7 @@ export default function TermsScreen() {
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>Termos de Uso</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t('terms.title')}</Text>
             <View style={{ width: 44 }} />
           </Animated.View>
 
@@ -62,10 +64,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <FileText size={20} color={premiumColors.primary} />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>1. Aceitação</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.acceptance')}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  Ao utilizar o LAF, você concorda com estes termos de uso. O aplicativo foi desenvolvido para auxiliar no acompanhamento nutricional e de treinos.
+                  {t('terms.acceptanceDesc')}
                 </Text>
               </View>
 
@@ -74,10 +76,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Scale size={20} color="#3B82F6" />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>2. Uso Responsável</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.responsibleUse')}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  As informações fornecidas pelo app são apenas sugestões e não substituem o acompanhamento profissional de nutricionistas ou médicos.
+                  {t('terms.responsibleUseDesc')}
                 </Text>
               </View>
 
@@ -86,10 +88,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <AlertTriangle size={20} color="#F59E0B" />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>3. Limitações</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.limitations')}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  O LAF não se responsabiliza por resultados individuais. Cada pessoa responde de forma diferente a dietas e exercícios.
+                  {t('terms.limitationsDesc')}
                 </Text>
               </View>
 
@@ -98,10 +100,10 @@ export default function TermsScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Heart size={20} color="#EC4899" />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>4. Saúde</Text>
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>{t('terms.health')}</Text>
                 </View>
                 <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
-                  Antes de iniciar qualquer dieta ou programa de exercícios, consulte um profissional de saúde. Seu bem-estar é nossa prioridade.
+                  {t('terms.healthDesc')}
                 </Text>
               </View>
             </GlassCard>
@@ -110,7 +112,7 @@ export default function TermsScreen() {
           {/* Version */}
           <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: theme.textTertiary }]}>
-              Última atualização: Janeiro 2026
+              {t('terms.lastUpdate')}
             </Text>
           </Animated.View>
         </ScrollView>
