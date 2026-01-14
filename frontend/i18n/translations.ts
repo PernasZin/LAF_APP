@@ -293,6 +293,8 @@ export interface Translations {
     supplements: string;
     supplementsDesc: string;
     separate: string;
+    mealsPerDay: string;
+    distribution: string;
     athleteInfoBox: string;
     generalInfoBox: string;
     skipHint: string;
