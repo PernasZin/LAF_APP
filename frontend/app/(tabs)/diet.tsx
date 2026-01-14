@@ -331,9 +331,9 @@ export default function DietScreen() {
           {/* Header */}
           <Animated.View entering={FadeInDown.springify()} style={styles.header}>
             <View>
-              <Text style={[styles.headerTitle, { color: theme.text }]}>Sua Dieta</Text>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>{t.diet.title}</Text>
               <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-                {dietPlan?.meals?.length || 0} refeições planejadas
+                {dietPlan?.meals?.length || 0} {t.diet.mealsPlanned}
               </Text>
             </View>
           </Animated.View>
@@ -349,7 +349,7 @@ export default function DietScreen() {
               />
               <View style={styles.summaryHeader}>
                 <Flame size={20} color={premiumColors.primary} />
-                <Text style={[styles.summaryTitle, { color: theme.text }]}>Resumo do Dia</Text>
+                <Text style={[styles.summaryTitle, { color: theme.text }]}>{t.diet.daySummary}</Text>
               </View>
               <View style={styles.summaryStats}>
                 <View style={styles.summaryStat}>
@@ -359,17 +359,17 @@ export default function DietScreen() {
                 <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
                 <View style={styles.summaryStat}>
                   <Text style={[styles.summaryValue, { color: '#3B82F6' }]}>{Math.round(totalProtein)}g</Text>
-                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>Proteína</Text>
+                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>{t.home.protein}</Text>
                 </View>
                 <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
                 <View style={styles.summaryStat}>
                   <Text style={[styles.summaryValue, { color: '#F59E0B' }]}>{Math.round(totalCarbs)}g</Text>
-                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>Carbs</Text>
+                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>{t.home.carbs}</Text>
                 </View>
                 <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
                 <View style={styles.summaryStat}>
                   <Text style={[styles.summaryValue, { color: '#EF4444' }]}>{Math.round(totalFat)}g</Text>
-                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>Gordura</Text>
+                  <Text style={[styles.summaryLabel, { color: theme.textTertiary }]}>{t.home.fat}</Text>
                 </View>
               </View>
             </GlassCard>
