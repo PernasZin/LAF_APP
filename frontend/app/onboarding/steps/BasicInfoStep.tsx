@@ -1,11 +1,14 @@
 /**
  * Premium Basic Info Step
+ * Com suporte a i18n
  */
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { User, Calendar, Users } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   formData: any;
@@ -30,9 +33,12 @@ const GlassCard = ({ children, style, isDark }: any) => (
 );
 
 export default function BasicInfoStep({ formData, updateFormData, theme, isDark }: Props) {
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+  
   const sexOptions = [
-    { value: 'masculino', label: 'Masculino', icon: '♂️' },
-    { value: 'feminino', label: 'Feminino', icon: '♀️' },
+    { value: 'masculino', label: t.male, icon: '♂️' },
+    { value: 'feminino', label: t.female, icon: '♀️' },
   ];
 
   return (
@@ -41,7 +47,7 @@ export default function BasicInfoStep({ formData, updateFormData, theme, isDark 
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
             <User size={18} color={premiumColors.primary} />
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Nome</Text>
+            <Text style={[styles.label, { color: theme.textSecondary }]}>{t.name}</Text>
           </View>
           <TextInput
             style={[
@@ -52,7 +58,7 @@ export default function BasicInfoStep({ formData, updateFormData, theme, isDark 
                 color: theme.text,
               }
             ]}
-            placeholder="Seu nome completo"
+            placeholder={t.yourName}
             placeholderTextColor={theme.input.placeholder}
             value={formData.name}
             onChangeText={(text) => updateFormData({ name: text })}
@@ -62,7 +68,7 @@ export default function BasicInfoStep({ formData, updateFormData, theme, isDark 
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
             <Calendar size={18} color={premiumColors.primary} />
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Idade</Text>
+            <Text style={[styles.label, { color: theme.textSecondary }]}>{t.age}</Text>
           </View>
           <TextInput
             style={[
@@ -84,7 +90,7 @@ export default function BasicInfoStep({ formData, updateFormData, theme, isDark 
         <View style={styles.inputGroup}>
           <View style={styles.labelRow}>
             <Users size={18} color={premiumColors.primary} />
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Sexo</Text>
+            <Text style={[styles.label, { color: theme.textSecondary }]}>{t.sex}</Text>
           </View>
           <View style={styles.optionsRow}>
             {sexOptions.map((option) => {
