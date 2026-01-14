@@ -294,6 +294,18 @@ export interface Translations {
     athleteInfoBox: string;
     generalInfoBox: string;
     skipHint: string;
+    // Extended restrictions (RestrictionsStep)
+    vegan: string;
+    diabetic: string;
+    eggFree: string;
+    peanutFree: string;
+    restrictions: string;
+    restrictionsDesc: string;
+    preferences: string;
+    preferencesDesc: string;
+    highProtein: string;
+    mediterranean: string;
+    wholeFoods: string;
     // Validation errors
     requiredFields: string;
     fillNameAgeSex: string;
