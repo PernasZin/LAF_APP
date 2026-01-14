@@ -138,7 +138,7 @@ export default function EditProfileScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={styles.loadingContainer}>
-          <Text style={{ color: theme.text }}>Carregando...</Text>
+          <Text style={{ color: theme.text }}>{t.common.loading}</Text>
         </View>
       </SafeAreaView>
     );
@@ -169,24 +169,24 @@ export default function EditProfileScreen() {
               <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                 <ArrowLeft size={24} color={theme.text} />
               </TouchableOpacity>
-              <Text style={[styles.headerTitle, { color: theme.text }]}>Editar Perfil</Text>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>{t.settings.editProfile}</Text>
               <View style={{ width: 44 }} />
             </Animated.View>
 
             {/* Name & Email */}
             <Animated.View entering={FadeInDown.delay(100).springify()}>
-              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>INFORMAÇÕES</Text>
+              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settingsScreen?.information || 'INFORMATION'}</Text>
               <GlassCard isDark={isDark} style={styles.card}>
                 {/* Nome */}
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Nome</Text>
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{t.onboarding.name}</Text>
                   <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
                     <User size={20} color={theme.textTertiary} />
                     <TextInput
                       style={[styles.input, { color: theme.text }]}
                       value={name}
                       onChangeText={setName}
-                      placeholder="Seu nome"
+                      placeholder={t.onboarding.yourName || 'Your name'}
                       placeholderTextColor={theme.input.placeholder}
                     />
                   </View>
@@ -194,14 +194,14 @@ export default function EditProfileScreen() {
 
                 {/* Email */}
                 <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Email</Text>
+                  <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>{t.auth.email}</Text>
                   <View style={[styles.inputContainer, { backgroundColor: theme.input.background, borderColor: theme.input.border }]}>
                     <Mail size={20} color={theme.textTertiary} />
                     <TextInput
                       style={[styles.input, { color: theme.text }]}
                       value={email}
                       onChangeText={setEmail}
-                      placeholder="seu@email.com"
+                      placeholder="your@email.com"
                       placeholderTextColor={theme.input.placeholder}
                       keyboardType="email-address"
                       autoCapitalize="none"
@@ -213,7 +213,7 @@ export default function EditProfileScreen() {
 
             {/* Goal */}
             <Animated.View entering={FadeInDown.delay(200).springify()}>
-              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>OBJETIVO</Text>
+              <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settingsScreen?.goal || 'GOAL'}</Text>
               <GlassCard isDark={isDark} style={styles.card}>
                 {GOALS.map((g, index) => (
                   <TouchableOpacity
@@ -254,7 +254,7 @@ export default function EditProfileScreen() {
                 >
                   <Check size={20} color="#FFF" />
                   <Text style={styles.saveButtonText}>
-                    {saving ? 'Salvando...' : 'Salvar Alterações'}
+                    {saving ? t.common.saving : t.settingsScreen?.saveChanges || 'Save Changes'}
                   </Text>
                 </LinearGradient>
               </TouchableOpacity>
