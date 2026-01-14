@@ -1134,6 +1134,16 @@ export const translations: Record<SupportedLanguage, Translations> = {
       healthDesc: 'Before starting any diet or exercise program, consult a health professional. Your well-being is our priority.',
       lastUpdate: 'Last update: January 2025',
     },
+    settingsScreen: {
+      profileUpdated: 'Profile updated successfully!',
+      information: 'INFORMATION',
+      goal: 'GOAL',
+      saveChanges: 'Save Changes',
+      mealConfigTitle: 'Configure Meals',
+      mealConfigSubtitle: 'Adjust the number of meals per day',
+      mealsPerDay: 'Meals per day',
+      mealsUpdated: 'Meals updated successfully!',
+    },
     meals: {
       breakfast: 'Breakfast',
       morningSnack: 'Morning Snack',
