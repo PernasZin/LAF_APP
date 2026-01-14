@@ -662,6 +662,15 @@ async def generate_diet(user_id: str, request_meal_count: Optional[int] = None):
             f"Computed: P{real_protein:.1f}g C{real_carbs:.1f}g F{real_fat:.1f}g {real_cal:.1f}kcal"
         )
         
+        # Traduz a dieta baseado no idioma do usuário
+        user_language = user_profile.get('language', 'pt-BR')
+        lang_code = user_language.split('-')[0] if user_language else 'pt'  # 'pt-BR' -> 'pt'
+        
+        if lang_code in ['en', 'es']:
+            from diet.translations import translate_diet
+            diet_dict_translated = translate_diet(diet_plan.dict(), lang_code)
+            return diet_dict_translated
+        
         return diet_plan
         
     except HTTPException:
