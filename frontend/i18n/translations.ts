@@ -209,6 +209,7 @@ export interface Translations {
       trainingLevel: string;
       yourGoal: string;
       preferences: string;
+      meals: string;
     };
     // Buttons
     saving: string;
