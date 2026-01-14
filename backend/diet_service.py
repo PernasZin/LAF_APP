@@ -184,6 +184,36 @@ def get_restriction_safe_breakfast_carb() -> str:
     return get_restriction_safe_fruit()
 
 
+def get_restriction_safe_protein_light() -> str:
+    """
+    Retorna uma proteína leve (para lanches/café) que respeita restrições.
+    
+    Ordem de prioridade:
+    1. ovos (geralmente aceito por todos)
+    2. tofu (para vegetarianos)
+    3. iogurte_zero (se não for sem lactose)
+    4. cottage (se não for sem lactose)
+    5. fruta (último fallback)
+    """
+    global _current_diet_restrictions
+    
+    # Calcula exclusões
+    excluded = set()
+    for r in _current_diet_restrictions:
+        if r in RESTRICTION_EXCLUSIONS:
+            excluded.update(RESTRICTION_EXCLUSIONS[r])
+    
+    # Ordem de preferência para proteína leve
+    proteins = ["ovos", "tofu", "iogurte_zero", "cottage"]
+    
+    for p in proteins:
+        if p not in excluded:
+            return p
+    
+    # Se tudo estiver excluído, usa fruta
+    return get_restriction_safe_fruit()
+
+
 # ==================== RESTRIÇÕES ALIMENTARES ====================
 
 RESTRICTION_EXCLUSIONS = {
