@@ -15,12 +15,106 @@ import { translations, SupportedLanguage } from './translations';
 
 /**
  * Translate food name based on language
+ * Takes food name (in Portuguese) and returns translated name
  */
-export function translateFood(foodKey: string, foodName: string, language: SupportedLanguage): string {
-  const foodTranslations = translations[language]?.foods;
-  if (foodTranslations && foodKey in foodTranslations) {
-    return (foodTranslations as Record<string, string>)[foodKey];
+export function translateFood(foodName: string, language: SupportedLanguage): string {
+  // Food translations mapping (Portuguese -> Other languages)
+  const foodTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    // Proteínas
+    'Peito de Frango': { 'pt-BR': 'Peito de Frango', 'en-US': 'Chicken Breast', 'es-ES': 'Pechuga de Pollo' },
+    'Coxa de Frango': { 'pt-BR': 'Coxa de Frango', 'en-US': 'Chicken Thigh', 'es-ES': 'Muslo de Pollo' },
+    'Patinho (Carne Magra)': { 'pt-BR': 'Patinho (Carne Magra)', 'en-US': 'Lean Beef', 'es-ES': 'Carne Magra' },
+    'Carne Moída': { 'pt-BR': 'Carne Moída', 'en-US': 'Ground Beef', 'es-ES': 'Carne Molida' },
+    'Carne Suína': { 'pt-BR': 'Carne Suína', 'en-US': 'Pork', 'es-ES': 'Cerdo' },
+    'Ovos Inteiros': { 'pt-BR': 'Ovos Inteiros', 'en-US': 'Whole Eggs', 'es-ES': 'Huevos Enteros' },
+    'Claras de Ovo': { 'pt-BR': 'Claras de Ovo', 'en-US': 'Egg Whites', 'es-ES': 'Claras de Huevo' },
+    'Tilápia': { 'pt-BR': 'Tilápia', 'en-US': 'Tilapia', 'es-ES': 'Tilapia' },
+    'Atum': { 'pt-BR': 'Atum', 'en-US': 'Tuna', 'es-ES': 'Atún' },
+    'Salmão': { 'pt-BR': 'Salmão', 'en-US': 'Salmon', 'es-ES': 'Salmón' },
+    'Camarão': { 'pt-BR': 'Camarão', 'en-US': 'Shrimp', 'es-ES': 'Camarón' },
+    'Sardinha': { 'pt-BR': 'Sardinha', 'en-US': 'Sardines', 'es-ES': 'Sardinas' },
+    'Peru': { 'pt-BR': 'Peru', 'en-US': 'Turkey', 'es-ES': 'Pavo' },
+    'Queijo Cottage': { 'pt-BR': 'Queijo Cottage', 'en-US': 'Cottage Cheese', 'es-ES': 'Queso Cottage' },
+    'Iogurte Zero': { 'pt-BR': 'Iogurte Zero', 'en-US': 'Sugar-Free Yogurt', 'es-ES': 'Yogur Sin Azúcar' },
+    'Whey Protein': { 'pt-BR': 'Whey Protein', 'en-US': 'Whey Protein', 'es-ES': 'Proteína Whey' },
+    'Requeijão Light': { 'pt-BR': 'Requeijão Light', 'en-US': 'Light Cream Cheese', 'es-ES': 'Queso Crema Light' },
+    'Tofu': { 'pt-BR': 'Tofu', 'en-US': 'Tofu', 'es-ES': 'Tofu' },
+    'Tempeh': { 'pt-BR': 'Tempeh', 'en-US': 'Tempeh', 'es-ES': 'Tempeh' },
+    'Seitan': { 'pt-BR': 'Seitan', 'en-US': 'Seitan', 'es-ES': 'Seitán' },
+    'Edamame': { 'pt-BR': 'Edamame', 'en-US': 'Edamame', 'es-ES': 'Edamame' },
+    'Grão de Bico': { 'pt-BR': 'Grão de Bico', 'en-US': 'Chickpeas', 'es-ES': 'Garbanzos' },
+    'Proteína de Ervilha': { 'pt-BR': 'Proteína de Ervilha', 'en-US': 'Pea Protein', 'es-ES': 'Proteína de Guisante' },
+    
+    // Carboidratos
+    'Arroz Branco': { 'pt-BR': 'Arroz Branco', 'en-US': 'White Rice', 'es-ES': 'Arroz Blanco' },
+    'Arroz Integral': { 'pt-BR': 'Arroz Integral', 'en-US': 'Brown Rice', 'es-ES': 'Arroz Integral' },
+    'Batata Doce': { 'pt-BR': 'Batata Doce', 'en-US': 'Sweet Potato', 'es-ES': 'Batata' },
+    'Aveia': { 'pt-BR': 'Aveia', 'en-US': 'Oats', 'es-ES': 'Avena' },
+    'Macarrão': { 'pt-BR': 'Macarrão', 'en-US': 'Pasta', 'es-ES': 'Pasta' },
+    'Macarrão Integral': { 'pt-BR': 'Macarrão Integral', 'en-US': 'Whole Wheat Pasta', 'es-ES': 'Pasta Integral' },
+    'Pão Francês': { 'pt-BR': 'Pão Francês', 'en-US': 'French Bread', 'es-ES': 'Pan Francés' },
+    'Pão Integral': { 'pt-BR': 'Pão Integral', 'en-US': 'Whole Wheat Bread', 'es-ES': 'Pan Integral' },
+    'Pão de Forma': { 'pt-BR': 'Pão de Forma', 'en-US': 'Sliced Bread', 'es-ES': 'Pan de Molde' },
+    'Tapioca': { 'pt-BR': 'Tapioca', 'en-US': 'Tapioca', 'es-ES': 'Tapioca' },
+    'Feijão': { 'pt-BR': 'Feijão', 'en-US': 'Beans', 'es-ES': 'Frijoles' },
+    'Lentilha': { 'pt-BR': 'Lentilha', 'en-US': 'Lentils', 'es-ES': 'Lentejas' },
+    'Farofa': { 'pt-BR': 'Farofa', 'en-US': 'Toasted Cassava Flour', 'es-ES': 'Farofa' },
+    'Granola': { 'pt-BR': 'Granola', 'en-US': 'Granola', 'es-ES': 'Granola' },
+    
+    // Gorduras
+    'Azeite de Oliva': { 'pt-BR': 'Azeite de Oliva', 'en-US': 'Olive Oil', 'es-ES': 'Aceite de Oliva' },
+    'Pasta de Amendoim': { 'pt-BR': 'Pasta de Amendoim', 'en-US': 'Peanut Butter', 'es-ES': 'Mantequilla de Maní' },
+    'Pasta de Amêndoa': { 'pt-BR': 'Pasta de Amêndoa', 'en-US': 'Almond Butter', 'es-ES': 'Mantequilla de Almendra' },
+    'Óleo de Coco': { 'pt-BR': 'Óleo de Coco', 'en-US': 'Coconut Oil', 'es-ES': 'Aceite de Coco' },
+    'Castanhas': { 'pt-BR': 'Castanhas', 'en-US': 'Cashews', 'es-ES': 'Castañas de Cajú' },
+    'Amêndoas': { 'pt-BR': 'Amêndoas', 'en-US': 'Almonds', 'es-ES': 'Almendras' },
+    'Nozes': { 'pt-BR': 'Nozes', 'en-US': 'Walnuts', 'es-ES': 'Nueces' },
+    'Chia': { 'pt-BR': 'Chia', 'en-US': 'Chia Seeds', 'es-ES': 'Semillas de Chía' },
+    'Queijo': { 'pt-BR': 'Queijo', 'en-US': 'Cheese', 'es-ES': 'Queso' },
+    
+    // Frutas
+    'Banana': { 'pt-BR': 'Banana', 'en-US': 'Banana', 'es-ES': 'Plátano' },
+    'Maçã': { 'pt-BR': 'Maçã', 'en-US': 'Apple', 'es-ES': 'Manzana' },
+    'Laranja': { 'pt-BR': 'Laranja', 'en-US': 'Orange', 'es-ES': 'Naranja' },
+    'Morango': { 'pt-BR': 'Morango', 'en-US': 'Strawberry', 'es-ES': 'Fresa' },
+    'Mamão': { 'pt-BR': 'Mamão', 'en-US': 'Papaya', 'es-ES': 'Papaya' },
+    'Manga': { 'pt-BR': 'Manga', 'en-US': 'Mango', 'es-ES': 'Mango' },
+    'Melancia': { 'pt-BR': 'Melancia', 'en-US': 'Watermelon', 'es-ES': 'Sandía' },
+    'Abacate': { 'pt-BR': 'Abacate', 'en-US': 'Avocado', 'es-ES': 'Aguacate' },
+    'Uva': { 'pt-BR': 'Uva', 'en-US': 'Grapes', 'es-ES': 'Uvas' },
+    'Abacaxi': { 'pt-BR': 'Abacaxi', 'en-US': 'Pineapple', 'es-ES': 'Piña' },
+    'Melão': { 'pt-BR': 'Melão', 'en-US': 'Melon', 'es-ES': 'Melón' },
+    'Kiwi': { 'pt-BR': 'Kiwi', 'en-US': 'Kiwi', 'es-ES': 'Kiwi' },
+    'Pera': { 'pt-BR': 'Pera', 'en-US': 'Pear', 'es-ES': 'Pera' },
+    'Pêssego': { 'pt-BR': 'Pêssego', 'en-US': 'Peach', 'es-ES': 'Durazno' },
+    'Mirtilo': { 'pt-BR': 'Mirtilo', 'en-US': 'Blueberry', 'es-ES': 'Arándano' },
+    'Açaí': { 'pt-BR': 'Açaí', 'en-US': 'Açaí', 'es-ES': 'Açaí' },
+    
+    // Vegetais
+    'Salada Verde': { 'pt-BR': 'Salada Verde', 'en-US': 'Green Salad', 'es-ES': 'Ensalada Verde' },
+    'Alface': { 'pt-BR': 'Alface', 'en-US': 'Lettuce', 'es-ES': 'Lechuga' },
+    'Rúcula': { 'pt-BR': 'Rúcula', 'en-US': 'Arugula', 'es-ES': 'Rúcula' },
+    'Espinafre': { 'pt-BR': 'Espinafre', 'en-US': 'Spinach', 'es-ES': 'Espinaca' },
+    'Couve': { 'pt-BR': 'Couve', 'en-US': 'Kale', 'es-ES': 'Col Rizada' },
+    'Brócolis': { 'pt-BR': 'Brócolis', 'en-US': 'Broccoli', 'es-ES': 'Brócoli' },
+    'Couve-flor': { 'pt-BR': 'Couve-flor', 'en-US': 'Cauliflower', 'es-ES': 'Coliflor' },
+    'Cenoura': { 'pt-BR': 'Cenoura', 'en-US': 'Carrot', 'es-ES': 'Zanahoria' },
+    'Abobrinha': { 'pt-BR': 'Abobrinha', 'en-US': 'Zucchini', 'es-ES': 'Calabacín' },
+    'Pepino': { 'pt-BR': 'Pepino', 'en-US': 'Cucumber', 'es-ES': 'Pepino' },
+    'Tomate': { 'pt-BR': 'Tomate', 'en-US': 'Tomato', 'es-ES': 'Tomate' },
+    'Beterraba': { 'pt-BR': 'Beterraba', 'en-US': 'Beet', 'es-ES': 'Remolacha' },
+    'Vagem': { 'pt-BR': 'Vagem', 'en-US': 'Green Beans', 'es-ES': 'Judías Verdes' },
+    'Pimentão': { 'pt-BR': 'Pimentão', 'en-US': 'Bell Pepper', 'es-ES': 'Pimiento' },
+    
+    // Extras
+    'Leite Condensado': { 'pt-BR': 'Leite Condensado', 'en-US': 'Condensed Milk', 'es-ES': 'Leche Condensada' },
+    'Mel': { 'pt-BR': 'Mel', 'en-US': 'Honey', 'es-ES': 'Miel' },
+  };
+  
+  if (foodName in foodTranslations) {
+    return foodTranslations[foodName][language] || foodName;
   }
+  
   return foodName;
 }
 
