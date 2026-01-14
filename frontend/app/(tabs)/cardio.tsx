@@ -57,7 +57,7 @@ const GlassCard = ({ children, style, isDark }: any) => {
 };
 
 // Cardio Exercise Card - Ícones específicos para cada tipo
-const CardioExerciseCard = ({ exercise, index, isDark, theme, language }: any) => {
+const CardioExerciseCard = ({ exercise, index, isDark, theme, language, t }: any) => {
   const intensityColors: any = {
     light: '#10B981',
     moderate: '#F59E0B', 
@@ -101,7 +101,7 @@ const CardioExerciseCard = ({ exercise, index, isDark, theme, language }: any) =
           <View style={styles.sessionInfo}>
             <Text style={[styles.sessionType, { color: theme.text }]}>{name}</Text>
             <Text style={[styles.sessionDay, { color: theme.textTertiary }]}>
-              {exercise.sessions_per_week}x por semana
+              {exercise.sessions_per_week}x {t.cardio.perWeek}
             </Text>
           </View>
           <View style={[styles.sessionBadge, { backgroundColor: color + '15' }]}>
