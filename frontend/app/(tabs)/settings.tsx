@@ -179,9 +179,9 @@ export default function SettingsScreen() {
         >
           {/* Header */}
           <Animated.View entering={FadeInDown.springify()} style={styles.header}>
-            <Text style={[styles.headerTitle, { color: theme.text }]}>Configurações</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{t.settings.title}</Text>
             <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-              Personalize sua experiência
+              {t.settings.subtitle}
             </Text>
           </Animated.View>
 
@@ -205,7 +205,7 @@ export default function SettingsScreen() {
                   </LinearGradient>
                   <View style={styles.profileInfo}>
                     <Text style={[styles.profileName, { color: theme.text }]}>
-                      {profile.name || 'Usuário'}
+                      {profile.name || t.settings.user}
                     </Text>
                     <Text style={[styles.profileGoal, { color: theme.textSecondary }]}>
                       {getGoalLabel(profile.goal)}
@@ -219,11 +219,11 @@ export default function SettingsScreen() {
 
           {/* Account Section */}
           <Animated.View entering={FadeInDown.delay(200).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>CONTA</Text>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settings.account.toUpperCase()}</Text>
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsRow
                 icon={<User />}
-                label="Editar Perfil"
+                label={t.settings.editProfile}
                 value={null}
                 onPress={() => router.push('/settings/edit-profile')}
                 isDark={isDark}
@@ -233,12 +233,12 @@ export default function SettingsScreen() {
 
           {/* Diet Section */}
           <Animated.View entering={FadeInDown.delay(250).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>DIETA</Text>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settings.diet.toUpperCase()}</Text>
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsRow
                 icon={<Utensils />}
-                label="Refeições por Dia"
-                value={profile?.meal_count ? `${profile.meal_count} refeições` : null}
+                label={t.settings.mealsPerDay}
+                value={profile?.meal_count ? `${profile.meal_count} ${t.settings.meals.toLowerCase()}` : null}
                 onPress={() => router.push('/settings/meal-config')}
                 isDark={isDark}
               />
@@ -247,12 +247,12 @@ export default function SettingsScreen() {
 
           {/* Training Section */}
           <Animated.View entering={FadeInDown.delay(275).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>TREINO</Text>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settings.training.toUpperCase()}</Text>
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsRow
                 icon={<Dumbbell />}
-                label="Configurar Treino"
-                value={profile?.weekly_training_frequency ? `${profile.weekly_training_frequency}x/semana` : null}
+                label={t.settings.configureTraining}
+                value={profile?.weekly_training_frequency ? `${profile.weekly_training_frequency}x/${t.settings.timesPerWeek.split(' ')[0]}` : null}
                 onPress={() => router.push('/settings/training-config')}
                 isDark={isDark}
               />
@@ -261,11 +261,11 @@ export default function SettingsScreen() {
 
           {/* Preferences Section */}
           <Animated.View entering={FadeInDown.delay(300).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>PREFERÊNCIAS</Text>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settings.preferences.toUpperCase()}</Text>
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsToggle
                 icon={isDark ? <Moon /> : <Sun />}
-                label="Modo Claro"
+                label={t.settings.lightMode}
                 value={!isDark}
                 onToggle={toggleTheme}
                 isDark={isDark}
@@ -273,7 +273,7 @@ export default function SettingsScreen() {
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <SettingsRow
                 icon={<Bell />}
-                label="Notificações"
+                label={t.settings.notifications}
                 onPress={() => router.push('/settings/notifications')}
                 isDark={isDark}
               />
@@ -282,25 +282,25 @@ export default function SettingsScreen() {
 
           {/* Support Section */}
           <Animated.View entering={FadeInDown.delay(400).springify()}>
-            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>SUPORTE</Text>
+            <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settings.support.toUpperCase()}</Text>
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsRow
                 icon={<Shield />}
-                label="Privacidade"
+                label={t.settings.privacy}
                 onPress={() => router.push('/settings/privacy')}
                 isDark={isDark}
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <SettingsRow
                 icon={<FileText />}
-                label="Termos de Uso"
+                label={t.settings.termsOfUse}
                 onPress={() => router.push('/settings/terms')}
                 isDark={isDark}
               />
               <View style={[styles.divider, { backgroundColor: theme.border }]} />
               <SettingsRow
                 icon={<HelpCircle />}
-                label="Ajuda"
+                label={t.settings.help}
                 onPress={() => {}}
                 isDark={isDark}
               />
@@ -312,7 +312,7 @@ export default function SettingsScreen() {
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsRow
                 icon={<LogOut />}
-                label="Sair da Conta"
+                label={t.settings.logoutTitle}
                 onPress={handleLogout}
                 isDark={isDark}
                 showArrow={false}
@@ -327,7 +327,7 @@ export default function SettingsScreen() {
               LAF v2.0 Premium
             </Text>
             <Text style={[styles.versionSubtext, { color: theme.textTertiary }]}>
-              Feito com 💚 para você
+              {t.settings.madeWithLove}
             </Text>
           </Animated.View>
 
