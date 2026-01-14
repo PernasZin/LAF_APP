@@ -58,8 +58,10 @@ const GlassCard = ({ children, style, isDark }: any) => {
 
 export default function ProgressScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
+  const language = useSettingsStore((state) => state.language);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
