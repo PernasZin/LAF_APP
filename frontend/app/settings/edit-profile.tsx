@@ -99,7 +99,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert(t.onboarding.requiredFields, t.onboarding.fillName || 'Please fill in your name');
+      Alert.alert(t.onboarding.requiredFields, t.onboarding.fillNameAgeSex);
       return;
     }
 
