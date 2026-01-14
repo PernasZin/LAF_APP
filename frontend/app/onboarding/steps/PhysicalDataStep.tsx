@@ -1,10 +1,13 @@
 /**
  * Premium Physical Data Step
+ * Com suporte a i18n
  */
 import React from 'react';
 import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { Ruler, Scale } from 'lucide-react-native';
 import { premiumColors, radius, spacing } from '../../../theme/premium';
+import { useSettingsStore } from '../../../stores/settingsStore';
+import { translations, SupportedLanguage } from '../../../i18n/translations';
 
 interface Props {
   formData: any;
@@ -60,25 +63,28 @@ const InputField = ({ icon: Icon, label, value, onChangeText, placeholder, unit,
 );
 
 export default function PhysicalDataStep({ formData, updateFormData, theme, isDark }: Props) {
+  const language = useSettingsStore((state) => state.language) as SupportedLanguage;
+  const t = translations[language]?.onboarding || translations['pt-BR'].onboarding;
+  
   return (
     <View style={styles.container}>
       <GlassCard isDark={isDark} style={styles.card}>
         <InputField
           icon={Ruler}
-          label="Altura"
+          label={t.height}
           value={formData.height}
           onChangeText={(text: string) => updateFormData({ height: text })}
-          placeholder="170"
+          placeholder={t.heightPlaceholder?.replace('Ex: ', '') || '175'}
           unit="cm"
           theme={theme}
         />
 
         <InputField
           icon={Scale}
-          label="Peso Atual"
+          label={t.currentWeight}
           value={formData.weight}
           onChangeText={(text: string) => updateFormData({ weight: text })}
-          placeholder="70"
+          placeholder={t.currentWeightPlaceholder?.replace('Ex: ', '') || '80'}
           unit="kg"
           theme={theme}
         />
