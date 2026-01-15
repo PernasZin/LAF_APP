@@ -409,4 +409,8 @@ const styles = StyleSheet.create({
   langOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 1, gap: spacing.md },
   langFlag: { fontSize: 24 },
   langLabel: { flex: 1, fontSize: 16, fontWeight: '600' },
+
+  termsContainer: { marginTop: spacing.lg, paddingHorizontal: spacing.sm },
+  termsText: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
+  termsLink: { fontWeight: '600' },
 });
