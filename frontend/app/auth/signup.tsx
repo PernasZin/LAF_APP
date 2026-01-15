@@ -251,6 +251,31 @@ export default function SignupScreen() {
                   </LinearGradient>
                 </TouchableOpacity>
               </Animated.View>
+
+              {/* Terms and Privacy */}
+              <View style={styles.termsContainer}>
+                <Text style={[styles.termsText, { color: theme.textTertiary }]}>
+                  {language === 'en-US' 
+                    ? 'By clicking Create Account, you agree to our ' 
+                    : language === 'es-ES'
+                    ? 'Al hacer clic en Crear Cuenta, aceptas nuestros '
+                    : 'Ao clicar em Criar Conta, você concorda com nossos '}
+                  <Text 
+                    style={[styles.termsLink, { color: premiumColors.primary }]}
+                    onPress={() => router.push('/settings/terms')}
+                  >
+                    {language === 'en-US' ? 'Terms' : language === 'es-ES' ? 'Términos' : 'Termos'}
+                  </Text>
+                  {language === 'en-US' ? ' and ' : language === 'es-ES' ? ' y ' : ' e '}
+                  <Text 
+                    style={[styles.termsLink, { color: premiumColors.primary }]}
+                    onPress={() => router.push('/settings/privacy')}
+                  >
+                    {language === 'en-US' ? 'Privacy Policy' : language === 'es-ES' ? 'Política de Privacidad' : 'Política de Privacidade'}
+                  </Text>
+                  .
+                </Text>
+              </View>
             </Animated.View>
 
             {/* Login Link */}
