@@ -8,7 +8,7 @@
     "scheme": "laf",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "owner": "YOUR_EXPO_USERNAME",
+    "owner": "leoluccand",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.laf.app",
