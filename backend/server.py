@@ -1283,49 +1283,94 @@ async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
     
     # ==================== SUBSTITUIÇÃO DE ALIMENTOS ====================
     if current_diet and q.boredFoods and q.boredFoods.strip():
+        import random
         bored_list = [f.strip().lower() for f in q.boredFoods.split(',')]
         
         # Procura alimentos para substituir
         for meal in current_diet.get("meals", []):
             for i, food in enumerate(meal.get("foods", [])):
                 food_name_lower = food.get("name", "").lower()
+                food_key = food.get("key", "")
                 
                 # Verifica se o alimento está na lista de enjoados
                 should_replace = any(bored in food_name_lower for bored in bored_list)
                 
                 if should_replace:
-                    # Tenta encontrar substituto
-                    diet_service = DietService(db)
-                    substitutes = diet_service.get_food_substitutes(food)
+                    # Obtém categoria do alimento
+                    category = food.get("category", "")
+                    if not category or category not in ["protein", "carb", "fat", "fruit", "vegetable"]:
+                        continue
+                    
+                    # Busca alimentos da mesma categoria no banco FOODS
+                    substitutes = []
+                    for key, food_data in FOODS.items():
+                        if food_data.get("category") == category and key != food_key:
+                            # Verifica se o substituto também não está na lista de enjoados
+                            sub_name_lower = food_data.get("name", "").lower()
+                            if any(bored in sub_name_lower for bored in bored_list):
+                                continue
+                            
+                            # Calcula quantidade para manter o macro principal
+                            if category == "protein":
+                                target_macro = food.get("protein", 0)
+                                macro_per_100 = food_data.get("p", 1)
+                            elif category == "carb":
+                                target_macro = food.get("carbs", 0)
+                                macro_per_100 = food_data.get("c", 1)
+                            elif category == "fat":
+                                target_macro = food.get("fat", 0)
+                                macro_per_100 = food_data.get("f", 1)
+                            elif category == "fruit":
+                                target_macro = food.get("carbs", 0)
+                                macro_per_100 = food_data.get("c", 1)
+                            else:
+                                target_macro = food.get("grams", 100)
+                                macro_per_100 = 100
+                            
+                            if macro_per_100 <= 0:
+                                continue
+                            
+                            # Calcula nova quantidade usando calc_food
+                            new_grams = round((target_macro / macro_per_100) * 100 / 10) * 10
+                            new_grams = max(10, min(500, new_grams))
+                            
+                            # Usa calc_food para calcular macros corretamente
+                            new_food = calc_food(key, new_grams)
+                            substitutes.append(new_food)
                     
                     if substitutes:
-                        # Pega um substituto diferente do atual
-                        import random
-                        valid_subs = [s for s in substitutes if s.get("name", "").lower() not in bored_list]
+                        # Escolhe um substituto aleatoriamente
+                        new_food = random.choice(substitutes)
                         
-                        if valid_subs:
-                            new_food = random.choice(valid_subs)
-                            
-                            # Mantém a quantidade proporcional
-                            old_grams = food.get("grams", 100)
-                            new_food["grams"] = old_grams
-                            
-                            # Ajusta macros proporcionalmente
-                            ratio = old_grams / 100
-                            new_food["protein"] = round(new_food.get("protein_per_100g", 0) * ratio, 1)
-                            new_food["carbs"] = round(new_food.get("carbs_per_100g", 0) * ratio, 1)
-                            new_food["fat"] = round(new_food.get("fat_per_100g", 0) * ratio, 1)
-                            new_food["calories"] = round(new_food.get("calories_per_100g", 0) * ratio)
-                            
-                            # Substitui o alimento
-                            meal["foods"][i] = new_food
-                            foods_replaced += 1
-                            
-                            logger.info(f"Replaced {food.get('name')} with {new_food.get('name')} for user {user_id}")
+                        # Substitui o alimento
+                        meal["foods"][i] = new_food
+                        foods_replaced += 1
+                        
+                        logger.info(f"Replaced {food.get('name')} with {new_food.get('name')} for user {user_id}")
         
-        # Salva dieta com substituições
+        # Recalcula totais se houve substituições
         if foods_replaced > 0:
+            # Recalcula totais de cada refeição
+            for meal in current_diet.get("meals", []):
+                foods = meal.get("foods", [])
+                meal_p = sum(f.get("protein", 0) for f in foods)
+                meal_c = sum(f.get("carbs", 0) for f in foods)
+                meal_f = sum(f.get("fat", 0) for f in foods)
+                meal_cal = sum(f.get("calories", 0) for f in foods)
+                meal["total_calories"] = meal_cal
+                meal["macros"] = {"protein": meal_p, "carbs": meal_c, "fat": meal_f}
+            
+            # Recalcula totais da dieta
+            all_foods = [f for m in current_diet.get("meals", []) for f in m.get("foods", [])]
+            total_p = sum(f.get("protein", 0) for f in all_foods)
+            total_c = sum(f.get("carbs", 0) for f in all_foods)
+            total_f = sum(f.get("fat", 0) for f in all_foods)
+            total_cal = sum(f.get("calories", 0) for f in all_foods)
+            
+            current_diet["computed_calories"] = total_cal
+            current_diet["computed_macros"] = {"protein": total_p, "carbs": total_c, "fat": total_f}
             current_diet["foods_replaced_at"] = datetime.utcnow()
+            
             await db.diet_plans.replace_one(
                 {"_id": current_diet["_id"]},
                 current_diet,
