@@ -798,6 +798,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       trainingLevelTitle: 'Nível de Treino',
       trainingLevelDesc: 'Isso nos ajuda a calibrar a intensidade e volume dos seus treinos.',
       currentLevel: 'Qual seu nível atual?',
+      novice: '🆕 Novato',
+      noviceDesc: 'Nunca treinei',
       beginner: 'Iniciante',
       beginnerDesc: '0-1 ano de treino',
       intermediate: 'Intermediário',
