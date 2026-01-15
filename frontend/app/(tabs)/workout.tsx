@@ -448,7 +448,7 @@ export default function WorkoutScreen() {
                 {selectedExercise.notes && (
                   <View style={[styles.exerciseNotes, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.5)' }]}>
                     <Text style={[styles.exerciseNotesText, { color: theme.textSecondary }]}>
-                      {selectedExercise.notes}
+                      {translateWorkoutNotes(selectedExercise.notes, language)}
                     </Text>
                   </View>
                 )}
