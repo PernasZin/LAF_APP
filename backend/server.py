@@ -1180,10 +1180,10 @@ async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
     Check-in quinzenal completo com:
     - Registro de peso
     - Questionário expandido
-    - Ajuste automático de dieta baseado no objetivo
+    - Ajuste automático de dieta baseado no objetivo (percentual)
     - Substituição de alimentos que enjoou
     """
-    from diet_service import evaluate_progress, adjust_diet_quantities, DietService
+    from diet_service import evaluate_progress, adjust_diet_quantities, FOODS, calc_food
     
     # Verifica se usuário existe
     user = await db.user_profiles.find_one({"_id": user_id})
