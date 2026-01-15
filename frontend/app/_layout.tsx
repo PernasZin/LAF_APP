@@ -100,6 +100,7 @@ function RootStack() {
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="legal" />
     </Stack>
   );
 }
