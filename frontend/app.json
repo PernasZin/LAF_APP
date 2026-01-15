@@ -1,22 +1,36 @@
 {
   "expo": {
-    "name": "frontend",
-    "slug": "frontend",
+    "name": "LAF - Dieta & Treino",
+    "slug": "laf-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
+    "scheme": "laf",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "owner": "YOUR_EXPO_USERNAME",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.laf.app",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "backgroundColor": "#10B981"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.laf.app",
+      "versionCode": 1,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_PROJECT_ID"
+      }
     },
     "web": {
       "bundler": "metro",
