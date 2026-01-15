@@ -4,16 +4,18 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { ThemeProvider, useTheme } from '../theme/ThemeContext';
 import { useAuthStore } from '../stores/authStore';
+import { useSubscriptionStore } from '../stores/subscriptionStore';
 
 /**
  * ROOT AUTH GUARD
- * SINGLE SOURCE OF TRUTH: AuthStore
+ * SINGLE SOURCE OF TRUTH: AuthStore + SubscriptionStore
  * 
  * LOGIC:
  * 1. If on index (root) → allow (language selection)
  * 2. if (!isAuthenticated) → /auth/login
  * 3. else if (!profileCompleted) → /onboarding
- * 4. else → /(tabs)
+ * 4. else if (!hasSeenPaywall && !isPremium) → /paywall
+ * 5. else → /(tabs)
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -25,9 +27,14 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const initialize = useAuthStore((s) => s.initialize);
 
+  const hasSeenPaywall = useSubscriptionStore((s) => s.hasSeenPaywall);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
+  const initializeSubscription = useSubscriptionStore((s) => s.initialize);
+
   // Initialize once
   useEffect(() => {
     initialize();
+    initializeSubscription();
   }, []);
 
   // Redirect based on auth state
@@ -37,11 +44,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const currentSegment = segments[0];
     const inAuth = currentSegment === 'auth';
     const inOnboarding = currentSegment === 'onboarding';
+    const inPaywall = currentSegment === 'paywall';
     const inTabs = currentSegment === '(tabs)';
     const inLegal = currentSegment === 'legal';
     const isRootIndex = segments.length === 0 || currentSegment === 'index';
 
-    console.log('🛡️ GUARD:', { isAuthenticated, profileCompleted, segments: currentSegment, isRootIndex });
+    console.log('🛡️ GUARD:', { isAuthenticated, profileCompleted, hasSeenPaywall, isPremium: isPremium(), segments: currentSegment, isRootIndex });
 
     // ALLOW index screen to handle language selection first
     if (isRootIndex) {
@@ -73,12 +81,21 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Authenticated with profile but hasn't seen paywall and not premium → show paywall
+    if (!hasSeenPaywall && !isPremium()) {
+      if (!inPaywall) {
+        console.log('🛡️ → /paywall');
+        router.replace('/paywall');
+      }
+      return;
+    }
+
     // Authenticated WITH profile → go to tabs (if not already there)
-    if (inAuth || inOnboarding) {
+    if (inAuth || inOnboarding || inPaywall) {
       console.log('🛡️ → /(tabs)');
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, profileCompleted, isInitialized, segments, navigationState?.key]);
+  }, [isAuthenticated, profileCompleted, isInitialized, hasSeenPaywall, segments, navigationState?.key]);
 
   if (!isInitialized) {
     return (
