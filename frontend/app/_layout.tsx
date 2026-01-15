@@ -115,6 +115,7 @@ function RootStack() {
       <Stack.Screen name="index" />
       <Stack.Screen name="auth" />
       <Stack.Screen name="onboarding" />
+      <Stack.Screen name="paywall" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="settings" />
       <Stack.Screen name="legal" />
