@@ -319,10 +319,12 @@ export function translateExerciseFocus(focus: string, language: SupportedLanguag
     'Quadríceps Geral': { 'pt-BR': 'Quadríceps Geral', 'en-US': 'Full Quads', 'es-ES': 'Cuádriceps General' },
     'Vasto Lateral': { 'pt-BR': 'Vasto Lateral', 'en-US': 'Outer Quad', 'es-ES': 'Vasto Lateral' },
     'Vasto Medial': { 'pt-BR': 'Vasto Medial', 'en-US': 'Inner Quad', 'es-ES': 'Vasto Medial' },
+    'Vasto Lateral/Medial': { 'pt-BR': 'Vasto Lateral/Medial', 'en-US': 'Outer/Inner Quad', 'es-ES': 'Vasto Lateral/Medial' },
     'Reto Femoral': { 'pt-BR': 'Reto Femoral', 'en-US': 'Rectus Femoris', 'es-ES': 'Recto Femoral' },
     // Legs - Hamstrings
     'Posterior': { 'pt-BR': 'Posterior', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
     'Posterior de Coxa': { 'pt-BR': 'Posterior de Coxa', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
+    'Posterior/Glúteos': { 'pt-BR': 'Posterior/Glúteos', 'en-US': 'Hamstrings/Glutes', 'es-ES': 'Isquiotibiales/Glúteos' },
     'Isquiotibiais': { 'pt-BR': 'Isquiotibiais', 'en-US': 'Hamstrings', 'es-ES': 'Isquiotibiales' },
     'Bíceps Femoral': { 'pt-BR': 'Bíceps Femoral', 'en-US': 'Bicep Femoris', 'es-ES': 'Bíceps Femoral' },
     // Legs - Glutes
@@ -341,10 +343,12 @@ export function translateExerciseFocus(focus: string, language: SupportedLanguag
     'Abdômen': { 'pt-BR': 'Abdômen', 'en-US': 'Abs', 'es-ES': 'Abdominales' },
     'Abdominal': { 'pt-BR': 'Abdominal', 'en-US': 'Abs', 'es-ES': 'Abdominales' },
     'Reto Abdominal': { 'pt-BR': 'Reto Abdominal', 'en-US': 'Rectus Abdominis', 'es-ES': 'Recto Abdominal' },
+    'Reto Abdominal Inferior': { 'pt-BR': 'Reto Abdominal Inferior', 'en-US': 'Lower Abs', 'es-ES': 'Abdominales Inferiores' },
     'Oblíquos': { 'pt-BR': 'Oblíquos', 'en-US': 'Obliques', 'es-ES': 'Oblicuos' },
     'Oblíquo Externo': { 'pt-BR': 'Oblíquo Externo', 'en-US': 'External Obliques', 'es-ES': 'Oblicuo Externo' },
     'Oblíquo Interno': { 'pt-BR': 'Oblíquo Interno', 'en-US': 'Internal Obliques', 'es-ES': 'Oblicuo Interno' },
     'Core': { 'pt-BR': 'Core', 'en-US': 'Core', 'es-ES': 'Core' },
+    'Core (Estabilização)': { 'pt-BR': 'Core (Estabilização)', 'en-US': 'Core (Stabilization)', 'es-ES': 'Core (Estabilización)' },
     'Transverso': { 'pt-BR': 'Transverso', 'en-US': 'Transverse', 'es-ES': 'Transverso' },
     // Full body
     'Corpo Inteiro': { 'pt-BR': 'Corpo Inteiro', 'en-US': 'Full Body', 'es-ES': 'Cuerpo Completo' },
