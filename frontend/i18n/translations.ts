@@ -674,6 +674,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       intermediateDesc: '1-2 anos de academia',
       advanced: '🏆 Avançado',
       advancedDesc: '3+ anos de academia',
+      lowVolume: '🎯 Low Volume',
+      lowVolumeDesc: 'Treino intenso com poucas séries',
       noviceHint: '💡 Novatos começam com treino de adaptação por 4-8 semanas. Após 30 treinos concluídos, você receberá treinos para hipertrofia!',
       freq2x: '2x por semana',
       freq2xDesc: 'Full Body',
