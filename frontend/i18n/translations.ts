@@ -1222,6 +1222,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       trainingLevelTitle: 'Training Level',
       trainingLevelDesc: 'This helps us calibrate the intensity and volume of your workouts.',
       currentLevel: 'What is your current level?',
+      novice: '🆕 Novice',
+      noviceDesc: 'Never trained',
       beginner: 'Beginner',
       beginnerDesc: '0-1 year of training',
       intermediate: 'Intermediate',
