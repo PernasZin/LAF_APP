@@ -692,9 +692,10 @@ class WorkoutAIService:
                     # Verifica se é exercício composto
                     is_compound = any(comp in ex_name_lower for comp in COMPOUND_EXERCISES)
                     
-                    # Lógica de séries para AVANÇADO
-                    # REGRA: Avançado SEMPRE tem 2 séries válidas
-                    if level == 'avancado':
+                    # Lógica de séries por nível
+                    
+                    # LOW VOLUME: Treino de baixo volume com aquecimento estruturado
+                    if level == 'low_volume':
                         needs_warmup = (muscle not in muscles_warmed_up) or is_compound
                         
                         if needs_warmup:
@@ -719,6 +720,13 @@ class WorkoutAIService:
                         
                         # Combina instrução de séries + execução
                         notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
+                        rest_str = "2min"  # Low volume usa 2 min de descanso
+                    
+                    # AVANÇADO: Treino normal de alto volume
+                    elif level == 'avancado':
+                        series_instruction = "🔥 Treine ATÉ A FALHA nas últimas 2 séries!"
+                        notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
+                        sets_count = config["sets"]
                     
                     elif level == 'intermediario':
                         series_instruction = "💪 Chegue PERTO DA FALHA em pelo menos 1 série!"
@@ -739,7 +747,7 @@ class WorkoutAIService:
                         name=ex_data["name"],
                         muscle_group=muscle.capitalize(),
                         focus=exercise_focus,
-                        sets=sets_count if level == 'avancado' else config["sets"],
+                        sets=sets_count if level == 'low_volume' else config["sets"],
                         reps=config["reps"],
                         rest=rest_str,
                         rest_seconds=parse_rest_seconds(rest_str),
