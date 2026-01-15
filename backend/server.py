@@ -1154,6 +1154,195 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     }
 
 
+# Modelo para o check-in completo
+class CheckInQuestionnaire(BaseModel):
+    diet: int = Field(ge=0, le=10)
+    training: int = Field(ge=0, le=10)
+    cardio: int = Field(ge=0, le=10)
+    sleep: int = Field(ge=0, le=10)
+    hydration: int = Field(ge=0, le=10)
+    energy: int = Field(ge=0, le=10, default=7)
+    hunger: int = Field(ge=0, le=10, default=5)
+    followedDiet: str = "yes"  # yes, mostly, no
+    followedTraining: str = "yes"
+    followedCardio: str = "yes"
+    boredFoods: str = ""  # Alimentos que enjoou
+    observations: str = ""
+
+class CheckInRequest(BaseModel):
+    weight: float
+    questionnaire: CheckInQuestionnaire
+
+
+@api_router.post("/progress/checkin/{user_id}")
+async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
+    """
+    Check-in quinzenal completo com:
+    - Registro de peso
+    - Questionário expandido
+    - Ajuste automático de dieta baseado no objetivo
+    - Substituição de alimentos que enjoou
+    """
+    from diet_service import evaluate_progress, adjust_diet_quantities, DietService
+    
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Bloqueio de 14 dias
+    block_days = 14
+    last_record = await db.weight_records.find_one(
+        {"user_id": user_id},
+        sort=[("recorded_at", -1)]
+    )
+    
+    if last_record:
+        days_since_last = (datetime.utcnow() - last_record["recorded_at"]).days
+        if days_since_last < block_days:
+            days_remaining = block_days - days_since_last
+            raise HTTPException(
+                status_code=400,
+                detail=f"Aguarde mais {days_remaining} dias para o próximo check-in."
+            )
+    
+    # Valida peso
+    if checkin.weight < 30 or checkin.weight > 300:
+        raise HTTPException(status_code=400, detail="Peso deve estar entre 30kg e 300kg")
+    
+    q = checkin.questionnaire
+    
+    # Calcula média do questionário (só as avaliações numéricas principais)
+    questionnaire_avg = round((q.diet + q.training + q.cardio + q.sleep + q.hydration + q.energy) / 6, 1)
+    
+    # Salva registro de peso
+    weight_record = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "weight": round(checkin.weight, 1),
+        "recorded_at": datetime.utcnow(),
+        "questionnaire": q.dict(),
+        "questionnaire_average": questionnaire_avg,
+    }
+    weight_record["_id"] = weight_record["id"]
+    await db.weight_records.insert_one(weight_record)
+    
+    # Atualiza peso no perfil
+    await db.user_profiles.update_one(
+        {"_id": user_id},
+        {"$set": {"weight": round(checkin.weight, 1), "updated_at": datetime.utcnow()}}
+    )
+    
+    logger.info(f"Check-in recorded for user {user_id}: {checkin.weight}kg, avg: {questionnaire_avg}")
+    
+    # ==================== AJUSTE DE DIETA ====================
+    diet_kept = True
+    calories_change = 0
+    foods_replaced = 0
+    
+    current_diet = await db.diet_plans.find_one({"user_id": user_id})
+    
+    if current_diet and last_record:
+        previous_weight = last_record.get("weight", checkin.weight)
+        current_weight = checkin.weight
+        goal = user.get("goal", "manutencao")
+        
+        # Avalia progresso
+        progress_eval = evaluate_progress(
+            goal=goal,
+            previous_weight=previous_weight,
+            current_weight=current_weight
+        )
+        
+        # Se precisa ajustar calorias
+        if progress_eval.get("needs_adjustment"):
+            adjusted_diet = adjust_diet_quantities(
+                diet_plan=current_diet,
+                adjustment_type=progress_eval["adjustment_type"],
+                adjustment_percent=progress_eval["adjustment_percent"]
+            )
+            
+            # Calcula mudança de calorias
+            old_calories = current_diet.get("total_calories", 0)
+            new_calories = adjusted_diet.get("total_calories", old_calories)
+            calories_change = new_calories - old_calories
+            
+            adjusted_diet["adjusted_at"] = datetime.utcnow()
+            adjusted_diet["adjustment_reason"] = progress_eval["reason"]
+            
+            await db.diet_plans.replace_one(
+                {"_id": current_diet["_id"]},
+                adjusted_diet,
+                upsert=True
+            )
+            
+            current_diet = adjusted_diet
+            diet_kept = False
+            
+            logger.info(f"Diet adjusted for {user_id}: {calories_change}kcal change")
+    
+    # ==================== SUBSTITUIÇÃO DE ALIMENTOS ====================
+    if current_diet and q.boredFoods and q.boredFoods.strip():
+        bored_list = [f.strip().lower() for f in q.boredFoods.split(',')]
+        
+        # Procura alimentos para substituir
+        for meal in current_diet.get("meals", []):
+            for i, food in enumerate(meal.get("foods", [])):
+                food_name_lower = food.get("name", "").lower()
+                
+                # Verifica se o alimento está na lista de enjoados
+                should_replace = any(bored in food_name_lower for bored in bored_list)
+                
+                if should_replace:
+                    # Tenta encontrar substituto
+                    diet_service = DietService(db)
+                    substitutes = diet_service.get_food_substitutes(food)
+                    
+                    if substitutes:
+                        # Pega um substituto diferente do atual
+                        import random
+                        valid_subs = [s for s in substitutes if s.get("name", "").lower() not in bored_list]
+                        
+                        if valid_subs:
+                            new_food = random.choice(valid_subs)
+                            
+                            # Mantém a quantidade proporcional
+                            old_grams = food.get("grams", 100)
+                            new_food["grams"] = old_grams
+                            
+                            # Ajusta macros proporcionalmente
+                            ratio = old_grams / 100
+                            new_food["protein"] = round(new_food.get("protein_per_100g", 0) * ratio, 1)
+                            new_food["carbs"] = round(new_food.get("carbs_per_100g", 0) * ratio, 1)
+                            new_food["fat"] = round(new_food.get("fat_per_100g", 0) * ratio, 1)
+                            new_food["calories"] = round(new_food.get("calories_per_100g", 0) * ratio)
+                            
+                            # Substitui o alimento
+                            meal["foods"][i] = new_food
+                            foods_replaced += 1
+                            
+                            logger.info(f"Replaced {food.get('name')} with {new_food.get('name')} for user {user_id}")
+        
+        # Salva dieta com substituições
+        if foods_replaced > 0:
+            current_diet["foods_replaced_at"] = datetime.utcnow()
+            await db.diet_plans.replace_one(
+                {"_id": current_diet["_id"]},
+                current_diet,
+                upsert=True
+            )
+    
+    return {
+        "success": True,
+        "weight": checkin.weight,
+        "questionnaire_average": questionnaire_avg,
+        "diet_kept": diet_kept,
+        "calories_change": calories_change,
+        "foods_replaced": foods_replaced,
+        "message": "Check-in realizado com sucesso!"
+    }
+
+
 @api_router.get("/progress/weight/{user_id}")
 async def get_weight_history(user_id: str, days: int = 365):
     """
