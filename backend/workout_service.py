@@ -692,62 +692,111 @@ class WorkoutAIService:
                     # Verifica se é exercício composto
                     is_compound = any(comp in ex_name_lower for comp in COMPOUND_EXERCISES)
                     
-                    # Lógica de séries por nível
+                    # Verifica se precisa aquecer (primeiro exercício do músculo ou composto)
+                    needs_warmup = (muscle not in muscles_warmed_up) or is_compound
                     
-                    # LOW VOLUME: Treino de baixo volume com aquecimento estruturado
+                    # Lógica de séries por nível - TODOS têm aquecimento no primeiro exercício
+                    
+                    # LOW VOLUME: Treino de baixo volume com estrutura completa
                     if level == 'low_volume':
-                        needs_warmup = (muscle not in muscles_warmed_up) or is_compound
-                        
                         if needs_warmup:
-                            # Precisa aquecer: 4 séries (1 aquec + 1 reconhec + 2 válidas)
                             series_instruction = """📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
 • 2ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
 • 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
 • 4ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
                             sets_count = 4
-                            
-                            if is_compound:
-                                series_instruction = "⚠️ EXERCÍCIO COMPOSTO - Sempre aquecer!\n" + series_instruction
                             muscles_warmed_up.add(muscle)
                         else:
-                            # Músculo já aquecido: 3 séries (1 reconhec + 2 válidas)
                             series_instruction = """📋 ESTRUTURA (3 SÉRIES - músculo já aquecido):
 • 1ª Série: RECONHECIMENTO (90-100% carga, 1-2 reps)
 • 2ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)
 • 3ª Série: VÁLIDA (100% carga, 5-8 reps ATÉ A FALHA)"""
                             sets_count = 3
                         
-                        # Combina instrução de séries + execução
                         notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
-                        rest_str = "2min"  # Low volume usa 2 min de descanso
+                        rest_str = "2min"
                     
-                    # AVANÇADO: Treino normal de alto volume
+                    # AVANÇADO: Alto volume com aquecimento
                     elif level == 'avancado':
-                        series_instruction = "🔥 Treine ATÉ A FALHA nas últimas 2 séries!"
+                        base_sets = config["sets"]
+                        if needs_warmup:
+                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
+• Séries 2-{base_sets + 1}: VÁLIDAS (ATÉ A FALHA nas últimas 2)"""
+                            sets_count = base_sets + 1
+                            muscles_warmed_up.add(muscle)
+                        else:
+                            series_instruction = f"🔥 {base_sets} séries - Treine ATÉ A FALHA nas últimas 2!"
+                            sets_count = base_sets
+                        
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
-                        sets_count = config["sets"]
                     
+                    # INTERMEDIÁRIO: Volume médio com aquecimento
                     elif level == 'intermediario':
-                        series_instruction = "💪 Chegue PERTO DA FALHA em pelo menos 1 série!"
+                        base_sets = config["sets"]
+                        if needs_warmup:
+                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
+• Séries 2-{base_sets + 1}: VÁLIDAS (chegue PERTO DA FALHA em pelo menos 1)"""
+                            sets_count = base_sets + 1
+                            muscles_warmed_up.add(muscle)
+                        else:
+                            series_instruction = f"💪 {base_sets} séries - Chegue PERTO DA FALHA em pelo menos 1!"
+                            sets_count = base_sets
+                        
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
-                        sets_count = config["sets"]
                     
+                    # INICIANTE: Volume básico com aquecimento
+                    elif level == 'iniciante':
+                        base_sets = config["sets"]
+                        if needs_warmup:
+                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
+• Séries 2-{base_sets + 1}: VÁLIDAS (foco na execução correta)"""
+                            sets_count = base_sets + 1
+                            muscles_warmed_up.add(muscle)
+                        else:
+                            series_instruction = f"✅ {base_sets} séries - Foco na execução correta!"
+                            sets_count = base_sets
+                        
+                        notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
+                    
+                    # ADAPTAÇÃO (Novato): Carga leve com aquecimento
                     elif is_adaptation:
-                        series_instruction = "⚠️ ADAPTAÇÃO: Use carga LEVE! Foco 100% na execução correta."
+                        base_sets = config["sets"]
+                        if needs_warmup:
+                            series_instruction = f"""⚠️ ADAPTAÇÃO ({base_sets + 1} SÉRIES):
+• 1ª Série: AQUECIMENTO (carga muito leve, 15-20 reps)
+• Séries 2-{base_sets + 1}: Use carga LEVE! Foco 100% na execução"""
+                            sets_count = base_sets + 1
+                            muscles_warmed_up.add(muscle)
+                        else:
+                            series_instruction = f"⚠️ ADAPTAÇÃO: {base_sets} séries - Carga LEVE, foco na execução!"
+                            sets_count = base_sets
+                        
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
-                        sets_count = config["sets"]
                     
+                    # NOVATO pós-adaptação
                     else:
-                        # Novato pós-adaptação e Iniciante
-                        notes = f"🎯 {execution_notes}" if execution_notes else ""
-                        sets_count = config["sets"]
+                        base_sets = config["sets"]
+                        if needs_warmup:
+                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+• 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
+• Séries 2-{base_sets + 1}: VÁLIDAS"""
+                            sets_count = base_sets + 1
+                            muscles_warmed_up.add(muscle)
+                        else:
+                            sets_count = base_sets
+                            series_instruction = ""
+                        
+                        notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes and series_instruction else (f"🎯 {execution_notes}" if execution_notes else series_instruction)
                     
                     exercises.append(Exercise(
                         name=ex_data["name"],
                         muscle_group=muscle.capitalize(),
                         focus=exercise_focus,
-                        sets=sets_count if level == 'low_volume' else config["sets"],
+                        sets=sets_count,
                         reps=config["reps"],
                         rest=rest_str,
                         rest_seconds=parse_rest_seconds(rest_str),
