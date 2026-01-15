@@ -200,14 +200,17 @@ EXERCISES = {
         },
         {
             "name": "Cadeira Extensora",
+            "focus": "Vasto Lateral/Medial",
             "notes": "Ajuste o encosto para joelhos alinhados com o eixo. Estenda as pernas completamente, contraindo no topo. Desça controlado."
         },
         {
             "name": "Agachamento no Smith Machine",
+            "focus": "Quadríceps Geral",
             "notes": "Pés ligeiramente à frente da barra. Desça até coxas paralelas ao chão. Suba empurrando pelos calcanhares. Joelhos alinhados com os pés."
         },
         {
             "name": "Leg Press Horizontal",
+            "focus": "Quadríceps Geral",
             "notes": "Costas totalmente apoiadas. Pés na largura dos ombros. Empurre a plataforma sem travar joelhos. Desça controlado até 90°."
         },
     ],
@@ -216,18 +219,22 @@ EXERCISES = {
     "posterior": [
         {
             "name": "Mesa Flexora",
+            "focus": "Posterior de Coxa",
             "notes": "Deite de bruços com joelhos alinhados ao eixo da máquina. Flexione as pernas trazendo os calcanhares em direção aos glúteos. Desça controlado."
         },
         {
             "name": "Cadeira Flexora (Sentado)",
+            "focus": "Posterior de Coxa",
             "notes": "Sente com coxas apoiadas. Flexione as pernas para baixo e para trás. Contraia no final do movimento. Retorne controlado."
         },
         {
             "name": "Stiff na Máquina Smith",
+            "focus": "Posterior/Glúteos",
             "notes": "Pernas semi-estendidas, pés na largura do quadril. Desça a barra deslizando próximo às coxas até sentir alongamento. Suba contraindo glúteos."
         },
         {
             "name": "Glúteo na Máquina (Kick Back)",
+            "focus": "Glúteo Máximo",
             "notes": "Apoie o pé na plataforma. Empurre para trás estendendo o quadril. Contraia o glúteo no topo. Retorne controlado sem deixar peso bater."
         },
     ],
@@ -236,14 +243,17 @@ EXERCISES = {
     "panturrilha": [
         {
             "name": "Panturrilha no Leg Press",
+            "focus": "Gastrocnêmio",
             "notes": "Apoie apenas a ponta dos pés na plataforma. Empurre estendendo os tornozelos o máximo possível. Desça alongando bem a panturrilha."
         },
         {
             "name": "Panturrilha Sentado na Máquina",
+            "focus": "Sóleo",
             "notes": "Joelhos a 90° sob as almofadas. Eleve os calcanhares o máximo possível. Desça controlado até sentir alongamento completo."
         },
         {
             "name": "Panturrilha em Pé na Máquina",
+            "focus": "Gastrocnêmio",
             "notes": "Ombros sob as almofadas. Eleve nos dedos o máximo possível, contraindo no topo. Desça alongando completamente."
         },
     ],
@@ -252,18 +262,22 @@ EXERCISES = {
     "abdomen": [
         {
             "name": "Abdominal na Máquina",
+            "focus": "Reto Abdominal",
             "notes": "Sente e segure as manoplas. Flexione o tronco para frente contraindo o abdômen. Retorne controlado sem soltar a tensão."
         },
         {
             "name": "Abdominal na Polia Alta (Corda)",
+            "focus": "Reto Abdominal",
             "notes": "Ajoelhe de costas para a polia. Segure a corda atrás da cabeça. Flexione o tronco em direção ao chão. Retorne controlado."
         },
         {
             "name": "Prancha Isométrica",
+            "focus": "Core (Estabilização)",
             "notes": "Apoie antebraços e pontas dos pés no chão. Corpo reto da cabeça aos calcanhares. Mantenha o abdômen contraído. Não deixe o quadril subir ou descer."
         },
         {
             "name": "Elevação de Pernas no Apoio",
+            "focus": "Reto Abdominal Inferior",
             "notes": "Costas apoiadas no suporte, braços nos apoios. Eleve as pernas estendidas até 90°. Desça controlado sem balançar o corpo."
         },
     ],
