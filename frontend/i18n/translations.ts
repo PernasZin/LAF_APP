@@ -1526,6 +1526,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       intermediateDesc: '1-2 años en gimnasio',
       advanced: '🏆 Avanzado',
       advancedDesc: '3+ años en gimnasio',
+      lowVolume: '🎯 Low Volume',
+      lowVolumeDesc: 'Entreno intenso con pocas series',
       noviceHint: '💡 Los novatos comienzan con entreno de adaptación por 4-8 semanas. ¡Después de 30 entrenos completados, recibirás entrenos de hipertrofia!',
       freq2x: '2x por semana',
       freq2xDesc: 'Full Body',
