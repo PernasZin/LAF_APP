@@ -262,14 +262,14 @@ export default function SignupScreen() {
                     : 'Ao clicar em Criar Conta, você concorda com nossos '}
                   <Text 
                     style={[styles.termsLink, { color: premiumColors.primary }]}
-                    onPress={() => router.push('/settings/terms')}
+                    onPress={() => router.push('/legal/terms')}
                   >
                     {language === 'en-US' ? 'Terms' : language === 'es-ES' ? 'Términos' : 'Termos'}
                   </Text>
                   {language === 'en-US' ? ' and ' : language === 'es-ES' ? ' y ' : ' e '}
                   <Text 
                     style={[styles.termsLink, { color: premiumColors.primary }]}
-                    onPress={() => router.push('/settings/privacy')}
+                    onPress={() => router.push('/legal/privacy')}
                   >
                     {language === 'en-US' ? 'Privacy Policy' : language === 'es-ES' ? 'Política de Privacidad' : 'Política de Privacidade'}
                   </Text>
