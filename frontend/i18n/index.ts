@@ -209,11 +209,54 @@ export function translateWorkoutName(dayName: string, language: SupportedLanguag
     'D - Ombros/Abdômen': { 'pt-BR': 'D - Ombros/Abdômen', 'en-US': 'D - Shoulders/Abs', 'es-ES': 'D - Hombros/Abdominales' },
   };
   
-  if (dayName in dayTranslations) {
-    return dayTranslations[dayName][language] || dayName;
+  // Handle [Adaptação] prefix
+  let translated = dayName;
+  if (translated.includes('[Adaptação]')) {
+    const adaptationText: Record<SupportedLanguage, string> = {
+      'pt-BR': '[Adaptação]',
+      'en-US': '[Adaptation]',
+      'es-ES': '[Adaptación]'
+    };
+    translated = translated.replace('[Adaptação]', adaptationText[language]);
   }
   
-  return dayName;
+  // Translate the workout name part
+  for (const [key, translations] of Object.entries(dayTranslations)) {
+    if (translated.includes(key)) {
+      translated = translated.replace(key, translations[language]);
+    }
+  }
+  
+  return translated;
+}
+
+/**
+ * Translate workout notes based on language
+ */
+export function translateWorkoutNotes(notes: string, language: SupportedLanguage): string {
+  if (!notes) return '';
+  
+  const notesTranslations: Record<string, Record<SupportedLanguage, string>> = {
+    // Adaptation phase
+    '🔰 FASE DE ADAPTAÇÃO': { 'pt-BR': '🔰 FASE DE ADAPTAÇÃO', 'en-US': '🔰 ADAPTATION PHASE', 'es-ES': '🔰 FASE DE ADAPTACIÓN' },
+    'treinos restantes': { 'pt-BR': 'treinos restantes', 'en-US': 'workouts remaining', 'es-ES': 'entrenos restantes' },
+    'ADAPTAÇÃO': { 'pt-BR': 'ADAPTAÇÃO', 'en-US': 'ADAPTATION', 'es-ES': 'ADAPTACIÓN' },
+    'Adaptação': { 'pt-BR': 'Adaptação', 'en-US': 'Adaptation', 'es-ES': 'Adaptación' },
+    '⚠️ ADAPTAÇÃO - CARGA LEVE!': { 'pt-BR': '⚠️ ADAPTAÇÃO - CARGA LEVE!', 'en-US': '⚠️ ADAPTATION - LIGHT WEIGHT!', 'es-ES': '⚠️ ADAPTACIÓN - ¡CARGA LIGERA!' },
+    'FASE DE ADAPTAÇÃO: Técnica acima de carga.': { 'pt-BR': 'FASE DE ADAPTAÇÃO: Técnica acima de carga.', 'en-US': 'ADAPTATION PHASE: Technique over weight.', 'es-ES': 'FASE DE ADAPTACIÓN: Técnica sobre carga.' },
+    'Use carga LEVE! Foco 100% na execução correta.': { 'pt-BR': 'Use carga LEVE! Foco 100% na execução correta.', 'en-US': 'Use LIGHT weight! 100% focus on proper form.', 'es-ES': '¡Use carga LIGERA! 100% enfoque en la ejecución correcta.' },
+    // Days
+    '/semana': { 'pt-BR': '/semana', 'en-US': '/week', 'es-ES': '/semana' },
+  };
+  
+  let translated = notes;
+  for (const [key, translations] of Object.entries(notesTranslations)) {
+    if (translated.includes(key)) {
+      translated = translated.replace(new RegExp(key, 'g'), translations[language]);
+    }
+  }
+  
+  return translated;
 }
 
 /**
