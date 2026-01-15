@@ -1,7 +1,7 @@
 /**
  * LAF Premium Progress Screen
  * ============================
- * Corrigido: Endpoints corretos e peso inicial do perfil
+ * Sistema de check-in quinzenal com questionário e ajuste de dieta
  */
 
 import React, { useEffect, useState, useCallback } from 'react';
@@ -16,7 +16,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   TrendingUp, TrendingDown, Scale, Calendar, Plus,
-  X, Check, Target, Clock, Smile, Droplets, Moon, Dumbbell, Utensils
+  X, Check, Target, Clock, Smile, Droplets, Moon, Dumbbell, Utensils,
+  AlertCircle, ThumbsUp, ThumbsDown, ChevronRight, Frown, Meh
 } from 'lucide-react-native';
 import Slider from '@react-native-community/slider';
 
@@ -24,6 +25,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { ProgressSkeleton } from '../../components';
 import { useTranslation } from '../../i18n';
+import { SupportedLanguage } from '../../i18n/translations';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -56,12 +58,101 @@ const GlassCard = ({ children, style, isDark }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
+// Textos do questionário por idioma
+const questionnaireTexts = {
+  'pt-BR': {
+    checkInTitle: 'CHECK-IN QUINZENAL',
+    howWasWeek: 'COMO FOI SUA QUINZENA?',
+    diet: 'Dieta',
+    training: 'Treino',
+    cardio: 'Cardio',
+    sleep: 'Sono',
+    hydration: 'Hidratação',
+    energy: 'Energia/Disposição',
+    hunger: 'Fome',
+    boredFoods: 'ENJOOU DE ALGUM ALIMENTO?',
+    boredFoodsPlaceholder: 'Ex: Frango, arroz, batata doce...',
+    boredFoodsHint: 'Se enjoou de algum alimento, digite aqui para substituirmos',
+    followedDiet: 'Seguiu a dieta?',
+    followedTraining: 'Fez todos os treinos?',
+    followedCardio: 'Fez todo o cardio?',
+    yes: 'Sim',
+    mostly: 'Maioria',
+    no: 'Não',
+    observations: 'Observações (opcional)',
+    observationsPlaceholder: 'Algo que queira relatar...',
+    saveAndAdjust: 'Salvar e Ajustar Dieta',
+    dietAdjusted: 'Dieta ajustada com sucesso!',
+    dietKept: 'Dieta mantida! Continue assim!',
+    caloriesIncreased: 'Calorias aumentadas em',
+    caloriesDecreased: 'Calorias reduzidas em',
+    foodsReplaced: 'alimentos substituídos',
+  },
+  'en-US': {
+    checkInTitle: 'BI-WEEKLY CHECK-IN',
+    howWasWeek: 'HOW WAS YOUR TWO WEEKS?',
+    diet: 'Diet',
+    training: 'Training',
+    cardio: 'Cardio',
+    sleep: 'Sleep',
+    hydration: 'Hydration',
+    energy: 'Energy/Mood',
+    hunger: 'Hunger',
+    boredFoods: 'BORED OF ANY FOOD?',
+    boredFoodsPlaceholder: 'Ex: Chicken, rice, sweet potato...',
+    boredFoodsHint: 'Type here if you got bored of any food and we\'ll replace it',
+    followedDiet: 'Followed the diet?',
+    followedTraining: 'Did all workouts?',
+    followedCardio: 'Did all cardio?',
+    yes: 'Yes',
+    mostly: 'Mostly',
+    no: 'No',
+    observations: 'Notes (optional)',
+    observationsPlaceholder: 'Anything you want to report...',
+    saveAndAdjust: 'Save and Adjust Diet',
+    dietAdjusted: 'Diet adjusted successfully!',
+    dietKept: 'Diet kept! Keep it up!',
+    caloriesIncreased: 'Calories increased by',
+    caloriesDecreased: 'Calories decreased by',
+    foodsReplaced: 'foods replaced',
+  },
+  'es-ES': {
+    checkInTitle: 'CHECK-IN QUINCENAL',
+    howWasWeek: '¿CÓMO FUE TU QUINCENA?',
+    diet: 'Dieta',
+    training: 'Entreno',
+    cardio: 'Cardio',
+    sleep: 'Sueño',
+    hydration: 'Hidratación',
+    energy: 'Energía/Ánimo',
+    hunger: 'Hambre',
+    boredFoods: '¿TE ABURRISTE DE ALGÚN ALIMENTO?',
+    boredFoodsPlaceholder: 'Ej: Pollo, arroz, batata...',
+    boredFoodsHint: 'Si te aburriste de algún alimento, escríbelo para reemplazarlo',
+    followedDiet: '¿Seguiste la dieta?',
+    followedTraining: '¿Hiciste todos los entrenos?',
+    followedCardio: '¿Hiciste todo el cardio?',
+    yes: 'Sí',
+    mostly: 'Mayoría',
+    no: 'No',
+    observations: 'Observaciones (opcional)',
+    observationsPlaceholder: 'Algo que quieras reportar...',
+    saveAndAdjust: 'Guardar y Ajustar Dieta',
+    dietAdjusted: '¡Dieta ajustada con éxito!',
+    dietKept: '¡Dieta mantenida! ¡Sigue así!',
+    caloriesIncreased: 'Calorías aumentadas en',
+    caloriesDecreased: 'Calorías reducidas en',
+    foodsReplaced: 'alimentos reemplazados',
+  },
+};
+
 export default function ProgressScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
-  const language = useSettingsStore((state) => state.language);
+  const language = (useSettingsStore((state) => state.language) || 'pt-BR') as SupportedLanguage;
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
   const { t } = useTranslation();
+  const qt = questionnaireTexts[language] || questionnaireTexts['pt-BR'];
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -71,14 +162,22 @@ export default function ProgressScreen() {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [saving, setSaving] = useState(false);
+  const [step, setStep] = useState(1); // 1 = peso, 2 = avaliações, 3 = alimentos/obs
 
-  // Questionário
+  // Questionário expandido
   const [questionnaire, setQuestionnaire] = useState({
-    diet: 5,
-    training: 5,
-    cardio: 5,
-    sleep: 5,
-    hydration: 5,
+    diet: 7,
+    training: 7,
+    cardio: 7,
+    sleep: 7,
+    hydration: 7,
+    energy: 7,
+    hunger: 5,
+    followedDiet: 'yes', // yes, mostly, no
+    followedTraining: 'yes',
+    followedCardio: 'yes',
+    boredFoods: '',
+    observations: '',
   });
 
   useFocusEffect(
@@ -94,14 +193,12 @@ export default function ProgressScreen() {
       setUserId(id);
 
       if (id && BACKEND_URL) {
-        // Carregar perfil para pegar peso atual
         const profileRes = await safeFetch(`${BACKEND_URL}/api/user/profile/${id}`);
         if (profileRes.ok) {
           const profileData = await profileRes.json();
           setUserProfile(profileData);
         }
 
-        // Carregar histórico de peso - endpoint correto
         const weightRes = await safeFetch(`${BACKEND_URL}/api/progress/weight/${id}`);
         if (weightRes.ok) {
           const data = await weightRes.json();
@@ -126,8 +223,7 @@ export default function ProgressScreen() {
 
     setSaving(true);
     try {
-      // Endpoint correto com questionário
-      const response = await safeFetch(`${BACKEND_URL}/api/progress/weight/${userId}`, {
+      const response = await safeFetch(`${BACKEND_URL}/api/progress/checkin/${userId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -137,24 +233,41 @@ export default function ProgressScreen() {
       });
 
       if (response.ok) {
+        const result = await response.json();
         setShowWeightModal(false);
         setNewWeight('');
-        // Reset questionnaire
-        setQuestionnaire({ diet: 5, training: 5, cardio: 5, sleep: 5, hydration: 5 });
+        setStep(1);
+        setQuestionnaire({
+          diet: 7, training: 7, cardio: 7, sleep: 7, hydration: 7, energy: 7, hunger: 5,
+          followedDiet: 'yes', followedTraining: 'yes', followedCardio: 'yes',
+          boredFoods: '', observations: '',
+        });
         await loadProgress();
-        Alert.alert(t.common.success, t.progress.weightSaved || 'Weight saved successfully!');
+        
+        // Mostrar resultado do ajuste
+        let message = result.diet_kept ? qt.dietKept : qt.dietAdjusted;
+        if (result.calories_change) {
+          const changeText = result.calories_change > 0 
+            ? `${qt.caloriesIncreased} ${result.calories_change}kcal` 
+            : `${qt.caloriesDecreased} ${Math.abs(result.calories_change)}kcal`;
+          message += `\n${changeText}`;
+        }
+        if (result.foods_replaced > 0) {
+          message += `\n${result.foods_replaced} ${qt.foodsReplaced}`;
+        }
+        
+        Alert.alert(t.common.success, message);
       } else {
         const data = await response.json();
         Alert.alert(t.common.warning || 'Warning', data.detail || t.common.error);
       }
     } catch (error) {
-      Alert.alert(t.common.error, t.common.connectionError || 'Could not save weight');
+      Alert.alert(t.common.error, t.common.connectionError || 'Could not save');
     } finally {
       setSaving(false);
     }
   };
 
-  // Peso atual vem do perfil do usuário
   const currentWeight = userProfile?.weight || progressData?.current_weight || 0;
   const targetWeight = userProfile?.target_weight || progressData?.target_weight;
   const history = progressData?.history || [];
@@ -194,6 +307,229 @@ export default function ProgressScreen() {
       />
     </View>
   );
+
+  const FollowedOption = ({ label, value, selected, onSelect }: any) => (
+    <TouchableOpacity 
+      style={[
+        styles.followedOption, 
+        { borderColor: selected ? premiumColors.primary : theme.border },
+        selected && { backgroundColor: premiumColors.primary + '15' }
+      ]}
+      onPress={() => onSelect(value)}
+    >
+      {value === 'yes' && <ThumbsUp size={16} color={selected ? premiumColors.primary : theme.textTertiary} />}
+      {value === 'mostly' && <Meh size={16} color={selected ? premiumColors.primary : theme.textTertiary} />}
+      {value === 'no' && <ThumbsDown size={16} color={selected ? premiumColors.primary : theme.textTertiary} />}
+      <Text style={[styles.followedOptionText, { color: selected ? premiumColors.primary : theme.text }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderModalStep = () => {
+    if (step === 1) {
+      return (
+        <>
+          <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
+            {qt.checkInTitle} - 1/3
+          </Text>
+          <View style={styles.weightInputContainer}>
+            <TextInput
+              style={[styles.weightInput, { color: theme.text, borderColor: premiumColors.primary }]}
+              value={newWeight}
+              onChangeText={setNewWeight}
+              keyboardType="decimal-pad"
+              placeholder="0.0"
+              placeholderTextColor={theme.textTertiary}
+              autoFocus
+            />
+            <Text style={[styles.weightInputUnit, { color: theme.textSecondary }]}>kg</Text>
+          </View>
+          {currentWeight > 0 && (
+            <Text style={[styles.lastWeightHint, { color: theme.textTertiary }]}>
+              Último peso: {currentWeight.toFixed(1)}kg
+            </Text>
+          )}
+          <TouchableOpacity
+            onPress={() => newWeight && setStep(2)}
+            disabled={!newWeight}
+            style={{ marginTop: spacing.xl }}
+          >
+            <LinearGradient
+              colors={!newWeight ? ['#9CA3AF', '#6B7280'] : [premiumColors.gradient.start, premiumColors.gradient.end]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.nextButton}
+            >
+              <Text style={styles.nextButtonText}>{t.common.next || 'Próximo'}</Text>
+              <ChevronRight size={20} color="#FFF" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </>
+      );
+    }
+
+    if (step === 2) {
+      return (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
+            {qt.checkInTitle} - 2/3
+          </Text>
+          <Text style={[styles.questionnaireTitle, { color: theme.text }]}>
+            {qt.howWasWeek}
+          </Text>
+
+          <QuestionnaireSlider
+            label={qt.diet}
+            icon={Utensils}
+            value={questionnaire.diet}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, diet: v})}
+            color="#10B981"
+          />
+          <QuestionnaireSlider
+            label={qt.training}
+            icon={Dumbbell}
+            value={questionnaire.training}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, training: v})}
+            color="#3B82F6"
+          />
+          <QuestionnaireSlider
+            label={qt.cardio}
+            icon={TrendingUp}
+            value={questionnaire.cardio}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, cardio: v})}
+            color="#F59E0B"
+          />
+          <QuestionnaireSlider
+            label={qt.sleep}
+            icon={Moon}
+            value={questionnaire.sleep}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, sleep: v})}
+            color="#8B5CF6"
+          />
+          <QuestionnaireSlider
+            label={qt.hydration}
+            icon={Droplets}
+            value={questionnaire.hydration}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, hydration: v})}
+            color="#06B6D4"
+          />
+          <QuestionnaireSlider
+            label={qt.energy}
+            icon={Smile}
+            value={questionnaire.energy}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, energy: v})}
+            color="#EC4899"
+          />
+          <QuestionnaireSlider
+            label={qt.hunger}
+            icon={Frown}
+            value={questionnaire.hunger}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, hunger: v})}
+            color="#EF4444"
+          />
+
+          {/* Followed questions */}
+          <View style={styles.followedSection}>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>{qt.followedDiet}</Text>
+            <View style={styles.followedOptions}>
+              <FollowedOption label={qt.yes} value="yes" selected={questionnaire.followedDiet === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
+              <FollowedOption label={qt.mostly} value="mostly" selected={questionnaire.followedDiet === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
+              <FollowedOption label={qt.no} value="no" selected={questionnaire.followedDiet === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
+            </View>
+          </View>
+
+          <View style={styles.followedSection}>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>{qt.followedTraining}</Text>
+            <View style={styles.followedOptions}>
+              <FollowedOption label={qt.yes} value="yes" selected={questionnaire.followedTraining === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
+              <FollowedOption label={qt.mostly} value="mostly" selected={questionnaire.followedTraining === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
+              <FollowedOption label={qt.no} value="no" selected={questionnaire.followedTraining === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
+            </View>
+          </View>
+
+          <View style={styles.followedSection}>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>{qt.followedCardio}</Text>
+            <View style={styles.followedOptions}>
+              <FollowedOption label={qt.yes} value="yes" selected={questionnaire.followedCardio === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
+              <FollowedOption label={qt.mostly} value="mostly" selected={questionnaire.followedCardio === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
+              <FollowedOption label={qt.no} value="no" selected={questionnaire.followedCardio === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
+            </View>
+          </View>
+
+          <TouchableOpacity onPress={() => setStep(3)} style={{ marginTop: spacing.lg }}>
+            <LinearGradient
+              colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.nextButton}
+            >
+              <Text style={styles.nextButtonText}>{t.common.next || 'Próximo'}</Text>
+              <ChevronRight size={20} color="#FFF" />
+            </LinearGradient>
+          </TouchableOpacity>
+        </ScrollView>
+      );
+    }
+
+    if (step === 3) {
+      return (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
+            {qt.checkInTitle} - 3/3
+          </Text>
+
+          {/* Bored Foods */}
+          <View style={styles.inputSection}>
+            <View style={styles.inputLabelRow}>
+              <AlertCircle size={18} color="#F59E0B" />
+              <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{qt.boredFoods}</Text>
+            </View>
+            <Text style={[styles.inputHint, { color: theme.textTertiary }]}>{qt.boredFoodsHint}</Text>
+            <TextInput
+              style={[styles.textArea, { color: theme.text, borderColor: theme.border, backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(241, 245, 249, 0.8)' }]}
+              value={questionnaire.boredFoods}
+              onChangeText={(v) => setQuestionnaire({...questionnaire, boredFoods: v})}
+              placeholder={qt.boredFoodsPlaceholder}
+              placeholderTextColor={theme.textTertiary}
+              multiline
+              numberOfLines={2}
+            />
+          </View>
+
+          {/* Observations */}
+          <View style={styles.inputSection}>
+            <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{qt.observations}</Text>
+            <TextInput
+              style={[styles.textArea, { color: theme.text, borderColor: theme.border, backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(241, 245, 249, 0.8)' }]}
+              value={questionnaire.observations}
+              onChangeText={(v) => setQuestionnaire({...questionnaire, observations: v})}
+              placeholder={qt.observationsPlaceholder}
+              placeholderTextColor={theme.textTertiary}
+              multiline
+              numberOfLines={3}
+            />
+          </View>
+
+          <TouchableOpacity
+            onPress={handleSaveWeight}
+            disabled={saving}
+            style={{ marginTop: spacing.lg }}
+          >
+            <LinearGradient
+              colors={saving ? ['#9CA3AF', '#6B7280'] : [premiumColors.gradient.start, premiumColors.gradient.end]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.saveButton}
+            >
+              <Check size={20} color="#FFF" />
+              <Text style={styles.saveButtonText}>
+                {saving ? t.common.saving : qt.saveAndAdjust}
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </ScrollView>
+      );
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -258,7 +594,6 @@ export default function ProgressScreen() {
                 )}
               </View>
 
-              {/* Target Weight */}
               {targetWeight && (
                 <View style={[styles.targetRow, { borderTopColor: theme.border }]}>
                   <Target size={16} color={theme.textTertiary} />
@@ -268,7 +603,6 @@ export default function ProgressScreen() {
                 </View>
               )}
 
-              {/* Add Weight Button */}
               {canRecord ? (
                 <TouchableOpacity onPress={() => setShowWeightModal(true)}>
                   <LinearGradient
@@ -356,7 +690,7 @@ export default function ProgressScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {/* Weight Modal with Questionnaire */}
+      {/* Weight Modal with Full Questionnaire */}
       <Modal visible={showWeightModal} transparent animationType="slide">
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -364,85 +698,17 @@ export default function ProgressScreen() {
         >
           <View style={[styles.modalContent, { backgroundColor: theme.backgroundCardSolid }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: theme.text }]}>{t.progress.recordWeight}</Text>
-              <TouchableOpacity onPress={() => setShowWeightModal(false)}>
+              <TouchableOpacity onPress={() => step > 1 ? setStep(step - 1) : setShowWeightModal(false)}>
+                <Text style={[styles.backText, { color: premiumColors.primary }]}>
+                  {step > 1 ? '← Voltar' : 'Cancelar'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => { setShowWeightModal(false); setStep(1); }}>
                 <X size={24} color={theme.text} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {/* Weight Input */}
-              <View style={styles.weightInputContainer}>
-                <TextInput
-                  style={[styles.weightInput, { color: theme.text, borderColor: theme.border }]}
-                  value={newWeight}
-                  onChangeText={setNewWeight}
-                  keyboardType="decimal-pad"
-                  placeholder="0.0"
-                  placeholderTextColor={theme.textTertiary}
-                />
-                <Text style={[styles.weightInputUnit, { color: theme.textSecondary }]}>kg</Text>
-              </View>
-
-              {/* Questionnaire */}
-              <Text style={[styles.questionnaireTitle, { color: theme.textSecondary }]}>
-                {t.progress.howWasYourWeek || 'HOW WAS YOUR WEEK?'}
-              </Text>
-
-              <QuestionnaireSlider
-                label={t.tabs.diet}
-                icon={Utensils}
-                value={questionnaire.diet}
-                onChange={(v: number) => setQuestionnaire({...questionnaire, diet: v})}
-                color="#10B981"
-              />
-              <QuestionnaireSlider
-                label={t.workout.training}
-                icon={Dumbbell}
-                value={questionnaire.training}
-                onChange={(v: number) => setQuestionnaire({...questionnaire, training: v})}
-                color="#3B82F6"
-              />
-              <QuestionnaireSlider
-                label={t.tabs.cardio}
-                icon={TrendingUp}
-                value={questionnaire.cardio}
-                onChange={(v: number) => setQuestionnaire({...questionnaire, cardio: v})}
-                color="#F59E0B"
-              />
-              <QuestionnaireSlider
-                label={t.progress.sleep || 'Sleep'}
-                icon={Moon}
-                value={questionnaire.sleep}
-                onChange={(v: number) => setQuestionnaire({...questionnaire, sleep: v})}
-                color="#8B5CF6"
-              />
-              <QuestionnaireSlider
-                label={t.home.waterTracker}
-                icon={Droplets}
-                value={questionnaire.hydration}
-                onChange={(v: number) => setQuestionnaire({...questionnaire, hydration: v})}
-                color="#06B6D4"
-              />
-
-              <TouchableOpacity
-                onPress={handleSaveWeight}
-                disabled={!newWeight || saving}
-                style={{ marginTop: spacing.lg }}
-              >
-                <LinearGradient
-                  colors={!newWeight ? ['#9CA3AF', '#6B7280'] : [premiumColors.gradient.start, premiumColors.gradient.end]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.saveButton}
-                >
-                  <Check size={20} color="#FFF" />
-                  <Text style={styles.saveButtonText}>
-                    {saving ? t.common.saving : t.common.save}
-                  </Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </ScrollView>
+            {renderModalStep()}
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -494,20 +760,37 @@ const styles = StyleSheet.create({
   historyWeight: { fontSize: 16, fontWeight: '700' },
 
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalContent: { borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'], padding: spacing.lg, maxHeight: '85%' },
+  modalContent: { borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'], padding: spacing.lg, maxHeight: '90%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
-  modalTitle: { fontSize: 20, fontWeight: '700' },
-  weightInputContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md, marginBottom: spacing.xl },
-  weightInput: { fontSize: 48, fontWeight: '800', textAlign: 'center', width: 150, borderBottomWidth: 2, paddingVertical: spacing.sm },
+  backText: { fontSize: 16, fontWeight: '600' },
+
+  stepTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 1, textAlign: 'center', marginBottom: spacing.md },
+  weightInputContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.md, marginVertical: spacing.lg },
+  weightInput: { fontSize: 48, fontWeight: '800', textAlign: 'center', width: 150, borderBottomWidth: 3, paddingVertical: spacing.sm },
   weightInputUnit: { fontSize: 24, fontWeight: '600' },
+  lastWeightHint: { fontSize: 13, textAlign: 'center' },
 
-  questionnaireTitle: { fontSize: 12, fontWeight: '700', letterSpacing: 1, marginBottom: spacing.md },
-  questionnaireRow: { marginBottom: spacing.lg },
+  questionnaireTitle: { fontSize: 14, fontWeight: '700', letterSpacing: 0.5, marginBottom: spacing.lg, textAlign: 'center' },
+  questionnaireRow: { marginBottom: spacing.md },
   questionnaireHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
-  questionnaireLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
-  questionnaireValue: { fontSize: 18, fontWeight: '800' },
-  slider: { width: '100%', height: 40 },
+  questionnaireLabel: { flex: 1, fontSize: 14, fontWeight: '600' },
+  questionnaireValue: { fontSize: 18, fontWeight: '800', width: 30, textAlign: 'right' },
+  slider: { width: '100%', height: 36 },
 
+  followedSection: { marginBottom: spacing.lg },
+  followedLabel: { fontSize: 14, fontWeight: '600', marginBottom: spacing.sm },
+  followedOptions: { flexDirection: 'row', gap: spacing.sm },
+  followedOption: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, paddingVertical: spacing.sm, borderRadius: radius.lg, borderWidth: 1.5 },
+  followedOptionText: { fontSize: 13, fontWeight: '600' },
+
+  inputSection: { marginBottom: spacing.lg },
+  inputLabelRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
+  inputSectionLabel: { fontSize: 14, fontWeight: '700' },
+  inputHint: { fontSize: 12, marginBottom: spacing.sm },
+  textArea: { borderWidth: 1, borderRadius: radius.lg, padding: spacing.md, fontSize: 15, minHeight: 60, textAlignVertical: 'top' },
+
+  nextButton: { height: 52, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
+  nextButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
   saveButton: { height: 52, borderRadius: radius.lg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm },
   saveButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
