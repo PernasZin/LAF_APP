@@ -229,6 +229,8 @@ export interface Translations {
     intermediateDesc: string;
     advanced: string;
     advancedDesc: string;
+    lowVolume: string;
+    lowVolumeDesc: string;
     noviceHint: string;
     // Frequencies
     freq2x: string;
