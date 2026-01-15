@@ -692,8 +692,8 @@ class WorkoutAIService:
                     # Verifica se é exercício composto
                     is_compound = any(comp in ex_name_lower for comp in COMPOUND_EXERCISES)
                     
-                    # Verifica se precisa aquecer (primeiro exercício do músculo ou composto)
-                    needs_warmup = (muscle not in muscles_warmed_up) or is_compound
+                    # Verifica se precisa aquecer (APENAS primeiro exercício do músculo)
+                    needs_warmup = muscle not in muscles_warmed_up
                     
                     # Lógica de séries por nível - TODOS têm aquecimento no primeiro exercício
                     
