@@ -1100,6 +1100,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
       intermediateDesc: '1-2 years in gym',
       advanced: '🏆 Advanced',
       advancedDesc: '3+ years in gym',
+      lowVolume: '🎯 Low Volume',
+      lowVolumeDesc: 'Intense training with few sets',
       noviceHint: '💡 Novices start with adaptation training for 4-8 weeks. After 30 completed workouts, you\'ll receive hypertrophy workouts!',
       freq2x: '2x per week',
       freq2xDesc: 'Full Body',
