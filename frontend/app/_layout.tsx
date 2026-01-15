@@ -38,6 +38,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inAuth = currentSegment === 'auth';
     const inOnboarding = currentSegment === 'onboarding';
     const inTabs = currentSegment === '(tabs)';
+    const inLegal = currentSegment === 'legal';
     const isRootIndex = segments.length === 0 || currentSegment === 'index';
 
     console.log('🛡️ GUARD:', { isAuthenticated, profileCompleted, segments: currentSegment, isRootIndex });
@@ -45,6 +46,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     // ALLOW index screen to handle language selection first
     if (isRootIndex) {
       console.log('🛡️ → Allowing index screen');
+      return;
+    }
+
+    // ALLOW legal pages (terms, privacy) without authentication
+    if (inLegal) {
+      console.log('🛡️ → Allowing legal page');
       return;
     }
 
