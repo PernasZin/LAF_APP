@@ -51,12 +51,13 @@ export default function TrainingConfigScreen() {
   const [duration, setDuration] = useState(60);
   const [level, setLevel] = useState('intermediario');
 
-  // Níveis de treino - usando traduções
+  // Níveis de treino - usando traduções (inclui Low Volume apenas aqui)
   const LEVELS = [
     { value: 'novato', label: t.trainingConfig.novice, desc: t.trainingConfig.noviceDesc },
     { value: 'iniciante', label: t.trainingConfig.beginner, desc: t.trainingConfig.beginnerDesc },
     { value: 'intermediario', label: t.trainingConfig.intermediate, desc: t.trainingConfig.intermediateDesc },
     { value: 'avancado', label: t.trainingConfig.advanced, desc: t.trainingConfig.advancedDesc },
+    { value: 'low_volume', label: t.trainingConfig.lowVolume, desc: t.trainingConfig.lowVolumeDesc },
   ];
 
   // Frequências de treino - usando traduções
