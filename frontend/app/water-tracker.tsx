@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import { useTheme } from '../theme/ThemeContext';
 import Svg, { Circle, Path, Text as SvgText } from 'react-native-svg';
 
-import { config } from '../../config';
+import { config } from '../config';
 const BACKEND_URL = config.BACKEND_URL;
 
 // Opções rápidas de água (em ml)
