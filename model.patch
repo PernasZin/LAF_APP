@@ -1,459 +1,653 @@
+diff --git a/backend/diet_service.py b/backend/diet_service.py
+index 1b338c75..261be8ea 100644
+--- a/backend/diet_service.py
++++ b/backend/diet_service.py
+@@ -1007,137 +1007,70 @@ def calculate_tdee(weight: float, height: float, age: int, gender: str,
+     return bmr * multiplier + bonus
+ 
+ 
+-def calculate_macros(tdee: float, goal: str, weight: float, gender: str = "masculino") -> Dict[str, float]:
++def calculate_target_macros(weight: float, tdee: float, goal: str, gender: str = 'masculino') -> Dict:
+     """
+-    Calcula macros baseado no objetivo seguindo o PRD nutricional.
++    🎯 FÓRMULA SIMPLIFICADA DE MACROS
+     
+-    ⚖️ REGRAS DE MACRONUTRIENTES (por objetivo):
++    Baseado em multiplicadores por kg de peso corporal:
+     
+-    🟥 CUTTING (Perda de gordura):
+-       - Calorias: TDEE × 0,75 – 0,90 (usamos 0.85)
+-       - Proteína: 1,8 – 2,4 g/kg
+-       - Gordura: 20 – 25% das calorias
+-       - Carboidrato: calorias restantes
+-       - ❌ Erro se calorias ≥ 95% do TDEE
+-       - ⚠️ Alerta se gordura > 30%
++    🟥 CUTTING:
++       - Proteína: peso × 2.2
++       - Carboidrato: peso × 2.5
++       - Gordura: peso × 0.8
+     
+     🟨 MANUTENÇÃO:
+-       - Calorias: TDEE × 0,95 – 1,05 (usamos 1.0)
+-       - Proteína: 1,6 – 2,2 g/kg
+-       - Gordura: 25 – 30% das calorias
+-       - Carboidrato: calorias restantes
+-       - ⚠️ Alerta se proteína < 1,6 g/kg
+-    
+-    🟩 BULKING (Ganho de massa):
+-       - Calorias: TDEE × 1,05 – 1,15 (usamos 1.10)
+-       - Proteína: 1,6 – 2,0 g/kg
+-       - Gordura: 25 – 30% das calorias
+-       - Carboidrato: calorias restantes
+-       - ❌ Erro se superávit > 20%
+-       - ⚠️ Alerta se gordura < 20%
++       - Proteína: peso × 2.0
++       - Carboidrato: peso × 3.5
++       - Gordura: peso × 0.85
++    
++    🟩 BULKING:
++       - Proteína: peso × 2.0
++       - Carboidrato: peso × 5.0
++       - Gordura: peso × 0.9
++    
++    Calorias = (proteína × 4) + (carboidrato × 4) + (gordura × 9)
+     """
+-    # Configurações por objetivo (seguindo PRD)
+-    goal_adjustments = {
++    
++    # Multiplicadores por objetivo
++    macros_multipliers = {
+         'cutting': {
+-            'cal_mult': 0.85,           # TDEE × 0.85 (meio da faixa 0.75-0.90)
+-            'p_min': 1.8, 'p_max': 2.4, # Proteína: 1.8-2.4 g/kg
+-            'fat_percent_min': 0.20,    # Gordura: 20-25%
+-            'fat_percent_max': 0.25,
++            'protein': 2.2,
++            'carbs': 2.5,
++            'fat': 0.8
+         },
+         'manutencao': {
+-            'cal_mult': 1.0,            # TDEE × 1.0 (meio da faixa 0.95-1.05)
+-            'p_min': 1.6, 'p_max': 2.2, # Proteína: 1.6-2.2 g/kg
+-            'fat_percent_min': 0.25,    # Gordura: 25-30%
+-            'fat_percent_max': 0.30,
++            'protein': 2.0,
++            'carbs': 3.5,
++            'fat': 0.85
+         },
+         'bulking': {
+-            'cal_mult': 1.10,           # TDEE × 1.10 (meio da faixa 1.05-1.15)
+-            'p_min': 1.6, 'p_max': 2.0, # Proteína: 1.6-2.0 g/kg
+-            'fat_percent_min': 0.25,    # Gordura: 25-30%
+-            'fat_percent_max': 0.30,
++            'protein': 2.0,
++            'carbs': 5.0,
++            'fat': 0.9
+         }
+     }
+     
+-    adj = goal_adjustments.get(goal.lower(), goal_adjustments['manutencao'])
+-    
+-    # ==================== CÁLCULO DE CALORIAS ====================
+-    target_calories = tdee * adj['cal_mult']
+-    
+-    # Validação específica por objetivo
+-    if goal.lower() == 'cutting':
+-        # ❌ Erro se calorias ≥ 95% do TDEE
+-        if target_calories >= tdee * 0.95:
+-            target_calories = tdee * 0.85  # Força 85%
+-    elif goal.lower() == 'bulking':
+-        # ❌ Erro se superávit > 20%
+-        if target_calories > tdee * 1.20:
+-            target_calories = tdee * 1.15  # Força 115%
+-    
+-    # ==================== CÁLCULO DE PROTEÍNA ====================
+-    # Usa o MÁXIMO da faixa para garantir massa muscular
+-    protein = weight * adj['p_max']
+-    
+-    # ==================== CÁLCULO DE GORDURA ====================
+-    # Usa o MEIO da faixa de percentual
+-    fat_percent = (adj['fat_percent_min'] + adj['fat_percent_max']) / 2
+-    fat_calories = target_calories * fat_percent
+-    fat = fat_calories / 9
+-    
+-    # Validação: mínimo 20% das calorias
+-    fat_min = (target_calories * 0.20) / 9
+-    fat_max = (target_calories * adj['fat_percent_max']) / 9
+-    
+-    fat = max(fat_min, min(fat, fat_max))
+-    
+-    # ==================== CÁLCULO DE CARBOIDRATOS ====================
+-    # Calorias restantes
+-    protein_cal = protein * 4
+-    fat_cal = fat * 9
+-    carbs_cal = target_calories - protein_cal - fat_cal
+-    carbs = carbs_cal / 4
+-    
+-    # Garante mínimo de carboidratos (100g para função cerebral)
+-    if carbs < 100:
+-        carbs = 100
+-        carbs_cal = carbs * 4
+-        target_calories = protein_cal + fat_cal + carbs_cal
+-    
+-    # ⚠️ LIMITE MÁXIMO de carboidratos: 400g/dia (realista para atingir com comida)
+-    # Mais que isso é impraticável e resulta em dietas com 1kg+ de arroz
+-    if carbs > 400:
+-        carbs = 400
+-        carbs_cal = carbs * 4
+-        # Redistribui o excesso para gordura (mais fácil atingir)
+-        excess_cal = target_calories - protein_cal - carbs_cal - fat_cal
+-        if excess_cal > 0:
+-            fat += excess_cal / 9
+-            fat_cal = fat * 9
+-    
+-    # ==================== VALIDAÇÃO FINAL ====================
+-    # Verifica percentual de gordura
+-    actual_fat_percent = (fat * 9) / target_calories * 100
+-    
+-    if goal.lower() == 'cutting' and actual_fat_percent > 30:
+-        # ⚠️ Alerta se gordura > 30% em cutting
+-        fat = (target_calories * 0.25) / 9  # Ajusta para 25%
+-        carbs_cal = target_calories - protein_cal - (fat * 9)
+-        carbs = max(100, carbs_cal / 4)
+-    
+-    if goal.lower() == 'bulking' and actual_fat_percent < 20:
+-        # ⚠️ Alerta se gordura < 20% em bulking
+-        fat = (target_calories * 0.25) / 9  # Ajusta para 25%
+-        carbs_cal = target_calories - protein_cal - (fat * 9)
+-        carbs = max(100, carbs_cal / 4)
+-    
+-    # ==================== FIBRA MÍNIMA ====================
+-    # 25g/dia (mulheres), 30g/dia (homens) - guardado para validação posterior
++    # Pega os multiplicadores do objetivo (default: manutenção)
++    mult = macros_multipliers.get(goal.lower(), macros_multipliers['manutencao'])
++    
++    # Calcula macros baseado no peso
++    protein = round(weight * mult['protein'])
++    carbs = round(weight * mult['carbs'])
++    fat = round(weight * mult['fat'])
++    
++    # Calcula calorias totais
++    target_calories = (protein * 4) + (carbs * 4) + (fat * 9)
++    
++    # Fibra mínima
+     fiber_target = 30 if gender.lower() in ['masculino', 'male', 'm'] else 25
+     
++    print(f"[MACROS] Peso={weight}kg, Goal={goal} -> P={protein}g C={carbs}g F={fat}g = {target_calories}kcal")
++    
+     return {
+-        'calories': round(target_calories),
+-        'protein': round(protein),
+-        'carbs': round(carbs),
+-        'fat': round(fat),
++        'calories': target_calories,
++        'protein': protein,
++        'carbs': carbs,
++        'fat': fat,
+         'fiber_target': fiber_target
+     }
+ 
 diff --git a/model.patch b/model.patch
-index 629f8d67..e69de29b 100644
+index 0e9396be..38f64289 100644
 --- a/model.patch
 +++ b/model.patch
-@@ -1,454 +0,0 @@
+@@ -1,459 +0,0 @@
 -diff --git a/model.patch b/model.patch
--index 620ee83f..e69de29b 100644
+-index 629f8d67..e69de29b 100644
 ---- a/model.patch
 -+++ b/model.patch
--@@ -1,449 +0,0 @@
+-@@ -1,454 +0,0 @@
 --diff --git a/model.patch b/model.patch
---index 99433086..e69de29b 100644
+--index 620ee83f..e69de29b 100644
 ----- a/model.patch
 --+++ b/model.patch
---@@ -1,431 +0,0 @@
+--@@ -1,449 +0,0 @@
 ---diff --git a/model.patch b/model.patch
----index d396e892..e69de29b 100644
+---index 99433086..e69de29b 100644
 ------ a/model.patch
 ---+++ b/model.patch
----@@ -1,372 +0,0 @@
-----diff --git a/frontend/i18n/translations.ts b/frontend/i18n/translations.ts
-----index e3f9786b..92900041 100644
-------- a/frontend/i18n/translations.ts
-----+++ b/frontend/i18n/translations.ts
-----@@ -68,6 +68,8 @@ export interface Translations {
-----   // Diet screen
-----   diet: {
-----     title: string;
-----+    mealsPlanned: string;
-----+    daySummary: string;
-----     noData: string;
-----     generateDiet: string;
-----     generating: string;
-----@@ -88,6 +90,11 @@ export interface Translations {
-----       fruit: string;
-----       vegetable: string;
-----     };
-----+    noDietGenerated: string;
-----+    generateYourDiet: string;
-----+    generateMyDiet: string;
-----+    substitute: string;
-----+    success: string;
-----   };
-----   // Workout screen
-----   workout: {
-----@@ -428,6 +435,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
-----     },
-----     diet: {
-----       title: 'Seu Plano de Dieta',
-----+      mealsPlanned: 'refeições planejadas',
-----+      daySummary: 'Resumo do Dia',
-----       noData: 'Nenhuma dieta gerada',
-----       generateDiet: 'Gerar Minha Dieta',
-----       generating: 'Gerando seu plano de dieta...',
-----@@ -448,6 +457,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
-----         fruit: 'Fruta',
-----         vegetable: 'Vegetal',
-----       },
-----+      noDietGenerated: 'Nenhuma dieta foi gerada ainda',
-----+      generateYourDiet: 'Gere sua dieta',
-----+      generateMyDiet: 'Gerar Minha Dieta',
-----+      substitute: 'Substituir',
-----+      success: 'Sucesso',
-----     },
-----     workout: {
-----       title: 'Seu Plano de Treino',
-----@@ -767,6 +781,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
-----     },
-----     diet: {
-----       title: 'Your Diet Plan',
-----+      mealsPlanned: 'meals planned',
-----+      daySummary: 'Day Summary',
-----       noData: 'No diet generated',
-----       generateDiet: 'Generate My Diet',
-----       generating: 'Generating your diet plan...',
-----@@ -787,6 +803,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
-----         fruit: 'Fruit',
-----         vegetable: 'Vegetable',
-----       },
-----+      noDietGenerated: 'No diet has been generated yet',
-----+      generateYourDiet: 'Generate your diet',
-----+      generateMyDiet: 'Generate My Diet',
-----+      substitute: 'Substitute',
-----+      success: 'Success',
-----     },
-----     workout: {
-----       title: 'Your Workout Plan',
-----@@ -1106,6 +1127,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
-----     },
-----     diet: {
-----       title: 'Tu Plan de Dieta',
-----+      mealsPlanned: 'comidas planificadas',
-----+      daySummary: 'Resumen del Día',
-----       noData: 'Ninguna dieta generada',
-----       generateDiet: 'Generar Mi Dieta',
-----       generating: 'Generando tu plan de dieta...',
-----@@ -1126,6 +1149,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
-----         fruit: 'Fruta',
-----         vegetable: 'Vegetal',
-----       },
-----+      noDietGenerated: 'Aún no se ha generado ninguna dieta',
-----+      generateYourDiet: 'Genera tu dieta',
-----+      generateMyDiet: 'Generar Mi Dieta',
-----+      substitute: 'Sustituir',
-----+      success: 'Éxito',
-----     },
-----     workout: {
-----       title: 'Tu Plan de Entreno',
+---@@ -1,431 +0,0 @@
 ----diff --git a/model.patch b/model.patch
-----index 61dea53b..e69de29b 100644
+----index d396e892..e69de29b 100644
 ------- a/model.patch
 ----+++ b/model.patch
-----@@ -1,279 +0,0 @@
+----@@ -1,372 +0,0 @@
 -----diff --git a/frontend/i18n/translations.ts b/frontend/i18n/translations.ts
------index 274539a4..e3f9786b 100644
+-----index e3f9786b..92900041 100644
 -------- a/frontend/i18n/translations.ts
 -----+++ b/frontend/i18n/translations.ts
------@@ -156,28 +156,29 @@ export interface Translations {
------   // Settings screen
------   settings: {
+-----@@ -68,6 +68,8 @@ export interface Translations {
+-----   // Diet screen
+-----   diet: {
 -----     title: string;
------+    subtitle: string;
------     account: string;
------     editProfile: string;
-------    logout: string;
------+    diet: string;
------+    mealsPerDay: string;
------+    meals: string;
------+    training: string;
------+    configureTraining: string;
------+    timesPerWeek: string;
------+    preferences: string;
------+    lightMode: string;
------     notifications: string;
-------    enableNotifications: string;
-------    notificationsDesc: string;
-------    configureReminders: string;
-------    remindersDesc: string;
-------    appearance: string;
-------    theme: string;
-------    themeDesc: string;
-------    system: string;
-------    light: string;
-------    dark: string;
-------    language: string;
-------    data: string;
-------    clearCache: string;
-------    clearCacheDesc: string;
-------    legal: string;
------+    support: string;
------     privacy: string;
-------    terms: string;
------+    termsOfUse: string;
------+    help: string;
------+    logout: string;
------+    logoutTitle: string;
------+    logoutConfirm: string;
------+    cancel: string;
------     version: string;
------+    madeWithLove: string;
------+    user: string;
+-----+    mealsPlanned: string;
+-----+    daySummary: string;
+-----     noData: string;
+-----     generateDiet: string;
+-----     generating: string;
+-----@@ -88,6 +90,11 @@ export interface Translations {
+-----       fruit: string;
+-----       vegetable: string;
+-----     };
+-----+    noDietGenerated: string;
+-----+    generateYourDiet: string;
+-----+    generateMyDiet: string;
+-----+    substitute: string;
+-----+    success: string;
 -----   };
------   // Notifications settings
------   notificationSettings: {
------@@ -511,28 +512,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-----   // Workout screen
+-----   workout: {
+-----@@ -428,6 +435,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
 -----     },
------     settings: {
------       title: 'Configurações',
------+      subtitle: 'Personalize sua experiência',
------       account: 'Conta',
------       editProfile: 'Editar Perfil',
-------      logout: 'Sair da Conta',
------+      diet: 'Dieta',
------+      mealsPerDay: 'Refeições por dia',
------+      meals: 'Refeições',
------+      training: 'Treino',
------+      configureTraining: 'Configurar Treino',
------+      timesPerWeek: 'vezes por semana',
------+      preferences: 'Preferências',
------+      lightMode: 'Modo Claro',
------       notifications: 'Notificações',
-------      enableNotifications: 'Ativar Notificações',
-------      notificationsDesc: 'Receba lembretes de refeições e treinos',
-------      configureReminders: 'Configurar Lembretes',
-------      remindersDesc: 'Horários de refeições, treino e peso',
-------      appearance: 'Aparência',
-------      theme: 'Tema',
-------      themeDesc: 'Escolha como o app deve aparecer',
-------      system: 'Sistema',
-------      light: 'Claro',
-------      dark: 'Escuro',
-------      language: 'Idioma',
-------      data: 'Dados',
-------      clearCache: 'Limpar Cache',
-------      clearCacheDesc: 'Remove dados em cache localmente',
-------      legal: 'Legal',
------+      support: 'Suporte',
------       privacy: 'Política de Privacidade',
-------      terms: 'Termos de Uso',
------+      termsOfUse: 'Termos de Uso',
------+      help: 'Ajuda',
------+      logout: 'Sair',
------+      logoutTitle: 'Sair da Conta',
------+      logoutConfirm: 'Tem certeza que deseja sair?',
------+      cancel: 'Cancelar',
------       version: 'Versão',
------+      madeWithLove: 'Feito com ❤️',
------+      user: 'Usuário',
+-----     diet: {
+-----       title: 'Seu Plano de Dieta',
+-----+      mealsPlanned: 'refeições planejadas',
+-----+      daySummary: 'Resumo do Dia',
+-----       noData: 'Nenhuma dieta gerada',
+-----       generateDiet: 'Gerar Minha Dieta',
+-----       generating: 'Gerando seu plano de dieta...',
+-----@@ -448,6 +457,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-----         fruit: 'Fruta',
+-----         vegetable: 'Vegetal',
+-----       },
+-----+      noDietGenerated: 'Nenhuma dieta foi gerada ainda',
+-----+      generateYourDiet: 'Gere sua dieta',
+-----+      generateMyDiet: 'Gerar Minha Dieta',
+-----+      substitute: 'Substituir',
+-----+      success: 'Sucesso',
 -----     },
------     notificationSettings: {
------       title: 'Notificações',
------@@ -849,28 +851,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-----     workout: {
+-----       title: 'Seu Plano de Treino',
+-----@@ -767,6 +781,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
 -----     },
------     settings: {
------       title: 'Settings',
------+      subtitle: 'Customize your experience',
------       account: 'Account',
------       editProfile: 'Edit Profile',
-------      logout: 'Log Out',
------+      diet: 'Diet',
------+      mealsPerDay: 'Meals per day',
------+      meals: 'Meals',
------+      training: 'Training',
------+      configureTraining: 'Configure Training',
------+      timesPerWeek: 'times per week',
------+      preferences: 'Preferences',
------+      lightMode: 'Light Mode',
------       notifications: 'Notifications',
-------      enableNotifications: 'Enable Notifications',
-------      notificationsDesc: 'Receive meal and workout reminders',
-------      configureReminders: 'Configure Reminders',
-------      remindersDesc: 'Meal, workout, and weight schedules',
-------      appearance: 'Appearance',
-------      theme: 'Theme',
-------      themeDesc: 'Choose how the app should look',
-------      system: 'System',
-------      light: 'Light',
-------      dark: 'Dark',
-------      language: 'Language',
-------      data: 'Data',
-------      clearCache: 'Clear Cache',
-------      clearCacheDesc: 'Remove locally cached data',
-------      legal: 'Legal',
------+      support: 'Support',
------       privacy: 'Privacy Policy',
-------      terms: 'Terms of Use',
------+      termsOfUse: 'Terms of Use',
------+      help: 'Help',
------+      logout: 'Log Out',
------+      logoutTitle: 'Log Out',
------+      logoutConfirm: 'Are you sure you want to log out?',
------+      cancel: 'Cancel',
------       version: 'Version',
------+      madeWithLove: 'Made with ❤️',
------+      user: 'User',
+-----     diet: {
+-----       title: 'Your Diet Plan',
+-----+      mealsPlanned: 'meals planned',
+-----+      daySummary: 'Day Summary',
+-----       noData: 'No diet generated',
+-----       generateDiet: 'Generate My Diet',
+-----       generating: 'Generating your diet plan...',
+-----@@ -787,6 +803,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-----         fruit: 'Fruit',
+-----         vegetable: 'Vegetable',
+-----       },
+-----+      noDietGenerated: 'No diet has been generated yet',
+-----+      generateYourDiet: 'Generate your diet',
+-----+      generateMyDiet: 'Generate My Diet',
+-----+      substitute: 'Substitute',
+-----+      success: 'Success',
 -----     },
------     notificationSettings: {
------       title: 'Notifications',
------@@ -1187,28 +1190,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-----     workout: {
+-----       title: 'Your Workout Plan',
+-----@@ -1106,6 +1127,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
 -----     },
------     settings: {
------       title: 'Configuración',
------+      subtitle: 'Personaliza tu experiencia',
------       account: 'Cuenta',
------       editProfile: 'Editar Perfil',
-------      logout: 'Cerrar Sesión',
------+      diet: 'Dieta',
------+      mealsPerDay: 'Comidas por día',
------+      meals: 'Comidas',
------+      training: 'Entreno',
------+      configureTraining: 'Configurar Entreno',
------+      timesPerWeek: 'veces por semana',
------+      preferences: 'Preferencias',
------+      lightMode: 'Modo Claro',
------       notifications: 'Notificaciones',
-------      enableNotifications: 'Activar Notificaciones',
-------      notificationsDesc: 'Recibe recordatorios de comidas y entrenos',
-------      configureReminders: 'Configurar Recordatorios',
-------      remindersDesc: 'Horarios de comidas, entreno y peso',
-------      appearance: 'Apariencia',
-------      theme: 'Tema',
-------      themeDesc: 'Elige cómo debe verse la app',
-------      system: 'Sistema',
-------      light: 'Claro',
-------      dark: 'Oscuro',
-------      language: 'Idioma',
-------      data: 'Datos',
-------      clearCache: 'Limpiar Caché',
-------      clearCacheDesc: 'Elimina datos en caché localmente',
-------      legal: 'Legal',
------+      support: 'Soporte',
------       privacy: 'Política de Privacidad',
-------      terms: 'Términos de Uso',
------+      termsOfUse: 'Términos de Uso',
------+      help: 'Ayuda',
------+      logout: 'Cerrar Sesión',
------+      logoutTitle: 'Cerrar Sesión',
------+      logoutConfirm: '¿Estás seguro de que quieres cerrar sesión?',
------+      cancel: 'Cancelar',
------       version: 'Versión',
------+      madeWithLove: 'Hecho con ❤️',
------+      user: 'Usuario',
+-----     diet: {
+-----       title: 'Tu Plan de Dieta',
+-----+      mealsPlanned: 'comidas planificadas',
+-----+      daySummary: 'Resumen del Día',
+-----       noData: 'Ninguna dieta generada',
+-----       generateDiet: 'Generar Mi Dieta',
+-----       generating: 'Generando tu plan de dieta...',
+-----@@ -1126,6 +1149,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-----         fruit: 'Fruta',
+-----         vegetable: 'Vegetal',
+-----       },
+-----+      noDietGenerated: 'Aún no se ha generado ninguna dieta',
+-----+      generateYourDiet: 'Genera tu dieta',
+-----+      generateMyDiet: 'Generar Mi Dieta',
+-----+      substitute: 'Sustituir',
+-----+      success: 'Éxito',
 -----     },
------     notificationSettings: {
------       title: 'Notificaciones',
+-----     workout: {
+-----       title: 'Tu Plan de Entreno',
 -----diff --git a/model.patch b/model.patch
------index cefb6296..074b4fc1 100644
+-----index 61dea53b..e69de29b 100644
 -------- a/model.patch
 -----+++ b/model.patch
------@@ -1,82 +0,0 @@
+-----@@ -1,279 +0,0 @@
 ------diff --git a/frontend/i18n/translations.ts b/frontend/i18n/translations.ts
-------index 4ba5132c..2e2d651d 100644
+------index 274539a4..e3f9786b 100644
 --------- a/frontend/i18n/translations.ts
 ------+++ b/frontend/i18n/translations.ts
-------@@ -11,16 +11,19 @@ export interface Translations {
-------     loading: string;
-------     error: string;
-------     success: string;
--------    cancel: string;
-------+    warning: string;
-------     save: string;
+------@@ -156,28 +156,29 @@ export interface Translations {
+------   // Settings screen
+------   settings: {
+------     title: string;
+------+    subtitle: string;
+------     account: string;
+------     editProfile: string;
+-------    logout: string;
+------+    diet: string;
+------+    mealsPerDay: string;
+------+    meals: string;
+------+    training: string;
+------+    configureTraining: string;
+------+    timesPerWeek: string;
+------+    preferences: string;
+------+    lightMode: string;
+------     notifications: string;
+-------    enableNotifications: string;
+-------    notificationsDesc: string;
+-------    configureReminders: string;
+-------    remindersDesc: string;
+-------    appearance: string;
+-------    theme: string;
+-------    themeDesc: string;
+-------    system: string;
+-------    light: string;
+-------    dark: string;
+-------    language: string;
+-------    data: string;
+-------    clearCache: string;
+-------    clearCacheDesc: string;
+-------    legal: string;
+------+    support: string;
+------     privacy: string;
+-------    terms: string;
+------+    termsOfUse: string;
+------+    help: string;
+------+    logout: string;
+------+    logoutTitle: string;
+------+    logoutConfirm: string;
 ------+    cancel: string;
-------     confirm: string;
-------     delete: string;
-------     edit: string;
-------     back: string;
-------     next: string;
-------     done: string;
-------+    connectionError: string;
-------     yes: string;
-------     no: string;
-------+    saving: string;
+------     version: string;
+------+    madeWithLove: string;
+------+    user: string;
 ------   };
-------   // Tab names
-------   tabs: {
-------@@ -367,6 +370,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
-------       loading: 'Carregando...',
-------       error: 'Erro',
-------       success: 'Sucesso',
-------+      warning: 'Aviso',
-------       cancel: 'Cancelar',
-------       save: 'Salvar',
-------       confirm: 'Confirmar',
-------@@ -375,8 +379,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
-------       back: 'Voltar',
-------       next: 'Próximo',
-------       done: 'Concluído',
-------+      connectionError: 'Erro de Conexão',
-------       yes: 'Sim',
-------       no: 'Não',
-------+      saving: 'Salvando...',
+------   // Notifications settings
+------   notificationSettings: {
+------@@ -511,28 +512,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
 ------     },
-------     tabs: {
-------       home: 'Início',
-------@@ -699,6 +705,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
-------       loading: 'Loading...',
-------       error: 'Error',
-------       success: 'Success',
-------+      warning: 'Warning',
-------       cancel: 'Cancel',
-------       save: 'Save',
-------       confirm: 'Confirm',
-------@@ -707,8 +714,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
-------       back: 'Back',
-------       next: 'Next',
-------       done: 'Done',
-------+      connectionError: 'Connection Error',
-------       yes: 'Yes',
-------       no: 'No',
-------+      saving: 'Saving...',
+------     settings: {
+------       title: 'Configurações',
+------+      subtitle: 'Personalize sua experiência',
+------       account: 'Conta',
+------       editProfile: 'Editar Perfil',
+-------      logout: 'Sair da Conta',
+------+      diet: 'Dieta',
+------+      mealsPerDay: 'Refeições por dia',
+------+      meals: 'Refeições',
+------+      training: 'Treino',
+------+      configureTraining: 'Configurar Treino',
+------+      timesPerWeek: 'vezes por semana',
+------+      preferences: 'Preferências',
+------+      lightMode: 'Modo Claro',
+------       notifications: 'Notificações',
+-------      enableNotifications: 'Ativar Notificações',
+-------      notificationsDesc: 'Receba lembretes de refeições e treinos',
+-------      configureReminders: 'Configurar Lembretes',
+-------      remindersDesc: 'Horários de refeições, treino e peso',
+-------      appearance: 'Aparência',
+-------      theme: 'Tema',
+-------      themeDesc: 'Escolha como o app deve aparecer',
+-------      system: 'Sistema',
+-------      light: 'Claro',
+-------      dark: 'Escuro',
+-------      language: 'Idioma',
+-------      data: 'Dados',
+-------      clearCache: 'Limpar Cache',
+-------      clearCacheDesc: 'Remove dados em cache localmente',
+-------      legal: 'Legal',
+------+      support: 'Suporte',
+------       privacy: 'Política de Privacidade',
+-------      terms: 'Termos de Uso',
+------+      termsOfUse: 'Termos de Uso',
+------+      help: 'Ajuda',
+------+      logout: 'Sair',
+------+      logoutTitle: 'Sair da Conta',
+------+      logoutConfirm: 'Tem certeza que deseja sair?',
+------+      cancel: 'Cancelar',
+------       version: 'Versão',
+------+      madeWithLove: 'Feito com ❤️',
+------+      user: 'Usuário',
 ------     },
-------     tabs: {
-------       home: 'Home',
-------@@ -1031,6 +1040,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
-------       loading: 'Cargando...',
-------       error: 'Error',
-------       success: 'Éxito',
-------+      warning: 'Advertencia',
-------       cancel: 'Cancelar',
-------       save: 'Guardar',
-------       confirm: 'Confirmar',
-------@@ -1039,8 +1049,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
-------       back: 'Volver',
-------       next: 'Siguiente',
-------       done: 'Hecho',
-------+      connectionError: 'Error de Conexión',
-------       yes: 'Sí',
-------       no: 'No',
-------+      saving: 'Guardando...',
+------     notificationSettings: {
+------       title: 'Notificações',
+------@@ -849,28 +851,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
 ------     },
-------     tabs: {
-------       home: 'Inicio',
+------     settings: {
+------       title: 'Settings',
+------+      subtitle: 'Customize your experience',
+------       account: 'Account',
+------       editProfile: 'Edit Profile',
+-------      logout: 'Log Out',
+------+      diet: 'Diet',
+------+      mealsPerDay: 'Meals per day',
+------+      meals: 'Meals',
+------+      training: 'Training',
+------+      configureTraining: 'Configure Training',
+------+      timesPerWeek: 'times per week',
+------+      preferences: 'Preferences',
+------+      lightMode: 'Light Mode',
+------       notifications: 'Notifications',
+-------      enableNotifications: 'Enable Notifications',
+-------      notificationsDesc: 'Receive meal and workout reminders',
+-------      configureReminders: 'Configure Reminders',
+-------      remindersDesc: 'Meal, workout, and weight schedules',
+-------      appearance: 'Appearance',
+-------      theme: 'Theme',
+-------      themeDesc: 'Choose how the app should look',
+-------      system: 'System',
+-------      light: 'Light',
+-------      dark: 'Dark',
+-------      language: 'Language',
+-------      data: 'Data',
+-------      clearCache: 'Clear Cache',
+-------      clearCacheDesc: 'Remove locally cached data',
+-------      legal: 'Legal',
+------+      support: 'Support',
+------       privacy: 'Privacy Policy',
+-------      terms: 'Terms of Use',
+------+      termsOfUse: 'Terms of Use',
+------+      help: 'Help',
+------+      logout: 'Log Out',
+------+      logoutTitle: 'Log Out',
+------+      logoutConfirm: 'Are you sure you want to log out?',
+------+      cancel: 'Cancel',
+------       version: 'Version',
+------+      madeWithLove: 'Made with ❤️',
+------+      user: 'User',
+------     },
+------     notificationSettings: {
+------       title: 'Notifications',
+------@@ -1187,28 +1190,29 @@ export const translations: Record<SupportedLanguage, Translations> = {
+------     },
+------     settings: {
+------       title: 'Configuración',
+------+      subtitle: 'Personaliza tu experiencia',
+------       account: 'Cuenta',
+------       editProfile: 'Editar Perfil',
+-------      logout: 'Cerrar Sesión',
+------+      diet: 'Dieta',
+------+      mealsPerDay: 'Comidas por día',
+------+      meals: 'Comidas',
+------+      training: 'Entreno',
+------+      configureTraining: 'Configurar Entreno',
+------+      timesPerWeek: 'veces por semana',
+------+      preferences: 'Preferencias',
+------+      lightMode: 'Modo Claro',
+------       notifications: 'Notificaciones',
+-------      enableNotifications: 'Activar Notificaciones',
+-------      notificationsDesc: 'Recibe recordatorios de comidas y entrenos',
+-------      configureReminders: 'Configurar Recordatorios',
+-------      remindersDesc: 'Horarios de comidas, entreno y peso',
+-------      appearance: 'Apariencia',
+-------      theme: 'Tema',
+-------      themeDesc: 'Elige cómo debe verse la app',
+-------      system: 'Sistema',
+-------      light: 'Claro',
+-------      dark: 'Oscuro',
+-------      language: 'Idioma',
+-------      data: 'Datos',
+-------      clearCache: 'Limpiar Caché',
+-------      clearCacheDesc: 'Elimina datos en caché localmente',
+-------      legal: 'Legal',
+------+      support: 'Soporte',
+------       privacy: 'Política de Privacidad',
+-------      terms: 'Términos de Uso',
+------+      termsOfUse: 'Términos de Uso',
+------+      help: 'Ayuda',
+------+      logout: 'Cerrar Sesión',
+------+      logoutTitle: 'Cerrar Sesión',
+------+      logoutConfirm: '¿Estás seguro de que quieres cerrar sesión?',
+------+      cancel: 'Cancelar',
+------       version: 'Versión',
+------+      madeWithLove: 'Hecho con ❤️',
+------+      user: 'Usuario',
+------     },
+------     notificationSettings: {
+------       title: 'Notificaciones',
+------diff --git a/model.patch b/model.patch
+------index cefb6296..074b4fc1 100644
+--------- a/model.patch
+------+++ b/model.patch
+------@@ -1,82 +0,0 @@
+-------diff --git a/frontend/i18n/translations.ts b/frontend/i18n/translations.ts
+-------index 4ba5132c..2e2d651d 100644
+---------- a/frontend/i18n/translations.ts
+-------+++ b/frontend/i18n/translations.ts
+-------@@ -11,16 +11,19 @@ export interface Translations {
+-------     loading: string;
+-------     error: string;
+-------     success: string;
+--------    cancel: string;
+-------+    warning: string;
+-------     save: string;
+-------+    cancel: string;
+-------     confirm: string;
+-------     delete: string;
+-------     edit: string;
+-------     back: string;
+-------     next: string;
+-------     done: string;
+-------+    connectionError: string;
+-------     yes: string;
+-------     no: string;
+-------+    saving: string;
+-------   };
+-------   // Tab names
+-------   tabs: {
+-------@@ -367,6 +370,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-------       loading: 'Carregando...',
+-------       error: 'Erro',
+-------       success: 'Sucesso',
+-------+      warning: 'Aviso',
+-------       cancel: 'Cancelar',
+-------       save: 'Salvar',
+-------       confirm: 'Confirmar',
+-------@@ -375,8 +379,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-------       back: 'Voltar',
+-------       next: 'Próximo',
+-------       done: 'Concluído',
+-------+      connectionError: 'Erro de Conexão',
+-------       yes: 'Sim',
+-------       no: 'Não',
+-------+      saving: 'Salvando...',
+-------     },
+-------     tabs: {
+-------       home: 'Início',
+-------@@ -699,6 +705,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-------       loading: 'Loading...',
+-------       error: 'Error',
+-------       success: 'Success',
+-------+      warning: 'Warning',
+-------       cancel: 'Cancel',
+-------       save: 'Save',
+-------       confirm: 'Confirm',
+-------@@ -707,8 +714,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-------       back: 'Back',
+-------       next: 'Next',
+-------       done: 'Done',
+-------+      connectionError: 'Connection Error',
+-------       yes: 'Yes',
+-------       no: 'No',
+-------+      saving: 'Saving...',
+-------     },
+-------     tabs: {
+-------       home: 'Home',
+-------@@ -1031,6 +1040,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-------       loading: 'Cargando...',
+-------       error: 'Error',
+-------       success: 'Éxito',
+-------+      warning: 'Advertencia',
+-------       cancel: 'Cancelar',
+-------       save: 'Guardar',
+-------       confirm: 'Confirmar',
+-------@@ -1039,8 +1049,10 @@ export const translations: Record<SupportedLanguage, Translations> = {
+-------       back: 'Volver',
+-------       next: 'Siguiente',
+-------       done: 'Hecho',
+-------+      connectionError: 'Error de Conexión',
+-------       yes: 'Sí',
+-------       no: 'No',
+-------+      saving: 'Guardando...',
+-------     },
+-------     tabs: {
+-------       home: 'Inicio',
+----diff --git a/test_result.md b/test_result.md
+----index 43c042a2..73052be7 100644
+------- a/test_result.md
+----+++ b/test_result.md
+----@@ -418,9 +418,9 @@ frontend:
+----   
+----   - task: "Authentication Integration"
+----     implemented: true
+-----    working: false
+----+    working: true
+----     file: "/app/frontend/app/auth/login.tsx"
+-----    stuck_count: 1
+----+    stuck_count: 0
+----     priority: "high"
+----     needs_retesting: false
+----     status_history:
+----@@ -432,6 +432,9 @@ frontend:
+----       - working: false
+----         agent: "testing"
+----         comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
+----+      - working: true
+----+        agent: "testing"
+----+        comment: "✅ AUTENTICAÇÃO FUNCIONANDO: Login com credenciais teste@laf.com/Teste123! funciona corretamente. Redirecionamento adequado: usuário sem perfil → onboarding, usuário com perfil → /(tabs). Sistema de JWT e validação de sessão operacional. Problema anterior era falta de perfil completo no usuário de teste."
+----   
+----   - task: "Home Screen with Profile Summary"
+----     implemented: true
+----@@ -448,6 +451,18 @@ frontend:
+----         agent: "testing"
+----         comment: "❌ CRÍTICO: Não consegui acessar a home screen - app fica preso na tela de login mesmo com credenciais válidas. Problema de autenticação/integração frontend-backend."
+---- 
+----+  - task: "Progress Screen Check-in Functionality"
+----+    implemented: true
+----+    working: true
+----+    file: "/app/frontend/app/(tabs)/progress.tsx"
+----+    stuck_count: 0
+----+    priority: "high"
+----+    needs_retesting: false
+----+    status_history:
+----+      - working: true
+----+        agent: "testing"
+----+        comment: "✅ TELA DE PROGRESSO COMPLETA VALIDADA: (1) Card de peso atual funcional mostrando 80.0kg, (2) Meta de peso exibida (75kg), (3) Bloqueio de 14 dias funcionando corretamente ('Próximo registro em 14 dias'), (4) Interface mobile responsiva (390x844), (5) Tradução portuguesa completa, (6) Navegação por abas funcional. Modal de check-in em 3 passos implementado mas não testável devido ao bloqueio de 14 dias (comportamento correto). Estrutura do modal verificada no código: Passo 1 (campo peso), Passo 2 (7 sliders: Dieta, Treino, Cardio, Sono, Hidratação, Energia, Fome), Passo 3 (campo alimentos enjoados + observações + botão 'Salvar e Ajustar Dieta'). Sistema funcionando conforme especificação."
+----+
+---- metadata:
+----   created_by: "main_agent"
+----   version: "1.0"
+----@@ -470,6 +485,8 @@ test_plan:
+---- agent_communication:
+----   - agent: "main"
+----     message: "🔍 AUDITORIA COMPLETA SOLICITADA - Usuário quer testar TODAS as funcionalidades, TODAS as combinações, TODAS as preferências. Testar especialmente: (1) Dietas com 4, 5 e 6 refeições, (2) Todas as restrições alimentares (Vegetariano, Sem Lactose, Sem Glúten), (3) Todos os objetivos (Cutting, Bulking, Manutenção), (4) Substituição de alimentos, (5) Treinos com diferentes tempos e frequências. IDENTIFICAR E REPORTAR TODOS OS ERROS ENCONTRADOS."
+----+  - agent: "testing"
+----+    message: "✅ TESTE TELA DE PROGRESSO CONCLUÍDO COM SUCESSO - Funcionalidade de check-in quinzenal validada conforme solicitação do usuário. RESULTADOS: (1) Login funcionando com credenciais teste@laf.com/Teste123!, (2) Tela de Progresso carregada corretamente com card de peso atual (80.0kg), meta (75kg), (3) Bloqueio de 14 dias funcionando ('Próximo registro em 14 dias'), (4) Interface mobile responsiva (390x844), (5) Tradução portuguesa completa, (6) Modal de check-in em 3 passos implementado (verificado no código): Passo 1 (campo peso), Passo 2 (7 sliders de avaliação), Passo 3 (alimentos enjoados + observações). Sistema funcionando conforme especificação - não foi possível testar o modal completo devido ao bloqueio de 14 dias (comportamento correto)."
+----   - agent: "main"
+----     message: "FASE 1 implemented - Backend has user profile CRUD with TDEE/macros calculation. Frontend has complete 5-step onboarding flow and home screen. Backend POST /api/user/profile tested successfully with curl. Need to test: GET/PUT endpoints, complete onboarding flow, profile display on home screen. All APIs use /api prefix."
+----   - agent: "testing"
 ---diff --git a/test_result.md b/test_result.md
----index 43c042a2..73052be7 100644
+---index 73052be7..56a9e6a5 100644
 ------ a/test_result.md
 ---+++ b/test_result.md
----@@ -418,9 +418,9 @@ frontend:
----   
----   - task: "Authentication Integration"
----     implemented: true
-----    working: false
----+    working: true
----     file: "/app/frontend/app/auth/login.tsx"
-----    stuck_count: 1
----+    stuck_count: 0
----     priority: "high"
----     needs_retesting: false
----     status_history:
----@@ -432,6 +432,9 @@ frontend:
----       - working: false
----         agent: "testing"
----         comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
----+      - working: true
----+        agent: "testing"
----+        comment: "✅ AUTENTICAÇÃO FUNCIONANDO: Login com credenciais teste@laf.com/Teste123! funciona corretamente. Redirecionamento adequado: usuário sem perfil → onboarding, usuário com perfil → /(tabs). Sistema de JWT e validação de sessão operacional. Problema anterior era falta de perfil completo no usuário de teste."
----   
----   - task: "Home Screen with Profile Summary"
----     implemented: true
----@@ -448,6 +451,18 @@ frontend:
----         agent: "testing"
----         comment: "❌ CRÍTICO: Não consegui acessar a home screen - app fica preso na tela de login mesmo com credenciais válidas. Problema de autenticação/integração frontend-backend."
---- 
----+  - task: "Progress Screen Check-in Functionality"
----+    implemented: true
----+    working: true
----+    file: "/app/frontend/app/(tabs)/progress.tsx"
----+    stuck_count: 0
----+    priority: "high"
----+    needs_retesting: false
----+    status_history:
----+      - working: true
----+        agent: "testing"
----+        comment: "✅ TELA DE PROGRESSO COMPLETA VALIDADA: (1) Card de peso atual funcional mostrando 80.0kg, (2) Meta de peso exibida (75kg), (3) Bloqueio de 14 dias funcionando corretamente ('Próximo registro em 14 dias'), (4) Interface mobile responsiva (390x844), (5) Tradução portuguesa completa, (6) Navegação por abas funcional. Modal de check-in em 3 passos implementado mas não testável devido ao bloqueio de 14 dias (comportamento correto). Estrutura do modal verificada no código: Passo 1 (campo peso), Passo 2 (7 sliders: Dieta, Treino, Cardio, Sono, Hidratação, Energia, Fome), Passo 3 (campo alimentos enjoados + observações + botão 'Salvar e Ajustar Dieta'). Sistema funcionando conforme especificação."
----+
---- metadata:
----   created_by: "main_agent"
----   version: "1.0"
----@@ -470,6 +485,8 @@ test_plan:
---- agent_communication:
----   - agent: "main"
+---@@ -487,6 +487,8 @@ agent_communication:
 ---     message: "🔍 AUDITORIA COMPLETA SOLICITADA - Usuário quer testar TODAS as funcionalidades, TODAS as combinações, TODAS as preferências. Testar especialmente: (1) Dietas com 4, 5 e 6 refeições, (2) Todas as restrições alimentares (Vegetariano, Sem Lactose, Sem Glúten), (3) Todos os objetivos (Cutting, Bulking, Manutenção), (4) Substituição de alimentos, (5) Treinos com diferentes tempos e frequências. IDENTIFICAR E REPORTAR TODOS OS ERROS ENCONTRADOS."
+---   - agent: "testing"
+---     message: "✅ TESTE TELA DE PROGRESSO CONCLUÍDO COM SUCESSO - Funcionalidade de check-in quinzenal validada conforme solicitação do usuário. RESULTADOS: (1) Login funcionando com credenciais teste@laf.com/Teste123!, (2) Tela de Progresso carregada corretamente com card de peso atual (80.0kg), meta (75kg), (3) Bloqueio de 14 dias funcionando ('Próximo registro em 14 dias'), (4) Interface mobile responsiva (390x844), (5) Tradução portuguesa completa, (6) Modal de check-in em 3 passos implementado (verificado no código): Passo 1 (campo peso), Passo 2 (7 sliders de avaliação), Passo 3 (alimentos enjoados + observações). Sistema funcionando conforme especificação - não foi possível testar o modal completo devido ao bloqueio de 14 dias (comportamento correto)."
 ---+  - agent: "testing"
----+    message: "✅ TESTE TELA DE PROGRESSO CONCLUÍDO COM SUCESSO - Funcionalidade de check-in quinzenal validada conforme solicitação do usuário. RESULTADOS: (1) Login funcionando com credenciais teste@laf.com/Teste123!, (2) Tela de Progresso carregada corretamente com card de peso atual (80.0kg), meta (75kg), (3) Bloqueio de 14 dias funcionando ('Próximo registro em 14 dias'), (4) Interface mobile responsiva (390x844), (5) Tradução portuguesa completa, (6) Modal de check-in em 3 passos implementado (verificado no código): Passo 1 (campo peso), Passo 2 (7 sliders de avaliação), Passo 3 (alimentos enjoados + observações). Sistema funcionando conforme especificação - não foi possível testar o modal completo devido ao bloqueio de 14 dias (comportamento correto)."
+---+    message: "❌ TESTE DO FLUXO DE PAYWALL FALHOU - PROBLEMA CRÍTICO IDENTIFICADO: O frontend está travado na tela de loading (logo LAF + spinner) e não progride para a seleção de idioma ou qualquer outra tela. ANÁLISE: (1) Backend funcionando corretamente (responde em /api/auth/validate), (2) Console logs mostram AuthGuard funcionando (detecta usuário não autenticado, permite index screen), (3) hasSelectedLanguage retorna null (correto para primeiro acesso), (4) App deveria mostrar seleção de idioma mas fica preso no loading. CONCLUSÃO: Há um problema de renderização/inicialização no frontend que impede o fluxo normal. Não foi possível testar: Signup → Onboarding → Paywall → App principal. RECOMENDAÇÃO: Investigar problema de inicialização do frontend antes de testar paywall."
 ---   - agent: "main"
 ---     message: "FASE 1 implemented - Backend has user profile CRUD with TDEE/macros calculation. Frontend has complete 5-step onboarding flow and home screen. Backend POST /api/user/profile tested successfully with curl. Need to test: GET/PUT endpoints, complete onboarding flow, profile display on home screen. All APIs use /api prefix."
 ---   - agent: "testing"
---diff --git a/test_result.md b/test_result.md
---index 73052be7..56a9e6a5 100644
------ a/test_result.md
---+++ b/test_result.md
---@@ -487,6 +487,8 @@ agent_communication:
---     message: "🔍 AUDITORIA COMPLETA SOLICITADA - Usuário quer testar TODAS as funcionalidades, TODAS as combinações, TODAS as preferências. Testar especialmente: (1) Dietas com 4, 5 e 6 refeições, (2) Todas as restrições alimentares (Vegetariano, Sem Lactose, Sem Glúten), (3) Todos os objetivos (Cutting, Bulking, Manutenção), (4) Substituição de alimentos, (5) Treinos com diferentes tempos e frequências. IDENTIFICAR E REPORTAR TODOS OS ERROS ENCONTRADOS."
---   - agent: "testing"
---     message: "✅ TESTE TELA DE PROGRESSO CONCLUÍDO COM SUCESSO - Funcionalidade de check-in quinzenal validada conforme solicitação do usuário. RESULTADOS: (1) Login funcionando com credenciais teste@laf.com/Teste123!, (2) Tela de Progresso carregada corretamente com card de peso atual (80.0kg), meta (75kg), (3) Bloqueio de 14 dias funcionando ('Próximo registro em 14 dias'), (4) Interface mobile responsiva (390x844), (5) Tradução portuguesa completa, (6) Modal de check-in em 3 passos implementado (verificado no código): Passo 1 (campo peso), Passo 2 (7 sliders de avaliação), Passo 3 (alimentos enjoados + observações). Sistema funcionando conforme especificação - não foi possível testar o modal completo devido ao bloqueio de 14 dias (comportamento correto)."
---+  - agent: "testing"
---+    message: "❌ TESTE DO FLUXO DE PAYWALL FALHOU - PROBLEMA CRÍTICO IDENTIFICADO: O frontend está travado na tela de loading (logo LAF + spinner) e não progride para a seleção de idioma ou qualquer outra tela. ANÁLISE: (1) Backend funcionando corretamente (responde em /api/auth/validate), (2) Console logs mostram AuthGuard funcionando (detecta usuário não autenticado, permite index screen), (3) hasSelectedLanguage retorna null (correto para primeiro acesso), (4) App deveria mostrar seleção de idioma mas fica preso no loading. CONCLUSÃO: Há um problema de renderização/inicialização no frontend que impede o fluxo normal. Não foi possível testar: Signup → Onboarding → Paywall → App principal. RECOMENDAÇÃO: Investigar problema de inicialização do frontend antes de testar paywall."
---   - agent: "main"
---     message: "FASE 1 implemented - Backend has user profile CRUD with TDEE/macros calculation. Frontend has complete 5-step onboarding flow and home screen. Backend POST /api/user/profile tested successfully with curl. Need to test: GET/PUT endpoints, complete onboarding flow, profile display on home screen. All APIs use /api prefix."
---   - agent: "testing"
