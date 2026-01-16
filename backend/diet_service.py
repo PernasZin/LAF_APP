@@ -3098,7 +3098,7 @@ class DietAIService:
                         fruit_per_100g = FOODS.get(safe_fruit, {}).get("c", 20)
                         extra_fruit_g = round_to_10(min((carbs_per_lanche / fruit_per_100g) * 100, 200))
                         
-                        if extra_fruit_g >= 50:
+                        if extra_fruit_g >= 20:  # Reduzido de 50 para 20g mínimo
                             # Procura fruta existente
                             fruit_idx = None
                             for f_idx, food in enumerate(meals[idx]["foods"]):
