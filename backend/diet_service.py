@@ -2835,39 +2835,40 @@ class DietAIService:
         # 🏋️ COMPENSAÇÃO ESPECIAL PARA BULKING
         # Se é bulking e está mais de 5% abaixo, DEVE compensar agressivamente
         if goal.lower() == 'bulking' and cal_diff > target_calories * 0.05:
-            # 🍞 PRIMEIRO: Aumenta o pão no café da manhã (mais natural que jogar tudo no arroz)
-            # Encontra o índice do café da manhã
-            cafe_idx = 0
+            print(f"[DIET DEBUG] BULKING compensation needed: {cal_diff}kcal deficit")
             
-            # Verifica se já tem pão no café e aumenta
-            pao_found = False
-            for f_idx, food in enumerate(meals[cafe_idx].get("foods", [])):
-                if food.get("key") in ["pao", "pao_integral", "tapioca"]:
-                    current_pao = food.get("grams", 50)
-                    # Aumenta até no máximo 125g (5 fatias)
-                    new_pao = min(current_pao + 50, 125)
-                    if new_pao > current_pao:
-                        meals[cafe_idx]["foods"][f_idx] = calc_food(food.get("key"), new_pao)
-                        pao_found = True
-                    break
+            # Determina índices das refeições principais (almoço e jantar)
+            if meal_count == 4:
+                main_meal_indices = [1, 3]
+            elif meal_count == 5:
+                main_meal_indices = [2, 4]
+            else:
+                main_meal_indices = [2, 4]
             
-            # Se não tinha pão, adiciona (se não for sem glúten E não for diabético)
-            # Diabéticos não podem pão!
-            pao_allowed = (
-                "sem_gluten" not in dietary_restrictions and 
-                "sem_glúten" not in dietary_restrictions and
-                "diabetico" not in dietary_restrictions and
-                "Diabético" not in dietary_restrictions
-            )
-            if not pao_found and pao_allowed:
-                meals[cafe_idx]["foods"].append(calc_food("pao_integral", 75))  # 3 fatias
-            elif not pao_found:
-                # Para diabéticos/sem glúten: usa a função inteligente que respeita TODAS as restrições
-                safe_carb = get_restriction_safe_breakfast_carb()
-                meals[cafe_idx]["foods"].append(calc_food(safe_carb, 60 if safe_carb == "aveia" else 80))
+            # 🍚 Adiciona carboidratos extras nas refeições principais
+            safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["arroz_branco", "batata_doce", "arroz_integral"])
+            if safe_carb:
+                carb_cal_per_100g = FOODS.get(safe_carb, {}).get("c", 25) * 4 + FOODS.get(safe_carb, {}).get("f", 0) * 9
+                
+                # Calcula quanto precisa adicionar por refeição
+                extra_per_meal = cal_diff / len(main_meal_indices)
+                extra_grams = round_to_10(min((extra_per_meal / (carb_cal_per_100g / 100)), 150))  # Max 150g extra por refeição
+                
+                for idx in main_meal_indices:
+                    if idx < len(meals):
+                        meals[idx]["foods"].append(calc_food(safe_carb, extra_grams))
+                        mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                        meals[idx]["total_calories"] = mcal
+                        meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             
-            # Recalcula déficit após ajuste do pão/batata
-            total_cal_after_pao = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
+            # Recalcula
+            total_cal_after = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
+            cal_diff_after = target_calories - total_cal_after
+            print(f"[DIET DEBUG] After BULKING compensation: {total_cal_after}kcal, Diff: {cal_diff_after}kcal")
+        
+        # 🔒 COMPENSAÇÃO PARA RESTRIÇÕES SEVERAS (não-bulking)
+        # Se está mais de 15% abaixo do target, compensa DISTRIBUINDO entre pão e arroz
+        elif cal_diff > target_calories * 0.15:
             cal_diff_remaining = target_calories - total_cal_after_pao
             
             # 🍚 SEGUNDO: Se ainda falta, adiciona nas refeições principais (almoço/jantar)
