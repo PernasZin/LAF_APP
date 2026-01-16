@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
   }
   
   // Default fallback
-  return 'https://fitness-tracker-644.preview.emergentagent.com';
+  return 'https://nutrition-flow-1.preview.emergentagent.com';
 };
 
 export const config = {
