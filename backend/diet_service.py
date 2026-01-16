@@ -1966,7 +1966,8 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                 m_idx, (f_idx, food_key, current_g) = list(carb_indices.items())[0]
                 c_per_100 = FOODS[food_key]["c"]
                 increase_grams = increase_needed / (c_per_100 / 100)
-                new_g = round_to_10(min(600, current_g + increase_grams))
+                # SEM LIMITE para carboidratos
+                new_g = round_to_10(current_g + increase_grams)
                 meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                 adjusted = True
         
