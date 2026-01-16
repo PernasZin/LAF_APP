@@ -2916,9 +2916,9 @@ class DietAIService:
         # 🔒 COMPENSAÇÃO PARA RESTRIÇÕES SEVERAS (não-bulking)
         # Se está mais de 15% abaixo do target, compensa DISTRIBUINDO entre pão e arroz
         if cal_diff > target_calories * 0.15 and goal.lower() != 'bulking':
-            cal_diff_remaining = target_calories - total_cal_after_pao
+            cal_diff_remaining = cal_diff  # Usa o deficit atual
             
-            # 🍚 SEGUNDO: Se ainda falta, adiciona nas refeições principais (almoço/jantar)
+            # 🍚 Adiciona nas refeições principais (almoço/jantar)
             if cal_diff_remaining > target_calories * 0.10:
                 # Determina índices das refeições principais (almoço e jantar)
                 if meal_count == 4:
