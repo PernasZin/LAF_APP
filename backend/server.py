@@ -278,43 +278,50 @@ def calculate_tdee(bmr: float, training_frequency: int, training_level: str) -> 
 
 def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
     """
-    Calcula calorias baseado na fórmula simplificada.
-    Usa: kcal = (proteína × 4) + (carbo × 4) + (gordura × 9)
+    🎯 PASSO 2: Ajusta TDEE baseado no objetivo
+    
+    CUTTING: TDEE - 15% (déficit)
+    MANUTENÇÃO: TDEE
+    BULKING: TDEE + 15% (superávit)
     """
-    macros = calculate_macros(0, weight, goal)  # tdee não é mais usado
-    return (macros["protein"] * 4) + (macros["carbs"] * 4) + (macros["fat"] * 9)
+    if goal == "cutting":
+        return tdee * 0.85  # -15% déficit
+    elif goal == "bulking":
+        return tdee * 1.15  # +15% superávit
+    else:  # manutenção
+        return tdee
 
 def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[str, float]:
     """
-    🎯 FÓRMULA SIMPLIFICADA DE MACROS
+    🎯 PASSO 3: Distribui macros a partir das calorias ajustadas
     
-    CUTTING:
-       - Proteína: peso × 2.2
-       - Carboidrato: peso × 2.5
-       - Gordura: peso × 0.8
+    1. Proteína: peso × 2.0-2.2 g/kg (fixo)
+    2. Gordura: peso × 0.8-1.0 g/kg (fixo)  
+    3. Carboidrato: calorias restantes ÷ 4
     
-    MANUTENÇÃO:
-       - Proteína: peso × 2.0
-       - Carboidrato: peso × 3.5
-       - Gordura: peso × 0.85
-    
-    BULKING:
-       - Proteína: peso × 2.0
-       - Carboidrato: peso × 5.0
-       - Gordura: peso × 0.9
+    CUTTING: P = peso × 2.2, F = peso × 0.8
+    MANUTENÇÃO: P = peso × 2.0, F = peso × 0.85
+    BULKING: P = peso × 2.0, F = peso × 0.9
     """
     if goal == "cutting":
+        # Proteína alta para preservar massa, gordura baixa
         protein_g = weight * 2.2
-        carbs_g = weight * 2.5
         fat_g = weight * 0.8
     elif goal == "bulking":
+        # Proteína moderada, gordura moderada
         protein_g = weight * 2.0
-        carbs_g = weight * 5.0
         fat_g = weight * 0.9
     else:  # manutenção
         protein_g = weight * 2.0
-        carbs_g = weight * 3.5
         fat_g = weight * 0.85
+    
+    # Calorias usadas por proteína e gordura
+    protein_cal = protein_g * 4
+    fat_cal = fat_g * 9
+    
+    # Carboidratos = calorias restantes
+    carbs_cal = target_calories - protein_cal - fat_cal
+    carbs_g = max(50, carbs_cal / 4)  # Mínimo 50g de carbs
     
     return {
         "protein": round(protein_g, 1),
