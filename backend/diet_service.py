@@ -2980,34 +2980,39 @@ class DietAIService:
             # 🍚🍞 COMPENSAÇÃO DE CARBOIDRATOS - BALANCEADA ENTRE ARROZ E PÃES
             # Limite: máximo 10 pães por dia, resto em arroz
             
-            # Pão francês: ~29g carbs por unidade (50g)
+            # Pão Francês (key="pao"): ~49g carbs por 100g (unidade = 50g = ~24.5g carbs)
+            # Pão Integral: ~42g carbs por 100g (fatia = 30g = ~12.6g carbs)
             # Arroz branco: ~28g carbs por 100g
             
-            pao_key = "pao_frances" if "pao_frances" in FOODS else "pao_integral"
-            pao_carbs_per_unit = FOODS.get(pao_key, {}).get("c", 29) * 0.5  # carbs por unidade de 50g
-            pao_unit_grams = 50  # 1 pão = 50g
+            pao_key = "pao"  # Pão Francês - mais carbs por unidade
+            pao_carbs_per_100g = FOODS.get(pao_key, {}).get("c", 49)
+            pao_unit_grams = FOODS.get(pao_key, {}).get("unit_g", 50)  # 1 pão = 50g
+            carbs_por_pao = (pao_carbs_per_100g / 100) * pao_unit_grams  # ~24.5g carbs por pão
             
             safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["arroz_branco", "arroz_integral", "batata_doce"])
             carb_per_100g = FOODS.get(safe_carb, {}).get("c", 28) if safe_carb else 28
             
             # Estratégia: usar até 10 pães (5 por refeição principal) e o resto em arroz
             max_paes_total = 10
-            paes_por_refeicao = 5  # 5 pães no almoço, 5 no jantar
-            carbs_por_pao = pao_carbs_per_unit
+            paes_por_refeicao_max = 5  # Máx 5 pães por refeição
             
-            # Quanto de carbs podemos cobrir com pães (máx 10 pães = ~145g carbs)
+            # Quanto de carbs podemos cobrir com 10 pães (max ~245g carbs)
             max_carbs_com_paes = max_paes_total * carbs_por_pao
             
+            print(f"[DIET DEBUG] Carb compensation: deficit={carb_deficit}g, max_paes_carbs={max_carbs_com_paes}g, carbs_por_pao={carbs_por_pao}g")
+            
             if carb_deficit <= max_carbs_com_paes:
-                # Déficit pequeno: só pães são suficientes
-                paes_necessarios = int(carb_deficit / carbs_por_pao)
-                paes_por_refeicao_calc = min(paes_por_refeicao, (paes_necessarios + 1) // 2)
+                # Déficit pequeno/médio: só pães são suficientes
+                paes_necessarios = int(carb_deficit / carbs_por_pao) + 1
+                paes_por_refeicao_calc = min(paes_por_refeicao_max, (paes_necessarios + 1) // 2)
                 arroz_extra_por_refeicao = 0
             else:
                 # Déficit grande: usa 10 pães + arroz extra
-                paes_por_refeicao_calc = paes_por_refeicao  # 5 pães por refeição
+                paes_por_refeicao_calc = paes_por_refeicao_max  # 5 pães por refeição
                 carbs_restantes = carb_deficit - max_carbs_com_paes
                 arroz_extra_por_refeicao = round_to_10((carbs_restantes / 2) / carb_per_100g * 100)
+            
+            print(f"[DIET DEBUG] Adding {paes_por_refeicao_calc} pães/refeição + {arroz_extra_por_refeicao}g arroz/refeição")
             
             for idx in main_meal_indices:
                 if idx < len(meals):
