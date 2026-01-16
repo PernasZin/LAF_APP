@@ -2977,58 +2977,93 @@ class DietAIService:
             # Divide o déficit entre almoço e jantar
             carb_per_meal = carb_deficit / 2
             
-            # Busca carboidrato seguro (arroz primeiro, depois batata)
-            safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["arroz_branco", "arroz_integral", "batata_doce"])
+            # 🍚🍞 COMPENSAÇÃO DE CARBOIDRATOS - BALANCEADA ENTRE ARROZ E PÃES
+            # Limite: máximo 10 pães por dia, resto em arroz
             
-            if safe_carb:
-                carb_per_100g = FOODS.get(safe_carb, {}).get("c", 28)  # ~28g carbs por 100g de arroz
-                
-                for idx in main_meal_indices:
-                    if idx < len(meals):
-                        # AUMENTADO: Max 350g extra para compensação de déficit
-                        # SEM LIMITE PRÁTICO - ajusta para atingir target
-                        extra_grams = round_to_10((carb_per_meal / carb_per_100g) * 100)
+            # Pão francês: ~29g carbs por unidade (50g)
+            # Arroz branco: ~28g carbs por 100g
+            
+            pao_key = "pao_frances" if "pao_frances" in FOODS else "pao_integral"
+            pao_carbs_per_unit = FOODS.get(pao_key, {}).get("c", 29) * 0.5  # carbs por unidade de 50g
+            pao_unit_grams = 50  # 1 pão = 50g
+            
+            safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["arroz_branco", "arroz_integral", "batata_doce"])
+            carb_per_100g = FOODS.get(safe_carb, {}).get("c", 28) if safe_carb else 28
+            
+            # Estratégia: usar até 10 pães (5 por refeição principal) e o resto em arroz
+            max_paes_total = 10
+            paes_por_refeicao = 5  # 5 pães no almoço, 5 no jantar
+            carbs_por_pao = pao_carbs_per_unit
+            
+            # Quanto de carbs podemos cobrir com pães (máx 10 pães = ~145g carbs)
+            max_carbs_com_paes = max_paes_total * carbs_por_pao
+            
+            if carb_deficit <= max_carbs_com_paes:
+                # Déficit pequeno: só pães são suficientes
+                paes_necessarios = int(carb_deficit / carbs_por_pao)
+                paes_por_refeicao_calc = min(paes_por_refeicao, (paes_necessarios + 1) // 2)
+                arroz_extra_por_refeicao = 0
+            else:
+                # Déficit grande: usa 10 pães + arroz extra
+                paes_por_refeicao_calc = paes_por_refeicao  # 5 pães por refeição
+                carbs_restantes = carb_deficit - max_carbs_com_paes
+                arroz_extra_por_refeicao = round_to_10((carbs_restantes / 2) / carb_per_100g * 100)
+            
+            for idx in main_meal_indices:
+                if idx < len(meals):
+                    # Adiciona pães
+                    if paes_por_refeicao_calc > 0:
+                        pao_grams = paes_por_refeicao_calc * pao_unit_grams
+                        # Verifica se já tem pão
+                        pao_idx = None
+                        for f_idx, food in enumerate(meals[idx]["foods"]):
+                            if food.get("key") == pao_key:
+                                pao_idx = f_idx
+                                break
                         
-                        if extra_grams >= 30:  # Só adiciona se for quantidade significativa
-                            # Verifica se já tem esse carb na refeição
-                            existing_idx = None
-                            for f_idx, food in enumerate(meals[idx]["foods"]):
-                                if food.get("key") == safe_carb:
-                                    existing_idx = f_idx
-                                    break
-                            
-                            if existing_idx is not None:
-                                # Aumenta o existente - SEM LIMITE para bulking
-                                current = meals[idx]["foods"][existing_idx].get("grams", 0)
-                                new_grams = current + extra_grams
-                                meals[idx]["foods"][existing_idx] = calc_food(safe_carb, new_grams)
-                            else:
-                                # Adiciona novo
-                                meals[idx]["foods"].append(calc_food(safe_carb, extra_grams))
-                            
-                            # Recalcula totais da refeição
-                            mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
-                            meals[idx]["total_calories"] = mcal
-                            meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
-                
-                # Verifica se também pode adicionar feijão (se nas preferências)
-                if "feijao" in preferred_foods and carb_deficit > 60:
-                    feijao_allowed = True
-                    for r in dietary_restrictions:
-                        if r in RESTRICTION_EXCLUSIONS and "feijao" in RESTRICTION_EXCLUSIONS[r]:
-                            feijao_allowed = False
-                            break
+                        if pao_idx is not None:
+                            current = meals[idx]["foods"][pao_idx].get("grams", 0)
+                            meals[idx]["foods"][pao_idx] = calc_food(pao_key, current + pao_grams)
+                        else:
+                            meals[idx]["foods"].append(calc_food(pao_key, pao_grams))
                     
-                    if feijao_allowed:
-                        for idx in main_meal_indices:
-                            if idx < len(meals):
-                                # Verifica se já tem feijão
-                                has_feijao = any(f.get("key") == "feijao" for f in meals[idx]["foods"])
-                                if not has_feijao:
-                                    meals[idx]["foods"].append(calc_food("feijao", 120))
-                                    mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
-                                    meals[idx]["total_calories"] = mcal
-                                    meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+                    # Adiciona arroz extra se necessário
+                    if arroz_extra_por_refeicao > 0 and safe_carb:
+                        arroz_idx = None
+                        for f_idx, food in enumerate(meals[idx]["foods"]):
+                            if food.get("key") == safe_carb:
+                                arroz_idx = f_idx
+                                break
+                        
+                        if arroz_idx is not None:
+                            current = meals[idx]["foods"][arroz_idx].get("grams", 0)
+                            meals[idx]["foods"][arroz_idx] = calc_food(safe_carb, current + arroz_extra_por_refeicao)
+                        else:
+                            meals[idx]["foods"].append(calc_food(safe_carb, arroz_extra_por_refeicao))
+                    
+                    # Recalcula totais da refeição
+                    mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                    meals[idx]["total_calories"] = mcal
+                    meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            # Verifica se também pode adicionar feijão (se nas preferências)
+            if "feijao" in preferred_foods and carb_deficit > 60:
+                feijao_allowed = True
+                for r in dietary_restrictions:
+                    if r in RESTRICTION_EXCLUSIONS and "feijao" in RESTRICTION_EXCLUSIONS[r]:
+                        feijao_allowed = False
+                        break
+                
+                if feijao_allowed:
+                    for idx in main_meal_indices:
+                        if idx < len(meals):
+                            # Verifica se já tem feijão
+                            has_feijao = any(f.get("key") == "feijao" for f in meals[idx]["foods"])
+                            if not has_feijao:
+                                meals[idx]["foods"].append(calc_food("feijao", 120))
+                                mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                                meals[idx]["total_calories"] = mcal
+                                meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             
             # Consolida duplicados novamente após adicionar
             meals = consolidate_duplicate_foods(meals)
