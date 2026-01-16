@@ -1954,12 +1954,48 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         break
             
             if len(carb_indices) >= 2:
+                # 🍚🍞 BALANCEAR entre PÃO e ARROZ - máx 10 pães/dia, resto em arroz
+                pao_key = "pao"
+                pao_carbs_per_100g = FOODS.get(pao_key, {}).get("c", 49)
+                pao_unit_g = 50  # 1 pão = 50g
+                carbs_por_pao = (pao_carbs_per_100g / 100) * pao_unit_g  # ~24.5g
+                
+                max_paes_total = 10
+                max_carbs_com_paes = max_paes_total * carbs_por_pao  # ~245g
+                
+                # Calcula quanto de carbs adicionar via pães vs arroz
+                if increase_needed <= max_carbs_com_paes:
+                    # Só pães: divide igualmente entre refeições
+                    paes_por_refeicao = int((increase_needed / carbs_por_pao) / 2) + 1
+                    paes_por_refeicao = min(paes_por_refeicao, 5)  # máx 5 por refeição
+                    arroz_extra_por_refeicao = 0
+                else:
+                    # Pães + arroz
+                    paes_por_refeicao = 5
+                    carbs_restantes = increase_needed - max_carbs_com_paes
+                    c_per_100 = FOODS.get("arroz_branco", {}).get("c", 28)
+                    arroz_extra_por_refeicao = round_to_10((carbs_restantes / 2) / (c_per_100 / 100))
+                
                 for m_idx, (f_idx, food_key, current_g) in carb_indices.items():
-                    c_per_100 = FOODS[food_key]["c"]
-                    increase_each = (increase_needed / 2) / (c_per_100 / 100)
-                    # SEM LIMITE para carboidratos (arroz, batata) - ajusta para atingir target
-                    new_g = round_to_10(current_g + increase_each)
-                    meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                    # Adiciona pães
+                    if paes_por_refeicao > 0:
+                        pao_grams = paes_por_refeicao * pao_unit_g
+                        # Verifica se já tem pão
+                        has_pao = False
+                        for fi, food in enumerate(meals[m_idx]["foods"]):
+                            if food.get("key") == pao_key:
+                                curr = food.get("grams", 0)
+                                meals[m_idx]["foods"][fi] = calc_food(pao_key, curr + pao_grams)
+                                has_pao = True
+                                break
+                        if not has_pao:
+                            meals[m_idx]["foods"].append(calc_food(pao_key, pao_grams))
+                    
+                    # Arroz extra se necessário (mantém o existente + adiciona)
+                    if arroz_extra_por_refeicao > 0:
+                        new_g = round_to_10(current_g + arroz_extra_por_refeicao)
+                        meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                
                 adjusted = True
             elif len(carb_indices) == 1:
                 # Só tem carb em uma refeição, ajusta essa
