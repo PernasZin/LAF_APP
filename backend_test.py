@@ -90,7 +90,7 @@ def test_user_signup_and_profile_creation():
     
     signup_result = response.json()
     user_id = signup_result["user_id"]
-    token = signup_result["token"]
+    token = signup_result["access_token"]
     
     print(f"✅ Usuário criado: {user_id}")
     
