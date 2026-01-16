@@ -3001,7 +3001,7 @@ class DietAIService:
                             meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
                 
                 # Verifica se também pode adicionar feijão (se nas preferências)
-                if "feijao" in preferred and carb_deficit > 60:
+                if "feijao" in preferred_foods and carb_deficit > 60:
                     feijao_allowed = True
                     for r in dietary_restrictions:
                         if r in RESTRICTION_EXCLUSIONS and "feijao" in RESTRICTION_EXCLUSIONS[r]:
