@@ -278,52 +278,43 @@ def calculate_tdee(bmr: float, training_frequency: int, training_level: str) -> 
 
 def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
     """
-    Ajusta calorias baseado no objetivo.
-    
-    - cutting: déficit de 18%
-    - bulking: superávit de 12%
-    - manutencao: manutenção
+    Calcula calorias baseado na fórmula simplificada.
+    Usa: kcal = (proteína × 4) + (carbo × 4) + (gordura × 9)
     """
-    if goal == "cutting":
-        # Déficit de 15-20% para perda de gordura
-        return tdee * 0.82  # 18% de déficit
-    elif goal == "bulking":
-        # Superávit de 10-15% para ganho de massa
-        return tdee * 1.12  # 12% de superávit
-    else:  # manutenção
-        return tdee
+    macros = calculate_macros(0, weight, goal)  # tdee não é mais usado
+    return (macros["protein"] * 4) + (macros["carbs"] * 4) + (macros["fat"] * 9)
 
 def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[str, float]:
     """
-    Calcula distribuição de macronutrientes baseado no objetivo.
+    🎯 FÓRMULA SIMPLIFICADA DE MACROS
     
-    - cutting: P=2.2g/kg, G=0.8g/kg, C=restante
-    - bulking: P=2.0g/kg, G=1.0g/kg, C=restante
-    - manutencao: P=1.8g/kg, G=1.0g/kg, C=restante
+    CUTTING:
+       - Proteína: peso × 2.2
+       - Carboidrato: peso × 2.5
+       - Gordura: peso × 0.8
+    
+    MANUTENÇÃO:
+       - Proteína: peso × 2.0
+       - Carboidrato: peso × 3.5
+       - Gordura: peso × 0.85
+    
+    BULKING:
+       - Proteína: peso × 2.0
+       - Carboidrato: peso × 5.0
+       - Gordura: peso × 0.9
     """
     if goal == "cutting":
-        # Alto proteína, moderado carbo, baixo gordura
-        protein_g = weight * 2.2  # 2.2g por kg
-        fat_g = weight * 0.8      # 0.8g por kg
-        protein_cal = protein_g * 4
-        fat_cal = fat_g * 9
-        carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = max(0, carbs_cal / 4)
+        protein_g = weight * 2.2
+        carbs_g = weight * 2.5
+        fat_g = weight * 0.8
     elif goal == "bulking":
-        # Alto proteína, alto carbo, moderado gordura
-        protein_g = weight * 2.0  # 2g por kg
-        fat_g = weight * 1.0      # 1g por kg
-        protein_cal = protein_g * 4
-        fat_cal = fat_g * 9
-        carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = max(0, carbs_cal / 4)
+        protein_g = weight * 2.0
+        carbs_g = weight * 5.0
+        fat_g = weight * 0.9
     else:  # manutenção
-        protein_g = weight * 1.8
-        fat_g = weight * 1.0
-        protein_cal = protein_g * 4
-        fat_cal = fat_g * 9
-        carbs_cal = target_calories - protein_cal - fat_cal
-        carbs_g = max(0, carbs_cal / 4)
+        protein_g = weight * 2.0
+        carbs_g = weight * 3.5
+        fat_g = weight * 0.85
     
     return {
         "protein": round(protein_g, 1),
