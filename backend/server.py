@@ -356,22 +356,18 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
         training_level=profile_data.training_level
     )
     
-    # Ajusta calorias para objetivo
-    target_calories = calculate_target_calories(
-        tdee=tdee,
-        goal=profile_data.goal,
-        weight=profile_data.weight
-    )
-    
-    # Calcula macros
+    # 🎯 Calcula macros usando a FÓRMULA SIMPLIFICADA (baseada no peso)
     macros = calculate_macros(
-        target_calories=target_calories,
+        target_calories=0,  # Não usado mais - calorias vêm dos macros
         weight=profile_data.weight,
         goal=profile_data.goal
     )
     
+    # Calcula calorias a partir dos macros (não do TDEE!)
+    target_calories = (macros["protein"] * 4) + (macros["carbs"] * 4) + (macros["fat"] * 9)
+    
     # Adiciona campos calculados
-    profile_dict["tdee"] = round(tdee, 0)
+    profile_dict["tdee"] = round(tdee, 0)  # TDEE ainda é mostrado para referência
     profile_dict["target_calories"] = round(target_calories, 0)
     profile_dict["macros"] = macros
     profile_dict["updated_at"] = datetime.utcnow()
