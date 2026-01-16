@@ -3037,6 +3037,51 @@ class DietAIService:
             # Log final
             total_carbs_after = sum(f.get("carbs", 0) for m in meals for f in m.get("foods", []))
             print(f"[DIET DEBUG] After carb compensation: {total_carbs_after}g carbs")
+            
+            # 🍌 COMPENSAÇÃO EXTRA NOS LANCHES para dietas de bulking
+            # Se ainda falta muitos carbs, adiciona mais frutas/aveia nos lanches
+            remaining_carb_deficit = target_c - total_carbs_after
+            if remaining_carb_deficit > 50:  # Se ainda falta mais de 50g de carbs
+                # Índices dos lanches
+                if meal_count == 4:
+                    lanche_indices = [2]  # Lanche tarde
+                elif meal_count == 5:
+                    lanche_indices = [1, 3]  # Lanche manhã e tarde
+                else:
+                    lanche_indices = [1, 3, 5]  # Manhã, tarde, ceia
+                
+                carbs_per_lanche = remaining_carb_deficit / len(lanche_indices)
+                
+                for idx in lanche_indices:
+                    if idx < len(meals):
+                        # Aumenta frutas existentes ou adiciona mais
+                        safe_fruit = get_restriction_safe_fruit()
+                        fruit_per_100g = FOODS.get(safe_fruit, {}).get("c", 20)
+                        extra_fruit_g = round_to_10(min((carbs_per_lanche / fruit_per_100g) * 100, 200))
+                        
+                        if extra_fruit_g >= 50:
+                            # Procura fruta existente
+                            fruit_idx = None
+                            for f_idx, food in enumerate(meals[idx]["foods"]):
+                                if food.get("category") == "fruit":
+                                    fruit_idx = f_idx
+                                    break
+                            
+                            if fruit_idx is not None:
+                                current_g = meals[idx]["foods"][fruit_idx].get("grams", 0)
+                                new_g = min(current_g + extra_fruit_g, 300)  # Max 300g de fruta
+                                meals[idx]["foods"][fruit_idx] = calc_food(meals[idx]["foods"][fruit_idx].get("key"), new_g)
+                            else:
+                                meals[idx]["foods"].append(calc_food(safe_fruit, extra_fruit_g))
+                            
+                            # Recalcula totais
+                            mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                            meals[idx]["total_calories"] = mcal
+                            meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+                
+                # Log final após compensação de lanches
+                total_carbs_final = sum(f.get("carbs", 0) for m in meals for f in m.get("foods", []))
+                print(f"[DIET DEBUG] After lanche compensation: {total_carbs_final}g carbs")
         
         # 🔒🔒🔒 FILTRAGEM FINAL ABSOLUTA PARA LANCHES 🔒🔒🔒
         # Esta é a ÚLTIMA linha de defesa - remove QUALQUER alimento proibido dos lanches
