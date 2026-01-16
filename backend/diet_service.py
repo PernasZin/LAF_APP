@@ -2978,63 +2978,55 @@ class DietAIService:
             # Divide o déficit entre almoço e jantar
             carb_per_meal = carb_deficit / 2
             
-            # 🍚🍞 COMPENSAÇÃO DE CARBOIDRATOS - BALANCEADA ENTRE ARROZ E PÃES
-            # Limite: máximo 10 pães por dia, resto em arroz
+            # 🍞 COMPENSAÇÃO DE CARBOIDRATOS - PÃO INTEGRAL NO CAFÉ DA MANHÃ
+            # Se falta carbs, aumenta pão integral no café (não no almoço/jantar!)
             
-            # Pão Francês (key="pao"): ~49g carbs por 100g (unidade = 50g = ~24.5g carbs)
-            # Pão Integral: ~42g carbs por 100g (fatia = 30g = ~12.6g carbs)
-            # Arroz branco: ~28g carbs por 100g
-            
-            pao_key = "pao"  # Pão Francês - mais carbs por unidade
-            pao_carbs_per_100g = FOODS.get(pao_key, {}).get("c", 49)
-            pao_unit_grams = FOODS.get(pao_key, {}).get("unit_g", 50)  # 1 pão = 50g
-            carbs_por_pao = (pao_carbs_per_100g / 100) * pao_unit_grams  # ~24.5g carbs por pão
+            pao_key = "pao_integral"  # Pão integral para o café
+            pao_carbs_per_100g = FOODS.get(pao_key, {}).get("c", 42)
             
             safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["arroz_branco", "arroz_integral", "batata_doce"])
             carb_per_100g = FOODS.get(safe_carb, {}).get("c", 28) if safe_carb else 28
             
-            # Estratégia: usar até 10 pães (5 por refeição principal) e o resto em arroz
-            max_paes_total = 10
-            paes_por_refeicao_max = 5  # Máx 5 pães por refeição
+            # Encontra o índice do café da manhã
+            cafe_idx = 0  # Café da manhã é sempre a primeira refeição
             
-            # Quanto de carbs podemos cobrir com 10 pães (max ~245g carbs)
-            max_carbs_com_paes = max_paes_total * carbs_por_pao
+            # Quanto podemos adicionar de pão no café (máx 200g = ~84g carbs)
+            max_pao_cafe = 200  # máximo de pão no café
+            max_carbs_com_pao = (pao_carbs_per_100g / 100) * max_pao_cafe
             
-            print(f"[DIET DEBUG] Carb compensation: deficit={carb_deficit}g, max_paes_carbs={max_carbs_com_paes}g, carbs_por_pao={carbs_por_pao}g")
-            
-            if carb_deficit <= max_carbs_com_paes:
-                # Déficit pequeno/médio: só pães são suficientes
-                paes_necessarios = int(carb_deficit / carbs_por_pao) + 1
-                paes_por_refeicao_calc = min(paes_por_refeicao_max, (paes_necessarios + 1) // 2)
+            if carb_deficit <= max_carbs_com_pao:
+                # Só pão integral no café é suficiente
+                pao_extra = round_to_10((carb_deficit / pao_carbs_per_100g) * 100)
                 arroz_extra_por_refeicao = 0
             else:
-                # Déficit grande: usa 10 pães + arroz extra
-                paes_por_refeicao_calc = paes_por_refeicao_max  # 5 pães por refeição
-                carbs_restantes = carb_deficit - max_carbs_com_paes
+                # Pão no café + arroz extra no almoço/jantar
+                pao_extra = max_pao_cafe
+                carbs_restantes = carb_deficit - max_carbs_com_pao
                 arroz_extra_por_refeicao = round_to_10((carbs_restantes / 2) / carb_per_100g * 100)
             
-            print(f"[DIET DEBUG] Adding {paes_por_refeicao_calc} pães/refeição + {arroz_extra_por_refeicao}g arroz/refeição")
+            # Adiciona pão integral no café da manhã
+            if pao_extra > 0 and cafe_idx < len(meals):
+                pao_idx = None
+                for f_idx, food in enumerate(meals[cafe_idx]["foods"]):
+                    if food.get("key") == pao_key:
+                        pao_idx = f_idx
+                        break
+                
+                if pao_idx is not None:
+                    current = meals[cafe_idx]["foods"][pao_idx].get("grams", 0)
+                    meals[cafe_idx]["foods"][pao_idx] = calc_food(pao_key, current + pao_extra)
+                else:
+                    meals[cafe_idx]["foods"].append(calc_food(pao_key, pao_extra))
+                
+                # Recalcula totais do café
+                mp, mc, mf, mcal = sum_foods(meals[cafe_idx]["foods"])
+                meals[cafe_idx]["total_calories"] = mcal
+                meals[cafe_idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             
-            for idx in main_meal_indices:
-                if idx < len(meals):
-                    # Adiciona pães
-                    if paes_por_refeicao_calc > 0:
-                        pao_grams = paes_por_refeicao_calc * pao_unit_grams
-                        # Verifica se já tem pão
-                        pao_idx = None
-                        for f_idx, food in enumerate(meals[idx]["foods"]):
-                            if food.get("key") == pao_key:
-                                pao_idx = f_idx
-                                break
-                        
-                        if pao_idx is not None:
-                            current = meals[idx]["foods"][pao_idx].get("grams", 0)
-                            meals[idx]["foods"][pao_idx] = calc_food(pao_key, current + pao_grams)
-                        else:
-                            meals[idx]["foods"].append(calc_food(pao_key, pao_grams))
-                    
-                    # Adiciona arroz extra se necessário
-                    if arroz_extra_por_refeicao > 0 and safe_carb:
+            # Adiciona arroz extra no almoço e jantar se necessário
+            if arroz_extra_por_refeicao > 0 and safe_carb:
+                for idx in main_meal_indices:
+                    if idx < len(meals):
                         arroz_idx = None
                         for f_idx, food in enumerate(meals[idx]["foods"]):
                             if food.get("key") == safe_carb:
@@ -3043,14 +3035,16 @@ class DietAIService:
                         
                         if arroz_idx is not None:
                             current = meals[idx]["foods"][arroz_idx].get("grams", 0)
-                            meals[idx]["foods"][arroz_idx] = calc_food(safe_carb, current + arroz_extra_por_refeicao)
+                            # Limite máximo de 600g de arroz por refeição
+                            new_grams = min(current + arroz_extra_por_refeicao, 600)
+                            meals[idx]["foods"][arroz_idx] = calc_food(safe_carb, new_grams)
                         else:
                             meals[idx]["foods"].append(calc_food(safe_carb, arroz_extra_por_refeicao))
-                    
-                    # Recalcula totais da refeição
-                    mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
-                    meals[idx]["total_calories"] = mcal
-                    meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+                        
+                        # Recalcula totais da refeição
+                        mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                        meals[idx]["total_calories"] = mcal
+                        meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             
             # Verifica se também pode adicionar feijão (se nas preferências)
             if "feijao" in preferred_foods and carb_deficit > 60:
