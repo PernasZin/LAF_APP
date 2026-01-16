@@ -19,7 +19,8 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { useTranslation } from '../../i18n';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { config } from '../../config';
+const BACKEND_URL = config.BACKEND_URL;
 
 const GlassCard = ({ children, style, isDark }: any) => {
   const cardStyle = {

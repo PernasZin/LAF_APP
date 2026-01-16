@@ -24,7 +24,8 @@ import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../the
 import { CardioSkeleton } from '../../components';
 import { useTranslation } from '../../i18n';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { config } from '../../config';
+const BACKEND_URL = config.BACKEND_URL;
 
 const safeFetch = async (url: string, options?: RequestInit) => {
   const controller = new AbortController();

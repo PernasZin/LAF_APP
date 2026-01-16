@@ -30,7 +30,8 @@ import { useTranslation } from '../../i18n';
 import { HomeSkeleton } from '../../components';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { config } from '../../config';
+const BACKEND_URL = config.BACKEND_URL;
 
 // Safe fetch with timeout
 const safeFetch = async (url: string, options?: RequestInit) => {

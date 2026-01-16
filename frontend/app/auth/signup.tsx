@@ -21,7 +21,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
 import { translations, SupportedLanguage } from '../../i18n/translations';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { config } from '../../config';
+const BACKEND_URL = config.BACKEND_URL;
 
 const LANGUAGES = [
   { code: 'pt-BR' as LanguagePreference, label: 'Português', flag: '🇧🇷' },

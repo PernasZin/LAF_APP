@@ -27,7 +27,8 @@ import { ProgressSkeleton } from '../../components';
 import { useTranslation } from '../../i18n';
 import { SupportedLanguage } from '../../i18n/translations';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { config } from '../../config';
+const BACKEND_URL = config.BACKEND_URL;
 
 const safeFetch = async (url: string, options?: RequestInit) => {
   const controller = new AbortController();

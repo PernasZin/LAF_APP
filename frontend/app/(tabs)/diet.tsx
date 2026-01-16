@@ -24,7 +24,8 @@ import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../the
 import { DietSkeleton } from '../../components';
 import { useTranslation, translateFood, translateMealName, translateFoodPortion } from '../../i18n';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { config } from '../../config';
+const BACKEND_URL = config.BACKEND_URL;
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const safeFetch = async (url: string, options?: RequestInit) => {

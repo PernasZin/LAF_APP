@@ -25,7 +25,8 @@ import { useSettingsStore, LanguagePreference } from '../../stores/settingsStore
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { translations, SupportedLanguage } from '../../i18n/translations';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import { config } from '../../config';
+const BACKEND_URL = config.BACKEND_URL;
 
 const STEP_ICONS = [User, Activity, Target, Target, Utensils, Heart];
 
