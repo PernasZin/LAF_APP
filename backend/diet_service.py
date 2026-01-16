@@ -2986,7 +2986,8 @@ class DietAIService:
                 for idx in main_meal_indices:
                     if idx < len(meals):
                         # Calcula quanto de arroz adicionar
-                        extra_grams = round_to_10(min((carb_per_meal / carb_per_100g) * 100, 150))  # Max 150g extra
+                        # AUMENTADO: Max 350g extra (era 150g) para dietas de bulking
+                        extra_grams = round_to_10(min((carb_per_meal / carb_per_100g) * 100, 350))
                         
                         if extra_grams >= 30:  # Só adiciona se for quantidade significativa
                             # Verifica se já tem esse carb na refeição
@@ -2997,9 +2998,10 @@ class DietAIService:
                                     break
                             
                             if existing_idx is not None:
-                                # Aumenta o existente (max 300g total)
+                                # Aumenta o existente
+                                # AUMENTADO: Max 500g total (era 300g) para dietas de bulking
                                 current = meals[idx]["foods"][existing_idx].get("grams", 0)
-                                new_grams = min(current + extra_grams, 300)
+                                new_grams = min(current + extra_grams, 500)
                                 meals[idx]["foods"][existing_idx] = calc_food(safe_carb, new_grams)
                             else:
                                 # Adiciona novo
