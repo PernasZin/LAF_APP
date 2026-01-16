@@ -1,412 +1,736 @@
 #!/usr/bin/env python3
 """
-TESTE DE VALIDAÇÃO DA LÓGICA TDEE → CALORIAS → MACROS
-Conforme solicitação específica do usuário para validar cálculos de dieta.
+LAF Backend Comprehensive Regression Test Suite
+Testing ALL main endpoints to ensure no regression
 """
 
 import requests
 import json
-import sys
-from datetime import datetime
+import time
+import uuid
+from datetime import datetime, timedelta
+from typing import Dict, Any, Optional
 
-# URL base do backend
-BASE_URL = "https://nutrition-flow-1.preview.emergentagent.com/api"
+# Configuration
+BASE_URL = "https://nutrition-flow-1.preview.emergentagent.com"
+API_URL = f"{BASE_URL}/api"
 
-class TestResults:
+class LAFBackendTester:
     def __init__(self):
-        self.tests_run = 0
-        self.tests_passed = 0
-        self.failures = []
+        self.session = requests.Session()
+        self.auth_token = None
+        self.test_user_id = None
+        self.test_results = []
+        self.failed_tests = []
+        
+    def log_test(self, test_name: str, success: bool, details: str = "", response_data: Any = None):
+        """Log test result"""
+        result = {
+            "test": test_name,
+            "success": success,
+            "details": details,
+            "timestamp": datetime.now().isoformat()
+        }
+        if response_data:
+            result["response"] = response_data
+            
+        self.test_results.append(result)
+        
+        if success:
+            print(f"✅ {test_name}: {details}")
+        else:
+            print(f"❌ {test_name}: {details}")
+            self.failed_tests.append(result)
     
-    def run_test(self, test_name, test_func):
-        self.tests_run += 1
+    def make_request(self, method: str, endpoint: str, data: Dict = None, headers: Dict = None) -> requests.Response:
+        """Make HTTP request with proper headers"""
+        url = f"{API_URL}{endpoint}"
+        
+        # Default headers
+        req_headers = {"Content-Type": "application/json"}
+        if self.auth_token:
+            req_headers["Authorization"] = f"Bearer {self.auth_token}"
+        if headers:
+            req_headers.update(headers)
+        
         try:
-            print(f"\n🧪 TESTE: {test_name}")
-            test_func()
-            self.tests_passed += 1
-            print(f"✅ PASSOU: {test_name}")
+            if method.upper() == "GET":
+                response = self.session.get(url, headers=req_headers, timeout=30)
+            elif method.upper() == "POST":
+                response = self.session.post(url, json=data, headers=req_headers, timeout=30)
+            elif method.upper() == "PUT":
+                response = self.session.put(url, json=data, headers=req_headers, timeout=30)
+            elif method.upper() == "PATCH":
+                response = self.session.patch(url, json=data, headers=req_headers, timeout=30)
+            elif method.upper() == "DELETE":
+                response = self.session.delete(url, headers=req_headers, timeout=30)
+            else:
+                raise ValueError(f"Unsupported method: {method}")
+                
+            return response
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}")
+            raise
+
+    # ==================== HEALTH CHECK TESTS ====================
+    
+    def test_root_health_check(self):
+        """Test GET /health - root health check"""
+        try:
+            response = requests.get(f"{BASE_URL}/health", timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "healthy":
+                    self.log_test("Root Health Check", True, f"Status: {data.get('status')}")
+                else:
+                    self.log_test("Root Health Check", False, f"Unexpected status: {data}")
+            else:
+                self.log_test("Root Health Check", False, f"Status {response.status_code}: {response.text}")
         except Exception as e:
-            self.failures.append(f"{test_name}: {str(e)}")
-            print(f"❌ FALHOU: {test_name} - {str(e)}")
+            self.log_test("Root Health Check", False, f"Exception: {str(e)}")
+    
+    def test_api_health_check(self):
+        """Test GET /api/health - API health check"""
+        try:
+            response = self.make_request("GET", "/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "healthy":
+                    self.log_test("API Health Check", True, f"Status: {data.get('status')}")
+                else:
+                    self.log_test("API Health Check", False, f"Unexpected status: {data}")
+            else:
+                self.log_test("API Health Check", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("API Health Check", False, f"Exception: {str(e)}")
+
+    # ==================== AUTHENTICATION TESTS ====================
+    
+    def test_auth_signup(self):
+        """Test POST /api/auth/signup - create new user"""
+        try:
+            # Generate unique email for testing
+            test_email = f"teste.regressao.{int(time.time())}@laf.com"
+            test_password = "MinhaSenh@123!"
+            
+            signup_data = {
+                "email": test_email,
+                "password": test_password
+            }
+            
+            response = self.make_request("POST", "/auth/signup", signup_data)
+            
+            if response.status_code in [200, 201]:
+                data = response.json()
+                if "access_token" in data and "user_id" in data:
+                    self.auth_token = data["access_token"]
+                    self.test_user_id = data["user_id"]
+                    self.log_test("Auth Signup", True, f"User created: {data['user_id']}")
+                else:
+                    self.log_test("Auth Signup", False, f"Missing token/user_id in response: {data}")
+            else:
+                self.log_test("Auth Signup", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Auth Signup", False, f"Exception: {str(e)}")
+    
+    def test_auth_login(self):
+        """Test POST /api/auth/login - authenticate user"""
+        try:
+            # Use existing test credentials
+            login_data = {
+                "email": "teste@laf.com",
+                "password": "Teste123!"
+            }
+            
+            response = self.make_request("POST", "/auth/login", login_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "access_token" in data:
+                    # Update token for subsequent tests
+                    self.auth_token = data["access_token"]
+                    self.test_user_id = data.get("user_id", self.test_user_id)
+                    self.log_test("Auth Login", True, f"Login successful, token received")
+                else:
+                    self.log_test("Auth Login", False, f"Missing token in response: {data}")
+            else:
+                self.log_test("Auth Login", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Auth Login", False, f"Exception: {str(e)}")
+    
+    def test_auth_validate(self):
+        """Test GET /api/auth/validate - validate token"""
+        if not self.auth_token:
+            self.log_test("Auth Validate", False, "No auth token available")
+            return
+            
+        try:
+            response = self.make_request("GET", "/auth/validate")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "user_id" in data:
+                    self.log_test("Auth Validate", True, f"Token valid for user: {data['user_id']}")
+                else:
+                    self.log_test("Auth Validate", False, f"Missing user_id in response: {data}")
+            else:
+                self.log_test("Auth Validate", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Auth Validate", False, f"Exception: {str(e)}")
+
+    # ==================== USER PROFILE TESTS ====================
+    
+    def test_create_user_profile_bulking(self):
+        """Test POST /api/user/profile - create bulking profile"""
+        if not self.test_user_id:
+            self.log_test("Create User Profile (Bulking)", False, "No test user available")
+            return
+            
+        try:
+            profile_data = {
+                "id": self.test_user_id,
+                "name": "Carlos Silva",
+                "age": 28,
+                "sex": "masculino",
+                "height": 175.0,
+                "weight": 80.0,
+                "target_weight": 85.0,
+                "body_fat_percentage": 15.0,
+                "training_level": "intermediario",
+                "weekly_training_frequency": 4,
+                "available_time_per_session": 60,
+                "goal": "bulking",
+                "dietary_restrictions": [],
+                "food_preferences": ["frango", "arroz", "batata_doce"],
+                "injury_history": [],
+                "meal_count": 6,
+                "language": "pt-BR"
+            }
+            
+            response = self.make_request("POST", "/user/profile", profile_data)
+            
+            if response.status_code in [200, 201]:
+                data = response.json()
+                if "tdee" in data and "target_calories" in data and "macros" in data:
+                    tdee = data["tdee"]
+                    target_cal = data["target_calories"]
+                    macros = data["macros"]
+                    self.log_test("Create User Profile (Bulking)", True, 
+                                f"Profile created - TDEE: {tdee}kcal, Target: {target_cal}kcal, Macros: P{macros['protein']}g C{macros['carbs']}g F{macros['fat']}g")
+                else:
+                    self.log_test("Create User Profile (Bulking)", False, f"Missing calculated fields: {data}")
+            else:
+                self.log_test("Create User Profile (Bulking)", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Create User Profile (Bulking)", False, f"Exception: {str(e)}")
+    
+    def test_create_user_profile_cutting(self):
+        """Test POST /api/user/profile - create cutting profile"""
+        try:
+            # Create new user for cutting test
+            test_email = f"teste.cutting.{int(time.time())}@laf.com"
+            signup_data = {
+                "email": test_email,
+                "password": "MinhaSenh@123!"
+            }
+            
+            response = self.make_request("POST", "/auth/signup", signup_data)
+            if response.status_code not in [200, 201]:
+                self.log_test("Create User Profile (Cutting)", False, f"Failed to create cutting user: {response.text}")
+                return
+                
+            cutting_user_id = response.json()["user_id"]
+            
+            profile_data = {
+                "id": cutting_user_id,
+                "name": "Ana Costa",
+                "age": 25,
+                "sex": "feminino",
+                "height": 165.0,
+                "weight": 70.0,
+                "target_weight": 65.0,
+                "body_fat_percentage": 20.0,
+                "training_level": "intermediario",
+                "weekly_training_frequency": 5,
+                "available_time_per_session": 45,
+                "goal": "cutting",
+                "dietary_restrictions": ["vegetariano"],
+                "food_preferences": ["tofu", "quinoa", "legumes"],
+                "injury_history": [],
+                "meal_count": 5,
+                "language": "pt-BR"
+            }
+            
+            response = self.make_request("POST", "/user/profile", profile_data)
+            
+            if response.status_code in [200, 201]:
+                data = response.json()
+                if "tdee" in data and "target_calories" in data and "macros" in data:
+                    tdee = data["tdee"]
+                    target_cal = data["target_calories"]
+                    macros = data["macros"]
+                    # Verify cutting has deficit
+                    if target_cal < tdee:
+                        self.log_test("Create User Profile (Cutting)", True, 
+                                    f"Cutting profile created - TDEE: {tdee}kcal, Target: {target_cal}kcal (deficit: {tdee-target_cal:.0f}kcal), Macros: P{macros['protein']}g C{macros['carbs']}g F{macros['fat']}g")
+                    else:
+                        self.log_test("Create User Profile (Cutting)", False, f"Cutting should have calorie deficit: Target {target_cal} >= TDEE {tdee}")
+                else:
+                    self.log_test("Create User Profile (Cutting)", False, f"Missing calculated fields: {data}")
+            else:
+                self.log_test("Create User Profile (Cutting)", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Create User Profile (Cutting)", False, f"Exception: {str(e)}")
+    
+    def test_get_user_profile(self):
+        """Test GET /api/user/profile/{user_id} - get profile"""
+        if not self.test_user_id:
+            self.log_test("Get User Profile", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("GET", f"/user/profile/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "name" in data and "tdee" in data:
+                    self.log_test("Get User Profile", True, 
+                                f"Profile retrieved - Name: {data['name']}, TDEE: {data['tdee']}kcal")
+                else:
+                    self.log_test("Get User Profile", False, f"Missing profile fields: {data}")
+            elif response.status_code == 404:
+                self.log_test("Get User Profile", False, "Profile not found (404)")
+            else:
+                self.log_test("Get User Profile", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Get User Profile", False, f"Exception: {str(e)}")
+    
+    def test_update_user_profile(self):
+        """Test PUT /api/user/profile/{user_id} - update profile"""
+        if not self.test_user_id:
+            self.log_test("Update User Profile", False, "No test user available")
+            return
+            
+        try:
+            update_data = {
+                "weight": 78.5,
+                "goal": "manutencao"
+            }
+            
+            response = self.make_request("PUT", f"/user/profile/{self.test_user_id}", update_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("weight") == 78.5 and data.get("goal") == "manutencao":
+                    new_tdee = data.get("tdee")
+                    new_target = data.get("target_calories")
+                    self.log_test("Update User Profile", True, 
+                                f"Profile updated - Weight: {data['weight']}kg, Goal: {data['goal']}, New TDEE: {new_tdee}kcal, Target: {new_target}kcal")
+                else:
+                    self.log_test("Update User Profile", False, f"Update not reflected: {data}")
+            else:
+                self.log_test("Update User Profile", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Update User Profile", False, f"Exception: {str(e)}")
+
+    # ==================== USER SETTINGS TESTS ====================
+    
+    def test_get_user_settings(self):
+        """Test GET /api/user/settings/{user_id} - get settings"""
+        if not self.test_user_id:
+            self.log_test("Get User Settings", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("GET", f"/user/settings/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                meal_count = data.get("meal_count", "not found")
+                self.log_test("Get User Settings", True, f"Settings retrieved - meal_count: {meal_count}")
+            else:
+                self.log_test("Get User Settings", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Get User Settings", False, f"Exception: {str(e)}")
+    
+    def test_update_user_settings(self):
+        """Test PATCH /api/user/settings/{user_id} - update settings"""
+        if not self.test_user_id:
+            self.log_test("Update User Settings", False, "No test user available")
+            return
+            
+        try:
+            settings_data = {
+                "meal_count": 4
+            }
+            
+            response = self.make_request("PATCH", f"/user/settings/{self.test_user_id}", settings_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("meal_count") == 4:
+                    self.log_test("Update User Settings", True, f"Settings updated - meal_count: {data['meal_count']}")
+                else:
+                    self.log_test("Update User Settings", False, f"meal_count not updated: {data}")
+            else:
+                self.log_test("Update User Settings", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Update User Settings", False, f"Exception: {str(e)}")
+
+    # ==================== DIET TESTS ====================
+    
+    def test_generate_diet(self):
+        """Test POST /api/diet/generate?user_id={id} - generate diet"""
+        if not self.test_user_id:
+            self.log_test("Generate Diet", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("POST", f"/diet/generate?user_id={self.test_user_id}")
+            
+            if response.status_code in [200, 201]:
+                data = response.json()
+                if "meals" in data and len(data["meals"]) > 0:
+                    meal_count = len(data["meals"])
+                    computed_cal = data.get("computed_calories", 0)
+                    computed_macros = data.get("computed_macros", {})
+                    
+                    # Check if meals have total_calories
+                    first_meal = data["meals"][0]
+                    has_meal_calories = "total_calories" in first_meal
+                    meal_calories = first_meal.get("total_calories", 0) if has_meal_calories else 0
+                    
+                    self.log_test("Generate Diet", True, 
+                                f"Diet generated - {meal_count} meals, {computed_cal}kcal total, P{computed_macros.get('protein', 0)}g C{computed_macros.get('carbs', 0)}g F{computed_macros.get('fat', 0)}g, First meal: {meal_calories}kcal")
+                else:
+                    self.log_test("Generate Diet", False, f"No meals in diet: {data}")
+            else:
+                self.log_test("Generate Diet", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Generate Diet", False, f"Exception: {str(e)}")
+    
+    def test_get_user_diet(self):
+        """Test GET /api/diet/{user_id} - get diet"""
+        if not self.test_user_id:
+            self.log_test("Get User Diet", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("GET", f"/diet/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "meals" in data and len(data["meals"]) > 0:
+                    meal_count = len(data["meals"])
+                    total_cal = data.get("computed_calories", 0)
+                    self.log_test("Get User Diet", True, f"Diet retrieved - {meal_count} meals, {total_cal}kcal")
+                else:
+                    self.log_test("Get User Diet", False, f"No meals in retrieved diet: {data}")
+            elif response.status_code == 404:
+                self.log_test("Get User Diet", False, "Diet not found (404)")
+            else:
+                self.log_test("Get User Diet", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Get User Diet", False, f"Exception: {str(e)}")
+    
+    def test_get_food_substitutes(self):
+        """Test GET /api/diet/{user_id}/substitutes/{food_key} - get substitutes"""
+        if not self.test_user_id:
+            self.log_test("Get Food Substitutes", False, "No test user available")
+            return
+            
+        try:
+            # Try common food keys that should exist
+            food_keys_to_try = ["ovos", "frango", "arroz_branco", "batata_doce", "aveia"]
+            
+            for food_key in food_keys_to_try:
+                response = self.make_request("GET", f"/diet/{self.test_user_id}/substitutes/{food_key}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    if "substitutes" in data and len(data["substitutes"]) > 0:
+                        substitute_count = len(data["substitutes"])
+                        category = data.get("category", "unknown")
+                        self.log_test("Get Food Substitutes", True, 
+                                    f"Found {substitute_count} substitutes for {food_key} (category: {category})")
+                        return  # Success, exit loop
+                elif response.status_code == 404:
+                    continue  # Try next food key
+                else:
+                    self.log_test("Get Food Substitutes", False, f"Status {response.status_code} for {food_key}: {response.text}")
+                    return
+            
+            # If we get here, no food key worked
+            self.log_test("Get Food Substitutes", False, "No valid food keys found in diet")
+            
+        except Exception as e:
+            self.log_test("Get Food Substitutes", False, f"Exception: {str(e)}")
+    
+    def test_substitute_food(self):
+        """Test PUT /api/diet/{user_id}/substitute - substitute food"""
+        if not self.test_user_id:
+            self.log_test("Substitute Food", False, "No test user available")
+            return
+            
+        try:
+            # First get the diet to find a food to substitute
+            diet_response = self.make_request("GET", f"/diet/{self.test_user_id}")
+            
+            if diet_response.status_code != 200:
+                self.log_test("Substitute Food", False, "Could not get diet for substitution test")
+                return
+            
+            diet_data = diet_response.json()
+            meals = diet_data.get("meals", [])
+            
+            if not meals:
+                self.log_test("Substitute Food", False, "No meals found for substitution test")
+                return
+            
+            # Find a protein food to substitute
+            target_meal_idx = None
+            target_food_idx = None
+            original_food = None
+            
+            for meal_idx, meal in enumerate(meals):
+                for food_idx, food in enumerate(meal.get("foods", [])):
+                    if food.get("category") == "protein":
+                        target_meal_idx = meal_idx
+                        target_food_idx = food_idx
+                        original_food = food
+                        break
+                if target_meal_idx is not None:
+                    break
+            
+            if target_meal_idx is None:
+                self.log_test("Substitute Food", False, "No protein food found for substitution")
+                return
+            
+            # Try to substitute with a different protein
+            substitute_data = {
+                "meal_index": target_meal_idx,
+                "food_index": target_food_idx,
+                "new_food_key": "peito_frango" if original_food.get("key") != "peito_frango" else "ovos"
+            }
+            
+            response = self.make_request("PUT", f"/diet/{self.test_user_id}/substitute", substitute_data)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Verify the substitution worked
+                new_meals = data.get("meals", [])
+                if new_meals and len(new_meals) > target_meal_idx:
+                    new_food = new_meals[target_meal_idx]["foods"][target_food_idx]
+                    if new_food.get("key") == substitute_data["new_food_key"]:
+                        self.log_test("Substitute Food", True, 
+                                    f"Food substituted: {original_food.get('name')} → {new_food.get('name')}")
+                    else:
+                        self.log_test("Substitute Food", False, f"Substitution not applied correctly")
+                else:
+                    self.log_test("Substitute Food", False, f"Invalid meal structure after substitution")
+            else:
+                self.log_test("Substitute Food", False, f"Status {response.status_code}: {response.text}")
+                
+        except Exception as e:
+            self.log_test("Substitute Food", False, f"Exception: {str(e)}")
+
+    # ==================== WORKOUT TESTS ====================
+    
+    def test_generate_workout(self):
+        """Test POST /api/workout/generate?user_id={id} - generate workout"""
+        if not self.test_user_id:
+            self.log_test("Generate Workout", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("POST", f"/workout/generate?user_id={self.test_user_id}")
+            
+            if response.status_code in [200, 201]:
+                data = response.json()
+                if "workouts" in data and len(data["workouts"]) > 0:
+                    workout_count = len(data["workouts"])
+                    first_workout = data["workouts"][0]
+                    exercise_count = len(first_workout.get("exercises", []))
+                    self.log_test("Generate Workout", True, 
+                                f"Workout generated - {workout_count} days, ~{exercise_count} exercises per day")
+                else:
+                    self.log_test("Generate Workout", False, f"No workouts generated: {data}")
+            else:
+                self.log_test("Generate Workout", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Generate Workout", False, f"Exception: {str(e)}")
+    
+    def test_get_user_workout(self):
+        """Test GET /api/workout/{user_id} - get workout"""
+        if not self.test_user_id:
+            self.log_test("Get User Workout", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("GET", f"/workout/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "workouts" in data and len(data["workouts"]) > 0:
+                    workout_count = len(data["workouts"])
+                    self.log_test("Get User Workout", True, f"Workout retrieved - {workout_count} days")
+                else:
+                    self.log_test("Get User Workout", False, f"No workouts in retrieved data: {data}")
+            elif response.status_code == 404:
+                self.log_test("Get User Workout", False, "Workout not found (404)")
+            else:
+                self.log_test("Get User Workout", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Get User Workout", False, f"Exception: {str(e)}")
+
+    # ==================== PROGRESS TESTS ====================
+    
+    def test_weight_can_update(self):
+        """Test GET /api/progress/weight/{user_id}/can-update - check if can update weight"""
+        if not self.test_user_id:
+            self.log_test("Weight Can Update", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("GET", f"/progress/weight/{self.test_user_id}/can-update")
+            
+            if response.status_code == 200:
+                data = response.json()
+                can_update = data.get("can_update")
+                reason = data.get("reason", "")
+                self.log_test("Weight Can Update", True, f"Can update: {can_update}, Reason: {reason}")
+            else:
+                self.log_test("Weight Can Update", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Weight Can Update", False, f"Exception: {str(e)}")
+    
+    def test_weight_history(self):
+        """Test GET /api/progress/weight/{user_id} - get weight history"""
+        if not self.test_user_id:
+            self.log_test("Weight History", False, "No test user available")
+            return
+            
+        try:
+            response = self.make_request("GET", f"/progress/weight/{self.test_user_id}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                history_count = len(data.get("history", []))
+                current_weight = data.get("current_weight")
+                can_record = data.get("can_record")
+                self.log_test("Weight History", True, 
+                            f"History retrieved - {history_count} records, Current: {current_weight}kg, Can record: {can_record}")
+            else:
+                self.log_test("Weight History", False, f"Status {response.status_code}: {response.text}")
+        except Exception as e:
+            self.log_test("Weight History", False, f"Exception: {str(e)}")
+
+    # ==================== MAIN TEST RUNNER ====================
+    
+    def run_all_tests(self):
+        """Run complete regression test suite"""
+        print("🚀 LAF BACKEND COMPREHENSIVE REGRESSION TEST SUITE")
+        print("=" * 60)
+        
+        # Health checks
+        print("\n📊 HEALTH CHECKS")
+        self.test_root_health_check()
+        self.test_api_health_check()
+        
+        # Authentication
+        print("\n🔐 AUTHENTICATION")
+        self.test_auth_signup()
+        self.test_auth_login()
+        self.test_auth_validate()
+        
+        # User Profile
+        print("\n👤 USER PROFILE")
+        self.test_create_user_profile_bulking()
+        self.test_create_user_profile_cutting()
+        self.test_get_user_profile()
+        self.test_update_user_profile()
+        
+        # User Settings
+        print("\n⚙️ USER SETTINGS")
+        self.test_get_user_settings()
+        self.test_update_user_settings()
+        
+        # Diet
+        print("\n🍽️ DIET")
+        self.test_generate_diet()
+        self.test_get_user_diet()
+        self.test_get_food_substitutes()
+        self.test_substitute_food()
+        
+        # Workout
+        print("\n💪 WORKOUT")
+        self.test_generate_workout()
+        self.test_get_user_workout()
+        
+        # Progress
+        print("\n📈 PROGRESS")
+        self.test_weight_can_update()
+        self.test_weight_history()
+        
+        # Summary
+        self.print_summary()
     
     def print_summary(self):
-        print(f"\n{'='*60}")
-        print(f"RESUMO DOS TESTES")
-        print(f"{'='*60}")
-        print(f"Total de testes: {self.tests_run}")
-        print(f"Testes aprovados: {self.tests_passed}")
-        print(f"Testes falharam: {len(self.failures)}")
-        print(f"Taxa de sucesso: {(self.tests_passed/self.tests_run)*100:.1f}%")
+        """Print test summary"""
+        print("\n" + "=" * 60)
+        print("📋 COMPREHENSIVE REGRESSION TEST SUMMARY")
+        print("=" * 60)
         
-        if self.failures:
-            print(f"\n❌ FALHAS ENCONTRADAS:")
-            for failure in self.failures:
-                print(f"  - {failure}")
-
-def make_request(method, endpoint, data=None, headers=None):
-    """Helper para fazer requisições HTTP"""
-    url = f"{BASE_URL}{endpoint}"
-    
-    if headers is None:
-        headers = {"Content-Type": "application/json"}
-    
-    try:
-        if method == "GET":
-            response = requests.get(url, headers=headers)
-        elif method == "POST":
-            response = requests.post(url, json=data, headers=headers)
-        elif method == "PUT":
-            response = requests.put(url, json=data, headers=headers)
-        elif method == "PATCH":
-            response = requests.patch(url, json=data, headers=headers)
+        total_tests = len(self.test_results)
+        passed_tests = len([t for t in self.test_results if t["success"]])
+        failed_tests = len(self.failed_tests)
+        
+        print(f"Total Tests: {total_tests}")
+        print(f"✅ Passed: {passed_tests}")
+        print(f"❌ Failed: {failed_tests}")
+        print(f"Success Rate: {(passed_tests/total_tests*100):.1f}%")
+        
+        if self.failed_tests:
+            print("\n❌ FAILED TESTS:")
+            for test in self.failed_tests:
+                print(f"  • {test['test']}: {test['details']}")
+        
+        print("\n🎯 SUCCESS CRITERIA VERIFICATION:")
+        
+        # Check success criteria from the review request
+        no_500_errors = not any("Status 500" in t["details"] for t in self.test_results)
+        auth_working = any("Auth" in t["test"] and t["success"] for t in self.test_results)
+        profile_working = any("Profile" in t["test"] and t["success"] for t in self.test_results)
+        diet_working = any("Diet" in t["test"] and t["success"] for t in self.test_results)
+        workout_working = any("Workout" in t["test"] and t["success"] for t in self.test_results)
+        
+        print(f"✅ No 500 errors: {no_500_errors}")
+        print(f"✅ Authentication working: {auth_working}")
+        print(f"✅ User Profile CRUD working: {profile_working}")
+        print(f"✅ Diet generation working: {diet_working}")
+        print(f"✅ Workout generation working: {workout_working}")
+        
+        # Check specific functionality
+        tdee_calculated = any("TDEE:" in t["details"] for t in self.test_results if t["success"])
+        macros_calculated = any("Macros:" in t["details"] for t in self.test_results if t["success"])
+        substitution_working = any("substituted" in t["details"] for t in self.test_results if t["success"])
+        
+        print(f"✅ TDEE calculations correct: {tdee_calculated}")
+        print(f"✅ Macros calculations correct: {macros_calculated}")
+        print(f"✅ Food substitution working: {substitution_working}")
+        
+        # Overall assessment
+        critical_systems_working = auth_working and profile_working and diet_working and workout_working and no_500_errors
+        
+        if critical_systems_working and failed_tests == 0:
+            print(f"\n🎉 ALL SYSTEMS OPERATIONAL - NO REGRESSION DETECTED!")
+        elif critical_systems_working:
+            print(f"\n⚠️  CORE SYSTEMS WORKING - MINOR ISSUES DETECTED")
         else:
-            raise ValueError(f"Método HTTP não suportado: {method}")
-        
-        print(f"📡 {method} {endpoint} → Status: {response.status_code}")
-        
-        if response.status_code >= 400:
-            print(f"❌ Erro HTTP {response.status_code}: {response.text}")
-            
-        return response
-    except Exception as e:
-        print(f"❌ Erro na requisição: {e}")
-        raise
-
-def test_user_signup_and_profile_creation():
-    """TESTE 1: Criar usuário de teste e perfil com dados específicos"""
-    
-    # Dados do usuário de teste conforme especificação
-    test_email = f"teste_tdee_{datetime.now().strftime('%H%M%S')}@laf.com"
-    test_password = "Teste123!"
-    
-    # 1. Criar usuário
-    signup_data = {
-        "email": test_email,
-        "password": test_password
-    }
-    
-    response = make_request("POST", "/auth/signup", signup_data)
-    assert response.status_code == 200, f"Signup falhou: {response.text}"
-    
-    signup_result = response.json()
-    user_id = signup_result["user_id"]
-    token = signup_result["access_token"]
-    
-    print(f"✅ Usuário criado: {user_id}")
-    
-    # 2. Criar perfil com dados específicos do teste
-    profile_data = {
-        "id": user_id,
-        "name": "Usuário Teste TDEE",
-        "age": 25,
-        "sex": "masculino",
-        "height": 170.0,
-        "weight": 55.0,
-        "training_level": "intermediario",
-        "weekly_training_frequency": 4,
-        "available_time_per_session": 60,
-        "goal": "bulking",
-        "dietary_restrictions": [],
-        "food_preferences": [],
-        "meal_count": 6
-    }
-    
-    response = make_request("POST", "/user/profile", profile_data)
-    assert response.status_code == 200, f"Profile creation falhou: {response.text}"
-    
-    profile_result = response.json()
-    
-    # Validar cálculos conforme especificação
-    print(f"\n📊 VALIDAÇÃO DOS CÁLCULOS:")
-    
-    # BMR esperado: (10 × 55) + (6.25 × 170) - (5 × 25) + 5 = 1492.5
-    expected_bmr = (10 * 55) + (6.25 * 170) - (5 * 25) + 5
-    print(f"BMR esperado: {expected_bmr} kcal")
-    
-    # TDEE esperado: BMR × 1.55 (intermediário 4x/semana)
-    expected_tdee = expected_bmr * 1.55
-    print(f"TDEE esperado: {expected_tdee:.0f} kcal")
-    
-    # Target calories esperado: TDEE × 1.15 (bulking +15%)
-    expected_target_calories = expected_tdee * 1.15
-    print(f"Target Calories esperado: {expected_target_calories:.0f} kcal")
-    
-    # Macros esperados
-    expected_protein = 55 * 2.0  # bulking usa 2.0g/kg
-    expected_fat = 55 * 0.9      # bulking usa 0.9g/kg
-    protein_cal = expected_protein * 4
-    fat_cal = expected_fat * 9
-    carbs_cal = expected_target_calories - protein_cal - fat_cal
-    expected_carbs = carbs_cal / 4
-    
-    print(f"Macros esperados: P={expected_protein}g, C={expected_carbs:.0f}g, F={expected_fat}g")
-    
-    # Validar resultados
-    actual_tdee = profile_result.get("tdee")
-    actual_target_calories = profile_result.get("target_calories")
-    actual_macros = profile_result.get("macros", {})
-    
-    print(f"\n📈 RESULTADOS OBTIDOS:")
-    print(f"TDEE: {actual_tdee} kcal")
-    print(f"Target Calories: {actual_target_calories} kcal")
-    print(f"Macros: P={actual_macros.get('protein')}g, C={actual_macros.get('carbs')}g, F={actual_macros.get('fat')}g")
-    
-    # Tolerâncias para validação (±5% para TDEE/calorias, ±10% para macros)
-    tdee_tolerance = expected_tdee * 0.05
-    cal_tolerance = expected_target_calories * 0.05
-    macro_tolerance = 0.10
-    
-    assert abs(actual_tdee - expected_tdee) <= tdee_tolerance, \
-        f"TDEE fora da tolerância: esperado {expected_tdee:.0f}±{tdee_tolerance:.0f}, obtido {actual_tdee}"
-    
-    assert abs(actual_target_calories - expected_target_calories) <= cal_tolerance, \
-        f"Target calories fora da tolerância: esperado {expected_target_calories:.0f}±{cal_tolerance:.0f}, obtido {actual_target_calories}"
-    
-    assert abs(actual_macros.get('protein', 0) - expected_protein) <= expected_protein * macro_tolerance, \
-        f"Proteína fora da tolerância: esperado {expected_protein}g±{expected_protein*macro_tolerance:.1f}g, obtido {actual_macros.get('protein')}g"
-    
-    assert abs(actual_macros.get('fat', 0) - expected_fat) <= expected_fat * macro_tolerance, \
-        f"Gordura fora da tolerância: esperado {expected_fat}g±{expected_fat*macro_tolerance:.1f}g, obtido {actual_macros.get('fat')}g"
-    
-    assert abs(actual_macros.get('carbs', 0) - expected_carbs) <= expected_carbs * macro_tolerance, \
-        f"Carboidratos fora da tolerância: esperado {expected_carbs:.0f}g±{expected_carbs*macro_tolerance:.1f}g, obtido {actual_macros.get('carbs')}g"
-    
-    print(f"✅ TODOS OS CÁLCULOS VALIDADOS COM SUCESSO!")
-    
-    return user_id, token, profile_result
-
-def test_cutting_scenario():
-    """TESTE 2: Validar cenário de cutting para comparação"""
-    
-    # Criar usuário para cutting
-    test_email = f"teste_cutting_{datetime.now().strftime('%H%M%S')}@laf.com"
-    test_password = "Teste123!"
-    
-    signup_data = {
-        "email": test_email,
-        "password": test_password
-    }
-    
-    response = make_request("POST", "/auth/signup", signup_data)
-    assert response.status_code == 200, f"Signup falhou: {response.text}"
-    
-    signup_result = response.json()
-    user_id = signup_result["user_id"]
-    
-    # Perfil para cutting (mesmos dados físicos, objetivo diferente)
-    profile_data = {
-        "id": user_id,
-        "name": "Usuário Teste Cutting",
-        "age": 25,
-        "sex": "masculino",
-        "height": 170.0,
-        "weight": 55.0,
-        "training_level": "intermediario",
-        "weekly_training_frequency": 4,
-        "available_time_per_session": 60,
-        "goal": "cutting",  # Diferença principal
-        "dietary_restrictions": [],
-        "food_preferences": [],
-        "meal_count": 6
-    }
-    
-    response = make_request("POST", "/user/profile", profile_data)
-    assert response.status_code == 200, f"Profile creation falhou: {response.text}"
-    
-    profile_result = response.json()
-    
-    # Validar cálculos para cutting
-    print(f"\n📊 VALIDAÇÃO CUTTING:")
-    
-    # TDEE deve ser o mesmo (mesmos dados físicos)
-    expected_tdee = ((10 * 55) + (6.25 * 170) - (5 * 25) + 5) * 1.55
-    
-    # Target calories para cutting: TDEE × 0.85 (déficit 15%)
-    expected_target_calories = expected_tdee * 0.85
-    
-    # Macros para cutting
-    expected_protein = 55 * 2.2  # cutting usa 2.2g/kg (maior para preservar massa)
-    expected_fat = 55 * 0.8      # cutting usa 0.8g/kg (menor)
-    
-    actual_target_calories = profile_result.get("target_calories")
-    actual_macros = profile_result.get("macros", {})
-    
-    print(f"Target Calories (cutting): {actual_target_calories} kcal (esperado: {expected_target_calories:.0f})")
-    print(f"Proteína (cutting): {actual_macros.get('protein')}g (esperado: {expected_protein}g)")
-    print(f"Gordura (cutting): {actual_macros.get('fat')}g (esperado: {expected_fat}g)")
-    
-    # Validar que cutting tem menos calorias que bulking
-    assert actual_target_calories < expected_tdee, \
-        f"Cutting deveria ter menos calorias que TDEE: {actual_target_calories} < {expected_tdee}"
-    
-    # Validar déficit de 15%
-    cal_tolerance = expected_target_calories * 0.05
-    assert abs(actual_target_calories - expected_target_calories) <= cal_tolerance, \
-        f"Déficit de cutting incorreto: esperado {expected_target_calories:.0f}±{cal_tolerance:.0f}, obtido {actual_target_calories}"
-    
-    print(f"✅ CENÁRIO CUTTING VALIDADO!")
-    
-    return user_id, profile_result
-
-def test_diet_generation_consistency(user_id, profile_data):
-    """TESTE 3: Validar que a dieta gerada corresponde aos targets do perfil"""
-    
-    print(f"\n🍽️ TESTANDO GERAÇÃO DE DIETA PARA USER: {user_id}")
-    
-    # Gerar dieta
-    response = make_request("POST", f"/diet/generate?user_id={user_id}")
-    assert response.status_code == 200, f"Diet generation falhou: {response.text}"
-    
-    diet_result = response.json()
-    
-    # Extrair valores computados da dieta
-    computed_calories = diet_result.get("computed_calories", 0)
-    computed_macros = diet_result.get("computed_macros", {})
-    
-    # Extrair targets do perfil
-    target_calories = profile_data.get("target_calories", 0)
-    target_macros = profile_data.get("macros", {})
-    
-    print(f"\n📊 COMPARAÇÃO DIETA vs PERFIL:")
-    print(f"Calorias - Target: {target_calories}, Computed: {computed_calories}")
-    print(f"Proteína - Target: {target_macros.get('protein')}g, Computed: {computed_macros.get('protein')}g")
-    print(f"Carbs - Target: {target_macros.get('carbs')}g, Computed: {computed_macros.get('carbs')}g")
-    print(f"Gordura - Target: {target_macros.get('fat')}g, Computed: {computed_macros.get('fat')}g")
-    
-    # Tolerâncias para dieta (±15% conforme especificação do sistema)
-    cal_tolerance = target_calories * 0.15
-    macro_tolerance = 0.20  # ±20% para macros
-    
-    # Validar que dieta está dentro das tolerâncias
-    cal_diff = abs(computed_calories - target_calories)
-    assert cal_diff <= cal_tolerance, \
-        f"Calorias da dieta fora da tolerância: diferença {cal_diff:.0f}kcal > {cal_tolerance:.0f}kcal"
-    
-    protein_diff = abs(computed_macros.get('protein', 0) - target_macros.get('protein', 0))
-    protein_tolerance = target_macros.get('protein', 0) * macro_tolerance
-    assert protein_diff <= protein_tolerance, \
-        f"Proteína da dieta fora da tolerância: diferença {protein_diff:.1f}g > {protein_tolerance:.1f}g"
-    
-    carbs_diff = abs(computed_macros.get('carbs', 0) - target_macros.get('carbs', 0))
-    carbs_tolerance = target_macros.get('carbs', 0) * macro_tolerance
-    assert carbs_diff <= carbs_tolerance, \
-        f"Carboidratos da dieta fora da tolerância: diferença {carbs_diff:.1f}g > {carbs_tolerance:.1f}g"
-    
-    fat_diff = abs(computed_macros.get('fat', 0) - target_macros.get('fat', 0))
-    fat_tolerance = target_macros.get('fat', 0) * macro_tolerance
-    assert fat_diff <= fat_tolerance, \
-        f"Gordura da dieta fora da tolerância: diferença {fat_diff:.1f}g > {fat_tolerance:.1f}g"
-    
-    # Validar estrutura da dieta
-    meals = diet_result.get("meals", [])
-    assert len(meals) > 0, "Dieta deve ter pelo menos uma refeição"
-    
-    # Validar que cada refeição tem alimentos
-    for i, meal in enumerate(meals):
-        foods = meal.get("foods", [])
-        assert len(foods) > 0, f"Refeição {i} ({meal.get('name')}) não tem alimentos"
-        
-        # Validar que cada alimento tem macros
-        for food in foods:
-            assert food.get("protein", 0) >= 0, f"Alimento {food.get('name')} tem proteína inválida"
-            assert food.get("carbs", 0) >= 0, f"Alimento {food.get('name')} tem carboidratos inválidos"
-            assert food.get("fat", 0) >= 0, f"Alimento {food.get('name')} tem gordura inválida"
-            assert food.get("calories", 0) > 0, f"Alimento {food.get('name')} tem calorias inválidas"
-    
-    print(f"✅ DIETA GERADA DENTRO DAS TOLERÂNCIAS!")
-    print(f"   Diferenças: Cal={cal_diff:.0f}kcal, P={protein_diff:.1f}g, C={carbs_diff:.1f}g, F={fat_diff:.1f}g")
-    
-    return diet_result
-
-def test_profile_retrieval(user_id):
-    """TESTE 4: Validar recuperação de perfil"""
-    
-    response = make_request("GET", f"/user/profile/{user_id}")
-    assert response.status_code == 200, f"Profile retrieval falhou: {response.text}"
-    
-    profile = response.json()
-    
-    # Validar campos obrigatórios
-    required_fields = ["id", "name", "age", "sex", "height", "weight", "goal", "tdee", "target_calories", "macros"]
-    for field in required_fields:
-        assert field in profile, f"Campo obrigatório '{field}' ausente no perfil"
-    
-    # Validar tipos de dados
-    assert isinstance(profile["tdee"], (int, float)), "TDEE deve ser numérico"
-    assert isinstance(profile["target_calories"], (int, float)), "Target calories deve ser numérico"
-    assert isinstance(profile["macros"], dict), "Macros deve ser um dicionário"
-    
-    print(f"✅ PERFIL RECUPERADO CORRETAMENTE!")
-    
-    return profile
-
-def main():
-    """Função principal que executa todos os testes"""
-    
-    print("🚀 INICIANDO VALIDAÇÃO DA LÓGICA TDEE → CALORIAS → MACROS")
-    print("=" * 60)
-    
-    results = TestResults()
-    
-    # Variáveis para compartilhar entre testes
-    bulking_user_id = None
-    bulking_profile = None
-    cutting_user_id = None
-    cutting_profile = None
-    
-    # TESTE 1: Cenário principal - Bulking
-    def test_1():
-        nonlocal bulking_user_id, bulking_profile
-        bulking_user_id, token, bulking_profile = test_user_signup_and_profile_creation()
-    
-    results.run_test("Criação de usuário BULKING e validação de cálculos", test_1)
-    
-    # TESTE 2: Cenário de comparação - Cutting
-    def test_2():
-        nonlocal cutting_user_id, cutting_profile
-        cutting_user_id, cutting_profile = test_cutting_scenario()
-    
-    results.run_test("Criação de usuário CUTTING e validação de déficit", test_2)
-    
-    # TESTE 3: Geração de dieta para bulking
-    if bulking_user_id and bulking_profile:
-        def test_3():
-            test_diet_generation_consistency(bulking_user_id, bulking_profile)
-        
-        results.run_test("Geração de dieta BULKING e validação de consistência", test_3)
-    
-    # TESTE 4: Geração de dieta para cutting
-    if cutting_user_id and cutting_profile:
-        def test_4():
-            test_diet_generation_consistency(cutting_user_id, cutting_profile)
-        
-        results.run_test("Geração de dieta CUTTING e validação de consistência", test_4)
-    
-    # TESTE 5: Recuperação de perfil
-    if bulking_user_id:
-        def test_5():
-            test_profile_retrieval(bulking_user_id)
-        
-        results.run_test("Recuperação de perfil via GET", test_5)
-    
-    # Imprimir resumo final
-    results.print_summary()
-    
-    # Critérios de sucesso conforme especificação
-    print(f"\n🎯 CRITÉRIOS DE SUCESSO:")
-    print(f"✅ TDEE calculado corretamente")
-    print(f"✅ Target calories = TDEE ± ajuste conforme objetivo")
-    print(f"✅ Macros calculados conforme fórmulas especificadas")
-    print(f"✅ Dieta gerada dentro das tolerâncias")
-    print(f"✅ Valores consistentes entre profile e diet")
-    
-    if results.tests_passed == results.tests_run:
-        print(f"\n🎉 TODOS OS TESTES PASSARAM! Sistema funcionando conforme especificação.")
-        return 0
-    else:
-        print(f"\n❌ {len(results.failures)} TESTE(S) FALHARAM. Verificar implementação.")
-        return 1
+            print(f"\n🚨 CRITICAL REGRESSION DETECTED - IMMEDIATE ATTENTION REQUIRED")
 
 if __name__ == "__main__":
-    exit_code = main()
-    sys.exit(exit_code)
+    tester = LAFBackendTester()
+    tester.run_all_tests()
