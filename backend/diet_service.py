@@ -1957,8 +1957,18 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                 for m_idx, (f_idx, food_key, current_g) in carb_indices.items():
                     c_per_100 = FOODS[food_key]["c"]
                     increase_each = (increase_needed / 2) / (c_per_100 / 100)
-                    new_g = round_to_10(min(400, current_g + increase_each))
+                    # AUMENTADO: Limite de 600g para carboidratos (era 400g)
+                    # Isso permite dietas de bulking com alto volume de carbs
+                    new_g = round_to_10(min(600, current_g + increase_each))
                     meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                adjusted = True
+            elif len(carb_indices) == 1:
+                # Só tem carb em uma refeição, ajusta essa
+                m_idx, (f_idx, food_key, current_g) = list(carb_indices.items())[0]
+                c_per_100 = FOODS[food_key]["c"]
+                increase_grams = increase_needed / (c_per_100 / 100)
+                new_g = round_to_10(min(600, current_g + increase_grams))
+                meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                 adjusted = True
         
         # GORDURA muito abaixo - adiciona azeite se precisar
