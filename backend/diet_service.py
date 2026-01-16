@@ -1428,9 +1428,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         protein_grams = 180
     
     if main_carb and main_carb in FOODS:
-        # ARROZ/BATATA: porções generosas para atingir o target de carbs
-        # Para restrições que excluem muitos carbs (diabético), aumentar a porção
-        base_carb_grams = round_to_10(clamp(main_meal_c * 0.8 / (FOODS[main_carb]["c"] / 100), 180, 400))
+        # ARROZ/BATATA: porções razoáveis - máx 400g por refeição principal
+        # Para targets altos, o restante será compensado com PÃES
+        base_carb_grams = round_to_10(clamp(main_meal_c * 0.5 / (FOODS[main_carb]["c"] / 100), 150, 400))
         
         # Compensação para diabéticos e outras restrições com poucos carbs
         if "diabetico" in restrictions or "diabético" in restrictions:
