@@ -2799,6 +2799,42 @@ class DietAIService:
                 meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             return meals_list
         
+        # 📉 REDUÇÃO quando está ACIMA do alvo (mais de 5%)
+        if cal_diff < -target_calories * 0.05:  # Negativo significa ACIMA
+            excess_cal = abs(cal_diff)
+            print(f"[DIET DEBUG] Diet is ABOVE target by {excess_cal}kcal, reducing portions")
+            
+            # Determina refeições principais (almoço e jantar) para reduzir carboidratos
+            if meal_count == 4:
+                main_meal_indices = [1, 3]
+            elif meal_count == 5:
+                main_meal_indices = [2, 4]
+            else:
+                main_meal_indices = [2, 4]
+            
+            # Reduz carboidratos (arroz, batata) nas refeições principais
+            for idx in main_meal_indices:
+                if idx < len(meals) and excess_cal > 50:
+                    for f_idx, food in enumerate(meals[idx]["foods"]):
+                        if food.get("category") == "carb" or food.get("key") in ["arroz_branco", "arroz_integral", "batata_doce", "macarrao"]:
+                            current_grams = food.get("grams", 100)
+                            # Reduz até 30% da porção
+                            reduce_grams = min(current_grams * 0.3, excess_cal / 1.3)  # ~1.3 cal/g para arroz
+                            new_grams = round_to_10(max(50, current_grams - reduce_grams))  # Mínimo 50g
+                            
+                            if new_grams < current_grams:
+                                meals[idx]["foods"][f_idx] = calc_food(food.get("key"), new_grams)
+                                excess_cal -= (current_grams - new_grams) * 1.3
+                            break
+                    
+                    # Recalcula totais da refeição
+                    mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
+                    meals[idx]["total_calories"] = mcal
+                    meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            total_cal_after = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
+            print(f"[DIET DEBUG] After reduction: {total_cal_after}kcal")
+        
         # 🏋️ COMPENSAÇÃO ESPECIAL PARA BULKING (mais conservadora)
         # Se é bulking e está mais de 10% abaixo, compensa moderadamente
         if goal.lower() == 'bulking' and cal_diff > target_calories * 0.10:
