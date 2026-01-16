@@ -1102,6 +1102,17 @@ def calculate_macros(tdee: float, goal: str, weight: float, gender: str = "mascu
         carbs_cal = carbs * 4
         target_calories = protein_cal + fat_cal + carbs_cal
     
+    # ⚠️ LIMITE MÁXIMO de carboidratos: 400g/dia (realista para atingir com comida)
+    # Mais que isso é impraticável e resulta em dietas com 1kg+ de arroz
+    if carbs > 400:
+        carbs = 400
+        carbs_cal = carbs * 4
+        # Redistribui o excesso para gordura (mais fácil atingir)
+        excess_cal = target_calories - protein_cal - carbs_cal - fat_cal
+        if excess_cal > 0:
+            fat += excess_cal / 9
+            fat_cal = fat * 9
+    
     # ==================== VALIDAÇÃO FINAL ====================
     # Verifica percentual de gordura
     actual_fat_percent = (fat * 9) / target_calories * 100
