@@ -3078,9 +3078,9 @@ class DietAIService:
             print(f"[DIET DEBUG] After carb compensation: {total_carbs_after}g carbs")
             
             # 🍌 COMPENSAÇÃO EXTRA NOS LANCHES para dietas de bulking
-            # Se ainda falta muitos carbs, adiciona mais frutas/aveia nos lanches
+            # Se ainda falta carbs, adiciona mais frutas/aveia nos lanches
             remaining_carb_deficit = target_c - total_carbs_after
-            if remaining_carb_deficit > 50:  # Se ainda falta mais de 50g de carbs
+            if remaining_carb_deficit > 15:  # Se ainda falta mais de 15g de carbs
                 # Índices dos lanches
                 if meal_count == 4:
                     lanche_indices = [2]  # Lanche tarde
