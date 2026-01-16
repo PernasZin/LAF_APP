@@ -2830,8 +2830,11 @@ class DietAIService:
         total_cal = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
         cal_diff = target_calories - total_cal
         
-        # Se está mais de 15% abaixo do target, compensa DISTRIBUINDO entre pão e arroz
-        if cal_diff > target_calories * 0.15:
+        print(f"[DIET DEBUG] Target: {target_calories}kcal, Generated: {total_cal}kcal, Diff: {cal_diff}kcal, Goal: {goal}")
+        
+        # 🏋️ COMPENSAÇÃO ESPECIAL PARA BULKING
+        # Se é bulking e está mais de 5% abaixo, DEVE compensar agressivamente
+        if goal.lower() == 'bulking' and cal_diff > target_calories * 0.05:
             # 🍞 PRIMEIRO: Aumenta o pão no café da manhã (mais natural que jogar tudo no arroz)
             # Encontra o índice do café da manhã
             cafe_idx = 0
