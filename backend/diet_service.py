@@ -2832,9 +2832,32 @@ class DietAIService:
         
         print(f"[DIET DEBUG] Target: {target_calories}kcal, Generated: {total_cal}kcal, Diff: {cal_diff}kcal, Goal: {goal}")
         
-        # 🏋️ COMPENSAÇÃO ESPECIAL PARA BULKING
-        # Se é bulking e está mais de 5% abaixo, DEVE compensar agressivamente
-        if goal.lower() == 'bulking' and cal_diff > target_calories * 0.05:
+        # 🔄 FUNÇÃO PARA CONSOLIDAR ALIMENTOS DUPLICADOS NA MESMA REFEIÇÃO
+        def consolidate_duplicate_foods(meals_list):
+            """Combina alimentos duplicados na mesma refeição"""
+            for meal in meals_list:
+                foods = meal.get("foods", [])
+                consolidated = {}
+                for food in foods:
+                    key = food.get("key", "unknown")
+                    if key in consolidated:
+                        # Soma as gramas
+                        old_grams = consolidated[key].get("grams", 0)
+                        new_grams = old_grams + food.get("grams", 0)
+                        consolidated[key] = calc_food(key, new_grams)
+                    else:
+                        consolidated[key] = food
+                
+                meal["foods"] = list(consolidated.values())
+                # Recalcula totais
+                mp, mc, mf, mcal = sum_foods(meal["foods"])
+                meal["total_calories"] = mcal
+                meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            return meals_list
+        
+        # 🏋️ COMPENSAÇÃO ESPECIAL PARA BULKING (mais conservadora)
+        # Se é bulking e está mais de 10% abaixo, compensa moderadamente
+        if goal.lower() == 'bulking' and cal_diff > target_calories * 0.10:
             print(f"[DIET DEBUG] BULKING compensation needed: {cal_diff}kcal deficit")
             
             # Determina índices das refeições principais (almoço e jantar)
@@ -2846,17 +2869,34 @@ class DietAIService:
                 main_meal_indices = [2, 4]
             
             # 🍚 Adiciona carboidratos extras nas refeições principais
+            # LIMITE: máximo 80g extra por refeição (não 150g!)
             safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["arroz_branco", "batata_doce", "arroz_integral"])
             if safe_carb:
                 carb_cal_per_100g = FOODS.get(safe_carb, {}).get("c", 25) * 4 + FOODS.get(safe_carb, {}).get("f", 0) * 9
                 
-                # Calcula quanto precisa adicionar por refeição
+                # Calcula quanto precisa adicionar por refeição (MAX 80g cada)
                 extra_per_meal = cal_diff / len(main_meal_indices)
-                extra_grams = round_to_10(min((extra_per_meal / (carb_cal_per_100g / 100)), 150))  # Max 150g extra por refeição
+                extra_grams = round_to_10(min((extra_per_meal / (carb_cal_per_100g / 100)), 80))
                 
                 for idx in main_meal_indices:
                     if idx < len(meals):
-                        meals[idx]["foods"].append(calc_food(safe_carb, extra_grams))
+                        # Verifica se já tem esse carb na refeição
+                        existing_carb = None
+                        for f_idx, food in enumerate(meals[idx]["foods"]):
+                            if food.get("key") == safe_carb:
+                                existing_carb = (f_idx, food)
+                                break
+                        
+                        if existing_carb:
+                            # Aumenta o existente (max 250g total por refeição)
+                            f_idx, food = existing_carb
+                            current_grams = food.get("grams", 0)
+                            new_grams = min(current_grams + extra_grams, 250)
+                            meals[idx]["foods"][f_idx] = calc_food(safe_carb, new_grams)
+                        else:
+                            # Adiciona novo
+                            meals[idx]["foods"].append(calc_food(safe_carb, extra_grams))
+                        
                         mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
                         meals[idx]["total_calories"] = mcal
                         meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
@@ -2865,6 +2905,9 @@ class DietAIService:
             total_cal_after = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
             cal_diff_after = target_calories - total_cal_after
             print(f"[DIET DEBUG] After BULKING compensation: {total_cal_after}kcal, Diff: {cal_diff_after}kcal")
+        
+        # 🔄 CONSOLIDA DUPLICADOS antes de continuar
+        meals = consolidate_duplicate_foods(meals)
         
         # 🔒 COMPENSAÇÃO PARA RESTRIÇÕES SEVERAS (não-bulking)
         # Se está mais de 15% abaixo do target, compensa DISTRIBUINDO entre pão e arroz
