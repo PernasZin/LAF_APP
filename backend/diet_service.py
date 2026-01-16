@@ -2909,9 +2909,13 @@ class DietAIService:
         # 🔄 CONSOLIDA DUPLICADOS antes de continuar
         meals = consolidate_duplicate_foods(meals)
         
+        # Recalcula após consolidação
+        total_cal = sum(f.get("calories", 0) for m in meals for f in m.get("foods", []))
+        cal_diff = target_calories - total_cal
+        
         # 🔒 COMPENSAÇÃO PARA RESTRIÇÕES SEVERAS (não-bulking)
         # Se está mais de 15% abaixo do target, compensa DISTRIBUINDO entre pão e arroz
-        elif cal_diff > target_calories * 0.15:
+        if cal_diff > target_calories * 0.15 and goal.lower() != 'bulking':
             cal_diff_remaining = target_calories - total_cal_after_pao
             
             # 🍚 SEGUNDO: Se ainda falta, adiciona nas refeições principais (almoço/jantar)
