@@ -26,6 +26,12 @@ from auth_service import AuthService, SignUpRequest, LoginRequest, decode_token
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
+# ROOT LEVEL HEALTH CHECK - Required for Kubernetes deployment
+@app.get("/health")
+async def root_health_check():
+    """Health check endpoint at root level for Kubernetes probes"""
+    return {"status": "healthy", "service": "LAF Backend"}
+
 # Initialize auth service
 auth_service = AuthService(db)
 
