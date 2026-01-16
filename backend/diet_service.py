@@ -2998,10 +2998,9 @@ class DietAIService:
                                     break
                             
                             if existing_idx is not None:
-                                # Aumenta o existente
-                                # AUMENTADO: Max 500g total (era 300g) para dietas de bulking
+                                # Aumenta o existente - SEM LIMITE para bulking
                                 current = meals[idx]["foods"][existing_idx].get("grams", 0)
-                                new_grams = min(current + extra_grams, 500)
+                                new_grams = current + extra_grams
                                 meals[idx]["foods"][existing_idx] = calc_food(safe_carb, new_grams)
                             else:
                                 # Adiciona novo
