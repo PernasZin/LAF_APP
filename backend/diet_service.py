@@ -64,7 +64,7 @@ TOL_PERCENT = 0.05  # ±5%
 # ==================== LIMITES DE SEGURANÇA ====================
 MIN_FOOD_GRAMS = 10       # Mínimo 10g por alimento
 MAX_FOOD_GRAMS = 800      # Máximo 800g por alimento (aumentado para permitir dietas altas)
-MAX_CARB_GRAMS = 1200     # Máximo específico para carboidratos (arroz, batata)
+MAX_CARB_GRAMS = 2000     # Máximo para carboidratos (arroz, batata) - SEM LIMITE PRÁTICO
 MIN_MEAL_CALORIES = 50    # Mínimo 50kcal por refeição
 MIN_DAILY_CALORIES = 800  # Mínimo 800kcal por dia (segurança)
 
