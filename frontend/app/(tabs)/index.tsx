@@ -358,9 +358,28 @@ export default function HomeScreen() {
       const userId = await AsyncStorage.getItem('userId');
       if (userId && BACKEND_URL) {
         try {
+          // Carrega perfil
           const response = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`);
           if (response.ok) {
             const data = await response.json();
+            
+            // Carrega dieta para pegar os valores reais
+            try {
+              const dietResponse = await safeFetch(`${BACKEND_URL}/api/diet/${userId}`);
+              if (dietResponse.ok) {
+                const dietData = await dietResponse.json();
+                // Usa os valores computados da dieta (reais) ao invés dos alvos do perfil
+                if (dietData.computed_calories) {
+                  data.target_calories = dietData.computed_calories;
+                }
+                if (dietData.computed_macros) {
+                  data.macros = dietData.computed_macros;
+                }
+              }
+            } catch (dietError) {
+              console.log('Diet not loaded, using profile targets');
+            }
+            
             await AsyncStorage.setItem('userProfile', JSON.stringify(data));
             setProfile(data);
           }
