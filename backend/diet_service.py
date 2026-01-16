@@ -1009,68 +1009,63 @@ def calculate_tdee(weight: float, height: float, age: int, gender: str,
 
 def calculate_target_macros(weight: float, tdee: float, goal: str, gender: str = 'masculino') -> Dict:
     """
-    🎯 FÓRMULA SIMPLIFICADA DE MACROS
+    🎯 CALCULA MACROS EM 3 PASSOS
     
-    Baseado em multiplicadores por kg de peso corporal:
+    1. Calcular TDEE (já vem calculado)
+    2. Somar superávit/déficit baseado no objetivo
+    3. Distribuir macros a partir das calorias ajustadas
     
-    🟥 CUTTING:
+    CUTTING: TDEE - 15%
        - Proteína: peso × 2.2
-       - Carboidrato: peso × 2.5
        - Gordura: peso × 0.8
+       - Carboidrato: calorias restantes
     
-    🟨 MANUTENÇÃO:
+    MANUTENÇÃO: TDEE
        - Proteína: peso × 2.0
-       - Carboidrato: peso × 3.5
        - Gordura: peso × 0.85
+       - Carboidrato: calorias restantes
     
-    🟩 BULKING:
+    BULKING: TDEE + 15%
        - Proteína: peso × 2.0
-       - Carboidrato: peso × 5.0
        - Gordura: peso × 0.9
-    
-    Calorias = (proteína × 4) + (carboidrato × 4) + (gordura × 9)
+       - Carboidrato: calorias restantes
     """
     
-    # Multiplicadores por objetivo
-    macros_multipliers = {
-        'cutting': {
-            'protein': 2.2,
-            'carbs': 2.5,
-            'fat': 0.8
-        },
-        'manutencao': {
-            'protein': 2.0,
-            'carbs': 3.5,
-            'fat': 0.85
-        },
-        'bulking': {
-            'protein': 2.0,
-            'carbs': 5.0,
-            'fat': 0.9
-        }
-    }
+    # PASSO 2: Ajusta TDEE baseado no objetivo
+    if goal.lower() == 'cutting':
+        target_calories = tdee * 0.85  # -15% déficit
+    elif goal.lower() == 'bulking':
+        target_calories = tdee * 1.15  # +15% superávit
+    else:  # manutenção
+        target_calories = tdee
     
-    # Pega os multiplicadores do objetivo (default: manutenção)
-    mult = macros_multipliers.get(goal.lower(), macros_multipliers['manutencao'])
+    # PASSO 3: Distribui macros
+    if goal.lower() == 'cutting':
+        protein = weight * 2.2
+        fat = weight * 0.8
+    elif goal.lower() == 'bulking':
+        protein = weight * 2.0
+        fat = weight * 0.9
+    else:  # manutenção
+        protein = weight * 2.0
+        fat = weight * 0.85
     
-    # Calcula macros baseado no peso
-    protein = round(weight * mult['protein'])
-    carbs = round(weight * mult['carbs'])
-    fat = round(weight * mult['fat'])
-    
-    # Calcula calorias totais
-    target_calories = (protein * 4) + (carbs * 4) + (fat * 9)
+    # Carboidratos = calorias restantes
+    protein_cal = protein * 4
+    fat_cal = fat * 9
+    carbs_cal = target_calories - protein_cal - fat_cal
+    carbs = max(50, carbs_cal / 4)  # Mínimo 50g de carbs
     
     # Fibra mínima
     fiber_target = 30 if gender.lower() in ['masculino', 'male', 'm'] else 25
     
-    print(f"[MACROS] Peso={weight}kg, Goal={goal} -> P={protein}g C={carbs}g F={fat}g = {target_calories}kcal")
+    print(f"[MACROS] Peso={weight}kg, TDEE={tdee}, Goal={goal} -> Target={target_calories}kcal | P={protein}g C={carbs}g F={fat}g")
     
     return {
-        'calories': target_calories,
-        'protein': protein,
-        'carbs': carbs,
-        'fat': fat,
+        'calories': round(target_calories),
+        'protein': round(protein),
+        'carbs': round(carbs),
+        'fat': round(fat),
         'fiber_target': fiber_target
     }
 
