@@ -391,6 +391,7 @@ export default function HomeScreen() {
               const cycleResponse = await safeFetch(`${BACKEND_URL}/api/training-cycle/status/${storedUserId}`);
               if (cycleResponse.ok) {
                 const cycleData = await cycleResponse.json();
+                setCycleStatus(cycleData);
                 setDayType(cycleData.planned_day_type || cycleData.day_type || 'rest');
                 
                 // Se for dia de treino, carrega o treino de hoje
@@ -399,12 +400,15 @@ export default function HomeScreen() {
                     const workoutResponse = await safeFetch(`${BACKEND_URL}/api/workout/${storedUserId}`);
                     if (workoutResponse.ok) {
                       const workoutData = await workoutResponse.json();
-                      // Pega o treino do dia baseado no ciclo
+                      // Pega o treino do dia usando o índice do backend
                       const workoutDays = workoutData.days || workoutData.workout_days || [];
-                      const cycleDay = cycleData.cycle_day || 1;
-                      const todayIndex = (cycleDay - 1) % workoutDays.length;
+                      const todayIndex = cycleData.today_workout_index || 0;
                       if (workoutDays[todayIndex]) {
-                        setTodayWorkout(workoutDays[todayIndex]);
+                        setTodayWorkout({
+                          ...workoutDays[todayIndex],
+                          // Sobrescreve o nome com o do backend se for PPL
+                          name: cycleData.today_workout_name || workoutDays[todayIndex].name
+                        });
                       }
                     }
                   } catch (workoutError) {
