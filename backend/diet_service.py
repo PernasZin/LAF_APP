@@ -1924,26 +1924,34 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         # ========== AUMENTAR SE MUITO ABAIXO ==========
         
         # PROTEÍNA muito abaixo - ajustar AMBOS igualmente
+        # 🔒 MAS NUNCA aumentar além de 2.3 g/kg!
         if excess_p < -tol_p_below and not adjusted:
-            increase_needed = abs(excess_p) - tol_p_below + 5
+            # Calcula limite máximo absoluto de proteína
+            # Assumindo peso médio de 70kg se não especificado
+            # A proteína atual + aumento não pode exceder target_p * 1.15 (15% de tolerância)
+            max_protein_increase = max(0, (target_p * 1.15) - curr_p)
             
-            protein_indices = {}
-            for m_idx in main_meal_indices:
-                if m_idx >= num_meals:
-                    continue
-                for f_idx, food in enumerate(meals[m_idx]["foods"]):
-                    food_key = food.get("key")
-                    if food_key in ADJUSTABLE_PROTEINS:
-                        protein_indices[m_idx] = (f_idx, food_key, food["grams"])
-                        break
+            increase_needed = min(abs(excess_p) - tol_p_below + 5, max_protein_increase)
             
-            if len(protein_indices) >= 2:
-                for m_idx, (f_idx, food_key, current_g) in protein_indices.items():
-                    p_per_100 = FOODS[food_key]["p"]
-                    increase_each = (increase_needed / 2) / (p_per_100 / 100)
-                    new_g = round_to_10(min(400, current_g + increase_each))
-                    meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
-                adjusted = True
+            if increase_needed > 5:  # Só aumenta se realmente necessário
+                protein_indices = {}
+                for m_idx in main_meal_indices:
+                    if m_idx >= num_meals:
+                        continue
+                    for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                        food_key = food.get("key")
+                        if food_key in ADJUSTABLE_PROTEINS:
+                            protein_indices[m_idx] = (f_idx, food_key, food["grams"])
+                            break
+                
+                if len(protein_indices) >= 2:
+                    for m_idx, (f_idx, food_key, current_g) in protein_indices.items():
+                        p_per_100 = FOODS[food_key]["p"]
+                        increase_each = (increase_needed / 2) / (p_per_100 / 100)
+                        # 🔒 Limite máximo de 280g de proteína por refeição
+                        new_g = round_to_10(min(280, current_g + increase_each))
+                        meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
+                    adjusted = True
         
         # CARBOIDRATO muito abaixo - ajustar AMBOS igualmente
         if excess_c < -tol_c_below and not adjusted:
