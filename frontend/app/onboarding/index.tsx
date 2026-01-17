@@ -57,7 +57,6 @@ export default function OnboardingScreen() {
     height: '',
     weight: '',
     training_level: '',
-    training_split: '',
     training_days: [] as number[],
     weekly_training_frequency: '',
     available_time_per_session: '',
@@ -72,7 +71,7 @@ export default function OnboardingScreen() {
   const steps = [
     { title: t.steps.basicInfo, component: BasicInfoStep },
     { title: t.steps.physicalData, component: PhysicalDataStep },
-    { title: 'Divisão de Treino', component: TrainingSplitStep },
+    { title: t.steps.trainingLevel, component: TrainingLevelStep },
     { title: 'Dias de Treino', component: TrainingDaysStep },
     { title: t.steps.yourGoal, component: GoalStep },
     { title: t.steps.meals || 'Refeições', component: MealConfigStep },
