@@ -1870,6 +1870,9 @@ async def get_training_cycle_status(user_id: str, date: str = None):
     # Busca configuração do ciclo
     cycle_config = await db.training_cycles.find_one({"user_id": user_id})
     
+    # Pega training_days do perfil do usuário (se existir)
+    training_days = user.get("training_days", [])
+    
     if not cycle_config:
         # Se não tem ciclo configurado, usa a frequência do perfil e hoje como início
         frequency = user.get("weekly_training_frequency", 4)
@@ -1891,8 +1894,29 @@ async def get_training_cycle_status(user_id: str, date: str = None):
     start_date = cycle_config.get("start_date", get_today_date())
     frequency = cycle_config.get("frequency", user.get("weekly_training_frequency", 4))
     
-    # Calcula o tipo do dia baseado no ciclo
-    day_status = get_day_type_from_division(start_date, frequency, check_date)
+    # 🎯 NOVA LÓGICA: Usa training_days do perfil se disponível
+    if training_days and len(training_days) > 0:
+        # Usa os dias selecionados pelo usuário
+        from datetime import datetime as dt
+        check_dt = dt.strptime(check_date, "%Y-%m-%d").date()
+        # Python weekday: 0=Monday ... 6=Sunday
+        # Nosso formato: 0=Sunday, 1=Monday ... 6=Saturday
+        python_weekday = check_dt.weekday()
+        today_weekday = (python_weekday + 1) % 7  # Converte para nosso formato
+        
+        is_training_day = today_weekday in training_days
+        day_names = {0: 'Domingo', 1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado'}
+        
+        day_status = {
+            "day_type": "train" if is_training_day else "rest",
+            "weekday": today_weekday,
+            "weekday_name": day_names.get(today_weekday, ""),
+            "training_days": training_days,
+            "reason": f"{day_names.get(today_weekday, '')} - {'dia de treino' if is_training_day else 'dia de descanso'}"
+        }
+    else:
+        # Fallback para o sistema antigo baseado em ciclo
+        day_status = get_day_type_from_division(start_date, frequency, check_date)
     
     # Busca sessão de treino do dia
     training_session = await db.training_sessions.find_one({
