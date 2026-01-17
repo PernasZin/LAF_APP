@@ -1608,10 +1608,13 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 else:
                     foods.append(calc_food(lanche_protein, 100))
             else:
-                # 🧠 SEM FALLBACK DE PROTEÍNA NOS LANCHES
-                # Quando usuário não define preferências, lanches são só frutas
-                # Isso evita excesso de proteína (iogurte/cottage adicionam ~15g cada)
-                pass
+                # 🧠 FALLBACK PROTEÍNA NOS LANCHES
+                # Em CUTTING: adiciona proteína (essencial para preservar massa)
+                # Em BULKING: não adiciona (para evitar excesso)
+                if goal == "cutting":
+                    safe_protein = get_safe_fallback("protein", restrictions, ["iogurte_zero", "cottage"])
+                    if safe_protein:
+                        foods.append(calc_food(safe_protein, 120))
             
             if lanche_fruit and lanche_fruit in FOODS:
                 foods.append(calc_food(lanche_fruit, 120))  # Aumentado para compensar
