@@ -385,6 +385,36 @@ export default function HomeScreen() {
               console.log('Diet not loaded, using profile targets');
             }
             
+            // Carrega status do ciclo de treino
+            try {
+              const cycleResponse = await safeFetch(`${BACKEND_URL}/api/training-cycle/status/${storedUserId}`);
+              if (cycleResponse.ok) {
+                const cycleData = await cycleResponse.json();
+                setDayType(cycleData.planned_day_type || cycleData.day_type || 'rest');
+                
+                // Se for dia de treino, carrega o treino de hoje
+                if (cycleData.planned_day_type === 'train' || cycleData.day_type === 'train') {
+                  try {
+                    const workoutResponse = await safeFetch(`${BACKEND_URL}/api/workout/${storedUserId}`);
+                    if (workoutResponse.ok) {
+                      const workoutData = await workoutResponse.json();
+                      // Pega o treino do dia baseado no ciclo
+                      const workoutDays = workoutData.days || workoutData.workout_days || [];
+                      const cycleDay = cycleData.cycle_day || 1;
+                      const todayIndex = (cycleDay - 1) % workoutDays.length;
+                      if (workoutDays[todayIndex]) {
+                        setTodayWorkout(workoutDays[todayIndex]);
+                      }
+                    }
+                  } catch (workoutError) {
+                    console.log('Workout not loaded');
+                  }
+                }
+              }
+            } catch (cycleError) {
+              console.log('Cycle status not loaded');
+            }
+            
             await AsyncStorage.setItem('userProfile', JSON.stringify(data));
             setProfile(data);
           }
