@@ -67,8 +67,8 @@ export default function SignupScreen() {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Erro', language === 'en-US' ? 'Password must be at least 6 characters.' : 'A senha deve ter pelo menos 6 caracteres.');
+    if (password.length < 8) {
+      Alert.alert('Erro', language === 'en-US' ? 'Password must be at least 8 characters.' : 'A senha deve ter pelo menos 8 caracteres.');
       return;
     }
 
