@@ -368,7 +368,7 @@ export default function HomeScreen() {
             
             // Carrega dieta para pegar os valores reais
             try {
-              const dietResponse = await safeFetch(`${BACKEND_URL}/api/diet/${userId}`);
+              const dietResponse = await safeFetch(`${BACKEND_URL}/api/diet/${storedUserId}`);
               if (dietResponse.ok) {
                 const dietData = await dietResponse.json();
                 // Usa os valores computados da dieta (reais) ao invés dos alvos do perfil
