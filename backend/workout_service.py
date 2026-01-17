@@ -461,7 +461,7 @@ class WorkoutAIService:
         if is_adaptation:
             # Treino de adaptação para novatos (4-8 semanas)
             config = {
-                "sets": min(sets_by_time, 2),  # Máximo 2 séries na adaptação
+                "sets": 2,  # Adaptação: 2 séries
                 "reps": "15-20",
                 "rest": "60s",
                 "ex_per_muscle": 1,
@@ -472,7 +472,7 @@ class WorkoutAIService:
         elif level == 'novato':
             # NOVATO = nunca treinou (treinos simples, exercícios seguros, menor volume)
             config = {
-                "sets": min(sets_by_time, 3),
+                "sets": 3,  # Novato: 3 séries
                 "reps": "12-15",
                 "rest": "90s",
                 "ex_per_muscle": 1,  # Menos exercícios por músculo
@@ -483,7 +483,7 @@ class WorkoutAIService:
         elif level == 'iniciante':
             # INICIANTE = 6 meses - 2 anos (volume moderado, compostos + acessórios leves)
             config = {
-                "sets": sets_by_time,
+                "sets": 4,  # LIMITE FIXO: 4 séries
                 "reps": "10-12",
                 "rest": "75s",
                 "ex_per_muscle": 2,
