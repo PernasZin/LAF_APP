@@ -496,7 +496,7 @@ class WorkoutAIService:
         elif level == 'intermediario':
             # INTERMEDIÁRIO = 2-3 anos (maior volume, pode usar bi-set, pirâmide, pré-exaustão)
             config = {
-                "sets": sets_by_time,
+                "sets": 4,  # LIMITE FIXO: 4 séries
                 "reps": "8-12",
                 "rest": "75s",
                 "ex_per_muscle": 2,
@@ -508,16 +508,17 @@ class WorkoutAIService:
             }
         else:  # avancado
             # AVANÇADO = 3+ anos (volume alto, drop set, rest pause, maior intensidade)
+            # DIFERENCIADO: Mais exercícios, técnicas avançadas, 10-12 reps
             config = {
-                "sets": sets_by_time,
-                "reps": "5-8",
-                "rest": "120s",
-                "ex_per_muscle": 2,
+                "sets": 4,  # LIMITE FIXO: 4 séries
+                "reps": "10-12",  # AVANÇADO: 10-12 reps (DIFERENTE de intermediário)
+                "rest": "90s",
+                "ex_per_muscle": 3,  # MAIS exercícios que intermediário
                 "machine_only": False,
                 "allow_free_weights": True,
                 "block_exercises": [],
                 "notes_prefix": "🔥 ATÉ A FALHA! ",
-                "general_note": "AVANÇADO: Pode usar drop set, rest pause. Controle técnico máximo."
+                "general_note": "AVANÇADO: Pode usar drop set, rest pause, bi-set. Técnica impecável."
             }
         
         # ==================== MÁXIMO DE EXERCÍCIOS (REGRA DURA: 10) ====================
