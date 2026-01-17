@@ -1605,6 +1605,262 @@ async def delete_weight_record(record_id: str):
     return {"message": "Registro deletado com sucesso"}
 
 
+# ==================== WORKOUT TRACKING ENDPOINTS ====================
+
+def get_today_date() -> str:
+    """Retorna a data de hoje no formato YYYY-MM-DD"""
+    return datetime.now().strftime("%Y-%m-%d")
+
+def calculate_adjusted_macros(base_calories: float, base_protein: float, base_carbs: float, base_fat: float, is_training_day: bool) -> Dict:
+    """
+    Calcula macros ajustados baseado no tipo de dia.
+    
+    REGRAS:
+    - Proteína e Gordura NÃO mudam
+    - Apenas Carboidratos e Calorias são ajustados
+    
+    Dia de treino:
+    - calorias = baseCalories * 1.05
+    - carboidratos = baseCarbs * 1.15
+    
+    Dia sem treino:
+    - calorias = baseCalories * 0.95
+    - carboidratos = baseCarbs * 0.80
+    """
+    if is_training_day:
+        calorie_multiplier = 1.05
+        carb_multiplier = 1.15
+        diet_type = "training"
+        multiplier_info = "+5% calorias, +15% carbs"
+    else:
+        calorie_multiplier = 0.95
+        carb_multiplier = 0.80
+        diet_type = "rest"
+        multiplier_info = "-5% calorias, -20% carbs"
+    
+    adjusted_calories = base_calories * calorie_multiplier
+    adjusted_carbs = base_carbs * carb_multiplier
+    
+    return {
+        "base_calories": round(base_calories, 0),
+        "adjusted_calories": round(adjusted_calories, 0),
+        "base_protein": round(base_protein, 1),
+        "adjusted_protein": round(base_protein, 1),  # Não muda
+        "base_carbs": round(base_carbs, 1),
+        "adjusted_carbs": round(adjusted_carbs, 1),
+        "base_fat": round(base_fat, 1),
+        "adjusted_fat": round(base_fat, 1),  # Não muda
+        "diet_type": diet_type,
+        "is_training_day": is_training_day,
+        "calorie_multiplier": calorie_multiplier,
+        "carb_multiplier": carb_multiplier,
+        "multiplier_info": multiplier_info
+    }
+
+@api_router.get("/workout/status/{user_id}")
+async def get_workout_status(user_id: str, date: str = None):
+    """
+    Retorna o status de treino do dia.
+    
+    Se date não for informado, usa a data de hoje.
+    """
+    if not date:
+        date = get_today_date()
+    
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca registro de treino do dia
+    workout_record = await db.workout_tracking.find_one({
+        "user_id": user_id,
+        "date": date
+    })
+    
+    trained = workout_record.get("trained", False) if workout_record else False
+    completed_at = workout_record.get("completed_at") if workout_record else None
+    
+    # Verifica se é dia de treino baseado na frequência semanal do usuário
+    weekly_frequency = user.get("weekly_training_frequency", 4)
+    day_of_week = datetime.strptime(date, "%Y-%m-%d").weekday()  # 0=segunda, 6=domingo
+    
+    # Dias de treino padrão baseado na frequência
+    # Ex: 4x/semana = seg, ter, qui, sex (0, 1, 3, 4)
+    training_days_map = {
+        1: [0],  # Segunda
+        2: [0, 3],  # Segunda, Quinta
+        3: [0, 2, 4],  # Segunda, Quarta, Sexta
+        4: [0, 1, 3, 4],  # Segunda, Terça, Quinta, Sexta
+        5: [0, 1, 2, 3, 4],  # Segunda a Sexta
+        6: [0, 1, 2, 3, 4, 5],  # Segunda a Sábado
+        7: [0, 1, 2, 3, 4, 5, 6],  # Todos os dias
+    }
+    
+    scheduled_training_days = training_days_map.get(weekly_frequency, [0, 2, 4])
+    is_scheduled_training_day = day_of_week in scheduled_training_days
+    
+    # Se já treinou, é dia de treino. Senão, usa o agendado.
+    is_training_day = trained or is_scheduled_training_day
+    
+    # Determina o tipo de dieta
+    if trained:
+        diet_type = "training"
+        calorie_multiplier = 1.05
+        carb_multiplier = 1.15
+    else:
+        diet_type = "rest"
+        calorie_multiplier = 0.95
+        carb_multiplier = 0.80
+    
+    return {
+        "date": date,
+        "trained": trained,
+        "completed_at": completed_at,
+        "is_scheduled_training_day": is_scheduled_training_day,
+        "is_training_day": is_training_day,
+        "diet_type": diet_type,
+        "calorie_multiplier": calorie_multiplier,
+        "carb_multiplier": carb_multiplier,
+        "weekly_frequency": weekly_frequency,
+        "day_of_week": day_of_week
+    }
+
+@api_router.post("/workout/finish/{user_id}")
+async def finish_workout(user_id: str, request: FinishWorkoutRequest = None):
+    """
+    Marca o treino do dia como concluído.
+    
+    - Salva no banco de dados
+    - Impede marcar o mesmo dia duas vezes
+    - Retorna o novo status
+    """
+    date = request.date if request and request.date else get_today_date()
+    
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Verifica se já foi marcado
+    existing = await db.workout_tracking.find_one({
+        "user_id": user_id,
+        "date": date
+    })
+    
+    if existing and existing.get("trained"):
+        raise HTTPException(
+            status_code=400, 
+            detail="Treino já foi marcado como concluído para este dia"
+        )
+    
+    # Marca como concluído
+    completed_at = datetime.now().isoformat()
+    
+    await db.workout_tracking.update_one(
+        {"user_id": user_id, "date": date},
+        {
+            "$set": {
+                "user_id": user_id,
+                "date": date,
+                "trained": True,
+                "completed_at": completed_at
+            }
+        },
+        upsert=True
+    )
+    
+    logging.info(f"Workout finished for user {user_id} on {date}")
+    
+    return {
+        "success": True,
+        "message": "Treino concluído com sucesso!",
+        "date": date,
+        "trained": True,
+        "completed_at": completed_at,
+        "diet_type": "training"
+    }
+
+@api_router.get("/workout/history/{user_id}")
+async def get_workout_history(user_id: str, days: int = 30):
+    """
+    Retorna histórico de treinos dos últimos N dias.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Calcula data inicial
+    start_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+    
+    # Busca registros
+    records = await db.workout_tracking.find({
+        "user_id": user_id,
+        "date": {"$gte": start_date}
+    }).sort("date", -1).to_list(100)
+    
+    # Conta estatísticas
+    trained_days = sum(1 for r in records if r.get("trained"))
+    
+    return {
+        "user_id": user_id,
+        "period_days": days,
+        "total_workouts": trained_days,
+        "history": [
+            {
+                "date": r["date"],
+                "trained": r.get("trained", False),
+                "completed_at": r.get("completed_at")
+            }
+            for r in records
+        ]
+    }
+
+@api_router.get("/workout/adjusted-macros/{user_id}")
+async def get_adjusted_macros(user_id: str, date: str = None):
+    """
+    Retorna os macros ajustados para o dia (treino ou descanso).
+    
+    - Busca a dieta base do usuário
+    - Aplica os multiplicadores corretos
+    - Retorna macros ajustados
+    """
+    if not date:
+        date = get_today_date()
+    
+    # Busca perfil do usuário
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca dieta do usuário
+    diet = await db.diet_plans.find_one({"user_id": user_id})
+    if not diet:
+        raise HTTPException(status_code=404, detail="Dieta não encontrada. Gere uma dieta primeiro.")
+    
+    # Pega status de treino
+    workout_status = await get_workout_status(user_id, date)
+    is_training_day = workout_status["trained"]
+    
+    # Pega macros base da dieta
+    base_calories = diet.get("computed_calories", diet.get("target_calories", 2000))
+    base_macros = diet.get("computed_macros", diet.get("target_macros", {}))
+    base_protein = base_macros.get("protein", 150)
+    base_carbs = base_macros.get("carbs", 300)
+    base_fat = base_macros.get("fat", 60)
+    
+    # Calcula macros ajustados
+    adjusted = calculate_adjusted_macros(
+        base_calories, base_protein, base_carbs, base_fat, is_training_day
+    )
+    
+    adjusted["date"] = date
+    adjusted["trained"] = is_training_day
+    
+    return adjusted
+
+
 # ==================== NOTIFICATIONS ENDPOINTS ====================
 
 @api_router.get("/notifications/{user_id}")
