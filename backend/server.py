@@ -1657,6 +1657,444 @@ def calculate_adjusted_macros(base_calories: float, base_protein: float, base_ca
         "multiplier_info": multiplier_info
     }
 
+# ==================== WORKOUT CYCLE SYSTEM ====================
+
+def get_day_type_from_division(start_date_str: str, frequency: int, check_date_str: str = None) -> Dict:
+    """
+    🎯 Calcula automaticamente se é dia de TREINO ou DESCANSO baseado no ciclo semanal.
+    
+    REGRAS:
+    1. Dia 0 (startDate) = SEMPRE DESCANSO
+    2. A partir do dia 1, começa o ciclo de treino
+    3. Ciclo de 7 dias se repete
+    
+    Distribuição de dias de treino na semana:
+    - 2x: dias 1, 4 (treino nos dias 2 e 5 do ciclo)
+    - 3x: dias 1, 3, 5
+    - 4x: dias 1, 2, 4, 5
+    - 5x: dias 1, 2, 3, 4, 5
+    - 6x: dias 1, 2, 3, 4, 5, 6
+    
+    Args:
+        start_date_str: Data de início (YYYY-MM-DD) - primeiro dia do app
+        frequency: Frequência semanal (2-6)
+        check_date_str: Data para verificar (YYYY-MM-DD) - default: hoje
+    
+    Returns:
+        Dict com day_type ("train"/"rest"), day_number, cycle_day, etc.
+    """
+    from datetime import datetime, timedelta
+    
+    # Parse das datas
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+    check_date = datetime.strptime(check_date_str, "%Y-%m-%d").date() if check_date_str else datetime.now().date()
+    
+    # Calcula quantos dias se passaram desde o início
+    days_elapsed = (check_date - start_date).days
+    
+    # Dia 0 = SEMPRE descanso
+    if days_elapsed == 0:
+        return {
+            "day_type": "rest",
+            "day_number": 0,
+            "cycle_day": 0,
+            "cycle_week": 0,
+            "is_first_day": True,
+            "reason": "Primeiro dia do app - descanso obrigatório"
+        }
+    
+    # A partir do dia 1, calcula o ciclo de 7 dias
+    # Ciclo começa no dia 1, então ciclo_dia vai de 1 a 7
+    cycle_day = ((days_elapsed - 1) % 7) + 1  # 1-7
+    cycle_week = (days_elapsed - 1) // 7 + 1
+    
+    # Mapeamento de dias de treino por frequência
+    # O dia 7 (domingo) é SEMPRE descanso
+    training_days_by_frequency = {
+        2: [1, 4],           # Segunda, Quinta
+        3: [1, 3, 5],        # Segunda, Quarta, Sexta
+        4: [1, 2, 4, 5],     # Segunda, Terça, Quinta, Sexta
+        5: [1, 2, 3, 4, 5],  # Segunda a Sexta
+        6: [1, 2, 3, 4, 5, 6],  # Segunda a Sábado
+    }
+    
+    # Pega os dias de treino para a frequência (default: 4x)
+    training_days = training_days_by_frequency.get(frequency, [1, 2, 4, 5])
+    
+    # Verifica se o dia do ciclo é dia de treino
+    is_training_day = cycle_day in training_days
+    day_type = "train" if is_training_day else "rest"
+    
+    return {
+        "day_type": day_type,
+        "day_number": days_elapsed,
+        "cycle_day": cycle_day,
+        "cycle_week": cycle_week,
+        "is_first_day": False,
+        "training_days_in_cycle": training_days,
+        "reason": f"Ciclo dia {cycle_day} - {'treino' if is_training_day else 'descanso'}"
+    }
+
+
+class TrainingCycleSetup(BaseModel):
+    """Setup inicial do ciclo de treino"""
+    frequency: int = Field(ge=2, le=6, description="Frequência semanal (2-6)")
+
+
+class TrainingSessionStart(BaseModel):
+    """Request para iniciar sessão de treino"""
+    workout_day_index: Optional[int] = None  # Índice do dia de treino (opcional)
+
+
+class TrainingSessionFinish(BaseModel):
+    """Request para finalizar sessão de treino"""
+    duration_seconds: int = Field(ge=0, description="Duração do treino em segundos")
+    exercises_completed: Optional[int] = None
+
+
+@api_router.post("/training-cycle/setup/{user_id}")
+async def setup_training_cycle(user_id: str, setup: TrainingCycleSetup):
+    """
+    🎯 Configura o ciclo de treino do usuário.
+    
+    - Salva a data de início (startDate)
+    - Salva a frequência semanal
+    - Primeiro dia = DESCANSO
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    today = get_today_date()
+    
+    # Salva configuração do ciclo
+    cycle_config = {
+        "user_id": user_id,
+        "start_date": today,
+        "frequency": setup.frequency,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Upsert no banco
+    await db.training_cycles.update_one(
+        {"user_id": user_id},
+        {"$set": cycle_config},
+        upsert=True
+    )
+    
+    # Também atualiza a frequência no perfil
+    await db.user_profiles.update_one(
+        {"_id": user_id},
+        {"$set": {"weekly_training_frequency": setup.frequency}}
+    )
+    
+    # Calcula o status do primeiro dia
+    day_status = get_day_type_from_division(today, setup.frequency, today)
+    
+    logger.info(f"Training cycle setup for user {user_id}: {setup.frequency}x/week, start_date={today}")
+    
+    return {
+        "success": True,
+        "message": "Ciclo de treino configurado com sucesso",
+        "start_date": today,
+        "frequency": setup.frequency,
+        "first_day_type": day_status["day_type"],
+        "day_status": day_status
+    }
+
+
+@api_router.get("/training-cycle/status/{user_id}")
+async def get_training_cycle_status(user_id: str, date: str = None):
+    """
+    🎯 Retorna o status completo do ciclo de treino.
+    
+    Inclui:
+    - Tipo do dia (train/rest)
+    - Informações do ciclo
+    - Status da sessão de treino do dia
+    - Multiplicadores de dieta
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    check_date = date or get_today_date()
+    
+    # Busca configuração do ciclo
+    cycle_config = await db.training_cycles.find_one({"user_id": user_id})
+    
+    if not cycle_config:
+        # Se não tem ciclo configurado, usa a frequência do perfil e hoje como início
+        frequency = user.get("weekly_training_frequency", 4)
+        start_date = get_today_date()
+        
+        # Auto-cria o ciclo
+        await db.training_cycles.update_one(
+            {"user_id": user_id},
+            {"$set": {
+                "user_id": user_id,
+                "start_date": start_date,
+                "frequency": frequency,
+                "created_at": datetime.utcnow()
+            }},
+            upsert=True
+        )
+        cycle_config = {"start_date": start_date, "frequency": frequency}
+    
+    start_date = cycle_config.get("start_date", get_today_date())
+    frequency = cycle_config.get("frequency", user.get("weekly_training_frequency", 4))
+    
+    # Calcula o tipo do dia baseado no ciclo
+    day_status = get_day_type_from_division(start_date, frequency, check_date)
+    
+    # Busca sessão de treino do dia
+    training_session = await db.training_sessions.find_one({
+        "user_id": user_id,
+        "date": check_date
+    })
+    
+    # Verifica se já treinou hoje
+    has_trained_today = training_session is not None and training_session.get("completed", False)
+    is_training_in_progress = training_session is not None and training_session.get("started", False) and not training_session.get("completed", False)
+    
+    # Determina multiplicadores de dieta
+    # Se é dia de treino no ciclo E já treinou, usa multiplicadores de treino
+    # Se é dia de descanso OU não treinou, usa multiplicadores de descanso
+    if day_status["day_type"] == "train" and has_trained_today:
+        diet_type = "training"
+        calorie_multiplier = 1.05
+        carb_multiplier = 1.15
+    else:
+        diet_type = "rest"
+        calorie_multiplier = 0.95
+        carb_multiplier = 0.80
+    
+    return {
+        "date": check_date,
+        "day_type": day_status["day_type"],
+        "day_number": day_status["day_number"],
+        "cycle_day": day_status["cycle_day"],
+        "cycle_week": day_status["cycle_week"],
+        "is_first_day": day_status["is_first_day"],
+        "reason": day_status["reason"],
+        "frequency": frequency,
+        "start_date": start_date,
+        "has_trained_today": has_trained_today,
+        "is_training_in_progress": is_training_in_progress,
+        "training_session": {
+            "started_at": training_session.get("started_at") if training_session else None,
+            "completed_at": training_session.get("completed_at") if training_session else None,
+            "duration_seconds": training_session.get("duration_seconds") if training_session else None,
+        } if training_session else None,
+        "diet": {
+            "type": diet_type,
+            "calorie_multiplier": calorie_multiplier,
+            "carb_multiplier": carb_multiplier,
+            "info": "+5% cal, +15% carbs" if diet_type == "training" else "-5% cal, -20% carbs"
+        }
+    }
+
+
+@api_router.post("/training-cycle/start-session/{user_id}")
+async def start_training_session(user_id: str, request: TrainingSessionStart = None):
+    """
+    🎯 Inicia uma sessão de treino.
+    
+    - Registra o horário de início
+    - Não permite iniciar duas vezes no mesmo dia
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    today = get_today_date()
+    
+    # Verifica se já existe sessão do dia
+    existing_session = await db.training_sessions.find_one({
+        "user_id": user_id,
+        "date": today
+    })
+    
+    if existing_session:
+        if existing_session.get("completed", False):
+            raise HTTPException(status_code=400, detail="Treino já foi concluído hoje. Tente novamente amanhã.")
+        if existing_session.get("started", False):
+            # Já iniciou, retorna o existente
+            return {
+                "success": True,
+                "message": "Treino já em andamento",
+                "session": {
+                    "started_at": existing_session.get("started_at"),
+                    "date": today,
+                    "already_started": True
+                }
+            }
+    
+    # Cria nova sessão
+    now = datetime.utcnow()
+    session = {
+        "user_id": user_id,
+        "date": today,
+        "started": True,
+        "completed": False,
+        "started_at": now.isoformat(),
+        "completed_at": None,
+        "duration_seconds": None,
+        "workout_day_index": request.workout_day_index if request else None,
+        "created_at": now
+    }
+    
+    await db.training_sessions.update_one(
+        {"user_id": user_id, "date": today},
+        {"$set": session},
+        upsert=True
+    )
+    
+    logger.info(f"Training session started for user {user_id}")
+    
+    return {
+        "success": True,
+        "message": "Treino iniciado com sucesso!",
+        "session": {
+            "started_at": now.isoformat(),
+            "date": today,
+            "already_started": False
+        }
+    }
+
+
+@api_router.post("/training-cycle/finish-session/{user_id}")
+async def finish_training_session(user_id: str, request: TrainingSessionFinish):
+    """
+    🎯 Finaliza uma sessão de treino.
+    
+    - Registra o horário de término
+    - Salva a duração
+    - Atualiza o status do treino para concluído
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    today = get_today_date()
+    
+    # Busca sessão existente
+    existing_session = await db.training_sessions.find_one({
+        "user_id": user_id,
+        "date": today
+    })
+    
+    if not existing_session:
+        raise HTTPException(status_code=400, detail="Nenhuma sessão de treino iniciada hoje")
+    
+    if existing_session.get("completed", False):
+        raise HTTPException(status_code=400, detail="Treino já foi concluído hoje")
+    
+    # Finaliza a sessão
+    now = datetime.utcnow()
+    
+    await db.training_sessions.update_one(
+        {"user_id": user_id, "date": today},
+        {"$set": {
+            "completed": True,
+            "completed_at": now.isoformat(),
+            "duration_seconds": request.duration_seconds,
+            "exercises_completed": request.exercises_completed
+        }}
+    )
+    
+    # Também atualiza o workout_tracking antigo para compatibilidade
+    await db.workout_tracking.update_one(
+        {"user_id": user_id, "date": today},
+        {"$set": {
+            "user_id": user_id,
+            "date": today,
+            "trained": True,
+            "completed_at": now.isoformat(),
+            "duration_seconds": request.duration_seconds
+        }},
+        upsert=True
+    )
+    
+    # Formata duração
+    duration_mins = request.duration_seconds // 60
+    duration_secs = request.duration_seconds % 60
+    duration_formatted = f"{duration_mins}:{duration_secs:02d}"
+    
+    logger.info(f"Training session finished for user {user_id}: {duration_formatted}")
+    
+    return {
+        "success": True,
+        "message": f"Treino concluído! Duração: {duration_formatted}",
+        "session": {
+            "date": today,
+            "started_at": existing_session.get("started_at"),
+            "completed_at": now.isoformat(),
+            "duration_seconds": request.duration_seconds,
+            "duration_formatted": duration_formatted,
+            "exercises_completed": request.exercises_completed
+        }
+    }
+
+
+@api_router.get("/training-cycle/week-preview/{user_id}")
+async def get_week_preview(user_id: str):
+    """
+    🎯 Retorna preview da semana com dias de treino e descanso.
+    """
+    # Busca configuração do ciclo
+    cycle_config = await db.training_cycles.find_one({"user_id": user_id})
+    user = await db.user_profiles.find_one({"_id": user_id})
+    
+    if not cycle_config:
+        frequency = user.get("weekly_training_frequency", 4) if user else 4
+        start_date = get_today_date()
+    else:
+        frequency = cycle_config.get("frequency", 4)
+        start_date = cycle_config.get("start_date", get_today_date())
+    
+    # Gera preview dos próximos 7 dias
+    today = datetime.now().date()
+    week_preview = []
+    
+    day_names = {
+        0: "Segunda", 1: "Terça", 2: "Quarta", 
+        3: "Quinta", 4: "Sexta", 5: "Sábado", 6: "Domingo"
+    }
+    
+    for i in range(7):
+        check_date = today + timedelta(days=i)
+        check_date_str = check_date.strftime("%Y-%m-%d")
+        
+        day_status = get_day_type_from_division(start_date, frequency, check_date_str)
+        
+        # Busca se já treinou nesse dia
+        session = await db.training_sessions.find_one({
+            "user_id": user_id,
+            "date": check_date_str
+        })
+        
+        week_preview.append({
+            "date": check_date_str,
+            "day_name": day_names.get(check_date.weekday(), ""),
+            "day_type": day_status["day_type"],
+            "cycle_day": day_status["cycle_day"],
+            "is_today": i == 0,
+            "has_trained": session.get("completed", False) if session else False
+        })
+    
+    return {
+        "frequency": frequency,
+        "start_date": start_date,
+        "week_preview": week_preview
+    }
+
+
 @api_router.get("/workout/status/{user_id}")
 async def get_workout_status(user_id: str, date: str = None):
     """
