@@ -356,11 +356,13 @@ export default function HomeScreen() {
       const profileData = await AsyncStorage.getItem('userProfile');
       if (profileData) setProfile(JSON.parse(profileData));
       
-      const userId = await AsyncStorage.getItem('userId');
-      if (userId && BACKEND_URL) {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      if (storedUserId) setUserId(storedUserId);
+      
+      if (storedUserId && BACKEND_URL) {
         try {
           // Carrega perfil
-          const response = await safeFetch(`${BACKEND_URL}/api/user/profile/${userId}`);
+          const response = await safeFetch(`${BACKEND_URL}/api/user/profile/${storedUserId}`);
           if (response.ok) {
             const data = await response.json();
             
