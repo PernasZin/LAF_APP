@@ -1952,19 +1952,15 @@ async def get_training_cycle_status(user_id: str, date: str = None):
     has_trained_today = training_session is not None and training_session.get("completed", False)
     is_training_in_progress = training_session is not None and training_session.get("started", False) and not training_session.get("completed", False)
     
-    # ==================== NOVA LÓGICA DE DIETA ====================
-    # 🎯 REGRA: A dieta é definida pelo TIPO DO DIA PLANEJADO, não pelo status de treino!
+    # ==================== LÓGICA DE DIETA ====================
+    # 🎯 REGRA: A dieta é definida pelo TIPO DO DIA PLANEJADO
+    # A dieta NUNCA depende de ações do usuário - é automática baseada no plano
     #
     # 1. Se plannedDayType = "train":
     #    → Dieta de TREINO desde o início do dia
-    #    → Mesmo que não treine, a dieta continua sendo de treino
-    #    → Não penaliza macros se não treinar
     #
     # 2. Se plannedDayType = "rest":
-    #    → Dieta de DESCANSO inicialmente
-    #    → Se treinar (bônus!), muda para dieta de treino
-    #
-    # Objetivo: Usuário acorda sabendo quanto comer!
+    #    → Dieta de DESCANSO (sem exceções, sem treino bônus)
     
     planned_day_type = day_status["day_type"]  # "train" ou "rest"
     
@@ -1975,38 +1971,34 @@ async def get_training_cycle_status(user_id: str, date: str = None):
         carb_multiplier = 1.15
         diet_reason = "Dia de treino planejado"
     else:
-        # Dia planejado como DESCANSO
-        if has_trained_today:
-            # Treinou em dia de descanso (bônus!) → dieta de treino
-            diet_type = "training"
-            calorie_multiplier = 1.05
-            carb_multiplier = 1.15
-            diet_reason = "Treino extra realizado!"
-        else:
-            # Descanso normal → dieta de descanso
-            diet_type = "rest"
-            calorie_multiplier = 0.95
-            carb_multiplier = 0.80
-            diet_reason = "Dia de descanso"
+        # Dia planejado como DESCANSO → dieta de descanso SEMPRE
+        # NÃO existe mais treino bônus - treino bloqueado em dias de descanso
+        diet_type = "rest"
+        calorie_multiplier = 0.95
+        carb_multiplier = 0.80
+        diet_reason = "Dia de descanso"
     
-    # Status do treino para exibição no histórico
+    # Status do treino
+    # - train + não treinou → pending
+    # - train + treinou → completed
+    # - rest → rest (treino bloqueado)
     if planned_day_type == "train":
         if has_trained_today:
-            workout_status = "completed"  # Treino planejado — realizado ✅
-            workout_status_text = "Treino realizado"
+            workout_status = "completed"
+            workout_status_text = "Treino realizado ✅"
         elif is_training_in_progress:
-            workout_status = "in_progress"  # Treino em andamento
+            workout_status = "in_progress"
             workout_status_text = "Treino em andamento"
         else:
-            workout_status = "pending"  # Treino planejado — ainda não iniciado
-            workout_status_text = "Treino planejado"
+            workout_status = "pending"
+            workout_status_text = "Treino pendente"
     else:
-        if has_trained_today:
-            workout_status = "bonus"  # Treino extra em dia de descanso
-            workout_status_text = "Treino bônus realizado"
-        else:
-            workout_status = "rest"  # Dia de descanso normal
-            workout_status_text = "Dia de descanso"
+        # Dia de descanso - treino BLOQUEADO
+        workout_status = "rest"
+        workout_status_text = "Dia de descanso - treino bloqueado"
+    
+    # Flag para indicar se treino está bloqueado
+    is_training_blocked = planned_day_type == "rest"
     
     return {
         "date": check_date,
