@@ -1753,6 +1753,50 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
     tol_c_below = MAX_DEFICIT
     tol_f_below = MAX_DEFICIT
     
+    # 🔒🔒🔒 PRIMEIRA COISA: REDUZIR PROTEÍNA SE ACIMA DO LIMITE ABSOLUTO 🔒🔒🔒
+    # Limite absoluto: target_p * 1.15 (15% de tolerância)
+    max_protein_absolute = target_p * 1.15
+    curr_p_check = sum(f.get("protein", 0) for m in meals for f in m.get("foods", []))
+    
+    if curr_p_check > max_protein_absolute:
+        protein_excess = curr_p_check - target_p
+        protein_foods = ["frango", "patinho", "acem", "peixe", "tilapia", "salmao", "atum"]
+        
+        # Determina refeições principais (almoço e jantar)
+        meal_count = len(meals)
+        if meal_count == 4:
+            main_meal_indices = [1, 3]
+        elif meal_count == 5:
+            main_meal_indices = [2, 4]
+        else:
+            main_meal_indices = [2, 4]
+        
+        for m_idx in main_meal_indices:
+            if m_idx >= len(meals) or protein_excess <= 0:
+                continue
+            
+            for f_idx, food in enumerate(meals[m_idx]["foods"]):
+                if food.get("key") in protein_foods and protein_excess > 0:
+                    current_grams = food.get("grams", 100)
+                    p_per_100 = FOODS.get(food.get("key"), {}).get("p", 25)
+                    
+                    # Calcula quanto reduzir (mínimo 120g por refeição)
+                    grams_to_reduce = (protein_excess / 2) / (p_per_100 / 100)
+                    new_grams = max(120, current_grams - grams_to_reduce)
+                    
+                    meals[m_idx]["foods"][f_idx] = calc_food(food.get("key"), new_grams)
+                    
+                    # Recalcula excesso
+                    old_p = (p_per_100 / 100) * current_grams
+                    new_p = (p_per_100 / 100) * new_grams
+                    protein_excess -= (old_p - new_p)
+                    break
+            
+            # Recalcula totais
+            mp, mc, mf, mcal = sum_foods(meals[m_idx]["foods"])
+            meals[m_idx]["total_calories"] = mcal
+            meals[m_idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
     num_meals = len(meals)
     
     # Alimentos que podem ser ajustados em incrementos pequenos (não-contáveis)
