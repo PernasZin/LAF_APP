@@ -344,6 +344,8 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [dayType, setDayType] = useState<'train' | 'rest'>('rest');
+  const [todayWorkout, setTodayWorkout] = useState<any>(null);
 
   useFocusEffect(
     useCallback(() => {
