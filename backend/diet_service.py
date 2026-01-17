@@ -1619,14 +1619,10 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(get_restriction_safe_fruit(), 100))
             
             if lanche_fat and lanche_fat in FOODS:
-                # Em CUTTING, reduz gordura nos lanches
-                fat_grams = 10 if goal == "cutting" else 15
-                foods.append(calc_food(lanche_fat, fat_grams))
-            else:
-                # 🧠 FALLBACK: castanhas (sempre seguro)
-                # Em CUTTING, reduz ou elimina castanhas nos lanches
-                if goal != "cutting":
-                    foods.append(calc_food("castanhas", 20))
+                # Gordura nos lanches: apenas 10g (independente do objetivo)
+                foods.append(calc_food(lanche_fat, 10))
+            # Em TODOS os objetivos, não adiciona castanhas no fallback
+            # Isso evita gordura excessiva quando o usuário não define preferências
             
             # 🔒 GARANTIA: Se o lanche está muito leve, adiciona mais FRUTA (não proteína pesada)
             meal_cal = sum(f.get('calories', 0) for f in foods if isinstance(f, dict))
