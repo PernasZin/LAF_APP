@@ -428,19 +428,10 @@ class WorkoutAIService:
         """
         Calcula quantas séries por exercício baseado no tempo
         
-        - ≤30 min (Curto): 2-3 séries
-        - 30-60 min (Médio): 3-4 séries
-        - 60-90 min (Longo): 3-4 séries
-        - >90 min (Estendido): 4 séries
+        REGRA: MÁXIMO 4 SÉRIES EM TODOS OS NÍVEIS
         """
-        if duration <= 30:
-            return 2 if level == 'novato' else 3
-        elif duration <= 60:
-            return 3
-        elif duration <= 90:
-            return 4 if level in ['intermediario', 'avancado'] else 3
-        else:
-            return 4
+        # LIMITE FIXO: máximo 4 séries
+        return 4
     
     def _generate_workout(self, user_id: str, frequency: int, level: str, goal: str, duration: int, completed_workouts: int) -> WorkoutPlan:
         split = get_split_for_frequency(frequency)
