@@ -1,7 +1,8 @@
 /**
  * LAF Premium Workout Screen
  * ==========================
- * Glassmorphism + Gradientes + Animações
+ * Sistema de Ciclo Automático de Treino/Descanso
+ * Com Timer Ativo e Botão "Iniciar Treino"
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
@@ -13,10 +14,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import {
   Dumbbell, Timer, Play, Pause, RotateCcw, ChevronRight,
-  X, Check, Target, Flame, Calendar, Clock, Repeat
+  X, Check, Target, Flame, Calendar, Clock, Repeat,
+  Moon, Sun, CheckCircle, Square, StopCircle
 } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
@@ -40,6 +42,8 @@ const safeFetch = async (url: string, options?: RequestInit) => {
   }
 };
 
+// ==================== COMPONENTS ====================
+
 // Glass Card Component
 const GlassCard = ({ children, style, isDark, onPress }: any) => {
   const cardStyle = {
@@ -60,17 +64,124 @@ const GlassCard = ({ children, style, isDark, onPress }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
-// Workout Day Card
-const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, t }: any) => {
-  const isToday = index === new Date().getDay() - 1;
-  const totalExercises = day.exercises?.length || 0;
+// Day Type Badge Component
+const DayTypeBadge = ({ dayType, isDark, theme }: { dayType: 'train' | 'rest', isDark: boolean, theme: any }) => {
+  const isTraining = dayType === 'train';
   
-  // Tradução para "HOJE"
+  return (
+    <View style={[
+      styles.dayTypeBadge,
+      { backgroundColor: isTraining ? premiumColors.primary + '20' : '#6B728020' }
+    ]}>
+      {isTraining ? (
+        <Dumbbell size={16} color={premiumColors.primary} />
+      ) : (
+        <Moon size={16} color="#6B7280" />
+      )}
+      <Text style={[
+        styles.dayTypeBadgeText,
+        { color: isTraining ? premiumColors.primary : '#6B7280' }
+      ]}>
+        {isTraining ? 'Dia de Treino' : 'Dia de Descanso'}
+      </Text>
+    </View>
+  );
+};
+
+// Training Timer Component
+const TrainingTimer = ({ 
+  seconds, 
+  isActive, 
+  onStart, 
+  onPause, 
+  onFinish,
+  isDark,
+  theme 
+}: any) => {
+  // Formata tempo em MM:SS
+  const formatTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remainingSecs = secs % 60;
+    return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <Animated.View entering={FadeInDown.springify()}>
+      <GlassCard isDark={isDark} style={styles.timerCard}>
+        <LinearGradient
+          colors={isActive ? [premiumColors.primary + '15', premiumColors.accent + '10'] : ['transparent', 'transparent']}
+          style={StyleSheet.absoluteFill}
+        />
+        
+        <View style={styles.timerHeader}>
+          <Timer size={20} color={isActive ? premiumColors.primary : theme.textTertiary} />
+          <Text style={[styles.timerLabel, { color: theme.textSecondary }]}>
+            {isActive ? 'Treinando...' : 'Tempo de Treino'}
+          </Text>
+        </View>
+        
+        <Text style={[styles.timerDisplay, { color: theme.text }]}>
+          {formatTime(seconds)}
+        </Text>
+        
+        <View style={styles.timerButtons}>
+          {!isActive ? (
+            <TouchableOpacity style={styles.startWorkoutBtn} onPress={onStart}>
+              <LinearGradient
+                colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.startWorkoutBtnGradient}
+              >
+                <Play size={24} color="#FFF" fill="#FFF" />
+                <Text style={styles.startWorkoutBtnText}>
+                  {seconds > 0 ? 'Continuar Treino' : 'Iniciar Treino'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.activeTimerButtons}>
+              <TouchableOpacity 
+                style={[styles.pauseBtn, { backgroundColor: '#F59E0B20' }]}
+                onPress={onPause}
+              >
+                <Pause size={24} color="#F59E0B" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.finishBtn} onPress={onFinish}>
+                <LinearGradient
+                  colors={['#10B981', '#059669']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.finishBtnGradient}
+                >
+                  <CheckCircle size={20} color="#FFF" />
+                  <Text style={styles.finishBtnText}>Finalizar Treino</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      </GlassCard>
+    </Animated.View>
+  );
+};
+
+// Workout Day Card
+const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, t, isToday }: any) => {
+  const totalExercises = day.exercises?.length || 0;
   const todayLabel = language === 'en-US' ? 'TODAY' : language === 'es-ES' ? 'HOY' : 'HOJE';
   
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
-      <GlassCard isDark={isDark} style={styles.dayCard}>
+      <GlassCard isDark={isDark} style={[styles.dayCard, isToday && styles.todayCard]}>
+        {isToday && (
+          <LinearGradient
+            colors={[premiumColors.primary + '10', 'transparent']}
+            style={StyleSheet.absoluteFill}
+          />
+        )}
+        
         {/* Day Header */}
         <View style={styles.dayHeader}>
           <View style={[styles.dayIconBg, { backgroundColor: isToday ? premiumColors.primary + '20' : 'rgba(107, 114, 128, 0.15)' }]}>
@@ -137,6 +248,8 @@ const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, 
   );
 };
 
+// ==================== MAIN SCREEN ====================
+
 export default function WorkoutScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
@@ -149,32 +262,66 @@ export default function WorkoutScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [generating, setGenerating] = useState(false);
 
-  // Timer state
-  const [timerActive, setTimerActive] = useState(false);
-  const [timerSeconds, setTimerSeconds] = useState(0);
-  const [showTimer, setShowTimer] = useState(false);
+  // Cycle status
+  const [cycleStatus, setCycleStatus] = useState<any>(null);
+  const [dayType, setDayType] = useState<'train' | 'rest'>('rest');
+
+  // Training session state
+  const [isTraining, setIsTraining] = useState(false);
+  const [trainingSeconds, setTrainingSeconds] = useState(0);
+  const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
+  const [hasTrainedToday, setHasTrainedToday] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Rest timer state
+  const [restTimerActive, setRestTimerActive] = useState(false);
+  const [restTimerSeconds, setRestTimerSeconds] = useState(0);
+  const restTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Exercise modal
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
 
+  // ==================== EFFECTS ====================
+
   useFocusEffect(
     useCallback(() => {
-      loadWorkout();
+      loadData();
       return () => {
         if (timerRef.current) clearInterval(timerRef.current);
+        if (restTimerRef.current) clearInterval(restTimerRef.current);
       };
     }, [])
   );
 
-  const loadWorkout = async () => {
+  // Training timer effect
+  useEffect(() => {
+    if (isTraining) {
+      timerRef.current = setInterval(() => {
+        setTrainingSeconds(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isTraining]);
+
+  // ==================== FUNCTIONS ====================
+
+  const loadData = async () => {
     try {
       setInitialLoading(true);
       const id = await AsyncStorage.getItem('userId');
       setUserId(id);
 
       if (id && BACKEND_URL) {
+        // Load cycle status
+        await loadCycleStatus(id);
+        
+        // Load workout plan
         const response = await safeFetch(`${BACKEND_URL}/api/workout/${id}`);
         if (response.ok) {
           const data = await response.json();
@@ -188,13 +335,136 @@ export default function WorkoutScreen() {
     }
   };
 
+  const loadCycleStatus = async (id: string) => {
+    try {
+      const response = await safeFetch(`${BACKEND_URL}/api/training-cycle/status/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCycleStatus(data);
+        setDayType(data.day_type);
+        setHasTrainedToday(data.has_trained_today);
+        
+        // Se treino em andamento, restaura o estado
+        if (data.is_training_in_progress && data.training_session?.started_at) {
+          setSessionStartedAt(data.training_session.started_at);
+          // Calcula segundos passados
+          const startTime = new Date(data.training_session.started_at).getTime();
+          const now = Date.now();
+          const elapsedSeconds = Math.floor((now - startTime) / 1000);
+          setTrainingSeconds(elapsedSeconds);
+          setIsTraining(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading cycle status:', error);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await loadWorkout();
+    await loadData();
     setRefreshing(false);
   };
 
-  // Função para GERAR novo treino
+  // Start workout
+  const startWorkout = async () => {
+    if (!userId || !BACKEND_URL) return;
+    
+    if (hasTrainedToday) {
+      Alert.alert('Treino Concluído', 'Você já treinou hoje! Descanse e volte amanhã. 💪');
+      return;
+    }
+
+    try {
+      const response = await safeFetch(
+        `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setSessionStartedAt(data.session.started_at);
+        setIsTraining(true);
+        setTrainingSeconds(0);
+        
+        // Salva estado localmente também
+        await AsyncStorage.setItem('training_in_progress', 'true');
+        await AsyncStorage.setItem('training_start_time', data.session.started_at);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        Alert.alert('Erro', errorData.detail || 'Não foi possível iniciar o treino');
+      }
+    } catch (error) {
+      console.error('Error starting workout:', error);
+      Alert.alert('Erro', 'Falha na conexão');
+    }
+  };
+
+  // Pause workout
+  const pauseWorkout = () => {
+    setIsTraining(false);
+  };
+
+  // Finish workout
+  const finishWorkout = async () => {
+    if (!userId || !BACKEND_URL) return;
+
+    Alert.alert(
+      'Finalizar Treino',
+      `Deseja finalizar o treino?\nTempo: ${formatTime(trainingSeconds)}`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Finalizar',
+          onPress: async () => {
+            try {
+              const response = await safeFetch(
+                `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    duration_seconds: trainingSeconds,
+                    exercises_completed: workoutPlan?.workout_days?.[0]?.exercises?.length || 0
+                  })
+                }
+              );
+
+              if (response.ok) {
+                const data = await response.json();
+                setIsTraining(false);
+                setHasTrainedToday(true);
+                
+                // Limpa estado local
+                await AsyncStorage.removeItem('training_in_progress');
+                await AsyncStorage.removeItem('training_start_time');
+                
+                Alert.alert(
+                  '🎉 Treino Concluído!',
+                  `Parabéns! Você treinou por ${data.session.duration_formatted}.\n\nAgora sua dieta será ajustada para o dia de treino.`
+                );
+                
+                // Recarrega status
+                await loadCycleStatus(userId);
+              }
+            } catch (error) {
+              console.error('Error finishing workout:', error);
+              Alert.alert('Erro', 'Falha ao salvar treino');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  // Format time helper
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Generate workout
   const handleGenerateWorkout = async () => {
     if (!userId || !BACKEND_URL) {
       Alert.alert('Erro', 'Usuário não identificado');
@@ -229,15 +499,15 @@ export default function WorkoutScreen() {
     setShowExerciseModal(true);
   };
 
-  const startTimer = (seconds: number) => {
-    setTimerSeconds(seconds);
-    setTimerActive(true);
-    setShowTimer(true);
-    timerRef.current = setInterval(() => {
-      setTimerSeconds((prev) => {
+  // Rest timer functions
+  const startRestTimer = (seconds: number) => {
+    setRestTimerSeconds(seconds);
+    setRestTimerActive(true);
+    restTimerRef.current = setInterval(() => {
+      setRestTimerSeconds((prev) => {
         if (prev <= 1) {
-          setTimerActive(false);
-          if (timerRef.current) clearInterval(timerRef.current);
+          setRestTimerActive(false);
+          if (restTimerRef.current) clearInterval(restTimerRef.current);
           return 0;
         }
         return prev - 1;
@@ -245,16 +515,21 @@ export default function WorkoutScreen() {
     }, 1000);
   };
 
-  const stopTimer = () => {
-    setTimerActive(false);
-    if (timerRef.current) clearInterval(timerRef.current);
+  const stopRestTimer = () => {
+    setRestTimerActive(false);
+    if (restTimerRef.current) clearInterval(restTimerRef.current);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  // Get today's workout day index
+  const getTodayWorkoutIndex = () => {
+    if (!workoutPlan?.workout_days?.length || !cycleStatus) return 0;
+    const cycleDay = cycleStatus.cycle_day || 1;
+    const frequency = cycleStatus.frequency || 4;
+    // Mapeia o dia do ciclo para o índice do treino
+    return (cycleDay - 1) % workoutPlan.workout_days.length;
   };
+
+  // ==================== RENDER ====================
 
   if (initialLoading) {
     return (
@@ -263,6 +538,8 @@ export default function WorkoutScreen() {
       </SafeAreaView>
     );
   }
+
+  const todayWorkoutIndex = getTodayWorkoutIndex();
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -291,48 +568,93 @@ export default function WorkoutScreen() {
                 {workoutPlan?.weekly_split || t.workout.customWorkout}
               </Text>
             </View>
-            <TouchableOpacity
-              style={[styles.timerButton, { backgroundColor: showTimer ? premiumColors.primary : (isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)') }]}
-              onPress={() => setShowTimer(!showTimer)}
-            >
-              <Timer size={20} color={showTimer ? '#FFF' : theme.text} />
-            </TouchableOpacity>
+            <DayTypeBadge dayType={dayType} isDark={isDark} theme={theme} />
           </Animated.View>
 
-          {/* Timer Card */}
-          {showTimer && (
-            <Animated.View entering={FadeInDown.springify()}>
-              <GlassCard isDark={isDark} style={styles.timerCard}>
-                <Text style={[styles.timerDisplay, { color: theme.text }]}>
-                  {formatTime(timerSeconds)}
-                </Text>
-                <View style={styles.timerButtons}>
-                  <TouchableOpacity
-                    style={[styles.timerBtn, { backgroundColor: '#EF4444' + '20' }]}
-                    onPress={() => { stopTimer(); setTimerSeconds(0); }}
-                  >
-                    <RotateCcw size={20} color="#EF4444" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.timerMainBtn}
-                    onPress={() => timerActive ? stopTimer() : startTimer(timerSeconds || 60)}
-                  >
-                    <LinearGradient
-                      colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={styles.timerMainBtnGradient}
-                    >
-                      {timerActive ? <Pause size={24} color="#FFF" /> : <Play size={24} color="#FFF" />}
-                    </LinearGradient>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.timerBtn, { backgroundColor: premiumColors.primary + '20' }]}
-                    onPress={() => startTimer(60)}
-                  >
-                    <Text style={[styles.timerBtnText, { color: premiumColors.primary }]}>60s</Text>
-                  </TouchableOpacity>
+          {/* Day Status Card */}
+          {cycleStatus && (
+            <Animated.View entering={FadeInDown.delay(100).springify()}>
+              <GlassCard isDark={isDark} style={styles.statusCard}>
+                <View style={styles.statusRow}>
+                  <View style={styles.statusItem}>
+                    <Calendar size={16} color={theme.textTertiary} />
+                    <Text style={[styles.statusLabel, { color: theme.textTertiary }]}>Dia</Text>
+                    <Text style={[styles.statusValue, { color: theme.text }]}>
+                      {cycleStatus.cycle_day || 1}/7
+                    </Text>
+                  </View>
+                  <View style={[styles.statusDivider, { backgroundColor: theme.border }]} />
+                  <View style={styles.statusItem}>
+                    <Repeat size={16} color={theme.textTertiary} />
+                    <Text style={[styles.statusLabel, { color: theme.textTertiary }]}>Semana</Text>
+                    <Text style={[styles.statusValue, { color: theme.text }]}>
+                      {cycleStatus.cycle_week || 1}
+                    </Text>
+                  </View>
+                  <View style={[styles.statusDivider, { backgroundColor: theme.border }]} />
+                  <View style={styles.statusItem}>
+                    <Flame size={16} color={cycleStatus.diet?.type === 'training' ? premiumColors.primary : theme.textTertiary} />
+                    <Text style={[styles.statusLabel, { color: theme.textTertiary }]}>Dieta</Text>
+                    <Text style={[styles.statusValue, { color: cycleStatus.diet?.type === 'training' ? premiumColors.primary : theme.text }]}>
+                      {cycleStatus.diet?.type === 'training' ? 'Treino' : 'Descanso'}
+                    </Text>
+                  </View>
                 </View>
+              </GlassCard>
+            </Animated.View>
+          )}
+
+          {/* Training Timer - Only show on training days or if training in progress */}
+          {(dayType === 'train' || isTraining) && !hasTrainedToday && (
+            <TrainingTimer
+              seconds={trainingSeconds}
+              isActive={isTraining}
+              onStart={startWorkout}
+              onPause={pauseWorkout}
+              onFinish={finishWorkout}
+              isDark={isDark}
+              theme={theme}
+            />
+          )}
+
+          {/* Already Trained Today Banner */}
+          {hasTrainedToday && (
+            <Animated.View entering={FadeInDown.delay(200).springify()}>
+              <GlassCard isDark={isDark} style={styles.trainedBanner}>
+                <LinearGradient
+                  colors={['rgba(16, 185, 129, 0.15)', 'rgba(5, 150, 105, 0.1)']}
+                  style={StyleSheet.absoluteFill}
+                />
+                <CheckCircle size={24} color="#10B981" />
+                <View style={styles.trainedBannerContent}>
+                  <Text style={[styles.trainedBannerTitle, { color: '#10B981' }]}>
+                    ✅ Treino Concluído!
+                  </Text>
+                  <Text style={[styles.trainedBannerText, { color: theme.textSecondary }]}>
+                    Parabéns! Sua dieta foi ajustada para dia de treino.
+                  </Text>
+                </View>
+              </GlassCard>
+            </Animated.View>
+          )}
+
+          {/* Rest Timer (for exercises) */}
+          {restTimerActive && (
+            <Animated.View entering={FadeInUp.springify()}>
+              <GlassCard isDark={isDark} style={styles.restTimerCard}>
+                <Text style={[styles.restTimerLabel, { color: theme.textSecondary }]}>
+                  Descanso
+                </Text>
+                <Text style={[styles.restTimerDisplay, { color: theme.text }]}>
+                  {formatTime(restTimerSeconds)}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.restTimerBtn, { backgroundColor: '#EF444420' }]}
+                  onPress={stopRestTimer}
+                >
+                  <StopCircle size={20} color="#EF4444" />
+                  <Text style={[styles.restTimerBtnText, { color: '#EF4444' }]}>Parar</Text>
+                </TouchableOpacity>
               </GlassCard>
             </Animated.View>
           )}
@@ -350,11 +672,12 @@ export default function WorkoutScreen() {
                   onExercisePress={handleExercisePress}
                   language={language}
                   t={t}
+                  isToday={index === todayWorkoutIndex && dayType === 'train'}
                 />
               ))}
             </>
           ) : (
-            /* Estado Vazio - Sem Treino */
+            /* Empty State */
             <Animated.View entering={FadeInDown.delay(200).springify()}>
               <GlassCard isDark={isDark} style={styles.emptyStateCard}>
                 <View style={styles.emptyStateContent}>
@@ -412,7 +735,6 @@ export default function WorkoutScreen() {
 
             {selectedExercise && (
               <View style={styles.exerciseModalContent}>
-                {/* Foco muscular */}
                 {selectedExercise.focus && (
                   <View style={[styles.focusBadge, { backgroundColor: premiumColors.primary + '15' }]}>
                     <Target size={16} color={premiumColors.primary} />
@@ -458,7 +780,7 @@ export default function WorkoutScreen() {
                   style={styles.startTimerBtn}
                   onPress={() => {
                     setShowExerciseModal(false);
-                    startTimer(selectedExercise.rest || 60);
+                    startRestTimer(selectedExercise.rest || 60);
                   }}
                 >
                   <LinearGradient
@@ -480,6 +802,8 @@ export default function WorkoutScreen() {
   );
 }
 
+// ==================== STYLES ====================
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
@@ -493,83 +817,71 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8 },
   headerSubtitle: { fontSize: 14, marginTop: 4 },
-  timerButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 
-  timerCard: {
-    padding: spacing.xl,
-    alignItems: 'center',
-  },
-  timerDisplay: {
-    fontSize: 56,
-    fontWeight: '800',
-    letterSpacing: -2,
-    fontVariant: ['tabular-nums'],
-  },
-  timerButtons: {
+  dayTypeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.lg,
-    marginTop: spacing.lg,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.full,
   },
-  timerBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.lg,
+  dayTypeBadgeText: { fontSize: 12, fontWeight: '700' },
+
+  statusCard: { padding: spacing.base },
+  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  statusItem: { alignItems: 'center', gap: 4 },
+  statusLabel: { fontSize: 11, fontWeight: '500' },
+  statusValue: { fontSize: 18, fontWeight: '800' },
+  statusDivider: { width: 1, height: 40 },
+
+  timerCard: { padding: spacing.xl, alignItems: 'center' },
+  timerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.md },
+  timerLabel: { fontSize: 14, fontWeight: '600' },
+  timerDisplay: { fontSize: 64, fontWeight: '800', letterSpacing: -2, fontVariant: ['tabular-nums'] },
+  timerButtons: { marginTop: spacing.lg, width: '100%' },
+  
+  startWorkoutBtn: { borderRadius: radius.lg, overflow: 'hidden' },
+  startWorkoutBtnGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
   },
-  timerBtnText: { fontSize: 14, fontWeight: '700' },
-  timerMainBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    overflow: 'hidden',
-  },
-  timerMainBtnGradient: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  startWorkoutBtnText: { color: '#FFF', fontSize: 18, fontWeight: '700' },
+  
+  activeTimerButtons: { flexDirection: 'row', gap: spacing.md },
+  pauseBtn: { flex: 1, height: 56, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center' },
+  finishBtn: { flex: 2, height: 56, borderRadius: radius.lg, overflow: 'hidden' },
+  finishBtnGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  finishBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+
+  trainedBanner: { flexDirection: 'row', alignItems: 'center', padding: spacing.base, gap: spacing.md },
+  trainedBannerContent: { flex: 1 },
+  trainedBannerTitle: { fontSize: 16, fontWeight: '700' },
+  trainedBannerText: { fontSize: 13, marginTop: 2 },
+
+  restTimerCard: { padding: spacing.lg, alignItems: 'center' },
+  restTimerLabel: { fontSize: 12, fontWeight: '600', marginBottom: 4 },
+  restTimerDisplay: { fontSize: 48, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  restTimerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.lg, marginTop: spacing.md },
+  restTimerBtnText: { fontSize: 14, fontWeight: '600' },
 
   dayCard: { marginBottom: spacing.md },
-  dayHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.base,
-    gap: spacing.md,
-  },
-  dayIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  todayCard: { borderColor: premiumColors.primary + '50', borderWidth: 2 },
+  dayHeader: { flexDirection: 'row', alignItems: 'center', padding: spacing.base, gap: spacing.md },
+  dayIconBg: { width: 44, height: 44, borderRadius: radius.lg, alignItems: 'center', justifyContent: 'center' },
   dayHeaderContent: { flex: 1 },
   dayTitleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dayName: { fontSize: 16, fontWeight: '700', letterSpacing: -0.3 },
-  todayBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-  },
+  todayBadge: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.sm },
   todayBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '800' },
   dayExerciseCount: { fontSize: 13, marginTop: 2 },
 
   exercisesList: { paddingHorizontal: spacing.base },
-  exerciseItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-  },
+  exerciseItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: spacing.md, borderBottomWidth: 1 },
   exerciseInfo: { flex: 1 },
   exerciseName: { fontSize: 15, fontWeight: '600' },
   exerciseFocus: { fontSize: 12, fontWeight: '500', marginTop: 2 },
@@ -577,108 +889,33 @@ const styles = StyleSheet.create({
   exerciseDetail: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   exerciseDetailText: { fontSize: 12 },
 
+  emptyStateCard: { marginTop: spacing.lg },
+  emptyStateContent: { alignItems: 'center', padding: spacing.xl },
+  emptyIconBg: { width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.lg },
+  emptyTitle: { fontSize: 20, fontWeight: '700', marginBottom: spacing.sm },
+  emptyDescription: { fontSize: 14, textAlign: 'center', marginBottom: spacing.xl },
+  generateButton: { borderRadius: radius.lg, overflow: 'hidden' },
+  generateButtonGradient: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: 14, paddingHorizontal: 24 },
+  generateButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+
   modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalContent: {
-    borderTopLeftRadius: radius['2xl'],
-    borderTopRightRadius: radius['2xl'],
-    padding: spacing.lg,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
+  modalContent: { borderTopLeftRadius: radius['2xl'], borderTopRightRadius: radius['2xl'], padding: spacing.lg },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
   modalTitle: { fontSize: 20, fontWeight: '700', flex: 1 },
 
   exerciseModalContent: { gap: spacing.lg },
-  focusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.lg,
-  },
-  focusBadgeText: { fontSize: 14, fontWeight: '600' },
-  exerciseModalStats: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  exerciseModalStat: {
-    flex: 1,
-    alignItems: 'center',
-    padding: spacing.base,
-    borderRadius: radius.lg,
-    gap: spacing.xs,
-  },
-  exerciseModalStatValue: { fontSize: 24, fontWeight: '800' },
-  exerciseModalStatLabel: { fontSize: 12, fontWeight: '600' },
-  exerciseNotes: {
-    padding: spacing.base,
-    borderRadius: radius.lg,
-  },
-  exerciseNotesText: { fontSize: 14, lineHeight: 20 },
-  startTimerBtn: {
-    height: 52,
-    borderRadius: radius.lg,
-    overflow: 'hidden',
-  },
-  startTimerBtnGradient: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-  },
-  startTimerBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  focusBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: spacing.xs, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderRadius: radius.lg },
+  focusBadgeText: { fontSize: 13, fontWeight: '600' },
 
-  // Empty State Styles
-  emptyStateCard: { padding: spacing.xl },
-  emptyStateContent: { alignItems: 'center', gap: spacing.md },
-  emptyIconBg: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.sm,
-  },
-  emptyTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
-  emptyDescription: { 
-    fontSize: 14, 
-    textAlign: 'center', 
-    lineHeight: 20,
-    paddingHorizontal: spacing.lg,
-  },
-  generateButton: { 
-    marginTop: spacing.md,
-    borderRadius: radius.xl,
-    overflow: 'hidden',
-  },
-  generateButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-  },
-  generateButtonText: { 
-    color: '#FFF', 
-    fontSize: 16, 
-    fontWeight: '700',
-  },
-  regenerateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    borderRadius: radius.lg,
-    marginTop: spacing.sm,
-  },
-  regenerateButtonText: { fontSize: 14, fontWeight: '600' },
+  exerciseModalStats: { flexDirection: 'row', gap: spacing.md },
+  exerciseModalStat: { flex: 1, alignItems: 'center', padding: spacing.base, borderRadius: radius.lg, gap: 4 },
+  exerciseModalStatValue: { fontSize: 24, fontWeight: '800' },
+  exerciseModalStatLabel: { fontSize: 11, fontWeight: '600' },
+
+  exerciseNotes: { padding: spacing.base, borderRadius: radius.lg },
+  exerciseNotesText: { fontSize: 14, lineHeight: 20 },
+
+  startTimerBtn: { borderRadius: radius.lg, overflow: 'hidden', marginTop: spacing.sm },
+  startTimerBtnGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingVertical: 14 },
+  startTimerBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
 });
