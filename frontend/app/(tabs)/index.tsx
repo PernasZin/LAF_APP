@@ -518,23 +518,88 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* Macros Card */}
+          {/* Treino de Hoje / Dia de Descanso Card */}
           <Animated.View entering={FadeInDown.delay(300).springify()}>
             <GlassCard isDark={isDark} style={styles.macrosCard}>
-              <View style={styles.macrosHeader}>
-                <Text style={[styles.cardTitle, { color: theme.text }]}>{t.home.macrosOfDay}</Text>
-                <TouchableOpacity style={styles.seeAllBtn}>
-                  <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>{t.home.viewDiet}</Text>
-                  <ChevronRight size={16} color={premiumColors.primary} />
-                </TouchableOpacity>
-              </View>
-              
-              {profile.macros && (
-                <View style={styles.macrosContent}>
-                  <MacroBar label={t.home.protein} current={0} target={profile.macros.protein || 150} color="#3B82F6" isDark={isDark} />
-                  <MacroBar label={t.home.carbs} current={0} target={profile.macros.carbs || 200} color="#F59E0B" isDark={isDark} />
-                  <MacroBar label={t.home.fat} current={0} target={profile.macros.fat || 60} color="#EF4444" isDark={isDark} />
-                </View>
+              {dayType === 'train' ? (
+                <>
+                  {/* Dia de Treino */}
+                  <View style={styles.macrosHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View style={{ 
+                        width: 36, height: 36, borderRadius: 12, 
+                        backgroundColor: premiumColors.primary + '20',
+                        alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <Dumbbell size={20} color={premiumColors.primary} />
+                      </View>
+                      <Text style={[styles.cardTitle, { color: theme.text }]}>Treino de Hoje</Text>
+                    </View>
+                    <TouchableOpacity style={styles.seeAllBtn}>
+                      <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>Ver Treino</Text>
+                      <ChevronRight size={16} color={premiumColors.primary} />
+                    </TouchableOpacity>
+                  </View>
+                  
+                  {todayWorkout ? (
+                    <View style={{ marginTop: 12 }}>
+                      <Text style={[{ fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 8 }]}>
+                        {todayWorkout.name || 'Treino do Dia'}
+                      </Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                        {todayWorkout.exercises?.slice(0, 4).map((ex: any, idx: number) => (
+                          <View key={idx} style={{
+                            backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.5)',
+                            paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8
+                          }}>
+                            <Text style={{ fontSize: 12, color: theme.textSecondary }}>
+                              {ex.name}
+                            </Text>
+                          </View>
+                        ))}
+                        {todayWorkout.exercises?.length > 4 && (
+                          <View style={{
+                            backgroundColor: premiumColors.primary + '20',
+                            paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8
+                          }}>
+                            <Text style={{ fontSize: 12, color: premiumColors.primary, fontWeight: '600' }}>
+                              +{todayWorkout.exercises.length - 4} mais
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                  ) : (
+                    <View style={{ marginTop: 12, alignItems: 'center', paddingVertical: 16 }}>
+                      <Text style={{ fontSize: 14, color: theme.textSecondary }}>
+                        Gere seu treino na aba Treino
+                      </Text>
+                    </View>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Dia de Descanso */}
+                  <View style={styles.macrosHeader}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <View style={{ 
+                        width: 36, height: 36, borderRadius: 12, 
+                        backgroundColor: '#6B728020',
+                        alignItems: 'center', justifyContent: 'center'
+                      }}>
+                        <Moon size={20} color="#6B7280" />
+                      </View>
+                      <Text style={[styles.cardTitle, { color: theme.text }]}>Dia de Descanso</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={{ marginTop: 12, alignItems: 'center', paddingVertical: 16 }}>
+                    <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center' }}>
+                      Hoje é dia de recuperação. 💤{'\n'}
+                      Descanse bem para o próximo treino!
+                    </Text>
+                  </View>
+                </>
               )}
             </GlassCard>
           </Animated.View>
