@@ -11,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown, FadeInRight, FadeOutLeft } from 'react-native-reanimated';
-import { ArrowLeft, ArrowRight, Check, User, Activity, Target, Utensils, Heart, Sparkles, Calendar, Dumbbell } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Check, User, Activity, Target, Utensils, Heart, Sparkles, Calendar } from 'lucide-react-native';
 
 import BasicInfoStep from './steps/BasicInfoStep';
 import PhysicalDataStep from './steps/PhysicalDataStep';
