@@ -889,6 +889,16 @@ const styles = StyleSheet.create({
   trainedBannerTitle: { fontSize: 16, fontWeight: '700' },
   trainedBannerText: { fontSize: 13, marginTop: 2 },
 
+  // Rest Day Card Styles
+  restDayCard: { padding: spacing.xl, overflow: 'hidden' },
+  restDayContent: { alignItems: 'center' },
+  restDayIconBg: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
+  restDayTitle: { fontSize: 22, fontWeight: '800', textAlign: 'center', marginBottom: spacing.xs },
+  restDaySubtitle: { fontSize: 14, fontWeight: '500', textAlign: 'center', marginBottom: spacing.md },
+  restDayDietBadge: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.lg, marginBottom: spacing.md },
+  restDayDietText: { fontSize: 13, fontWeight: '600' },
+  restDayMessage: { fontSize: 14, textAlign: 'center', lineHeight: 22 },
+
   restTimerCard: { padding: spacing.lg, alignItems: 'center' },
   restTimerLabel: { fontSize: 12, fontWeight: '600', marginBottom: 4 },
   restTimerDisplay: { fontSize: 48, fontWeight: '800', fontVariant: ['tabular-nums'] },
