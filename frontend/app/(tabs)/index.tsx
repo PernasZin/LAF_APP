@@ -486,6 +486,21 @@ export default function HomeScreen() {
             />
           </View>
 
+          {/* Workout Tracker - Treino do Dia */}
+          {userId && profile && (
+            <WorkoutTracker
+              userId={userId}
+              baseCalories={profile.target_calories || 0}
+              baseCarbs={profile.macros?.carbs || 0}
+              baseProtein={profile.macros?.protein || 0}
+              baseFat={profile.macros?.fat || 0}
+              onWorkoutFinished={() => {
+                // Recarrega perfil para atualizar macros
+                loadProfile();
+              }}
+            />
+          )}
+
           {/* Macros Card */}
           <Animated.View entering={FadeInDown.delay(300).springify()}>
             <GlassCard isDark={isDark} style={styles.macrosCard}>
