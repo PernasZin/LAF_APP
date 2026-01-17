@@ -297,11 +297,14 @@ backend:
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "✅ NOVO RECURSO IMPLEMENTADO - Sistema de 'Treino do Dia' com ajuste dinâmico de dieta. FUNCIONALIDADES: (1) GET /api/workout/status/{user_id} - Retorna status de treino do dia, (2) POST /api/workout/finish/{user_id} - Marca treino como concluído, (3) GET /api/workout/adjusted-macros/{user_id} - Retorna macros ajustados. REGRAS DE AJUSTE: Dia de Treino: calorias×1.05, carbs×1.15 | Dia de Descanso: calorias×0.95, carbs×0.80 | Proteína e Gordura NÃO MUDAM. TESTES MANUAIS: (1) GET /workout/status retorna trained:false → diet_type:rest, calorie_multiplier:0.95, (2) POST /workout/finish retorna success:true, diet_type:training, (3) GET /workout/adjusted-macros retorna adjusted_calories correto (+5%), adjusted_carbs (+15%). Frontend: WorkoutTracker component integrado na Home screen com botão para concluir treino, display de macros ajustados, status visual do dia."
+      - working: true
+        agent: "testing"
+        comment: "🎉 WORKOUT DAY TRACKING ENDPOINTS VALIDATION COMPLETE - Executed comprehensive testing of all 3 NEW workout tracking endpoints with 100% success rate (11/11 tests passed). ENDPOINTS TESTED: (1) GET /api/workout/status/{user_id}?date=YYYY-MM-DD ✅ Returns correct structure with trained, is_training_day, diet_type, calorie_multiplier, carb_multiplier. Default state: trained=false → diet_type=rest, cal_mult=0.95, carb_mult=0.80. (2) POST /api/workout/finish/{user_id} ✅ Successfully marks workout as completed, returns success=true, diet_type=training. Correctly prevents duplicate marking with proper error message. (3) GET /api/workout/adjusted-macros/{user_id}?date=YYYY-MM-DD ✅ Returns adjusted macros based on computed diet values (not profile targets). Training day: calories×1.05 (2517→2643), carbs×1.15 (269→309.3). Rest day: calories×0.95 (2517→2391), carbs×0.80 (269→215.2). CRITICAL VALIDATION: Protein and fat NEVER change (182g→182g, 78g→78g). BUSINESS LOGIC: All multiplier rules working correctly - training days get +5% calories/+15% carbs, rest days get -5% calories/-20% carbs. System uses actual diet values as base (not theoretical targets), which is correct behavior. All endpoints responding correctly with proper data validation and error handling."
 
 frontend:
   - task: "Welcome Screen"
