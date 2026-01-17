@@ -2044,6 +2044,7 @@ async def start_training_session(user_id: str, request: TrainingSessionStart = N
     
     - Registra o horário de início
     - Não permite iniciar duas vezes no mesmo dia
+    - BLOQUEIA treino em dias de descanso
     """
     # Verifica se usuário existe
     user = await db.user_profiles.find_one({"_id": user_id})
@@ -2051,6 +2052,20 @@ async def start_training_session(user_id: str, request: TrainingSessionStart = N
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
     today = get_today_date()
+    
+    # 🚫 VERIFICA SE É DIA DE DESCANSO - BLOQUEIA TREINO
+    training_days = user.get("training_days", [])
+    if training_days:
+        from datetime import datetime as dt
+        check_dt = dt.strptime(today, "%Y-%m-%d").date()
+        python_weekday = check_dt.weekday()
+        today_weekday = (python_weekday + 1) % 7  # 0=Domingo, 1=Segunda, ...
+        
+        if today_weekday not in training_days:
+            raise HTTPException(
+                status_code=403, 
+                detail="Hoje é dia de descanso. Treino não permitido. Descanse para recuperação muscular!"
+            )
     
     # Verifica se já existe sessão do dia
     existing_session = await db.training_sessions.find_one({
