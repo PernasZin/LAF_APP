@@ -105,15 +105,14 @@ export default function OnboardingScreen() {
         }
         break;
       case 2:
-        // Training Split - deve escolher uma divisão
-        if (!formData.training_split) {
-          showAlert(t.requiredFields, 'Escolha uma divisão de treino');
+        if (!formData.training_level || !formData.weekly_training_frequency) {
+          showAlert(t.requiredFields, t.fillTrainingFields);
           return false;
         }
         break;
       case 3:
         // Training Days - deve selecionar o número exato de dias
-        const requiredDays = formData.training_split === 'full_body' ? 2 : 6;
+        const requiredDays = parseInt(formData.weekly_training_frequency) || 3;
         if (formData.training_days.length !== requiredDays) {
           showAlert(t.requiredFields, `Selecione exatamente ${requiredDays} dias de treino`);
           return false;
