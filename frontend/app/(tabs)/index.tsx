@@ -538,16 +538,7 @@ export default function HomeScreen() {
                       }}>
                         <Dumbbell size={20} color={premiumColors.primary} />
                       </View>
-                      <View>
-                        <Text style={[styles.cardTitle, { color: theme.text }]}>
-                          Hoje é dia de TREINO 💪
-                        </Text>
-                        {cycleStatus?.today_workout_name && (
-                          <Text style={{ fontSize: 12, color: premiumColors.primary, fontWeight: '600', marginTop: 2 }}>
-                            {cycleStatus.today_workout_name}
-                          </Text>
-                        )}
-                      </View>
+                      <Text style={[styles.cardTitle, { color: theme.text }]}>Treino de Hoje</Text>
                     </View>
                     <TouchableOpacity style={styles.seeAllBtn}>
                       <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>Ver Treino</Text>
@@ -555,56 +546,13 @@ export default function HomeScreen() {
                     </TouchableOpacity>
                   </View>
                   
-                  {/* Status do treino */}
-                  {cycleStatus && (
-                    <View style={{ 
-                      flexDirection: 'row', 
-                      alignItems: 'center', 
-                      gap: 8, 
-                      marginTop: 12,
-                      padding: 10,
-                      backgroundColor: cycleStatus.workout_status === 'completed' 
-                        ? 'rgba(16, 185, 129, 0.1)' 
-                        : 'rgba(245, 158, 11, 0.1)',
-                      borderRadius: 10
-                    }}>
-                      <View style={{
-                        width: 8, height: 8, borderRadius: 4,
-                        backgroundColor: cycleStatus.workout_status === 'completed' ? '#10B981' : '#F59E0B'
-                      }} />
-                      <Text style={{ 
-                        fontSize: 13, 
-                        color: cycleStatus.workout_status === 'completed' ? '#10B981' : '#F59E0B',
-                        fontWeight: '600'
-                      }}>
-                        {cycleStatus.workout_status === 'completed' 
-                          ? '✅ Treino concluído!' 
-                          : cycleStatus.workout_status === 'in_progress'
-                            ? '⏱️ Treino em andamento...'
-                            : '⏳ Treino pendente'}
-                      </Text>
-                    </View>
-                  )}
-                  
-                  {/* Info da dieta */}
-                  <View style={{ 
-                    marginTop: 12, 
-                    padding: 12, 
-                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)',
-                    borderRadius: 10
-                  }}>
-                    <Text style={{ fontSize: 12, color: '#10B981', fontWeight: '600' }}>
-                      🍽️ Dieta de treino ativa: {cycleStatus?.diet?.info || '+5% cal, +15% carbs'}
-                    </Text>
-                  </View>
-                  
-                  {todayWorkout?.exercises && todayWorkout.exercises.length > 0 && (
+                  {todayWorkout ? (
                     <View style={{ marginTop: 12 }}>
-                      <Text style={[{ fontSize: 13, fontWeight: '600', color: theme.textSecondary, marginBottom: 8 }]}>
-                        Exercícios de hoje:
+                      <Text style={[{ fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 8 }]}>
+                        {todayWorkout.name || 'Treino do Dia'}
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                        {todayWorkout.exercises.slice(0, 4).map((ex: any, idx: number) => (
+                        {todayWorkout.exercises?.slice(0, 4).map((ex: any, idx: number) => (
                           <View key={idx} style={{
                             backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.5)',
                             paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8
@@ -614,7 +562,7 @@ export default function HomeScreen() {
                             </Text>
                           </View>
                         ))}
-                        {todayWorkout.exercises.length > 4 && (
+                        {todayWorkout.exercises?.length > 4 && (
                           <View style={{
                             backgroundColor: premiumColors.primary + '20',
                             paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8
@@ -625,6 +573,12 @@ export default function HomeScreen() {
                           </View>
                         )}
                       </View>
+                    </View>
+                  ) : (
+                    <View style={{ marginTop: 12, alignItems: 'center', paddingVertical: 16 }}>
+                      <Text style={{ fontSize: 14, color: theme.textSecondary }}>
+                        Gere seu treino na aba Treino
+                      </Text>
                     </View>
                   )}
                 </>
@@ -640,44 +594,16 @@ export default function HomeScreen() {
                       }}>
                         <Moon size={20} color="#6B7280" />
                       </View>
-                      <Text style={[styles.cardTitle, { color: theme.text }]}>
-                        Hoje é dia de DESCANSO 💤
-                      </Text>
+                      <Text style={[styles.cardTitle, { color: theme.text }]}>Dia de Descanso</Text>
                     </View>
                   </View>
                   
-                  {/* Info da dieta de descanso */}
-                  <View style={{ 
-                    marginTop: 12, 
-                    padding: 12, 
-                    backgroundColor: isDark ? 'rgba(107, 114, 128, 0.1)' : 'rgba(107, 114, 128, 0.08)',
-                    borderRadius: 10
-                  }}>
-                    <Text style={{ fontSize: 12, color: '#6B7280', fontWeight: '600' }}>
-                      🍽️ Dieta de descanso ativa: {cycleStatus?.diet?.info || '-5% cal, -20% carbs'}
-                    </Text>
-                  </View>
-                  
-                  <View style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}>
+                  <View style={{ marginTop: 12, alignItems: 'center', paddingVertical: 16 }}>
                     <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center' }}>
-                      Hoje é dia de recuperação muscular.{'\n'}
+                      Hoje é dia de recuperação. 💤{'\n'}
                       Descanse bem para o próximo treino!
                     </Text>
                   </View>
-                  
-                  {/* Treino bônus */}
-                  {cycleStatus?.workout_status === 'bonus' && (
-                    <View style={{ 
-                      marginTop: 12, 
-                      padding: 12, 
-                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                      borderRadius: 10
-                    }}>
-                      <Text style={{ fontSize: 13, color: '#10B981', fontWeight: '600' }}>
-                        🎉 Treino bônus realizado! Dieta ajustada para treino.
-                      </Text>
-                    </View>
-                  )}
                 </>
               )}
                 </>
