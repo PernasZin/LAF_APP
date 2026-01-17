@@ -1907,11 +1907,35 @@ async def get_training_cycle_status(user_id: str, date: str = None):
         is_training_day = today_weekday in training_days
         day_names = {0: 'Domingo', 1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado'}
         
+        # ==================== LÓGICA DE TREINO DO DIA ====================
+        # Determina qual treino mostrar baseado na divisão e posição na semana
+        training_split = user.get("training_split", "full_body")
+        today_workout_name = None
+        today_workout_index = 0
+        
+        if is_training_day:
+            # Ordena os training_days para saber a posição do dia atual
+            sorted_training_days = sorted(training_days)
+            day_position = sorted_training_days.index(today_weekday)  # 0, 1, 2, ...
+            
+            if frequency == 6 or training_split == "ppl":
+                # PPL: Push, Pull, Legs, Push, Pull, Legs
+                ppl_sequence = ["Push", "Pull", "Legs", "Push", "Pull", "Legs"]
+                today_workout_index = day_position % len(ppl_sequence)
+                today_workout_name = ppl_sequence[today_workout_index]
+            else:
+                # Full Body ou outras divisões
+                today_workout_index = day_position
+                today_workout_name = "Full Body"
+        
         day_status = {
             "day_type": "train" if is_training_day else "rest",
             "weekday": today_weekday,
             "weekday_name": day_names.get(today_weekday, ""),
             "training_days": training_days,
+            "training_split": training_split,
+            "today_workout_name": today_workout_name,
+            "today_workout_index": today_workout_index,
             "reason": f"{day_names.get(today_weekday, '')} - {'dia de treino' if is_training_day else 'dia de descanso'}"
         }
     else:
