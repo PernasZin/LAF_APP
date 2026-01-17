@@ -2718,10 +2718,28 @@ class DietAIService:
             target_macros["fat"]
         )
         
-        # Garante mínimos de macros
-        target_p = max(50, target_p)   # Mínimo 50g proteína
-        target_c = max(50, target_c)   # Mínimo 50g carbs
-        target_f = max(20, target_f)   # Mínimo 20g gordura
+        # Obtém peso do usuário para validações
+        weight = user_profile.get('weight', 70)  # Default 70kg se não especificado
+        
+        # 🎯 VALIDAÇÕES ESPORTIVAS (novas regras)
+        # Proteína: 1.8-2.3 g/kg
+        p_min = weight * 1.8
+        p_max = weight * 2.3
+        target_p = max(p_min, min(p_max, target_p))
+        
+        # Gordura: 0.7-1.0 g/kg (NUNCA compensar calorias com gordura!)
+        f_min = weight * 0.7
+        f_max = weight * 1.0
+        target_f = max(f_min, min(f_max, target_f))
+        
+        # Carboidrato: pisos mínimos por objetivo
+        if goal == "cutting":
+            c_min = weight * 2.0
+        elif goal == "bulking":
+            c_min = weight * 4.5
+        else:  # manutenção
+            c_min = weight * 3.0
+        target_c = max(c_min, target_c)
         
         target_cal_int = max(MIN_DAILY_CALORIES, int(round(target_calories)))
         
