@@ -291,6 +291,18 @@ backend:
         agent: "testing"
         comment: "✅ WATER TRACKER VALIDADO - Sistema de rastreamento de água funcionando corretamente. TESTE: POST /api/tracker/water-sodium/{user_id} com 500ml registrado com sucesso, retornando total acumulado de 1000ml. Endpoint responde sem erros e não contém referências a modo atleta. Funcionalidade operacional conforme especificação."
 
+  - task: "Workout Day Tracking - Training/Rest Day Detection"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ NOVO RECURSO IMPLEMENTADO - Sistema de 'Treino do Dia' com ajuste dinâmico de dieta. FUNCIONALIDADES: (1) GET /api/workout/status/{user_id} - Retorna status de treino do dia, (2) POST /api/workout/finish/{user_id} - Marca treino como concluído, (3) GET /api/workout/adjusted-macros/{user_id} - Retorna macros ajustados. REGRAS DE AJUSTE: Dia de Treino: calorias×1.05, carbs×1.15 | Dia de Descanso: calorias×0.95, carbs×0.80 | Proteína e Gordura NÃO MUDAM. TESTES MANUAIS: (1) GET /workout/status retorna trained:false → diet_type:rest, calorie_multiplier:0.95, (2) POST /workout/finish retorna success:true, diet_type:training, (3) GET /workout/adjusted-macros retorna adjusted_calories correto (+5%), adjusted_carbs (+15%). Frontend: WorkoutTracker component integrado na Home screen com botão para concluir treino, display de macros ajustados, status visual do dia."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
