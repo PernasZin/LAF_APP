@@ -21,7 +21,7 @@ import Animated, {
 import { 
   Flame, Dumbbell, Droplets, Target, Trophy, ChevronRight, 
   Plus, Minus, RefreshCw, Zap, TrendingUp, Calendar,
-  User, Bell
+  User, Bell, Moon
 } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
