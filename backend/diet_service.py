@@ -1599,17 +1599,18 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 else:
                     foods.append(calc_food(lanche_protein, 100))
             else:
-                # 🧠 FALLBACK: proteína leve segura (respeita sem lactose e vegetariano)
-                # Prioriza proteínas vegetais para vegetarianos
-                safe_lanche_protein = get_safe_fallback("protein", restrictions, ["ovos", "tofu", "edamame", "iogurte_zero"])
+                # 🧠 FALLBACK: proteína leve segura (NÃO ovos - muita gordura!)
+                # Prioriza iogurte/tofu que têm menos gordura
+                safe_lanche_protein = get_safe_fallback("protein", restrictions, ["iogurte_zero", "cottage", "tofu", "edamame"])
                 if safe_lanche_protein:
-                    if safe_lanche_protein == "iogurte_zero":
-                        grams = 170
-                    elif safe_lanche_protein in ["ovos", "tofu", "edamame"]:
-                        grams = 100
+                    if safe_lanche_protein in ["iogurte_zero", "cottage"]:
+                        grams = 150
+                    elif safe_lanche_protein in ["tofu", "edamame"]:
+                        grams = 80
                     else:
                         grams = 80
                     foods.append(calc_food(safe_lanche_protein, grams))
+                # Se nenhuma proteína segura disponível, não adiciona nada (fruta é suficiente)
             
             if lanche_fruit and lanche_fruit in FOODS:
                 foods.append(calc_food(lanche_fruit, 100))
