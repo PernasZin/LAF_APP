@@ -107,19 +107,27 @@ export default function OnboardingScreen() {
         }
         break;
       case 2:
-        if (!formData.training_level) {
-          showAlert(t.requiredFields, t.fillTrainingFields);
+        // Training Split - deve escolher uma divisão
+        if (!formData.training_split) {
+          showAlert(t.requiredFields, 'Escolha uma divisão de treino');
           return false;
         }
         break;
       case 3:
+        // Training Days - deve selecionar o número exato de dias
+        const requiredDays = formData.training_split === 'full_body' ? 2 : 6;
+        if (formData.training_days.length !== requiredDays) {
+          showAlert(t.requiredFields, `Selecione exatamente ${requiredDays} dias de treino`);
+          return false;
+        }
+        break;
+      case 4:
         if (!formData.goal) {
           showAlert(t.requiredFields, t.selectGoal);
           return false;
         }
         break;
-      // 🧠 Passo 5 (Preferências): Não bloqueia mais!
-      // O sistema auto-completa com alimentos padrão se necessário
+      // Passos 5 e 6 (Refeições e Preferências): Não bloqueiam
     }
     return true;
   };
