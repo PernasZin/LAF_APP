@@ -1514,15 +1514,17 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     carb_aveia = c
                     break
             
-            # Proteína
+            # Proteína - REDUZIDO para evitar excesso de gordura
             if protein and protein in FOODS and protein not in excluded_restrictions:
-                p_grams = 150 if protein == "ovos" else 100
+                # Ovos: 100g (2 unidades) | Outras: 80g
+                p_grams = 100 if protein == "ovos" else 80
                 foods.append(calc_food(protein, p_grams))
             else:
-                # 🧠 FALLBACK: proteína segura
-                safe_protein = get_safe_fallback("protein", restrictions, ["ovos", "whey_protein", "tofu"])
+                # 🧠 FALLBACK: proteína com BAIXA gordura (não ovos!)
+                safe_protein = get_safe_fallback("protein", restrictions, ["whey_protein", "iogurte_zero", "cottage", "tofu"])
                 if safe_protein:
-                    foods.append(calc_food(safe_protein, 150))
+                    grams = 30 if safe_protein == "whey_protein" else 100
+                    foods.append(calc_food(safe_protein, grams))
             
             # 🍞 PÃO (sempre presente no café)
             # MÍNIMO: 2 fatias (50g) | PODE AUMENTAR: 4-5 fatias (100-125g) se precisar de mais carbs
