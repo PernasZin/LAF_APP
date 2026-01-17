@@ -592,7 +592,7 @@ export default function WorkoutScreen() {
                 {workoutPlan?.weekly_split || t.workout.customWorkout}
               </Text>
             </View>
-            <DayTypeBadge dayType={dayType} isDark={isDark} theme={theme} />
+            <DayTypeBadge dayType={dayType} dietType={dietType} workoutStatus={workoutStatus} isDark={isDark} theme={theme} />
           </Animated.View>
 
           {/* Day Status Card */}
