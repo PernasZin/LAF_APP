@@ -1799,8 +1799,8 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         adjusted = False
         
         # ========== PRIORIDADE 1: REDUZIR GORDURA EM EXCESSO ==========
-        if excess_f > MAX_EXCESS and not adjusted:
-            reduce_needed = excess_f - MAX_EXCESS + 3
+        if excess_f > MAX_FAT_EXCESS and not adjusted:
+            reduce_needed = excess_f - MAX_FAT_EXCESS + 3
             
             # NOVA REGRA: Quando ajustar azeite no almoço/jantar, ajustar em AMBOS igualmente
             # Primeiro tenta reduzir/remover azeite nos lanches e café
