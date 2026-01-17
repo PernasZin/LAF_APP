@@ -363,7 +363,9 @@ export default function WorkoutScreen() {
       if (response.ok) {
         const data = await response.json();
         setCycleStatus(data);
-        setDayType(data.day_type);
+        setDayType(data.planned_day_type || data.day_type);
+        setDietType(data.diet?.type || 'rest');
+        setWorkoutStatus(data.workout_status || 'rest');
         setHasTrainedToday(data.has_trained_today);
         
         // Se treino em andamento, restaura o estado
