@@ -16,7 +16,6 @@ import { ArrowLeft, ArrowRight, Check, User, Activity, Target, Utensils, Heart, 
 import BasicInfoStep from './steps/BasicInfoStep';
 import PhysicalDataStep from './steps/PhysicalDataStep';
 import TrainingLevelStep from './steps/TrainingLevelStep';
-import TrainingSplitStep from './steps/TrainingSplitStep';
 import TrainingDaysStep from './steps/TrainingDaysStep';
 import GoalStep from './steps/GoalStep';
 import MealConfigStep from './steps/MealConfigStep';
