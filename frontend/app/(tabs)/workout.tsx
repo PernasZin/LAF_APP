@@ -527,8 +527,9 @@ export default function WorkoutScreen() {
   };
 
   // Rest timer functions
-  const startRestTimer = (seconds: number) => {
-    setRestTimerSeconds(seconds);
+  const startRestTimer = (seconds: number | string) => {
+    const secs = Number(seconds) || 60; // Default 60 segundos se inválido
+    setRestTimerSeconds(secs);
     setRestTimerActive(true);
     restTimerRef.current = setInterval(() => {
       setRestTimerSeconds((prev) => {
