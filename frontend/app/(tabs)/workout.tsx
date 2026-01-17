@@ -592,41 +592,7 @@ export default function WorkoutScreen() {
                 {workoutPlan?.weekly_split || t.workout.customWorkout}
               </Text>
             </View>
-            <DayTypeBadge dayType={dayType} dietType={dietType} workoutStatus={workoutStatus} isDark={isDark} theme={theme} />
           </Animated.View>
-
-          {/* Day Status Card */}
-          {cycleStatus && (
-            <Animated.View entering={FadeInDown.delay(100).springify()}>
-              <GlassCard isDark={isDark} style={styles.statusCard}>
-                <View style={styles.statusRow}>
-                  <View style={styles.statusItem}>
-                    <Calendar size={16} color={theme.textTertiary} />
-                    <Text style={[styles.statusLabel, { color: theme.textTertiary }]}>Dia</Text>
-                    <Text style={[styles.statusValue, { color: theme.text }]}>
-                      {cycleStatus.cycle_day || 1}/7
-                    </Text>
-                  </View>
-                  <View style={[styles.statusDivider, { backgroundColor: theme.border }]} />
-                  <View style={styles.statusItem}>
-                    <Repeat size={16} color={theme.textTertiary} />
-                    <Text style={[styles.statusLabel, { color: theme.textTertiary }]}>Semana</Text>
-                    <Text style={[styles.statusValue, { color: theme.text }]}>
-                      {cycleStatus.cycle_week || 1}
-                    </Text>
-                  </View>
-                  <View style={[styles.statusDivider, { backgroundColor: theme.border }]} />
-                  <View style={styles.statusItem}>
-                    <Flame size={16} color={cycleStatus.diet?.type === 'training' ? premiumColors.primary : theme.textTertiary} />
-                    <Text style={[styles.statusLabel, { color: theme.textTertiary }]}>Dieta</Text>
-                    <Text style={[styles.statusValue, { color: cycleStatus.diet?.type === 'training' ? premiumColors.primary : theme.text }]}>
-                      {cycleStatus.diet?.type === 'training' ? 'Treino' : 'Descanso'}
-                    </Text>
-                  </View>
-                </View>
-              </GlassCard>
-            </Animated.View>
-          )}
 
           {/* Training Timer - Only show on training days or if training in progress */}
           {(dayType === 'train' || isTraining) && !hasTrainedToday && (
