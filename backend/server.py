@@ -238,94 +238,109 @@ def calculate_bmr(weight: float, height: float, age: int, sex: str) -> float:
 def calculate_tdee(bmr: float, training_frequency: int, training_level: str) -> float:
     """
     Calcula TDEE (Total Daily Energy Expenditure) baseado em atividade
-    """
-    # Fatores de atividade ajustados por nível de treino
-    activity_factors = {
-        "iniciante": {
-            0: 1.2,   # sedentário
-            1: 1.3,
-            2: 1.35,
-            3: 1.4,
-            4: 1.5,
-            5: 1.55,
-            6: 1.65,
-            7: 1.7
-        },
-        "intermediario": {
-            0: 1.2,
-            1: 1.35,
-            2: 1.4,
-            3: 1.5,
-            4: 1.55,
-            5: 1.65,
-            6: 1.75,
-            7: 1.8
-        },
-        "avancado": {
-            0: 1.2,
-            1: 1.4,
-            2: 1.5,
-            3: 1.6,
-            4: 1.7,
-            5: 1.8,
-            6: 1.9,
-            7: 2.0
-        }
-    }
     
-    factor = activity_factors.get(training_level, activity_factors["intermediario"]).get(training_frequency, 1.5)
+    Fatores de atividade:
+    - 1.3 sedentário (0-1x/semana)
+    - 1.45 leve (2-3x/semana)
+    - 1.6 moderado (4-5x/semana)
+    - 1.75 pesado (6-7x/semana)
+    """
+    # Mapeia frequência para fator de atividade
+    if training_frequency <= 1:
+        factor = 1.3   # sedentário
+    elif training_frequency <= 3:
+        factor = 1.45  # leve
+    elif training_frequency <= 5:
+        factor = 1.6   # moderado
+    else:
+        factor = 1.75  # pesado
+    
     return bmr * factor
 
 def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
     """
-    🎯 PASSO 2: Ajusta TDEE baseado no objetivo
+    🎯 Ajusta TDEE baseado no objetivo
     
-    CUTTING: TDEE - 15% (déficit)
-    MANUTENÇÃO: TDEE
-    BULKING: TDEE + 15% (superávit)
+    CUTTING: TDEE × 0.80 (déficit de 20%)
+    MANUTENÇÃO: TDEE × 1.00
+    BULKING: TDEE × 1.12 (superávit de 12%)
     """
     if goal == "cutting":
-        return tdee * 0.85  # -15% déficit
+        return tdee * 0.80  # -20% déficit
     elif goal == "bulking":
-        return tdee * 1.15  # +15% superávit
+        return tdee * 1.12  # +12% superávit
     else:  # manutenção
         return tdee
 
 def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[str, float]:
     """
-    🎯 PASSO 3: Distribui macros a partir das calorias ajustadas
+    🎯 Calcula macros com regras esportivas
     
-    1. Proteína: peso × 2.0-2.2 g/kg (fixo)
-    2. Gordura: peso × 0.8-1.0 g/kg (fixo)  
-    3. Carboidrato: calorias restantes ÷ 4
-    
-    CUTTING: P = peso × 2.2, F = peso × 0.8
-    MANUTENÇÃO: P = peso × 2.0, F = peso × 0.85
-    BULKING: P = peso × 2.0, F = peso × 0.9
+    REGRAS:
+    1. PROTEÍNA (prioridade): peso × 2.0 g/kg
+       - Limites: 1.8 - 2.3 g/kg
+       
+    2. GORDURA (controlada): peso × 0.9 g/kg
+       - Limites: 0.7 - 1.0 g/kg
+       - NUNCA usar para compensar calorias
+       
+    3. CARBOIDRATO (macro de ajuste):
+       - Pisos mínimos por objetivo:
+         * CUTTING: peso × 2.0
+         * MANUTENÇÃO: peso × 3.0
+         * BULKING: peso × 4.5
+       - Ajustado para bater calorias ±5%
     """
-    if goal == "cutting":
-        # Proteína alta para preservar massa, gordura baixa
-        protein_g = weight * 2.2
-        fat_g = weight * 0.8
-    elif goal == "bulking":
-        # Proteína moderada, gordura moderada
-        protein_g = weight * 2.0
-        fat_g = weight * 0.9
-    else:  # manutenção
-        protein_g = weight * 2.0
-        fat_g = weight * 0.85
     
-    # Calorias usadas por proteína e gordura
+    # 1. PROTEÍNA - fixa em 2.0 g/kg
+    protein_g = weight * 2.0
+    # Validação de limites
+    protein_min = weight * 1.8
+    protein_max = weight * 2.3
+    protein_g = max(protein_min, min(protein_max, protein_g))
+    
+    # 2. GORDURA - fixa em 0.9 g/kg
+    fat_g = weight * 0.9
+    # Validação de limites
+    fat_min = weight * 0.7
+    fat_max = weight * 1.0
+    fat_g = max(fat_min, min(fat_max, fat_g))
+    
+    # 3. CARBOIDRATO - macro de ajuste
+    # Pisos mínimos por objetivo
+    if goal == "cutting":
+        carb_min = weight * 2.0
+    elif goal == "bulking":
+        carb_min = weight * 4.5
+    else:  # manutenção
+        carb_min = weight * 3.0
+    
+    # Calorias de proteína e gordura (fixas)
     protein_cal = protein_g * 4
     fat_cal = fat_g * 9
     
-    # Carboidratos = calorias restantes
-    carbs_cal = target_calories - protein_cal - fat_cal
-    carbs_g = max(50, carbs_cal / 4)  # Mínimo 50g de carbs
+    # Calorias restantes para carboidrato
+    carb_cal = target_calories - protein_cal - fat_cal
+    carb_g = carb_cal / 4
+    
+    # Garante piso mínimo de carbs
+    carb_g = max(carb_min, carb_g)
+    
+    # 4. VALIDAÇÃO FINAL - calorias dentro de ±5%
+    total_cal = (protein_g * 4) + (carb_g * 4) + (fat_g * 9)
+    cal_diff_pct = abs(total_cal - target_calories) / target_calories * 100
+    
+    # Se fora do ±5%, ajusta APENAS carboidrato
+    if cal_diff_pct > 5:
+        # Recalcula carbs para bater calorias
+        carb_cal_needed = target_calories - protein_cal - fat_cal
+        carb_g_adjusted = carb_cal_needed / 4
+        # Mas nunca abaixo do piso
+        carb_g = max(carb_min, carb_g_adjusted)
     
     return {
         "protein": round(protein_g, 1),
-        "carbs": round(carbs_g, 1),
+        "carbs": round(carb_g, 1),
         "fat": round(fat_g, 1)
     }
 
