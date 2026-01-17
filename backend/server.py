@@ -1659,9 +1659,53 @@ def calculate_adjusted_macros(base_calories: float, base_protein: float, base_ca
 
 # ==================== WORKOUT CYCLE SYSTEM ====================
 
+def get_day_type_from_training_days(training_days: List[int], check_date_str: str = None) -> Dict:
+    """
+    🎯 NOVA LÓGICA: Calcula se é dia de TREINO ou DESCANSO baseado nos dias selecionados pelo usuário.
+    
+    REGRA SIMPLES:
+    - Se o dia da semana atual está em training_days → "train"
+    - Senão → "rest"
+    
+    Args:
+        training_days: Lista de dias da semana (0=Domingo, 1=Segunda, ..., 6=Sábado)
+        check_date_str: Data para verificar (YYYY-MM-DD) - default: hoje
+    
+    Returns:
+        Dict com day_type ("train"/"rest"), weekday, etc.
+    """
+    from datetime import datetime
+    
+    # Parse da data
+    check_date = datetime.strptime(check_date_str, "%Y-%m-%d").date() if check_date_str else datetime.now().date()
+    
+    # Pega o dia da semana (0=Segunda no Python, mas queremos 0=Domingo)
+    # Python: weekday() retorna 0=Segunda ... 6=Domingo
+    # Convertemos para 0=Domingo, 1=Segunda, ..., 6=Sábado
+    python_weekday = check_date.weekday()  # 0=Segunda ... 6=Domingo
+    weekday = (python_weekday + 1) % 7     # 0=Domingo, 1=Segunda ... 6=Sábado
+    
+    # Nomes dos dias
+    day_names = {0: 'Domingo', 1: 'Segunda', 2: 'Terça', 3: 'Quarta', 4: 'Quinta', 5: 'Sexta', 6: 'Sábado'}
+    
+    # Verifica se é dia de treino
+    is_training_day = weekday in training_days
+    day_type = "train" if is_training_day else "rest"
+    
+    return {
+        "day_type": day_type,
+        "weekday": weekday,
+        "weekday_name": day_names.get(weekday, ""),
+        "training_days": training_days,
+        "is_training_day": is_training_day,
+        "reason": f"{day_names.get(weekday, '')} - {'dia de treino' if is_training_day else 'dia de descanso'}"
+    }
+
+
 def get_day_type_from_division(start_date_str: str, frequency: int, check_date_str: str = None) -> Dict:
     """
     🎯 Calcula automaticamente se é dia de TREINO ou DESCANSO baseado no ciclo semanal.
+    NOTA: Esta função é usada como FALLBACK quando o usuário não tem training_days definidos.
     
     REGRAS:
     1. Dia 0 (startDate) = SEMPRE DESCANSO
