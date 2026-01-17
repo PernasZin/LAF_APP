@@ -1860,21 +1860,66 @@ async def get_training_cycle_status(user_id: str, date: str = None):
     has_trained_today = training_session is not None and training_session.get("completed", False)
     is_training_in_progress = training_session is not None and training_session.get("started", False) and not training_session.get("completed", False)
     
-    # Determina multiplicadores de dieta
-    # Se é dia de treino no ciclo E já treinou, usa multiplicadores de treino
-    # Se é dia de descanso OU não treinou, usa multiplicadores de descanso
-    if day_status["day_type"] == "train" and has_trained_today:
+    # ==================== NOVA LÓGICA DE DIETA ====================
+    # 🎯 REGRA: A dieta é definida pelo TIPO DO DIA PLANEJADO, não pelo status de treino!
+    #
+    # 1. Se plannedDayType = "train":
+    #    → Dieta de TREINO desde o início do dia
+    #    → Mesmo que não treine, a dieta continua sendo de treino
+    #    → Não penaliza macros se não treinar
+    #
+    # 2. Se plannedDayType = "rest":
+    #    → Dieta de DESCANSO inicialmente
+    #    → Se treinar (bônus!), muda para dieta de treino
+    #
+    # Objetivo: Usuário acorda sabendo quanto comer!
+    
+    planned_day_type = day_status["day_type"]  # "train" ou "rest"
+    
+    if planned_day_type == "train":
+        # Dia planejado como TREINO → dieta de treino SEMPRE
         diet_type = "training"
         calorie_multiplier = 1.05
         carb_multiplier = 1.15
+        diet_reason = "Dia de treino planejado"
     else:
-        diet_type = "rest"
-        calorie_multiplier = 0.95
-        carb_multiplier = 0.80
+        # Dia planejado como DESCANSO
+        if has_trained_today:
+            # Treinou em dia de descanso (bônus!) → dieta de treino
+            diet_type = "training"
+            calorie_multiplier = 1.05
+            carb_multiplier = 1.15
+            diet_reason = "Treino extra realizado!"
+        else:
+            # Descanso normal → dieta de descanso
+            diet_type = "rest"
+            calorie_multiplier = 0.95
+            carb_multiplier = 0.80
+            diet_reason = "Dia de descanso"
+    
+    # Status do treino para exibição no histórico
+    if planned_day_type == "train":
+        if has_trained_today:
+            workout_status = "completed"  # Treino planejado — realizado ✅
+            workout_status_text = "Treino realizado"
+        elif is_training_in_progress:
+            workout_status = "in_progress"  # Treino em andamento
+            workout_status_text = "Treino em andamento"
+        else:
+            workout_status = "pending"  # Treino planejado — ainda não iniciado
+            workout_status_text = "Treino planejado"
+    else:
+        if has_trained_today:
+            workout_status = "bonus"  # Treino extra em dia de descanso
+            workout_status_text = "Treino bônus realizado"
+        else:
+            workout_status = "rest"  # Dia de descanso normal
+            workout_status_text = "Dia de descanso"
     
     return {
         "date": check_date,
         "day_type": day_status["day_type"],
+        "planned_day_type": planned_day_type,
         "day_number": day_status["day_number"],
         "cycle_day": day_status["cycle_day"],
         "cycle_week": day_status["cycle_week"],
@@ -1884,6 +1929,8 @@ async def get_training_cycle_status(user_id: str, date: str = None):
         "start_date": start_date,
         "has_trained_today": has_trained_today,
         "is_training_in_progress": is_training_in_progress,
+        "workout_status": workout_status,
+        "workout_status_text": workout_status_text,
         "training_session": {
             "started_at": training_session.get("started_at") if training_session else None,
             "completed_at": training_session.get("completed_at") if training_session else None,
@@ -1893,6 +1940,7 @@ async def get_training_cycle_status(user_id: str, date: str = None):
             "type": diet_type,
             "calorie_multiplier": calorie_multiplier,
             "carb_multiplier": carb_multiplier,
+            "reason": diet_reason,
             "info": "+5% cal, +15% carbs" if diet_type == "training" else "-5% cal, -20% carbs"
         }
     }
