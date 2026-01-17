@@ -30,16 +30,8 @@ export default function TrainingDaysStep({ formData, updateFormData, theme, isDa
   const language = useSettingsStore((state) => state.language) as SupportedLanguage;
   const isEnglish = language === 'en-US';
 
-  // Determina o limite baseado na divisão
-  const getLimit = () => {
-    switch (formData.training_split) {
-      case 'full_body': return 2;
-      case 'ppl': return 6;
-      default: return parseInt(formData.weekly_training_frequency) || 4;
-    }
-  };
-
-  const limit = getLimit();
+  // Usa a frequência selecionada no step anterior
+  const limit = parseInt(formData.weekly_training_frequency) || 3;
   const selectedDays: number[] = formData.training_days || [];
   const selectedCount = selectedDays.length;
 
