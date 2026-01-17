@@ -606,8 +606,6 @@ export default function HomeScreen() {
                   </View>
                 </>
               )}
-                </>
-              )}
             </GlassCard>
           </Animated.View>
 
