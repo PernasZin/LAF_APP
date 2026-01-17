@@ -306,6 +306,21 @@ backend:
         agent: "testing"
         comment: "🎉 WORKOUT DAY TRACKING ENDPOINTS VALIDATION COMPLETE - Executed comprehensive testing of all 3 NEW workout tracking endpoints with 100% success rate (11/11 tests passed). ENDPOINTS TESTED: (1) GET /api/workout/status/{user_id}?date=YYYY-MM-DD ✅ Returns correct structure with trained, is_training_day, diet_type, calorie_multiplier, carb_multiplier. Default state: trained=false → diet_type=rest, cal_mult=0.95, carb_mult=0.80. (2) POST /api/workout/finish/{user_id} ✅ Successfully marks workout as completed, returns success=true, diet_type=training. Correctly prevents duplicate marking with proper error message. (3) GET /api/workout/adjusted-macros/{user_id}?date=YYYY-MM-DD ✅ Returns adjusted macros based on computed diet values (not profile targets). Training day: calories×1.05 (2517→2643), carbs×1.15 (269→309.3). Rest day: calories×0.95 (2517→2391), carbs×0.80 (269→215.2). CRITICAL VALIDATION: Protein and fat NEVER change (182g→182g, 78g→78g). BUSINESS LOGIC: All multiplier rules working correctly - training days get +5% calories/+15% carbs, rest days get -5% calories/-20% carbs. System uses actual diet values as base (not theoretical targets), which is correct behavior. All endpoints responding correctly with proper data validation and error handling."
 
+  - task: "Training Cycle Automatic System - NEW Endpoints"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "🔄 SISTEMA COMPLETO DE CICLO DE TREINO AUTOMÁTICO IMPLEMENTADO - Conforme especificação do usuário. BACKEND NOVOS ENDPOINTS: (1) POST /api/training-cycle/setup/{user_id} - Configura ciclo com frequência (2-6x/semana), (2) GET /api/training-cycle/status/{user_id} - Retorna tipo do dia (train/rest), ciclo, dieta, (3) POST /api/training-cycle/start-session/{user_id} - Inicia treino com timer, (4) POST /api/training-cycle/finish-session/{user_id} - Finaliza treino com duração, (5) GET /api/training-cycle/week-preview/{user_id} - Preview da semana. LÓGICA: getDayTypeFromDivision() calcula automaticamente treino/descanso baseado em startDate e frequência. Dia 0 = SEMPRE descanso. Ciclo de 7 dias. FRONTEND: Tela Workout reescrita com timer ativo (MM:SS), botão Iniciar Treino, botão Finalizar, status do dia, badge de tipo. Não permite iniciar duas vezes no mesmo dia. VALIDADO: Todos endpoints testados e funcionando."
+      - working: true
+        agent: "testing"
+        comment: "🎉 TRAINING CYCLE AUTOMATIC SYSTEM VALIDATION COMPLETE - Executei validação completa dos NOVOS endpoints de Ciclo de Treino Automático conforme solicitação específica do usuário. RESULTADO: 100% SUCESSO (7/7 testes passaram). ENDPOINTS VALIDADOS: (1) POST /api/training-cycle/setup/{user_id} ✅ Aceita frequência 2-6, retorna first_day_type='rest' (dia 0 sempre descanso), salva startDate e frequência, (2) GET /api/training-cycle/status/{user_id} ✅ Retorna day_type correto, multiplicadores de dieta corretos (rest: cal×0.95, carb×0.80; train+treinou: cal×1.05, carb×1.15), (3) POST /api/training-cycle/start-session/{user_id} ✅ Inicia sessão, previne duplo início ('Treino já em andamento'), (4) POST /api/training-cycle/finish-session/{user_id} ✅ Finaliza sessão, salva duração (60:00), exercises_completed, (5) GET /api/training-cycle/week-preview/{user_id} ✅ Retorna 7 dias com day_type correto para cada frequência. VALIDAÇÕES CRÍTICAS CONFIRMADAS: • Dia 0 = SEMPRE descanso (testado freq 2-6x), • Dias de treino corretos (2x: [1,4], 3x: [1,3,5], 4x: [1,2,4,5], 5x: [1,2,3,4,5], 6x: [1,2,3,4,5,6]), • Não permite iniciar treino duas vezes ('Treino já foi concluído hoje'), • Timer salvo corretamente, • Multiplicadores de dieta corretos conforme lógica. Sistema funcionando PERFEITAMENTE conforme especificação da revisão."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
