@@ -343,6 +343,7 @@ export default function HomeScreen() {
   const [profile, setProfile] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
