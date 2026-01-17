@@ -30,7 +30,7 @@ import { translations, SupportedLanguage } from '../../i18n/translations';
 import { config } from '../../config';
 const BACKEND_URL = config.BACKEND_URL;
 
-const STEP_ICONS = [User, Activity, Target, Target, Utensils, Heart];
+const STEP_ICONS = [User, Activity, Dumbbell, Calendar, Target, Utensils, Heart];
 
 export default function OnboardingScreen() {
   const router = useRouter();
