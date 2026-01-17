@@ -1627,13 +1627,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if goal != "cutting":
                     foods.append(calc_food("castanhas", 20))
             
-            # 🔒 GARANTIA: Se o lanche está muito leve, adiciona mais alimentos
+            # 🔒 GARANTIA: Se o lanche está muito leve, adiciona mais FRUTA (não proteína pesada)
             meal_cal = sum(f.get('calories', 0) for f in foods if isinstance(f, dict))
-            if meal_cal < 200:
-                # Adiciona mais uma fruta ou proteína
-                safe_protein = get_safe_fallback("protein", restrictions, ["ovos", "tofu", "edamame"])
-                if safe_protein:
-                    foods.append(calc_food(safe_protein, 100))
+            if meal_cal < 150:
+                # Adiciona mais uma fruta (não proteína que adiciona gordura)
+                foods.append(calc_food(get_restriction_safe_fruit(), 100))
                 
         elif meal_type == 'almoco':
             # 🍛 ALMOÇO - Refeição completa
