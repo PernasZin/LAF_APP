@@ -596,8 +596,42 @@ export default function WorkoutScreen() {
             </View>
           </Animated.View>
 
-          {/* Training Timer - Only show on training days or if training in progress */}
-          {(dayType === 'train' || isTraining) && !hasTrainedToday && (
+          {/* Bloqueio de Treino - Dia de Descanso */}
+          {isTrainingBlocked && (
+            <Animated.View entering={FadeInDown.delay(100).springify()}>
+              <GlassCard isDark={isDark} style={styles.restDayCard}>
+                <LinearGradient
+                  colors={isDark 
+                    ? ['rgba(107, 114, 128, 0.15)', 'rgba(71, 85, 105, 0.1)']
+                    : ['rgba(107, 114, 128, 0.1)', 'rgba(156, 163, 175, 0.05)']}
+                  style={StyleSheet.absoluteFill}
+                />
+                <View style={styles.restDayContent}>
+                  <View style={[styles.restDayIconBg, { backgroundColor: '#6B728020' }]}>
+                    <Moon size={32} color="#6B7280" />
+                  </View>
+                  <Text style={[styles.restDayTitle, { color: theme.text }]}>
+                    Hoje é dia de DESCANSO 💤
+                  </Text>
+                  <Text style={[styles.restDaySubtitle, { color: theme.textSecondary }]}>
+                    Treino bloqueado para recuperação muscular
+                  </Text>
+                  <View style={[styles.restDayDietBadge, { backgroundColor: isDark ? 'rgba(107, 114, 128, 0.2)' : 'rgba(107, 114, 128, 0.1)' }]}>
+                    <Text style={[styles.restDayDietText, { color: '#6B7280' }]}>
+                      🍽️ Dieta de descanso: -5% cal, -20% carbs
+                    </Text>
+                  </View>
+                  <Text style={[styles.restDayMessage, { color: theme.textTertiary }]}>
+                    Aproveite para descansar e se recuperar.{'\n'}
+                    Seu próximo treino está programado!
+                  </Text>
+                </View>
+              </GlassCard>
+            </Animated.View>
+          )}
+
+          {/* Training Timer - Only show on training days */}
+          {!isTrainingBlocked && dayType === 'train' && !hasTrainedToday && (
             <TrainingTimer
               seconds={trainingSeconds}
               isActive={isTraining}
@@ -623,7 +657,7 @@ export default function WorkoutScreen() {
                     ✅ Treino Concluído!
                   </Text>
                   <Text style={[styles.trainedBannerText, { color: theme.textSecondary }]}>
-                    Parabéns! Sua dieta foi ajustada para dia de treino.
+                    Parabéns! Dieta de treino ativa.
                   </Text>
                 </View>
               </GlassCard>
