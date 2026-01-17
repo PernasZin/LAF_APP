@@ -1555,13 +1555,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(get_restriction_safe_fruit(), 120))
             
             # Gordura (opcional) - NO CAFÉ APENAS CASTANHAS, NÃO AZEITE!
-            # Em CUTTING, reduz ou elimina gordura no café
+            # Reduzido para evitar excesso de gordura
             if goal != "cutting":
                 if fat and fat in FOODS and fat != "azeite":
-                    foods.append(calc_food(fat, 15))
-                elif "castanhas" not in excluded_restrictions:
-                    # Fallback: castanhas (não azeite no café!)
-                    foods.append(calc_food("castanhas", 15))
+                    foods.append(calc_food(fat, 10))  # Reduzido de 15 para 10g
+                # NÃO adiciona castanhas no fallback para evitar gordura excessiva
                 
         elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
             # 🥪 Lanches
