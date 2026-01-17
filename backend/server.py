@@ -223,6 +223,41 @@ class UserSettingsUpdate(BaseModel):
     meal_count: Optional[int] = None
     meal_times: Optional[List[MealTimeConfig]] = None
 
+# ==================== WORKOUT TRACKING MODELS ====================
+
+class WorkoutDayStatus(BaseModel):
+    """Status de treino de um dia específico"""
+    date: str  # YYYY-MM-DD
+    trained: bool = False
+    completed_at: Optional[str] = None  # ISO datetime quando foi marcado
+    user_id: str
+
+class WorkoutStatusResponse(BaseModel):
+    """Resposta do status de treino"""
+    date: str
+    trained: bool
+    is_training_day: bool  # Baseado no plano semanal do usuário
+    diet_type: str  # "training" ou "rest"
+    calorie_multiplier: float
+    carb_multiplier: float
+
+class FinishWorkoutRequest(BaseModel):
+    """Request para marcar treino como concluído"""
+    date: Optional[str] = None  # Se não informado, usa hoje
+
+class AdjustedMacros(BaseModel):
+    """Macros ajustados para o dia"""
+    base_calories: float
+    adjusted_calories: float
+    base_protein: float
+    adjusted_protein: float  # Não muda
+    base_carbs: float
+    adjusted_carbs: float
+    base_fat: float
+    adjusted_fat: float  # Não muda
+    diet_type: str
+    multiplier_info: str
+
 # ==================== CÁLCULOS TDEE ====================
 
 def calculate_bmr(weight: float, height: float, age: int, sex: str) -> float:
