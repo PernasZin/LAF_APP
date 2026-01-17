@@ -82,10 +82,10 @@ export default function TrainingDaysStep({ formData, updateFormData, theme, isDa
         </View>
       </View>
 
-      {/* Divisão selecionada */}
+      {/* Frequência selecionada */}
       <View style={[styles.splitInfo, { backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)' }]}>
         <Text style={[styles.splitInfoText, { color: premiumColors.primary }]}>
-          {formData.training_split === 'full_body' ? 'FULL BODY' : 'PPL'} - {limit} {isEnglish ? 'days/week' : 'dias/semana'}
+          {limit}x {isEnglish ? 'per week' : 'por semana'} - {isEnglish ? 'Select your training days' : 'Selecione seus dias de treino'}
         </Text>
       </View>
 
