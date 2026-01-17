@@ -27,7 +27,7 @@ import {
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
 import { useTranslation } from '../../i18n';
-import { HomeSkeleton } from '../../components';
+import { HomeSkeleton, WorkoutTracker } from '../../components';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { config } from '../../config';
