@@ -1516,17 +1516,24 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     carb_aveia = c
                     break
             
-            # Proteína - REDUZIDO para evitar excesso de gordura
+            # Proteína - ajustado por objetivo
             if protein and protein in FOODS and protein not in excluded_restrictions:
-                # Ovos: 100g (2 unidades) | Outras: 80g
-                p_grams = 100 if protein == "ovos" else 80
+                # Em CUTTING: mais proteína para preservar massa muscular
+                # Em BULKING: proteína moderada
+                if goal == "cutting":
+                    p_grams = 150 if protein == "ovos" else 120  # Mais proteína em cutting
+                else:
+                    p_grams = 100 if protein == "ovos" else 80
                 foods.append(calc_food(protein, p_grams))
             else:
-                # 🧠 FALLBACK: proteína com BAIXA gordura (não ovos!)
-                safe_protein = get_safe_fallback("protein", restrictions, ["whey_protein", "iogurte_zero", "cottage", "tofu"])
-                if safe_protein:
-                    grams = 30 if safe_protein == "whey_protein" else 100
-                    foods.append(calc_food(safe_protein, grams))
+                # 🧠 FALLBACK: proteína com BAIXA gordura
+                # Em CUTTING: adiciona proteína (essencial para preservar massa)
+                # Em BULKING: não adiciona (para evitar excesso)
+                if goal == "cutting":
+                    safe_protein = get_safe_fallback("protein", restrictions, ["iogurte_zero", "cottage", "whey_protein", "tofu"])
+                    if safe_protein:
+                        grams = 30 if safe_protein == "whey_protein" else 150
+                        foods.append(calc_food(safe_protein, grams))
             
             # 🍞 PÃO (sempre presente no café)
             # MÍNIMO: 2 fatias (50g) | PODE AUMENTAR: 4-5 fatias (100-125g) se precisar de mais carbs
