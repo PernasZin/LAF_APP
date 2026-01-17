@@ -3204,8 +3204,111 @@ class DietAIService:
         all_foods = [f for m in final_meals for f in m.foods]
         total_p, total_c, total_f, total_cal = sum_foods(all_foods)
         
+        # 🔒🔒🔒 VALIDAÇÃO OBRIGATÓRIA DE MACROS POR KG 🔒🔒🔒
+        # BUG FIX: A geração estava permitindo proteína > 2.3 g/kg
+        # Esta validação FORÇA os limites absolutos
+        
+        # Limites absolutos
+        p_max_absolute = weight * 2.3  # Máximo 2.3 g/kg
+        p_min_absolute = weight * 1.8  # Mínimo 1.8 g/kg
+        f_max_absolute = weight * 1.0  # Máximo 1.0 g/kg
+        f_min_absolute = weight * 0.7  # Mínimo 0.7 g/kg
+        
+        # Verifica se proteína está acima do limite
+        if total_p > p_max_absolute:
+            print(f"[DIET DEBUG] ⚠️ PROTEÍNA ACIMA DO LIMITE: {total_p:.0f}g > {p_max_absolute:.0f}g ({total_p/weight:.2f}g/kg)")
+            
+            # Calcula quanto precisa reduzir
+            protein_excess = total_p - p_max_absolute
+            
+            # Encontra proteínas ajustáveis (frango, carne, peixe) nas refeições principais
+            protein_foods = ["frango", "patinho", "acem", "peixe", "tilapia", "salmao", "atum", "ovos"]
+            
+            for meal in final_meals:
+                if protein_excess <= 0:
+                    break
+                    
+                meal_name = meal.name.lower()
+                # Só ajusta em almoço/jantar (não mexe no café/lanches)
+                if "almoço" in meal_name or "jantar" in meal_name:
+                    for f_idx, food in enumerate(meal.foods):
+                        if food.get("key") in protein_foods and protein_excess > 0:
+                            current_grams = food.get("grams", 100)
+                            protein_per_100g = FOODS.get(food.get("key"), {}).get("p", 25)
+                            
+                            # Quanto de proteína este alimento contribui
+                            food_protein = (protein_per_100g / 100) * current_grams
+                            
+                            # Calcula nova quantidade (mínimo 120g de proteína por refeição)
+                            grams_to_reduce = (protein_excess / protein_per_100g) * 100
+                            new_grams = max(120, current_grams - grams_to_reduce)
+                            
+                            # Atualiza o alimento
+                            meal.foods[f_idx] = calc_food(food.get("key"), new_grams)
+                            
+                            # Recalcula quanto reduziu
+                            old_protein = food_protein
+                            new_protein = (protein_per_100g / 100) * new_grams
+                            protein_excess -= (old_protein - new_protein)
+                    
+                    # Recalcula totais da refeição
+                    mp, mc, mf, mcal = sum_foods(meal.foods)
+                    meal.total_calories = mcal
+                    meal.macros = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            # Recalcula totais após ajuste
+            all_foods = [f for m in final_meals for f in m.foods]
+            total_p, total_c, total_f, total_cal = sum_foods(all_foods)
+            print(f"[DIET DEBUG] ✅ Proteína ajustada para: {total_p:.0f}g ({total_p/weight:.2f}g/kg)")
+        
+        # Verifica se gordura está acima do limite
+        if total_f > f_max_absolute:
+            print(f"[DIET DEBUG] ⚠️ GORDURA ACIMA DO LIMITE: {total_f:.0f}g > {f_max_absolute:.0f}g ({total_f/weight:.2f}g/kg)")
+            
+            # Calcula quanto precisa reduzir
+            fat_excess = total_f - f_max_absolute
+            
+            # Remove/reduz gorduras extras (azeite, castanhas)
+            fat_foods = ["azeite", "castanhas", "amendoas", "pasta_amendoim"]
+            
+            for meal in final_meals:
+                if fat_excess <= 0:
+                    break
+                    
+                for f_idx, food in enumerate(meal.foods):
+                    if food.get("key") in fat_foods and fat_excess > 0:
+                        current_grams = food.get("grams", 0)
+                        fat_per_100g = FOODS.get(food.get("key"), {}).get("f", 10)
+                        
+                        # Calcula nova quantidade (pode zerar)
+                        grams_to_reduce = (fat_excess / fat_per_100g) * 100
+                        new_grams = max(0, current_grams - grams_to_reduce)
+                        
+                        if new_grams < 5:
+                            # Remove completamente
+                            meal.foods.pop(f_idx)
+                            fat_excess -= (fat_per_100g / 100) * current_grams
+                        else:
+                            meal.foods[f_idx] = calc_food(food.get("key"), new_grams)
+                            old_fat = (fat_per_100g / 100) * current_grams
+                            new_fat = (fat_per_100g / 100) * new_grams
+                            fat_excess -= (old_fat - new_fat)
+                
+                # Recalcula totais da refeição
+                mp, mc, mf, mcal = sum_foods(meal.foods)
+                meal.total_calories = mcal
+                meal.macros = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            # Recalcula totais após ajuste
+            all_foods = [f for m in final_meals for f in m.foods]
+            total_p, total_c, total_f, total_cal = sum_foods(all_foods)
+            print(f"[DIET DEBUG] ✅ Gordura ajustada para: {total_f:.0f}g ({total_f/weight:.2f}g/kg)")
+        
+        # 📊 LOG FINAL DE VALIDAÇÃO
+        print(f"[DIET DEBUG] FINAL: P={total_p:.0f}g ({total_p/weight:.2f}g/kg) | C={total_c:.0f}g | F={total_f:.0f}g ({total_f/weight:.2f}g/kg)")
+        
         # Gera nota com info de auto-complete se aplicável
-        notes = f"Dieta V14: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | ✅ Validada"
+        notes = f"Dieta V15: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | ✅ Validada"
         if auto_completed:
             notes += " | 🔄 Auto-completada"
         
