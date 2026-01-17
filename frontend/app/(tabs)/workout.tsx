@@ -65,24 +65,44 @@ const GlassCard = ({ children, style, isDark, onPress }: any) => {
 };
 
 // Day Type Badge Component
-const DayTypeBadge = ({ dayType, isDark, theme }: { dayType: 'train' | 'rest', isDark: boolean, theme: any }) => {
-  const isTraining = dayType === 'train';
+const DayTypeBadge = ({ dayType, dietType, workoutStatus, isDark, theme }: { 
+  dayType: 'train' | 'rest', 
+  dietType?: 'training' | 'rest',
+  workoutStatus?: string,
+  isDark: boolean, 
+  theme: any 
+}) => {
+  const isTrainingDay = dayType === 'train';
+  const isTrainingDiet = dietType === 'training';
+  
+  // Determina cor e ícone baseado na dieta atual
+  const badgeColor = isTrainingDiet ? premiumColors.primary : '#6B7280';
+  
+  // Texto dinâmico
+  let badgeText = '';
+  if (isTrainingDay) {
+    badgeText = 'Dia de Treino';
+  } else if (workoutStatus === 'bonus') {
+    badgeText = 'Treino Bônus!';
+  } else {
+    badgeText = 'Dia de Descanso';
+  }
   
   return (
     <View style={[
       styles.dayTypeBadge,
-      { backgroundColor: isTraining ? premiumColors.primary + '20' : '#6B728020' }
+      { backgroundColor: badgeColor + '20' }
     ]}>
-      {isTraining ? (
-        <Dumbbell size={16} color={premiumColors.primary} />
+      {isTrainingDiet ? (
+        <Dumbbell size={16} color={badgeColor} />
       ) : (
-        <Moon size={16} color="#6B7280" />
+        <Moon size={16} color={badgeColor} />
       )}
       <Text style={[
         styles.dayTypeBadgeText,
-        { color: isTraining ? premiumColors.primary : '#6B7280' }
+        { color: badgeColor }
       ]}>
-        {isTraining ? 'Dia de Treino' : 'Dia de Descanso'}
+        {badgeText}
       </Text>
     </View>
   );
