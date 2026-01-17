@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://nutrition-flow-1.preview.emergentagent.com"
+BASE_URL = "https://flexcal-diet-tracker.preview.emergentagent.com"
 API_URL = f"{BASE_URL}/api"
 
 class LAFBackendTester:

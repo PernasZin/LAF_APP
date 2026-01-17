@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # URL base do backend
-BASE_URL = "https://nutrition-flow-1.preview.emergentagent.com/api"
+BASE_URL = "https://flexcal-diet-tracker.preview.emergentagent.com/api"
 
 def make_request(method, endpoint, data=None):
     """Helper para fazer requisições HTTP"""
