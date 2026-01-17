@@ -368,6 +368,7 @@ export default function WorkoutScreen() {
         setDietType(data.diet?.type || 'rest');
         setWorkoutStatus(data.workout_status || 'rest');
         setHasTrainedToday(data.has_trained_today);
+        setIsTrainingBlocked(data.is_training_blocked || false);
         
         // Se treino em andamento, restaura o estado
         if (data.is_training_in_progress && data.training_session?.started_at) {
