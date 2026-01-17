@@ -1422,10 +1422,12 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     # Calcular quantidades para UMA refeição principal (igual para almoço e jantar)
     if main_protein and main_protein in FOODS:
-        protein_grams = round_to_10(clamp(main_meal_p / (FOODS[main_protein]["p"] / 100), 150, 280))
+        # Limite máximo de 220g de proteína por refeição (era 280g)
+        # Isso ajuda a manter a proteína total dentro de 1.8-2.3 g/kg
+        protein_grams = round_to_10(clamp(main_meal_p / (FOODS[main_protein]["p"] / 100), 120, 220))
     else:
         main_protein = get_restriction_safe_protein()
-        protein_grams = 180
+        protein_grams = 150
     
     if main_carb and main_carb in FOODS:
         # ARROZ/BATATA: calcula para atingir o target de carbs da refeição
