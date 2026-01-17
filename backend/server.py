@@ -2019,6 +2019,7 @@ async def get_training_cycle_status(user_id: str, date: str = None):
         "start_date": start_date,
         "has_trained_today": has_trained_today,
         "is_training_in_progress": is_training_in_progress,
+        "is_training_blocked": is_training_blocked,
         "workout_status": workout_status,
         "workout_status_text": workout_status_text,
         "training_session": {
