@@ -635,6 +635,12 @@ export default function WorkoutScreen() {
                 {workoutPlan?.weekly_split || t.workout.customWorkout}
               </Text>
             </View>
+            <TouchableOpacity 
+              style={[styles.historyButton, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(226, 232, 240, 0.8)' }]}
+              onPress={openHistory}
+            >
+              <History size={20} color={premiumColors.primary} />
+            </TouchableOpacity>
           </Animated.View>
 
           {/* Bloqueio de Treino - Dia de Descanso */}
