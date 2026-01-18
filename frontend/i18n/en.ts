@@ -258,6 +258,23 @@ export const en = {
     calves: 'Calves',
     workoutDays: 'Workout Days',
     selectDay: 'Select day',
+    // History
+    history: 'History',
+    workoutHistory: 'Workout History',
+    viewHistory: 'View History',
+    noWorkoutsYet: 'No workouts recorded',
+    startTrainingToSee: 'Complete your first workout to see history',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    allTime: 'Total',
+    workoutsCompleted: 'workouts',
+    exercisesCompleted: 'exercises',
+    avgDuration: 'Avg duration',
+    minutes: 'min',
+    frequency: 'Frequency',
+    target: 'Target',
+    achieved: 'Achieved',
+    workoutOf: 'of',
   },
 
   // ==================== CARDIO ====================
