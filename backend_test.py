@@ -1,472 +1,302 @@
 #!/usr/bin/env python3
 """
-🎯 TESTE COMPLETO DOS NOVOS ENDPOINTS DE CICLO DE TREINO AUTOMÁTICO
+Backend Testing Suite for LAF Workout Generation Bug Fixes
+==========================================================
 
-Testa todos os endpoints implementados conforme especificação:
-1. POST /api/training-cycle/setup/{user_id}
-2. GET /api/training-cycle/status/{user_id}
-3. POST /api/training-cycle/start-session/{user_id}
-4. POST /api/training-cycle/finish-session/{user_id}
-5. GET /api/training-cycle/week-preview/{user_id}
+Testing the following critical bug fixes:
+1. LIMITE DE 4 SÉRIES: All exercises must have ≤ 4 sets
+2. NÍVEL AVANÇADO DIFERENCIADO: Advanced level reps="10-12" (vs intermediate "8-12")
+3. Workout plans should be different between levels
 
-VALIDAÇÕES CRÍTICAS:
-- Dia 0 = SEMPRE descanso
-- Dias de treino corretos para frequência escolhida
-- Não permitir iniciar treino duas vezes no mesmo dia
-- Timer salvo corretamente
-- Multiplicadores de dieta corretos
+Base URL: https://workoutcycler.preview.emergentagent.com/api
 """
 
 import requests
 import json
-import time
-from datetime import datetime, timedelta
+import sys
+from typing import Dict, List, Any
+from datetime import datetime
 
-# Configuração
+# Configuration
 BASE_URL = "https://workoutcycler.preview.emergentagent.com/api"
-TEST_USER_ID = "046ca077-2173-4a40-8e20-59441d36f2f7"  # Usuário existente conforme especificação
+HEADERS = {"Content-Type": "application/json"}
 
-def log_test(test_name, success, details=""):
-    """Log padronizado dos testes"""
-    status = "✅ PASS" if success else "❌ FAIL"
-    print(f"{status} {test_name}")
-    if details:
-        print(f"    {details}")
-    print()
-
-def test_training_cycle_setup():
-    """
-    Testa POST /api/training-cycle/setup/{user_id}
-    
-    VALIDAÇÕES:
-    - Aceita frequência 2-6
-    - Retorna first_day_type = "rest" (dia 0 sempre descanso)
-    - Salva startDate e frequência
-    """
-    print("🔧 TESTANDO SETUP DO CICLO DE TREINO")
-    
-    # Teste 1: Setup com frequência 4x/semana
-    try:
-        payload = {"frequency": 4}
-        response = requests.post(f"{BASE_URL}/training-cycle/setup/{TEST_USER_ID}", json=payload)
+class WorkoutTestSuite:
+    def __init__(self):
+        self.test_results = []
+        self.total_tests = 0
+        self.passed_tests = 0
         
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Validações críticas
-            success = (
-                data.get("success") == True and
-                data.get("frequency") == 4 and
-                data.get("first_day_type") == "rest" and  # DIA 0 = SEMPRE DESCANSO
-                "start_date" in data
-            )
-            
-            details = f"Frequency: {data.get('frequency')}, First day: {data.get('first_day_type')}, Start: {data.get('start_date')}"
-            log_test("Setup ciclo 4x/semana", success, details)
-            
-            return data.get("start_date")  # Retorna para usar em outros testes
+    def log_test(self, test_name: str, passed: bool, details: str = ""):
+        """Log test result"""
+        self.total_tests += 1
+        if passed:
+            self.passed_tests += 1
+            status = "✅ PASS"
         else:
-            log_test("Setup ciclo 4x/semana", False, f"HTTP {response.status_code}: {response.text}")
-            return None
-            
-    except Exception as e:
-        log_test("Setup ciclo 4x/semana", False, f"Erro: {str(e)}")
-        return None
-
-def test_training_cycle_status(start_date=None):
-    """
-    Testa GET /api/training-cycle/status/{user_id}
-    
-    VALIDAÇÕES:
-    - Retorna day_type correto ("train"/"rest")
-    - Inclui multiplicadores de dieta corretos
-    - Inclui informações do ciclo
-    """
-    print("📊 TESTANDO STATUS DO CICLO DE TREINO")
-    
-    try:
-        response = requests.get(f"{BASE_URL}/training-cycle/status/{TEST_USER_ID}")
+            status = "❌ FAIL"
         
-        if response.status_code == 200:
-            data = response.json()
-            
-            # Validações críticas
-            required_fields = [
-                "day_type", "day_number", "cycle_day", "frequency", 
-                "has_trained_today", "is_training_in_progress", "diet"
-            ]
-            
-            has_required_fields = all(field in data for field in required_fields)
-            
-            # Valida multiplicadores de dieta
-            diet = data.get("diet", {})
-            valid_diet_multipliers = (
-                "calorie_multiplier" in diet and
-                "carb_multiplier" in diet and
-                diet.get("type") in ["training", "rest"]
-            )
-            
-            # Valida lógica de multiplicadores
-            if data.get("day_type") == "train" and data.get("has_trained_today"):
-                expected_cal_mult = 1.05
-                expected_carb_mult = 1.15
-                expected_diet_type = "training"
-            else:
-                expected_cal_mult = 0.95
-                expected_carb_mult = 0.80
-                expected_diet_type = "rest"
-            
-            correct_multipliers = (
-                diet.get("calorie_multiplier") == expected_cal_mult and
-                diet.get("carb_multiplier") == expected_carb_mult and
-                diet.get("type") == expected_diet_type
-            )
-            
-            success = has_required_fields and valid_diet_multipliers and correct_multipliers
-            
-            details = f"Day type: {data.get('day_type')}, Cycle day: {data.get('cycle_day')}, Diet: {diet.get('type')} (cal×{diet.get('calorie_multiplier')}, carb×{diet.get('carb_multiplier')})"
-            log_test("Status do ciclo", success, details)
-            
-            return data
-        else:
-            log_test("Status do ciclo", False, f"HTTP {response.status_code}: {response.text}")
-            return None
-            
-    except Exception as e:
-        log_test("Status do ciclo", False, f"Erro: {str(e)}")
-        return None
-
-def test_start_training_session():
-    """
-    Testa POST /api/training-cycle/start-session/{user_id}
-    
-    VALIDAÇÕES:
-    - Inicia sessão de treino
-    - Não permite iniciar duas vezes no mesmo dia
-    - Retorna informações da sessão
-    """
-    print("▶️ TESTANDO INÍCIO DE SESSÃO DE TREINO")
-    
-    # Teste 1: Iniciar sessão pela primeira vez
-    try:
-        response = requests.post(f"{BASE_URL}/training-cycle/start-session/{TEST_USER_ID}")
+        result = f"{status} - {test_name}"
+        if details:
+            result += f"\n    Details: {details}"
         
-        if response.status_code == 200:
-            data = response.json()
-            
-            success = (
-                data.get("success") == True and
-                "session" in data and
-                "started_at" in data.get("session", {})
-            )
-            
-            details = f"Started at: {data.get('session', {}).get('started_at')}, Already started: {data.get('session', {}).get('already_started', False)}"
-            log_test("Iniciar sessão de treino", success, details)
-            
-            # Teste 2: Tentar iniciar novamente (deve retornar que já está em andamento)
-            response2 = requests.post(f"{BASE_URL}/training-cycle/start-session/{TEST_USER_ID}")
-            
-            if response2.status_code == 200:
-                data2 = response2.json()
-                
-                # Deve indicar que já está em andamento
-                already_started = data2.get("session", {}).get("already_started", False)
-                success2 = already_started or "já em andamento" in data2.get("message", "").lower()
-                
-                details2 = f"Segunda tentativa: {data2.get('message')}"
-                log_test("Prevenção de duplo início", success2, details2)
-                
-                return True
-            else:
-                log_test("Prevenção de duplo início", False, f"HTTP {response2.status_code}: {response2.text}")
-                return False
-        else:
-            log_test("Iniciar sessão de treino", False, f"HTTP {response.status_code}: {response.text}")
-            return False
-            
-    except Exception as e:
-        log_test("Iniciar sessão de treino", False, f"Erro: {str(e)}")
-        return False
-
-def test_finish_training_session():
-    """
-    Testa POST /api/training-cycle/finish-session/{user_id}
-    
-    VALIDAÇÕES:
-    - Finaliza sessão de treino
-    - Salva duração corretamente
-    - Retorna duration_formatted
-    """
-    print("⏹️ TESTANDO FINALIZAÇÃO DE SESSÃO DE TREINO")
-    
-    try:
-        # Duração de teste: 1 hora (3600 segundos)
-        payload = {
-            "duration_seconds": 3600,
-            "exercises_completed": 10
+        self.test_results.append(result)
+        print(result)
+        
+    def create_test_profile(self, training_level: str, name_suffix: str) -> Dict[str, Any]:
+        """Create a test user profile for workout generation"""
+        profile_data = {
+            "name": f"Teste {name_suffix}",
+            "email": f"{training_level}_test@test.com",
+            "age": 30 if training_level == "avancado" else 25,
+            "sex": "masculino",
+            "height": 180 if training_level == "avancado" else 175,
+            "weight": 85 if training_level == "avancado" else 70,
+            "target_weight": 90 if training_level == "avancado" else 75,
+            "goal": "bulking",
+            "training_level": training_level,
+            "weekly_training_frequency": 4,
+            "available_time_per_session": 60
         }
         
-        response = requests.post(f"{BASE_URL}/training-cycle/finish-session/{TEST_USER_ID}", json=payload)
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            session = data.get("session", {})
-            success = (
-                data.get("success") == True and
-                session.get("duration_seconds") == 3600 and
-                session.get("exercises_completed") == 10 and
-                "duration_formatted" in session and
-                "completed_at" in session
-            )
-            
-            details = f"Duration: {session.get('duration_formatted')}, Exercises: {session.get('exercises_completed')}, Completed: {session.get('completed_at')}"
-            log_test("Finalizar sessão de treino", success, details)
-            
-            return True
-        else:
-            log_test("Finalizar sessão de treino", False, f"HTTP {response.status_code}: {response.text}")
-            return False
-            
-    except Exception as e:
-        log_test("Finalizar sessão de treino", False, f"Erro: {str(e)}")
-        return False
-
-def test_week_preview():
-    """
-    Testa GET /api/training-cycle/week-preview/{user_id}
-    
-    VALIDAÇÕES:
-    - Retorna preview de 7 dias
-    - Cada dia tem day_type correto
-    - Inclui informações do ciclo
-    """
-    print("📅 TESTANDO PREVIEW DA SEMANA")
-    
-    try:
-        response = requests.get(f"{BASE_URL}/training-cycle/week-preview/{TEST_USER_ID}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            week_preview = data.get("week_preview", [])
-            
-            # Validações críticas
-            success = (
-                len(week_preview) == 7 and  # 7 dias
-                data.get("frequency") is not None and
-                "start_date" in data
-            )
-            
-            # Valida estrutura de cada dia
-            if success:
-                for day in week_preview:
-                    required_day_fields = ["date", "day_name", "day_type", "cycle_day", "is_today"]
-                    if not all(field in day for field in required_day_fields):
-                        success = False
-                        break
-                    
-                    if day.get("day_type") not in ["train", "rest"]:
-                        success = False
-                        break
-            
-            # Conta dias de treino e descanso
-            train_days = sum(1 for day in week_preview if day.get("day_type") == "train")
-            rest_days = sum(1 for day in week_preview if day.get("day_type") == "rest")
-            
-            details = f"Frequency: {data.get('frequency')}, Train days: {train_days}, Rest days: {rest_days}, Total days: {len(week_preview)}"
-            log_test("Preview da semana", success, details)
-            
-            # Log detalhado dos dias
-            print("    📋 Detalhes da semana:")
-            for day in week_preview:
-                day_indicator = "🏃" if day.get("day_type") == "train" else "😴"
-                today_indicator = " (HOJE)" if day.get("is_today") else ""
-                print(f"        {day_indicator} {day.get('day_name')} ({day.get('date')}): {day.get('day_type').upper()}{today_indicator}")
-            print()
-            
-            return True
-        else:
-            log_test("Preview da semana", False, f"HTTP {response.status_code}: {response.text}")
-            return False
-            
-    except Exception as e:
-        log_test("Preview da semana", False, f"Erro: {str(e)}")
-        return False
-
-def test_day_zero_logic():
-    """
-    Testa a lógica crítica do DIA 0 = SEMPRE DESCANSO
-    
-    Cria um novo ciclo e verifica se o primeiro dia é sempre descanso
-    """
-    print("🎯 TESTANDO LÓGICA CRÍTICA: DIA 0 = SEMPRE DESCANSO")
-    
-    # Testa diferentes frequências para garantir que dia 0 é sempre descanso
-    frequencies = [2, 3, 4, 5, 6]
-    all_success = True
-    
-    for freq in frequencies:
         try:
-            # Setup novo ciclo
-            payload = {"frequency": freq}
-            response = requests.post(f"{BASE_URL}/training-cycle/setup/{TEST_USER_ID}", json=payload)
+            response = requests.post(f"{BASE_URL}/user/profile", json=profile_data, headers=HEADERS)
             
             if response.status_code == 200:
-                data = response.json()
-                first_day_type = data.get("first_day_type")
-                
-                success = first_day_type == "rest"
-                details = f"Freq {freq}x: primeiro dia = {first_day_type}"
-                log_test(f"Dia 0 descanso (freq {freq}x)", success, details)
-                
-                if not success:
-                    all_success = False
+                profile = response.json()
+                user_id = profile.get("id")
+                self.log_test(f"Create {training_level.upper()} profile", True, 
+                            f"User ID: {user_id}, TDEE: {profile.get('tdee')}kcal")
+                return {"user_id": user_id, "profile": profile}
             else:
-                log_test(f"Dia 0 descanso (freq {freq}x)", False, f"HTTP {response.status_code}")
-                all_success = False
+                self.log_test(f"Create {training_level.upper()} profile", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return None
                 
         except Exception as e:
-            log_test(f"Dia 0 descanso (freq {freq}x)", False, f"Erro: {str(e)}")
-            all_success = False
+            self.log_test(f"Create {training_level.upper()} profile", False, f"Exception: {str(e)}")
+            return None
     
-    return all_success
-
-def test_diet_multipliers_integration():
-    """
-    Testa a integração com multiplicadores de dieta
-    
-    VALIDAÇÕES:
-    - dayType === "train" + treinou → dieta de treino (cal×1.05, carbs×1.15)
-    - dayType === "rest" OU não treinou → dieta de descanso (cal×0.95, carbs×0.80)
-    """
-    print("🍽️ TESTANDO INTEGRAÇÃO COM MULTIPLICADORES DE DIETA")
-    
-    try:
-        # Pega status atual
-        response = requests.get(f"{BASE_URL}/training-cycle/status/{TEST_USER_ID}")
-        
-        if response.status_code == 200:
-            data = response.json()
+    def generate_workout(self, user_id: str, training_level: str) -> Dict[str, Any]:
+        """Generate workout for user"""
+        try:
+            response = requests.post(f"{BASE_URL}/workout/generate?user_id={user_id}", headers=HEADERS)
             
-            day_type = data.get("day_type")
-            has_trained = data.get("has_trained_today")
-            diet = data.get("diet", {})
-            
-            # Lógica esperada:
-            # Se é dia de treino E já treinou → multiplicadores de treino
-            # Caso contrário → multiplicadores de descanso
-            
-            if day_type == "train" and has_trained:
-                expected_cal_mult = 1.05
-                expected_carb_mult = 1.15
-                expected_diet_type = "training"
-                scenario = "Dia de treino + treinou"
+            if response.status_code == 200:
+                workout = response.json()
+                workouts_count = len(workout.get("workouts", []))
+                self.log_test(f"Generate {training_level.upper()} workout", True, 
+                            f"Generated {workouts_count} workout days")
+                return workout
             else:
-                expected_cal_mult = 0.95
-                expected_carb_mult = 0.80
-                expected_diet_type = "rest"
-                scenario = "Dia de descanso OU não treinou"
+                self.log_test(f"Generate {training_level.upper()} workout", False, 
+                            f"HTTP {response.status_code}: {response.text}")
+                return None
+                
+        except Exception as e:
+            self.log_test(f"Generate {training_level.upper()} workout", False, f"Exception: {str(e)}")
+            return None
+    
+    def validate_sets_limit(self, workout: Dict[str, Any], training_level: str) -> bool:
+        """Validate that ALL exercises have ≤ 4 sets"""
+        try:
+            workouts = workout.get("workouts", [])
+            if not workouts:
+                self.log_test(f"{training_level.upper()} - Sets ≤ 4 validation", False, "No workouts found")
+                return False
             
-            success = (
-                diet.get("calorie_multiplier") == expected_cal_mult and
-                diet.get("carb_multiplier") == expected_carb_mult and
-                diet.get("type") == expected_diet_type
-            )
+            violations = []
+            total_exercises = 0
             
-            details = f"{scenario}: cal×{diet.get('calorie_multiplier')} carb×{diet.get('carb_multiplier')} type={diet.get('type')}"
-            log_test("Multiplicadores de dieta", success, details)
+            for day_idx, day in enumerate(workouts):
+                exercises = day.get("exercises", [])
+                for ex_idx, exercise in enumerate(exercises):
+                    total_exercises += 1
+                    sets = exercise.get("sets", 0)
+                    
+                    if sets > 4:
+                        violations.append(f"Day {day_idx+1}, Exercise {ex_idx+1} ({exercise.get('name', 'Unknown')}): {sets} sets")
             
-            return success
-        else:
-            log_test("Multiplicadores de dieta", False, f"HTTP {response.status_code}: {response.text}")
+            if violations:
+                details = f"Found {len(violations)} violations out of {total_exercises} exercises:\n" + "\n".join(violations[:5])
+                if len(violations) > 5:
+                    details += f"\n... and {len(violations) - 5} more violations"
+                self.log_test(f"{training_level.upper()} - Sets ≤ 4 validation", False, details)
+                return False
+            else:
+                self.log_test(f"{training_level.upper()} - Sets ≤ 4 validation", True, 
+                            f"All {total_exercises} exercises have ≤ 4 sets")
+                return True
+                
+        except Exception as e:
+            self.log_test(f"{training_level.upper()} - Sets ≤ 4 validation", False, f"Exception: {str(e)}")
             return False
+    
+    def validate_reps_format(self, workout: Dict[str, Any], training_level: str, expected_reps: str) -> bool:
+        """Validate that exercises have the expected reps format"""
+        try:
+            workouts = workout.get("workouts", [])
+            if not workouts:
+                self.log_test(f"{training_level.upper()} - Reps validation", False, "No workouts found")
+                return False
             
-    except Exception as e:
-        log_test("Multiplicadores de dieta", False, f"Erro: {str(e)}")
-        return False
-
-def run_all_tests():
-    """
-    Executa todos os testes dos novos endpoints de ciclo de treino
-    """
-    print("🚀 INICIANDO TESTES DOS NOVOS ENDPOINTS DE CICLO DE TREINO AUTOMÁTICO")
-    print("=" * 80)
-    print(f"🎯 Usuário de teste: {TEST_USER_ID}")
-    print(f"🌐 Base URL: {BASE_URL}")
-    print("=" * 80)
-    print()
+            violations = []
+            total_exercises = 0
+            correct_reps = 0
+            
+            for day_idx, day in enumerate(workouts):
+                exercises = day.get("exercises", [])
+                for ex_idx, exercise in enumerate(exercises):
+                    total_exercises += 1
+                    reps = exercise.get("reps", "")
+                    
+                    if reps == expected_reps:
+                        correct_reps += 1
+                    else:
+                        violations.append(f"Day {day_idx+1}, Exercise {ex_idx+1} ({exercise.get('name', 'Unknown')}): got '{reps}', expected '{expected_reps}'")
+            
+            if violations:
+                details = f"Found {len(violations)} violations out of {total_exercises} exercises (only {correct_reps} correct):\n" + "\n".join(violations[:5])
+                if len(violations) > 5:
+                    details += f"\n... and {len(violations) - 5} more violations"
+                self.log_test(f"{training_level.upper()} - Reps '{expected_reps}' validation", False, details)
+                return False
+            else:
+                self.log_test(f"{training_level.upper()} - Reps '{expected_reps}' validation", True, 
+                            f"All {total_exercises} exercises have reps='{expected_reps}'")
+                return True
+                
+        except Exception as e:
+            self.log_test(f"{training_level.upper()} - Reps validation", False, f"Exception: {str(e)}")
+            return False
     
-    # Contador de sucessos
-    tests_passed = 0
-    total_tests = 0
+    def compare_workout_plans(self, advanced_workout: Dict[str, Any], beginner_workout: Dict[str, Any]) -> bool:
+        """Compare advanced vs beginner workout plans to ensure they're different"""
+        try:
+            adv_workouts = advanced_workout.get("workouts", [])
+            beg_workouts = beginner_workout.get("workouts", [])
+            
+            if not adv_workouts or not beg_workouts:
+                self.log_test("Advanced vs Beginner comparison", False, "Missing workout data")
+                return False
+            
+            # Count total exercises per level
+            adv_total_exercises = sum(len(day.get("exercises", [])) for day in adv_workouts)
+            beg_total_exercises = sum(len(day.get("exercises", [])) for day in beg_workouts)
+            
+            # Get exercise names for comparison
+            adv_exercises = []
+            beg_exercises = []
+            
+            for day in adv_workouts:
+                for exercise in day.get("exercises", []):
+                    adv_exercises.append(exercise.get("name", ""))
+            
+            for day in beg_workouts:
+                for exercise in day.get("exercises", []):
+                    beg_exercises.append(exercise.get("name", ""))
+            
+            # Calculate differences
+            exercise_diff = abs(adv_total_exercises - beg_total_exercises)
+            common_exercises = len(set(adv_exercises) & set(beg_exercises))
+            total_unique_exercises = len(set(adv_exercises) | set(beg_exercises))
+            
+            # Plans should be different if:
+            # 1. Different number of exercises, OR
+            # 2. Less than 80% overlap in exercise selection
+            overlap_percentage = (common_exercises / total_unique_exercises * 100) if total_unique_exercises > 0 else 100
+            
+            is_different = exercise_diff > 0 or overlap_percentage < 80
+            
+            details = f"Advanced: {adv_total_exercises} exercises, Beginner: {beg_total_exercises} exercises, " \
+                     f"Exercise overlap: {overlap_percentage:.1f}% ({common_exercises}/{total_unique_exercises})"
+            
+            self.log_test("Advanced vs Beginner comparison", is_different, details)
+            return is_different
+            
+        except Exception as e:
+            self.log_test("Advanced vs Beginner comparison", False, f"Exception: {str(e)}")
+            return False
     
-    # 1. Teste de setup do ciclo
-    start_date = test_training_cycle_setup()
-    total_tests += 1
-    if start_date:
-        tests_passed += 1
-    
-    # 2. Teste de status do ciclo
-    status_data = test_training_cycle_status(start_date)
-    total_tests += 1
-    if status_data:
-        tests_passed += 1
-    
-    # 3. Teste de início de sessão
-    session_started = test_start_training_session()
-    total_tests += 1
-    if session_started:
-        tests_passed += 1
-    
-    # 4. Teste de finalização de sessão
-    session_finished = test_finish_training_session()
-    total_tests += 1
-    if session_finished:
-        tests_passed += 1
-    
-    # 5. Teste de preview da semana
-    week_preview_ok = test_week_preview()
-    total_tests += 1
-    if week_preview_ok:
-        tests_passed += 1
-    
-    # 6. Teste da lógica crítica do dia 0
-    day_zero_ok = test_day_zero_logic()
-    total_tests += 1
-    if day_zero_ok:
-        tests_passed += 1
-    
-    # 7. Teste de integração com multiplicadores de dieta
-    diet_mult_ok = test_diet_multipliers_integration()
-    total_tests += 1
-    if diet_mult_ok:
-        tests_passed += 1
-    
-    # Resultado final
-    print("=" * 80)
-    print("📊 RESULTADO FINAL DOS TESTES")
-    print("=" * 80)
-    
-    success_rate = (tests_passed / total_tests) * 100
-    
-    if tests_passed == total_tests:
-        print(f"🎉 TODOS OS TESTES PASSARAM! ({tests_passed}/{total_tests}) - {success_rate:.1f}%")
+    def run_comprehensive_test(self):
+        """Run the complete test suite for workout generation bug fixes"""
+        print("=" * 80)
+        print("🏋️ LAF WORKOUT GENERATION BUG FIXES VALIDATION")
+        print("=" * 80)
+        print(f"Testing against: {BASE_URL}")
+        print(f"Started at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print()
-        print("✅ VALIDAÇÕES CRÍTICAS CONFIRMADAS:")
-        print("   • Dia 0 = SEMPRE descanso")
-        print("   • Dias de treino corretos para frequência escolhida")
-        print("   • Não permite iniciar treino duas vezes no mesmo dia")
-        print("   • Timer salvo corretamente")
-        print("   • Multiplicadores de dieta corretos")
-    else:
-        print(f"⚠️ ALGUNS TESTES FALHARAM: {tests_passed}/{total_tests} passaram ({success_rate:.1f}%)")
-        failed_tests = total_tests - tests_passed
-        print(f"❌ {failed_tests} teste(s) falharam")
+        
+        # Test 1 & 2: Create profiles
+        print("📋 STEP 1: Creating test profiles...")
+        advanced_data = self.create_test_profile("avancado", "Avancado")
+        beginner_data = self.create_test_profile("iniciante", "Iniciante")
+        
+        if not advanced_data or not beginner_data:
+            print("❌ CRITICAL: Failed to create test profiles. Aborting tests.")
+            return False
+        
+        print()
+        
+        # Test 3 & 4: Generate workouts
+        print("🏋️ STEP 2: Generating workouts...")
+        advanced_workout = self.generate_workout(advanced_data["user_id"], "avancado")
+        beginner_workout = self.generate_workout(beginner_data["user_id"], "iniciante")
+        
+        if not advanced_workout or not beginner_workout:
+            print("❌ CRITICAL: Failed to generate workouts. Aborting validation tests.")
+            return False
+        
+        print()
+        
+        # Test 5-8: Validation tests
+        print("🔍 STEP 3: Validating bug fixes...")
+        
+        # Validate sets limit (≤ 4 sets for all exercises)
+        advanced_sets_ok = self.validate_sets_limit(advanced_workout, "avancado")
+        beginner_sets_ok = self.validate_sets_limit(beginner_workout, "iniciante")
+        
+        # Validate reps format
+        advanced_reps_ok = self.validate_reps_format(advanced_workout, "avancado", "10-12")
+        beginner_reps_ok = self.validate_reps_format(beginner_workout, "iniciante", "10-12")
+        
+        # Compare workout plans
+        plans_different = self.compare_workout_plans(advanced_workout, beginner_workout)
+        
+        print()
+        
+        # Summary
+        print("=" * 80)
+        print("📊 TEST RESULTS SUMMARY")
+        print("=" * 80)
+        
+        for result in self.test_results:
+            print(result)
+        
+        print()
+        print(f"🎯 OVERALL RESULTS: {self.passed_tests}/{self.total_tests} tests passed ({self.passed_tests/self.total_tests*100:.1f}%)")
+        
+        # Critical success criteria
+        critical_tests_passed = (
+            advanced_sets_ok and beginner_sets_ok and  # Sets ≤ 4
+            advanced_reps_ok and beginner_reps_ok and  # Correct reps
+            plans_different  # Plans are different
+        )
+        
+        if critical_tests_passed:
+            print("🎉 SUCCESS: All critical bug fixes validated!")
+            return True
+        else:
+            print("❌ FAILURE: Some critical bug fixes are not working properly.")
+            return False
+
+def main():
+    """Main test execution"""
+    test_suite = WorkoutTestSuite()
+    success = test_suite.run_comprehensive_test()
     
-    print("=" * 80)
-    
-    return tests_passed == total_tests
+    # Exit with appropriate code
+    sys.exit(0 if success else 1)
 
 if __name__ == "__main__":
-    run_all_tests()
+    main()
