@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.base,
+    marginBottom: spacing.sm,
   },
   waterHeaderLeft: {
     flexDirection: 'row',
@@ -884,22 +884,49 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
   },
   waterSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     marginTop: 2,
   },
   resetButton: {
     padding: spacing.sm,
   },
+  glassesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: spacing.md,
+  },
+  glassIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moreGlasses: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+    alignSelf: 'center',
+  },
   waterProgressSection: {
     marginBottom: spacing.base,
+  },
+  waterProgressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: spacing.sm,
   },
   waterProgressInfo: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: spacing.sm,
+  },
+  waterStatsRight: {
+    alignItems: 'flex-end',
   },
   waterConsumed: {
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: '800',
     letterSpacing: -1,
   },
@@ -908,14 +935,28 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 4,
   },
+  waterPercent: {
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  waterRemaining: {
+    fontSize: 12,
+    marginTop: 2,
+  },
   waterProgressTrack: {
-    height: 10,
-    borderRadius: 5,
+    height: 12,
+    borderRadius: 6,
     overflow: 'hidden',
   },
   waterProgressFill: {
     height: '100%',
-    borderRadius: 5,
+    borderRadius: 6,
+  },
+  waterMotivation: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
   waterButtons: {
     flexDirection: 'row',
