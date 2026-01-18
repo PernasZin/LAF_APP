@@ -808,7 +808,8 @@ export default function WorkoutScreen() {
                   style={styles.startTimerBtn}
                   onPress={() => {
                     setShowExerciseModal(false);
-                    startRestTimer(selectedExercise.rest || 60);
+                    // Usa rest_seconds (número) ao invés de rest (string "75s")
+                    startRestTimer(selectedExercise.rest_seconds || 60);
                   }}
                 >
                   <LinearGradient
