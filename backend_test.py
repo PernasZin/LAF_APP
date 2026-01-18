@@ -115,7 +115,7 @@ class LAFTester:
     def generate_workout(self, user_id: str, user_name: str) -> Dict:
         """Gera treino para o usuário"""
         try:
-            response = self.session.get(
+            response = self.session.post(
                 f"{self.base_url}/workout/generate",
                 params={"user_id": user_id},
                 timeout=30
