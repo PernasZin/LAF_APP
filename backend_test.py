@@ -43,11 +43,45 @@ class WorkoutTestSuite:
         self.test_results.append(result)
         print(result)
         
-    def create_test_profile(self, training_level: str, name_suffix: str) -> Dict[str, Any]:
-        """Create a test user profile for workout generation"""
+    def create_test_user_and_profile(self, training_level: str, name_suffix: str) -> Dict[str, Any]:
+        """Create a test user with authentication and profile for workout generation"""
+        email = f"{training_level}_test@test.com"
+        password = "TestPassword123!"
+        
+        # Step 1: Create authenticated user
+        try:
+            signup_data = {
+                "email": email,
+                "password": password
+            }
+            
+            response = requests.post(f"{BASE_URL}/auth/signup", json=signup_data, headers=HEADERS)
+            
+            if response.status_code == 200:
+                auth_result = response.json()
+                user_id = auth_result.get("user_id")
+                self.log_test(f"Create {training_level.upper()} auth user", True, f"User ID: {user_id}")
+            else:
+                # User might already exist, try login
+                response = requests.post(f"{BASE_URL}/auth/login", json=signup_data, headers=HEADERS)
+                if response.status_code == 200:
+                    auth_result = response.json()
+                    user_id = auth_result.get("user_id")
+                    self.log_test(f"Login {training_level.upper()} user", True, f"User ID: {user_id}")
+                else:
+                    self.log_test(f"Create/Login {training_level.upper()} user", False, 
+                                f"HTTP {response.status_code}: {response.text}")
+                    return None
+                    
+        except Exception as e:
+            self.log_test(f"Create {training_level.upper()} user", False, f"Exception: {str(e)}")
+            return None
+        
+        # Step 2: Create profile with the authenticated user ID
         profile_data = {
+            "id": user_id,  # Required field
             "name": f"Teste {name_suffix}",
-            "email": f"{training_level}_test@test.com",
+            "email": email,
             "age": 30 if training_level == "avancado" else 25,
             "sex": "masculino",
             "height": 180 if training_level == "avancado" else 175,
@@ -64,9 +98,8 @@ class WorkoutTestSuite:
             
             if response.status_code == 200:
                 profile = response.json()
-                user_id = profile.get("id")
                 self.log_test(f"Create {training_level.upper()} profile", True, 
-                            f"User ID: {user_id}, TDEE: {profile.get('tdee')}kcal")
+                            f"TDEE: {profile.get('tdee')}kcal, Target: {profile.get('target_calories')}kcal")
                 return {"user_id": user_id, "profile": profile}
             else:
                 self.log_test(f"Create {training_level.upper()} profile", False, 
