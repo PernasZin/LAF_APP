@@ -191,7 +191,7 @@ class LAFTester:
                     elif restriction == "sem_gluten":
                         # Sem glúten não pode ter trigo ou aveia
                         gluten_keywords = ["trigo", "aveia", "pao", "macarrao", "wheat", "oats", "bread"]
-                        if any(keyword in food_name or keyword in food_key for keyword in lactose_keywords):
+                        if any(keyword in food_name or keyword in food_key for keyword in gluten_keywords):
                             violations.append(f"Sem glúten com {food_name}")
                     
                     elif restriction == "diabetico":
