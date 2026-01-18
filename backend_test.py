@@ -123,7 +123,7 @@ class LAFTester:
             
             if response.status_code == 200:
                 workout = response.json()
-                workouts = workout.get("workouts", [])
+                workouts = workout.get("workout_days", [])  # Changed from "workouts" to "workout_days"
                 
                 # Conta exercícios e verifica séries
                 total_exercises = 0
