@@ -511,7 +511,7 @@ export default function ProgressScreen() {
                 <View style={[styles.targetRow, { borderTopColor: theme.border }]}>
                   <Target size={16} color={theme.textTertiary} />
                   <Text style={[styles.targetText, { color: theme.textSecondary }]}>
-                    Meta: {targetWeight}kg
+                    {p.goal}: {targetWeight}kg
                   </Text>
                 </View>
               )}
