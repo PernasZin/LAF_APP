@@ -715,7 +715,7 @@ index 7245a771..e69de29b 100644
 ----+from datetime import datetime
 ----+
 ----+# URL base do backend
-----+BASE_URL = "https://flexcal-diet-tracker.preview.emergentagent.com/api"
+----+BASE_URL = "https://workoutcycler.preview.emergentagent.com/api"
 ----+
 ----+def make_request(method, endpoint, data=None):
 ----+    """Helper para fazer requisições HTTP"""
@@ -1067,7 +1067,7 @@ index 7245a771..e69de29b 100644
 -+import sys
 -+
 -+# Get backend URL from environment
--+BACKEND_URL = "https://flexcal-diet-tracker.preview.emergentagent.com/api"
+-+BACKEND_URL = "https://workoutcycler.preview.emergentagent.com/api"
 -+
 -+class WorkoutTrackingTester:
 -+    def __init__(self):
@@ -1430,7 +1430,7 @@ index 7245a771..e69de29b 100644
 -+import sys
 -+
 -+# Get backend URL from environment
--+BACKEND_URL = "https://flexcal-diet-tracker.preview.emergentagent.com/api"
+-+BACKEND_URL = "https://workoutcycler.preview.emergentagent.com/api"
 -+
 -+class WorkoutTrackingTester:
 -+    def __init__(self):

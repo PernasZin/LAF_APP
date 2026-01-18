@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
   }
   
   // Default fallback
-  return 'https://flexcal-diet-tracker.preview.emergentagent.com';
+  return 'https://workoutcycler.preview.emergentagent.com';
 };
 
 export const config = {

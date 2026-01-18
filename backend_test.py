@@ -23,7 +23,7 @@ import time
 from datetime import datetime, timedelta
 
 # Configuração
-BASE_URL = "https://flexcal-diet-tracker.preview.emergentagent.com/api"
+BASE_URL = "https://workoutcycler.preview.emergentagent.com/api"
 TEST_USER_ID = "046ca077-2173-4a40-8e20-59441d36f2f7"  # Usuário existente conforme especificação
 
 def log_test(test_name, success, details=""):
