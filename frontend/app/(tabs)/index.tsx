@@ -135,7 +135,7 @@ const MacroBar = ({ label, current, target, color, isDark }: any) => {
   );
 };
 
-// ==================== WATER TRACKER PREMIUM ====================
+// ==================== WATER TRACKER PREMIUM V2 ====================
 const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
   const theme = isDark ? darkTheme : lightTheme;
   const [waterConsumed, setWaterConsumed] = useState(0);
@@ -145,8 +145,9 @@ const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
   const waterGoalLiters = (waterGoal / 1000).toFixed(1);
   const waterConsumedLiters = (waterConsumed / 1000).toFixed(1);
   const progress = Math.min((waterConsumed / waterGoal) * 100, 100);
-  const cupsConsumed = Math.floor(waterConsumed / 250);
-  const totalCups = Math.ceil(waterGoal / 250);
+  const glassesConsumed = Math.floor(waterConsumed / 250);
+  const totalGlasses = Math.ceil(waterGoal / 250);
+  const remainingMl = Math.max(0, waterGoal - waterConsumed);
   
   const progressWidth = useSharedValue(0);
   
@@ -180,7 +181,7 @@ const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
   };
   
   const addWater = async (ml: number) => {
-    const newAmount = Math.min(waterConsumed + ml, waterGoal + 1000);
+    const newAmount = Math.min(waterConsumed + ml, waterGoal + 2000);
     setWaterConsumed(newAmount);
     await saveWaterData(newAmount);
     onUpdate?.();
@@ -202,20 +203,38 @@ const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
   };
   
   if (isLoading) return null;
+
+  // Cor dinâmica baseada no progresso
+  const getProgressColor = () => {
+    if (progress >= 100) return ['#10B981', '#059669'];
+    if (progress >= 75) return ['#06B6D4', '#0891B2'];
+    if (progress >= 50) return ['#3B82F6', '#2563EB'];
+    if (progress >= 25) return ['#6366F1', '#4F46E5'];
+    return ['#8B5CF6', '#7C3AED'];
+  };
+
+  // Mensagem motivacional
+  const getMotivationalMessage = () => {
+    if (progress >= 100) return '🎉 Meta atingida! Excelente hidratação!';
+    if (progress >= 75) return '💪 Quase lá! Continue assim!';
+    if (progress >= 50) return '👍 Metade do caminho! Bom trabalho!';
+    if (progress >= 25) return '💧 Bom começo! Continue bebendo!';
+    return '🌊 Hora de se hidratar!';
+  };
   
   return (
     <Animated.View entering={FadeInDown.delay(400).springify()}>
       <GlassCard isDark={isDark} gradient style={styles.waterCard}>
-        {/* Header */}
+        {/* Header Compacto */}
         <View style={styles.waterHeader}>
           <View style={styles.waterHeaderLeft}>
-            <View style={[styles.waterIconBg, { backgroundColor: '#3B82F615' }]}>
-              <Droplets size={22} color="#3B82F6" strokeWidth={2.5} />
+            <View style={[styles.waterIconBg, { backgroundColor: getProgressColor()[0] + '20' }]}>
+              <Droplets size={24} color={getProgressColor()[0]} strokeWidth={2.5} />
             </View>
             <View>
               <Text style={[styles.waterTitle, { color: theme.text }]}>{t.home.waterTracker}</Text>
               <Text style={[styles.waterSubtitle, { color: theme.textTertiary }]}>
-                {cupsConsumed} {t.home.ofCups} {totalCups} {t.home.cups}
+                {weight}kg × 35ml = {waterGoalLiters}L/dia
               </Text>
             </View>
           </View>
@@ -223,44 +242,116 @@ const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
             <RefreshCw size={18} color={theme.textTertiary} />
           </TouchableOpacity>
         </View>
+
+        {/* Visual de Copos */}
+        <View style={styles.glassesContainer}>
+          {Array.from({ length: Math.min(totalGlasses, 12) }).map((_, idx) => {
+            const isFilled = idx < glassesConsumed;
+            const isPartial = idx === glassesConsumed && waterConsumed % 250 > 0;
+            return (
+              <View 
+                key={idx} 
+                style={[
+                  styles.glassIcon,
+                  { 
+                    backgroundColor: isFilled 
+                      ? getProgressColor()[0] 
+                      : isPartial 
+                        ? getProgressColor()[0] + '50'
+                        : isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)'
+                  }
+                ]}
+              >
+                <Droplets 
+                  size={12} 
+                  color={isFilled || isPartial ? '#FFF' : theme.textTertiary} 
+                  strokeWidth={2.5}
+                />
+              </View>
+            );
+          })}
+          {totalGlasses > 12 && (
+            <Text style={[styles.moreGlasses, { color: theme.textTertiary }]}>
+              +{totalGlasses - 12}
+            </Text>
+          )}
+        </View>
         
-        {/* Progress */}
+        {/* Progress Principal */}
         <View style={styles.waterProgressSection}>
-          <View style={styles.waterProgressInfo}>
-            <Text style={[styles.waterConsumed, { color: theme.text }]}>{waterConsumedLiters}</Text>
-            <Text style={[styles.waterGoalText, { color: theme.textSecondary }]}>/ {waterGoalLiters}L</Text>
+          <View style={styles.waterProgressRow}>
+            <View style={styles.waterProgressInfo}>
+              <Text style={[styles.waterConsumed, { color: getProgressColor()[0] }]}>
+                {waterConsumedLiters}
+              </Text>
+              <Text style={[styles.waterGoalText, { color: theme.textSecondary }]}>
+                / {waterGoalLiters}L
+              </Text>
+            </View>
+            <View style={styles.waterStatsRight}>
+              <Text style={[styles.waterPercent, { color: getProgressColor()[0] }]}>
+                {Math.round(progress)}%
+              </Text>
+              {remainingMl > 0 && (
+                <Text style={[styles.waterRemaining, { color: theme.textTertiary }]}>
+                  Faltam {(remainingMl / 1000).toFixed(1)}L
+                </Text>
+              )}
+            </View>
           </View>
+          
+          {/* Barra de Progresso Premium */}
           <View style={[styles.waterProgressTrack, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)' }]}>
             <Animated.View style={animatedProgressStyle}>
               <LinearGradient
-                colors={progress >= 100 ? ['#10B981', '#059669'] : ['#3B82F6', '#2563EB']}
+                colors={getProgressColor()}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.waterProgressFill}
               />
             </Animated.View>
           </View>
+
+          {/* Mensagem Motivacional */}
+          <Text style={[styles.waterMotivation, { color: theme.textSecondary }]}>
+            {getMotivationalMessage()}
+          </Text>
         </View>
         
-        {/* Buttons */}
+        {/* Botões de Ação */}
         <View style={styles.waterButtons}>
           <TouchableOpacity
-            style={[styles.waterMinusBtn, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(226, 232, 240, 0.8)' }]}
+            style={[styles.waterMinusBtn, { 
+              backgroundColor: isDark ? 'rgba(71, 85, 105, 0.5)' : 'rgba(226, 232, 240, 0.8)',
+              opacity: waterConsumed < 250 ? 0.5 : 1
+            }]}
             onPress={removeWater}
             disabled={waterConsumed < 250}
           >
             <Minus size={20} color={waterConsumed >= 250 ? theme.text : theme.textTertiary} />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.waterAddBtn} onPress={() => addWater(250)}>
+          <TouchableOpacity style={styles.waterAddBtn} onPress={() => addWater(200)}>
+            <LinearGradient
+              colors={['#06B6D4', '#0891B2']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.waterAddBtnGradient}
+            >
+              <Droplets size={16} color="#FFF" />
+              <Text style={styles.waterAddBtnText}>200ml</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.waterAddBtn} onPress={() => addWater(350)}>
             <LinearGradient
               colors={['#3B82F6', '#2563EB']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.waterAddBtnGradient}
             >
-              <Plus size={20} color="#FFF" />
-              <Text style={styles.waterAddBtnText}>250ml</Text>
+              <Droplets size={18} color="#FFF" />
+              <Text style={styles.waterAddBtnText}>350ml</Text>
             </LinearGradient>
           </TouchableOpacity>
           
@@ -271,7 +362,7 @@ const WaterTracker = ({ weight, isDark, t, onUpdate }: any) => {
               end={{ x: 1, y: 0 }}
               style={styles.waterAddBtnGradient}
             >
-              <Plus size={20} color="#FFF" />
+              <Droplets size={20} color="#FFF" />
               <Text style={styles.waterAddBtnText}>500ml</Text>
             </LinearGradient>
           </TouchableOpacity>
