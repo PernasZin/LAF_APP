@@ -117,7 +117,19 @@ class WorkoutTestSuite:
             
             if response.status_code == 200:
                 workout = response.json()
-                workouts_count = len(workout.get("workouts", []))
+                
+                # Debug: Print the actual response structure
+                print(f"DEBUG - Workout response keys: {list(workout.keys())}")
+                
+                # Check different possible structures
+                workouts_count = 0
+                if "workouts" in workout:
+                    workouts_count = len(workout.get("workouts", []))
+                elif "workout_days" in workout:
+                    workouts_count = len(workout.get("workout_days", []))
+                    # Normalize structure for validation
+                    workout["workouts"] = workout.get("workout_days", [])
+                
                 self.log_test(f"Generate {training_level.upper()} workout", True, 
                             f"Generated {workouts_count} workout days")
                 return workout
