@@ -779,8 +779,8 @@ class WorkoutAIService:
                             sets_count = 3
                             muscles_warmed_up.add(muscle)
                         else:
-                            sets_count = base_sets
-                            series_instruction = ""
+                            sets_count = 3
+                            series_instruction = "✅ 3 séries - Foco na execução correta!"
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes and series_instruction else (f"🎯 {execution_notes}" if execution_notes else series_instruction)
                     
