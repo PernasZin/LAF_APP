@@ -58,101 +58,14 @@ const GlassCard = ({ children, style, isDark }: any) => {
   return <View style={[cardStyle, style]}>{children}</View>;
 };
 
-// Textos do questionário por idioma
-const questionnaireTexts = {
-  'pt-BR': {
-    checkInTitle: 'CHECK-IN QUINZENAL',
-    howWasWeek: 'COMO FOI SUA QUINZENA?',
-    diet: 'Dieta',
-    training: 'Treino',
-    cardio: 'Cardio',
-    sleep: 'Sono',
-    hydration: 'Hidratação',
-    energy: 'Energia/Disposição',
-    hunger: 'Fome',
-    boredFoods: 'ENJOOU DE ALGUM ALIMENTO?',
-    boredFoodsPlaceholder: 'Ex: Frango, arroz, batata doce...',
-    boredFoodsHint: 'Se enjoou de algum alimento, digite aqui para substituirmos',
-    followedDiet: 'Seguiu a dieta?',
-    followedTraining: 'Fez todos os treinos?',
-    followedCardio: 'Fez todo o cardio?',
-    yes: 'Sim',
-    mostly: 'Maioria',
-    no: 'Não',
-    observations: 'Observações (opcional)',
-    observationsPlaceholder: 'Algo que queira relatar...',
-    saveAndAdjust: 'Salvar e Ajustar Dieta',
-    dietAdjusted: 'Dieta ajustada com sucesso!',
-    dietKept: 'Dieta mantida! Continue assim!',
-    caloriesIncreased: 'Calorias aumentadas em',
-    caloriesDecreased: 'Calorias reduzidas em',
-    foodsReplaced: 'alimentos substituídos',
-  },
-  'en-US': {
-    checkInTitle: 'BI-WEEKLY CHECK-IN',
-    howWasWeek: 'HOW WAS YOUR TWO WEEKS?',
-    diet: 'Diet',
-    training: 'Training',
-    cardio: 'Cardio',
-    sleep: 'Sleep',
-    hydration: 'Hydration',
-    energy: 'Energy/Mood',
-    hunger: 'Hunger',
-    boredFoods: 'BORED OF ANY FOOD?',
-    boredFoodsPlaceholder: 'Ex: Chicken, rice, sweet potato...',
-    boredFoodsHint: 'Type here if you got bored of any food and we\'ll replace it',
-    followedDiet: 'Followed the diet?',
-    followedTraining: 'Did all workouts?',
-    followedCardio: 'Did all cardio?',
-    yes: 'Yes',
-    mostly: 'Mostly',
-    no: 'No',
-    observations: 'Notes (optional)',
-    observationsPlaceholder: 'Anything you want to report...',
-    saveAndAdjust: 'Save and Adjust Diet',
-    dietAdjusted: 'Diet adjusted successfully!',
-    dietKept: 'Diet kept! Keep it up!',
-    caloriesIncreased: 'Calories increased by',
-    caloriesDecreased: 'Calories decreased by',
-    foodsReplaced: 'foods replaced',
-  },
-  'es-ES': {
-    checkInTitle: 'CHECK-IN QUINCENAL',
-    howWasWeek: '¿CÓMO FUE TU QUINCENA?',
-    diet: 'Dieta',
-    training: 'Entreno',
-    cardio: 'Cardio',
-    sleep: 'Sueño',
-    hydration: 'Hidratación',
-    energy: 'Energía/Ánimo',
-    hunger: 'Hambre',
-    boredFoods: '¿TE ABURRISTE DE ALGÚN ALIMENTO?',
-    boredFoodsPlaceholder: 'Ej: Pollo, arroz, batata...',
-    boredFoodsHint: 'Si te aburriste de algún alimento, escríbelo para reemplazarlo',
-    followedDiet: '¿Seguiste la dieta?',
-    followedTraining: '¿Hiciste todos los entrenos?',
-    followedCardio: '¿Hiciste todo el cardio?',
-    yes: 'Sí',
-    mostly: 'Mayoría',
-    no: 'No',
-    observations: 'Observaciones (opcional)',
-    observationsPlaceholder: 'Algo que quieras reportar...',
-    saveAndAdjust: 'Guardar y Ajustar Dieta',
-    dietAdjusted: '¡Dieta ajustada con éxito!',
-    dietKept: '¡Dieta mantenida! ¡Sigue así!',
-    caloriesIncreased: 'Calorías aumentadas en',
-    caloriesDecreased: 'Calorías reducidas en',
-    foodsReplaced: 'alimentos reemplazados',
-  },
-};
-
 export default function ProgressScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
-  const language = (useSettingsStore((state) => state.language) || 'pt-BR') as SupportedLanguage;
+  const language = useSettingsStore((state) => state.language) || 'pt-BR';
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
   const { t } = useTranslation();
-  const qt = questionnaireTexts[language] || questionnaireTexts['pt-BR'];
+  // Use t.progress para todas as traduções
+  const p = t.progress;
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
