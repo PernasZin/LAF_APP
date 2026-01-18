@@ -262,8 +262,8 @@ class WorkoutTestSuite:
         
         # Test 1 & 2: Create profiles
         print("📋 STEP 1: Creating test profiles...")
-        advanced_data = self.create_test_profile("avancado", "Avancado")
-        beginner_data = self.create_test_profile("iniciante", "Iniciante")
+        advanced_data = self.create_test_user_and_profile("avancado", "Avancado")
+        beginner_data = self.create_test_user_and_profile("iniciante", "Iniciante")
         
         if not advanced_data or not beginner_data:
             print("❌ CRITICAL: Failed to create test profiles. Aborting tests.")
