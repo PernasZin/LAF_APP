@@ -2129,6 +2129,7 @@ async def finish_training_session(user_id: str, request: TrainingSessionFinish):
     - Registra o horário de término
     - Salva a duração
     - Atualiza o status do treino para concluído
+    - Salva no histórico de treinos
     """
     # Verifica se usuário existe
     user = await db.user_profiles.find_one({"_id": user_id})
@@ -2175,12 +2176,45 @@ async def finish_training_session(user_id: str, request: TrainingSessionFinish):
         upsert=True
     )
     
+    # Busca o nome do treino do plano atual
+    workout_plan = await db.workout_plans.find_one({"user_id": user_id})
+    workout_day_name = "Treino"
+    total_exercises = request.exercises_completed
+    
+    if workout_plan and workout_plan.get("workout_days"):
+        # Determina qual dia do treino é hoje baseado no ciclo
+        training_days = user.get("training_days", [])
+        today_weekday = datetime.now().weekday()
+        
+        if training_days and today_weekday in training_days:
+            day_index = training_days.index(today_weekday)
+            workout_days = workout_plan.get("workout_days", [])
+            if day_index < len(workout_days):
+                workout_day = workout_days[day_index]
+                workout_day_name = workout_day.get("name", f"Dia {day_index + 1}")
+                total_exercises = len(workout_day.get("exercises", []))
+    
+    # Salva no histórico de treinos
+    history_entry = {
+        "_id": str(uuid.uuid4()),
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "workout_day_name": workout_day_name,
+        "exercises_completed": request.exercises_completed,
+        "total_exercises": total_exercises,
+        "duration_minutes": request.duration_seconds // 60,
+        "notes": None,
+        "completed_at": now
+    }
+    
+    await db.workout_history.insert_one(history_entry)
+    
     # Formata duração
     duration_mins = request.duration_seconds // 60
     duration_secs = request.duration_seconds % 60
     duration_formatted = f"{duration_mins}:{duration_secs:02d}"
     
-    logger.info(f"Training session finished for user {user_id}: {duration_formatted}")
+    logger.info(f"Training session finished for user {user_id}: {duration_formatted} - Saved to history")
     
     return {
         "success": True,
