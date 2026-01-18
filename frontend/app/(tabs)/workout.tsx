@@ -1116,4 +1116,121 @@ const styles = StyleSheet.create({
   startTimerBtn: { borderRadius: radius.lg, overflow: 'hidden', marginTop: spacing.sm },
   startTimerBtnGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingVertical: 14 },
   startTimerBtnText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+
+  // History Button
+  historyButton: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // History Modal
+  historyModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  historyModalContent: {
+    borderTopLeftRadius: radius['2xl'],
+    borderTopRightRadius: radius['2xl'],
+    padding: spacing.lg,
+    maxHeight: '85%',
+  },
+  historyModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  historyModalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  historyModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  historyStatsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  historyStatCard: {
+    flex: 1,
+    alignItems: 'center',
+    padding: spacing.base,
+    borderRadius: radius.lg,
+    gap: 6,
+  },
+  historyStatValue: {
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  historyStatLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  historyList: {
+    flex: 1,
+  },
+  historyEmpty: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    gap: spacing.md,
+  },
+  historyEmptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: spacing.sm,
+  },
+  historyEmptySubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  historyItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.base,
+    borderBottomWidth: 1,
+    gap: spacing.md,
+  },
+  historyDateBadge: {
+    width: 50,
+    height: 50,
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyDate: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  historyTime: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  historyItemContent: {
+    flex: 1,
+    gap: 4,
+  },
+  historyItemTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  historyItemStats: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  historyItemStat: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  historyItemStatText: {
+    fontSize: 12,
+  },
 });
