@@ -734,49 +734,49 @@ class WorkoutAIService:
                             sets_count = 4  # Inclui aquecimento
                             muscles_warmed_up.add(muscle)
                         else:
-                            series_instruction = f"💪 {base_sets} séries - Chegue PERTO DA FALHA em pelo menos 1!"
-                            sets_count = base_sets
+                            series_instruction = f"💪 4 séries - Chegue PERTO DA FALHA em pelo menos 1!"
+                            sets_count = 4
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
                     
-                    # INICIANTE: Volume básico com aquecimento
+                    # INICIANTE: 4 séries (1 aquecimento + 3 válidas)
                     elif level == 'iniciante':
-                        base_sets = config["sets"]
+                        base_sets = 4  # LIMITE FIXO
                         if needs_warmup:
-                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+                            series_instruction = f"""📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
-• Séries 2-{base_sets + 1}: VÁLIDAS (foco na execução correta)"""
-                            sets_count = base_sets + 1
+• Séries 2-4: VÁLIDAS (foco na execução correta)"""
+                            sets_count = 4  # Inclui aquecimento
                             muscles_warmed_up.add(muscle)
                         else:
-                            series_instruction = f"✅ {base_sets} séries - Foco na execução correta!"
-                            sets_count = base_sets
+                            series_instruction = f"✅ 4 séries - Foco na execução correta!"
+                            sets_count = 4
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
                     
-                    # ADAPTAÇÃO (Novato): Carga leve com aquecimento
+                    # ADAPTAÇÃO (Novato): 2 séries
                     elif is_adaptation:
-                        base_sets = config["sets"]
+                        base_sets = 2
                         if needs_warmup:
-                            series_instruction = f"""⚠️ ADAPTAÇÃO ({base_sets + 1} SÉRIES):
+                            series_instruction = f"""⚠️ ADAPTAÇÃO (2 SÉRIES):
 • 1ª Série: AQUECIMENTO (carga muito leve, 15-20 reps)
-• Séries 2-{base_sets + 1}: Use carga LEVE! Foco 100% na execução"""
-                            sets_count = base_sets + 1
+• 2ª Série: Use carga LEVE! Foco 100% na execução"""
+                            sets_count = 2
                             muscles_warmed_up.add(muscle)
                         else:
-                            series_instruction = f"⚠️ ADAPTAÇÃO: {base_sets} séries - Carga LEVE, foco na execução!"
-                            sets_count = base_sets
+                            series_instruction = f"⚠️ ADAPTAÇÃO: 2 séries - Carga LEVE, foco na execução!"
+                            sets_count = 2
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
                     
-                    # NOVATO pós-adaptação
+                    # NOVATO pós-adaptação: 3 séries
                     else:
-                        base_sets = config["sets"]
+                        base_sets = 3
                         if needs_warmup:
-                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+                            series_instruction = f"""📋 ESTRUTURA (3 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
-• Séries 2-{base_sets + 1}: VÁLIDAS"""
-                            sets_count = base_sets + 1
+• Séries 2-3: VÁLIDAS"""
+                            sets_count = 3
                             muscles_warmed_up.add(muscle)
                         else:
                             sets_count = base_sets
