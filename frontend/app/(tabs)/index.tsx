@@ -15,6 +15,8 @@ import Animated, {
   useAnimatedStyle, 
   withSpring, 
   withTiming,
+  withRepeat,
+  withSequence,
   FadeInDown,
   FadeInRight,
 } from 'react-native-reanimated';
