@@ -25,7 +25,6 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { ProgressSkeleton } from '../../components';
 import { useTranslation } from '../../i18n';
-import { SupportedLanguage } from '../../i18n/translations';
 
 import { config } from '../../config';
 const BACKEND_URL = config.BACKEND_URL;
