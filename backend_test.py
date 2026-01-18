@@ -218,7 +218,7 @@ class LAFTester:
         if not workout:
             return
             
-        workouts = workout.get("workouts", [])
+        workouts = workout.get("workout_days", [])  # Changed from "workouts" to "workout_days"
         
         # Verifica frequência
         frequency_ok = len(workouts) == expected_frequency
