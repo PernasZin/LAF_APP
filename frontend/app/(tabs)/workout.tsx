@@ -18,7 +18,7 @@ import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import {
   Dumbbell, Timer, Play, Pause, RotateCcw, ChevronRight,
   X, Check, Target, Flame, Calendar, Clock, Repeat,
-  Moon, Sun, CheckCircle, Square, StopCircle
+  Moon, Sun, CheckCircle, Square, StopCircle, History, Award
 } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
