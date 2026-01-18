@@ -554,6 +554,39 @@ export default function WorkoutScreen() {
     if (restTimerRef.current) clearInterval(restTimerRef.current);
   };
 
+  // Load workout history
+  const loadHistory = async () => {
+    if (!userId) return;
+    try {
+      setLoadingHistory(true);
+      const response = await safeFetch(`${BACKEND_URL}/api/workout/history/${userId}?days=30`);
+      if (response.ok) {
+        const data = await response.json();
+        setWorkoutHistory(data.history || []);
+        setHistoryStats(data.stats || null);
+      }
+    } catch (error) {
+      console.error('Error loading workout history:', error);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const openHistory = () => {
+    setShowHistoryModal(true);
+    loadHistory();
+  };
+
+  // Format date for history
+  const formatHistoryDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const mins = date.getMinutes().toString().padStart(2, '0');
+    return { date: `${day}/${month}`, time: `${hours}:${mins}` };
+  };
+
   // Get today's workout day index
   const getTodayWorkoutIndex = () => {
     if (!workoutPlan?.workout_days?.length || !cycleStatus) return 0;
