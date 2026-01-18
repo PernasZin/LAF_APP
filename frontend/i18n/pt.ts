@@ -258,6 +258,23 @@ export const pt = {
     calves: 'Panturrilha',
     workoutDays: 'Dias de Treino',
     selectDay: 'Selecione o dia',
+    // Histórico
+    history: 'Histórico',
+    workoutHistory: 'Histórico de Treinos',
+    viewHistory: 'Ver Histórico',
+    noWorkoutsYet: 'Nenhum treino registrado',
+    startTrainingToSee: 'Complete seu primeiro treino para ver o histórico',
+    thisWeek: 'Esta Semana',
+    thisMonth: 'Este Mês',
+    allTime: 'Total',
+    workoutsCompleted: 'treinos',
+    exercisesCompleted: 'exercícios',
+    avgDuration: 'Duração média',
+    minutes: 'min',
+    frequency: 'Frequência',
+    target: 'Meta',
+    achieved: 'Realizado',
+    workoutOf: 'de',
   },
 
   // ==================== CARDIO ====================
