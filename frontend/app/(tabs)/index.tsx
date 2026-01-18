@@ -623,53 +623,108 @@ export default function HomeScreen() {
                 <>
                   {/* Dia de Treino */}
                   <View style={styles.macrosHeader}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                       <View style={{ 
-                        width: 36, height: 36, borderRadius: 12, 
+                        width: 42, height: 42, borderRadius: 14, 
                         backgroundColor: premiumColors.primary + '20',
-                        alignItems: 'center', justifyContent: 'center'
+                        alignItems: 'center', justifyContent: 'center',
+                        position: 'relative'
                       }}>
-                        <Dumbbell size={20} color={premiumColors.primary} />
+                        <Dumbbell size={22} color={premiumColors.primary} />
+                        {/* Pulse indicator */}
+                        <View style={{
+                          position: 'absolute',
+                          top: -2, right: -2,
+                          width: 12, height: 12,
+                          borderRadius: 6,
+                          backgroundColor: '#10B981',
+                          borderWidth: 2,
+                          borderColor: isDark ? '#1E293B' : '#FFF'
+                        }} />
                       </View>
-                      <Text style={[styles.cardTitle, { color: theme.text }]}>Treino de Hoje</Text>
+                      <View>
+                        <Text style={[styles.cardTitle, { color: theme.text }]}>🔥 Treino de Hoje</Text>
+                        <Text style={{ fontSize: 12, color: theme.textTertiary, marginTop: 2 }}>
+                          {todayWorkout?.exercises?.length || 0} exercícios planejados
+                        </Text>
+                      </View>
                     </View>
-                    <TouchableOpacity style={styles.seeAllBtn}>
-                      <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>Ver Treino</Text>
+                    <TouchableOpacity 
+                      style={[styles.seeAllBtn, { 
+                        backgroundColor: premiumColors.primary + '15',
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderRadius: 10
+                      }]}
+                    >
+                      <Text style={[styles.seeAllText, { color: premiumColors.primary }]}>Iniciar</Text>
                       <ChevronRight size={16} color={premiumColors.primary} />
                     </TouchableOpacity>
                   </View>
                   
                   {todayWorkout ? (
-                    <View style={{ marginTop: 12 }}>
-                      <Text style={[{ fontSize: 16, fontWeight: '700', color: theme.text, marginBottom: 8 }]}>
-                        {todayWorkout.name || 'Treino do Dia'}
-                      </Text>
+                    <View style={{ marginTop: 16 }}>
+                      <View style={{
+                        backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.08)',
+                        paddingHorizontal: 14,
+                        paddingVertical: 10,
+                        borderRadius: 12,
+                        marginBottom: 12,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 10
+                      }}>
+                        <Calendar size={16} color="#10B981" />
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#10B981' }}>
+                          {todayWorkout.name || 'Treino do Dia'}
+                        </Text>
+                      </View>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                         {todayWorkout.exercises?.slice(0, 4).map((ex: any, idx: number) => (
-                          <View key={idx} style={{
-                            backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.5)',
-                            paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8
-                          }}>
-                            <Text style={{ fontSize: 12, color: theme.textSecondary }}>
+                          <Animated.View 
+                            key={idx} 
+                            entering={FadeInRight.delay(100 * idx)}
+                            style={{
+                              backgroundColor: isDark ? 'rgba(71, 85, 105, 0.4)' : 'rgba(226, 232, 240, 0.7)',
+                              paddingHorizontal: 14, 
+                              paddingVertical: 8, 
+                              borderRadius: 10,
+                              borderLeftWidth: 3,
+                              borderLeftColor: premiumColors.primary
+                            }}
+                          >
+                            <Text style={{ fontSize: 13, color: theme.text, fontWeight: '500' }}>
                               {ex.name}
                             </Text>
-                          </View>
+                          </Animated.View>
                         ))}
                         {todayWorkout.exercises?.length > 4 && (
-                          <View style={{
-                            backgroundColor: premiumColors.primary + '20',
-                            paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8
-                          }}>
-                            <Text style={{ fontSize: 12, color: premiumColors.primary, fontWeight: '600' }}>
+                          <Animated.View 
+                            entering={FadeInRight.delay(400)}
+                            style={{
+                              backgroundColor: premiumColors.primary + '25',
+                              paddingHorizontal: 14, 
+                              paddingVertical: 8, 
+                              borderRadius: 10
+                            }}
+                          >
+                            <Text style={{ fontSize: 13, color: premiumColors.primary, fontWeight: '700' }}>
                               +{todayWorkout.exercises.length - 4} mais
                             </Text>
-                          </View>
+                          </Animated.View>
                         )}
                       </View>
                     </View>
                   ) : (
-                    <View style={{ marginTop: 12, alignItems: 'center', paddingVertical: 16 }}>
-                      <Text style={{ fontSize: 14, color: theme.textSecondary }}>
+                    <View style={{ 
+                      marginTop: 16, 
+                      alignItems: 'center', 
+                      paddingVertical: 20,
+                      backgroundColor: isDark ? 'rgba(71, 85, 105, 0.2)' : 'rgba(226, 232, 240, 0.5)',
+                      borderRadius: 12
+                    }}>
+                      <Dumbbell size={32} color={theme.textTertiary} style={{ marginBottom: 8 }} />
+                      <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center' }}>
                         Gere seu treino na aba Treino
                       </Text>
                     </View>
@@ -677,24 +732,50 @@ export default function HomeScreen() {
                 </>
               ) : (
                 <>
-                  {/* Dia de Descanso */}
+                  {/* Dia de Descanso - Melhorado */}
                   <View style={styles.macrosHeader}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                       <View style={{ 
-                        width: 36, height: 36, borderRadius: 12, 
-                        backgroundColor: '#6B728020',
+                        width: 42, height: 42, borderRadius: 14, 
+                        backgroundColor: '#6B728015',
                         alignItems: 'center', justifyContent: 'center'
                       }}>
-                        <Moon size={20} color="#6B7280" />
+                        <Moon size={22} color="#6B7280" />
                       </View>
-                      <Text style={[styles.cardTitle, { color: theme.text }]}>Dia de Descanso</Text>
+                      <View>
+                        <Text style={[styles.cardTitle, { color: theme.text }]}>😴 Dia de Descanso</Text>
+                        <Text style={{ fontSize: 12, color: theme.textTertiary, marginTop: 2 }}>
+                          Recuperação muscular
+                        </Text>
+                      </View>
                     </View>
                   </View>
                   
-                  <View style={{ marginTop: 12, alignItems: 'center', paddingVertical: 16 }}>
-                    <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center' }}>
-                      Hoje é dia de recuperação. 💤{'\n'}
-                      Descanse bem para o próximo treino!
+                  <View style={{ 
+                    marginTop: 16, 
+                    alignItems: 'center', 
+                    paddingVertical: 24,
+                    paddingHorizontal: 16,
+                    backgroundColor: isDark ? 'rgba(71, 85, 105, 0.15)' : 'rgba(226, 232, 240, 0.4)',
+                    borderRadius: 16
+                  }}>
+                    <View style={{ flexDirection: 'row', gap: 20, marginBottom: 16 }}>
+                      <View style={{ alignItems: 'center' }}>
+                        <Text style={{ fontSize: 28 }}>🛌</Text>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary, marginTop: 4 }}>Durma bem</Text>
+                      </View>
+                      <View style={{ alignItems: 'center' }}>
+                        <Text style={{ fontSize: 28 }}>💧</Text>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary, marginTop: 4 }}>Hidrate-se</Text>
+                      </View>
+                      <View style={{ alignItems: 'center' }}>
+                        <Text style={{ fontSize: 28 }}>🥗</Text>
+                        <Text style={{ fontSize: 11, color: theme.textTertiary, marginTop: 4 }}>Coma bem</Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center', lineHeight: 20 }}>
+                      Descanse para o próximo treino!{'\n'}
+                      Seus músculos agradecem. 💪
                     </Text>
                   </View>
                 </>
