@@ -267,6 +267,18 @@ backend:
         agent: "testing"
         comment: "🎯 TESTE RIGOROSO ESPECÍFICO CONCLUÍDO - Validação detalhada das REGRAS RÍGIDAS por tipo de refeição conforme especificação do usuário. RESULTADO: ✅ 100% APROVADO. Validações críticas: (1) REGRA DE FALHA: Confirmado que arroz, frango, peixe e azeite NÃO aparecem em lanches ou café, (2) CAFÉ DA MANHÃ: Contém APENAS ovos (200g) + aveia (50g) + banana (100g) - SEM alimentos proibidos, (3) LANCHES: Contêm frutas + oleaginosas (banana+castanhas, maçã+iogurte) - SEM carnes/azeite/ovos, (4) ALMOÇO/JANTAR: EXATAMENTE 1 proteína (frango 90g, patinho 190g) + 1 carboidrato (arroz branco 230g, arroz integral 250g) + azeite permitido, (5) CEIA: Ovos (200g) + banana (80g) - SEM carbs complexos/azeite. Estrutura: 6 refeições corretas, totais 2705kcal (P:174g, C:276g, G:99g). Sistema V14 respeitando todas as regras críticas perfeitamente."
 
+  - task: "Workout Generation Bug Fixes - Sets Limit & Advanced Level"
+    implemented: true
+    working: true
+    file: "/app/backend/workout_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "🎉 WORKOUT GENERATION BUG FIXES VALIDATION COMPLETE - Executei validação completa dos 3 bug fixes críticos solicitados pelo usuário. RESULTADO: 100% SUCESSO (11/11 testes passaram). BUGS CORRIGIDOS VALIDADOS: (1) LIMITE DE 4 SÉRIES: ✅ Todos os exercícios têm sets ≤ 4 (Avançado: 20 exercícios, Iniciante: 17 exercícios), (2) NÍVEL AVANÇADO DIFERENCIADO: ✅ Avançado tem reps='10-12' (diferente do intermediário '8-12'), Iniciante também tem reps='10-12', (3) PLANOS DIFERENTES: ✅ Avançado vs Iniciante são diferentes (20 vs 17 exercícios, overlap 76.2%). CENÁRIOS TESTADOS: Criação de perfis avançado e iniciante, geração de treinos para ambos níveis, validação rigorosa de sets e reps. CRITÉRIOS DE SUCESSO ATENDIDOS: 100% dos exercícios com sets ≤ 4, reps corretos para cada nível, planos diferenciados entre níveis. Sistema funcionando PERFEITAMENTE conforme especificação da revisão."
+
   - task: "Weight Registration with 14-Day Blocking"
     implemented: true
     working: true
