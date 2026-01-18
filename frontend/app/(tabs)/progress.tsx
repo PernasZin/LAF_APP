@@ -258,7 +258,7 @@ export default function ProgressScreen() {
           </View>
           {currentWeight > 0 && (
             <Text style={[styles.lastWeightHint, { color: theme.textTertiary }]}>
-              Último peso: {currentWeight.toFixed(1)}kg
+              {p.lastWeight}: {currentWeight.toFixed(1)}kg
             </Text>
           )}
           <TouchableOpacity
