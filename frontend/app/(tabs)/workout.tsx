@@ -305,6 +305,12 @@ export default function WorkoutScreen() {
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const [showExerciseModal, setShowExerciseModal] = useState(false);
 
+  // History modal
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [workoutHistory, setWorkoutHistory] = useState<any[]>([]);
+  const [historyStats, setHistoryStats] = useState<any>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   // ==================== EFFECTS ====================
 
   useFocusEffect(
