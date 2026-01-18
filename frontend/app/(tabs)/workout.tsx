@@ -872,6 +872,120 @@ export default function WorkoutScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* History Modal */}
+      <Modal
+        visible={showHistoryModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowHistoryModal(false)}
+      >
+        <View style={styles.historyModalOverlay}>
+          <View style={[styles.historyModalContent, { backgroundColor: theme.backgroundCardSolid }]}>
+            {/* Header */}
+            <View style={styles.historyModalHeader}>
+              <View style={styles.historyModalTitleRow}>
+                <History size={24} color={premiumColors.primary} />
+                <Text style={[styles.historyModalTitle, { color: theme.text }]}>
+                  {t.workout.workoutHistory}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setShowHistoryModal(false)}>
+                <X size={24} color={theme.textTertiary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Stats Cards */}
+            {historyStats && (
+              <View style={styles.historyStatsRow}>
+                <View style={[styles.historyStatCard, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.5)' }]}>
+                  <Dumbbell size={20} color={premiumColors.primary} />
+                  <Text style={[styles.historyStatValue, { color: theme.text }]}>
+                    {historyStats.this_week_count}
+                  </Text>
+                  <Text style={[styles.historyStatLabel, { color: theme.textTertiary }]}>
+                    {t.workout.thisWeek}
+                  </Text>
+                </View>
+                <View style={[styles.historyStatCard, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.5)' }]}>
+                  <Award size={20} color="#F59E0B" />
+                  <Text style={[styles.historyStatValue, { color: theme.text }]}>
+                    {historyStats.total_workouts}
+                  </Text>
+                  <Text style={[styles.historyStatLabel, { color: theme.textTertiary }]}>
+                    {t.workout.allTime}
+                  </Text>
+                </View>
+                <View style={[styles.historyStatCard, { backgroundColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.5)' }]}>
+                  <Target size={20} color="#10B981" />
+                  <Text style={[styles.historyStatValue, { color: theme.text }]}>
+                    {historyStats.this_week_count}/{historyStats.target_frequency}
+                  </Text>
+                  <Text style={[styles.historyStatLabel, { color: theme.textTertiary }]}>
+                    {t.workout.frequency}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* History List */}
+            <ScrollView style={styles.historyList} showsVerticalScrollIndicator={false}>
+              {loadingHistory ? (
+                <ActivityIndicator size="large" color={premiumColors.primary} style={{ marginTop: 40 }} />
+              ) : workoutHistory.length === 0 ? (
+                <View style={styles.historyEmpty}>
+                  <Dumbbell size={48} color={theme.textTertiary} />
+                  <Text style={[styles.historyEmptyTitle, { color: theme.text }]}>
+                    {t.workout.noWorkoutsYet}
+                  </Text>
+                  <Text style={[styles.historyEmptySubtitle, { color: theme.textTertiary }]}>
+                    {t.workout.startTrainingToSee}
+                  </Text>
+                </View>
+              ) : (
+                workoutHistory.map((item, index) => {
+                  const { date, time } = formatHistoryDate(item.completed_at);
+                  return (
+                    <Animated.View 
+                      key={item.id || index}
+                      entering={FadeInDown.delay(index * 50)}
+                    >
+                      <View style={[styles.historyItem, { borderBottomColor: theme.border }]}>
+                        <View style={[styles.historyDateBadge, { backgroundColor: premiumColors.primary + '15' }]}>
+                          <Text style={[styles.historyDate, { color: premiumColors.primary }]}>{date}</Text>
+                          <Text style={[styles.historyTime, { color: premiumColors.primary }]}>{time}</Text>
+                        </View>
+                        <View style={styles.historyItemContent}>
+                          <Text style={[styles.historyItemTitle, { color: theme.text }]} numberOfLines={1}>
+                            {translateWorkoutDayName(item.workout_day_name, language)}
+                          </Text>
+                          <View style={styles.historyItemStats}>
+                            <View style={styles.historyItemStat}>
+                              <CheckCircle size={12} color="#10B981" />
+                              <Text style={[styles.historyItemStatText, { color: theme.textSecondary }]}>
+                                {item.exercises_completed}/{item.total_exercises} {t.workout.exercises}
+                              </Text>
+                            </View>
+                            {item.duration_minutes && (
+                              <View style={styles.historyItemStat}>
+                                <Clock size={12} color={theme.textTertiary} />
+                                <Text style={[styles.historyItemStatText, { color: theme.textSecondary }]}>
+                                  {item.duration_minutes} {t.workout.minutes}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                        <CheckCircle size={20} color="#10B981" />
+                      </View>
+                    </Animated.View>
+                  );
+                })
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
