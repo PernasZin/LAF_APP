@@ -709,29 +709,29 @@ class WorkoutAIService:
                         notes = f"{series_instruction}\n\n🎯 EXECUÇÃO: {execution_notes}" if execution_notes else series_instruction
                         rest_str = "2min"
                     
-                    # AVANÇADO: Alto volume com aquecimento
+                    # AVANÇADO: 4 séries (1 aquecimento + 3 válidas)
                     elif level == 'avancado':
-                        base_sets = config["sets"]
+                        base_sets = 4  # LIMITE FIXO
                         if needs_warmup:
-                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+                            series_instruction = f"""📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
-• Séries 2-{base_sets + 1}: VÁLIDAS (ATÉ A FALHA nas últimas 2)"""
-                            sets_count = base_sets + 1
+• Séries 2-4: VÁLIDAS (ATÉ A FALHA nas últimas 2)"""
+                            sets_count = 4  # Inclui aquecimento
                             muscles_warmed_up.add(muscle)
                         else:
-                            series_instruction = f"🔥 {base_sets} séries - Treine ATÉ A FALHA nas últimas 2!"
-                            sets_count = base_sets
+                            series_instruction = f"🔥 4 séries - Treine ATÉ A FALHA nas últimas 2!"
+                            sets_count = 4
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
                     
-                    # INTERMEDIÁRIO: Volume médio com aquecimento
+                    # INTERMEDIÁRIO: 4 séries (1 aquecimento + 3 válidas)
                     elif level == 'intermediario':
-                        base_sets = config["sets"]
+                        base_sets = 4  # LIMITE FIXO
                         if needs_warmup:
-                            series_instruction = f"""📋 ESTRUTURA ({base_sets + 1} SÉRIES):
+                            series_instruction = f"""📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
-• Séries 2-{base_sets + 1}: VÁLIDAS (chegue PERTO DA FALHA em pelo menos 1)"""
-                            sets_count = base_sets + 1
+• Séries 2-4: VÁLIDAS (chegue PERTO DA FALHA em pelo menos 1)"""
+                            sets_count = 4  # Inclui aquecimento
                             muscles_warmed_up.add(muscle)
                         else:
                             series_instruction = f"💪 {base_sets} séries - Chegue PERTO DA FALHA em pelo menos 1!"
