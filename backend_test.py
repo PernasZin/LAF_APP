@@ -387,7 +387,7 @@ class CheckInTester:
             # Create new user for each scenario to avoid 14-day blocking
             test_profile = profile_data.copy()
             test_profile["id"] = f"maintenance_test_{scenario_name.replace(' ', '_')}_{int(time.time())}"
-            test_profile["weight_kg"] = initial_weight
+            test_profile["weight"] = initial_weight
             
             test_user_id = self.create_user_profile(test_profile)
             if not test_user_id:
