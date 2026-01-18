@@ -158,15 +158,15 @@ export default function ProgressScreen() {
         await loadProgress();
         
         // Mostrar resultado do ajuste
-        let message = result.diet_kept ? qt.dietKept : qt.dietAdjusted;
+        let message = result.diet_kept ? p.dietKept : p.dietAdjusted;
         if (result.calories_change) {
           const changeText = result.calories_change > 0 
-            ? `${qt.caloriesIncreased} ${result.calories_change}kcal` 
-            : `${qt.caloriesDecreased} ${Math.abs(result.calories_change)}kcal`;
+            ? `${p.caloriesIncreased} ${result.calories_change}kcal` 
+            : `${p.caloriesDecreased} ${Math.abs(result.calories_change)}kcal`;
           message += `\n${changeText}`;
         }
         if (result.foods_replaced > 0) {
-          message += `\n${result.foods_replaced} ${qt.foodsReplaced}`;
+          message += `\n${result.foods_replaced} ${p.foodsReplaced}`;
         }
         
         Alert.alert(t.common.success, message);
@@ -242,7 +242,7 @@ export default function ProgressScreen() {
       return (
         <>
           <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
-            {qt.checkInTitle} - 1/3
+            {p.checkInTitle} - 1/3
           </Text>
           <View style={styles.weightInputContainer}>
             <TextInput
@@ -284,56 +284,56 @@ export default function ProgressScreen() {
       return (
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
-            {qt.checkInTitle} - 2/3
+            {p.checkInTitle} - 2/3
           </Text>
           <Text style={[styles.questionnaireTitle, { color: theme.text }]}>
-            {qt.howWasWeek}
+            {p.howWasWeek}
           </Text>
 
           <QuestionnaireSlider
-            label={qt.diet}
+            label={p.diet}
             icon={Utensils}
             value={questionnaire.diet}
             onChange={(v: number) => setQuestionnaire({...questionnaire, diet: v})}
             color="#10B981"
           />
           <QuestionnaireSlider
-            label={qt.training}
+            label={p.training}
             icon={Dumbbell}
             value={questionnaire.training}
             onChange={(v: number) => setQuestionnaire({...questionnaire, training: v})}
             color="#3B82F6"
           />
           <QuestionnaireSlider
-            label={qt.cardio}
+            label={p.cardio}
             icon={TrendingUp}
             value={questionnaire.cardio}
             onChange={(v: number) => setQuestionnaire({...questionnaire, cardio: v})}
             color="#F59E0B"
           />
           <QuestionnaireSlider
-            label={qt.sleep}
+            label={p.sleep}
             icon={Moon}
             value={questionnaire.sleep}
             onChange={(v: number) => setQuestionnaire({...questionnaire, sleep: v})}
             color="#8B5CF6"
           />
           <QuestionnaireSlider
-            label={qt.hydration}
+            label={p.hydration}
             icon={Droplets}
             value={questionnaire.hydration}
             onChange={(v: number) => setQuestionnaire({...questionnaire, hydration: v})}
             color="#06B6D4"
           />
           <QuestionnaireSlider
-            label={qt.energy}
+            label={p.energy}
             icon={Smile}
             value={questionnaire.energy}
             onChange={(v: number) => setQuestionnaire({...questionnaire, energy: v})}
             color="#EC4899"
           />
           <QuestionnaireSlider
-            label={qt.hunger}
+            label={p.hunger}
             icon={Frown}
             value={questionnaire.hunger}
             onChange={(v: number) => setQuestionnaire({...questionnaire, hunger: v})}
@@ -342,29 +342,29 @@ export default function ProgressScreen() {
 
           {/* Followed questions */}
           <View style={styles.followedSection}>
-            <Text style={[styles.followedLabel, { color: theme.text }]}>{qt.followedDiet}</Text>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>{p.followedDiet}</Text>
             <View style={styles.followedOptions}>
-              <FollowedOption label={qt.yes} value="yes" selected={questionnaire.followedDiet === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
-              <FollowedOption label={qt.mostly} value="mostly" selected={questionnaire.followedDiet === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
-              <FollowedOption label={qt.no} value="no" selected={questionnaire.followedDiet === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
+              <FollowedOption label={p.yes} value="yes" selected={questionnaire.followedDiet === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
+              <FollowedOption label={p.mostly} value="mostly" selected={questionnaire.followedDiet === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
+              <FollowedOption label={p.no} value="no" selected={questionnaire.followedDiet === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
             </View>
           </View>
 
           <View style={styles.followedSection}>
-            <Text style={[styles.followedLabel, { color: theme.text }]}>{qt.followedTraining}</Text>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>{p.followedTraining}</Text>
             <View style={styles.followedOptions}>
-              <FollowedOption label={qt.yes} value="yes" selected={questionnaire.followedTraining === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
-              <FollowedOption label={qt.mostly} value="mostly" selected={questionnaire.followedTraining === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
-              <FollowedOption label={qt.no} value="no" selected={questionnaire.followedTraining === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
+              <FollowedOption label={p.yes} value="yes" selected={questionnaire.followedTraining === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
+              <FollowedOption label={p.mostly} value="mostly" selected={questionnaire.followedTraining === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
+              <FollowedOption label={p.no} value="no" selected={questionnaire.followedTraining === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
             </View>
           </View>
 
           <View style={styles.followedSection}>
-            <Text style={[styles.followedLabel, { color: theme.text }]}>{qt.followedCardio}</Text>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>{p.followedCardio}</Text>
             <View style={styles.followedOptions}>
-              <FollowedOption label={qt.yes} value="yes" selected={questionnaire.followedCardio === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
-              <FollowedOption label={qt.mostly} value="mostly" selected={questionnaire.followedCardio === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
-              <FollowedOption label={qt.no} value="no" selected={questionnaire.followedCardio === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
+              <FollowedOption label={p.yes} value="yes" selected={questionnaire.followedCardio === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
+              <FollowedOption label={p.mostly} value="mostly" selected={questionnaire.followedCardio === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
+              <FollowedOption label={p.no} value="no" selected={questionnaire.followedCardio === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
             </View>
           </View>
 
@@ -387,21 +387,21 @@ export default function ProgressScreen() {
       return (
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
-            {qt.checkInTitle} - 3/3
+            {p.checkInTitle} - 3/3
           </Text>
 
           {/* Bored Foods */}
           <View style={styles.inputSection}>
             <View style={styles.inputLabelRow}>
               <AlertCircle size={18} color="#F59E0B" />
-              <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{qt.boredFoods}</Text>
+              <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{p.boredFoods}</Text>
             </View>
-            <Text style={[styles.inputHint, { color: theme.textTertiary }]}>{qt.boredFoodsHint}</Text>
+            <Text style={[styles.inputHint, { color: theme.textTertiary }]}>{p.boredFoodsHint}</Text>
             <TextInput
               style={[styles.textArea, { color: theme.text, borderColor: theme.border, backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(241, 245, 249, 0.8)' }]}
               value={questionnaire.boredFoods}
               onChangeText={(v) => setQuestionnaire({...questionnaire, boredFoods: v})}
-              placeholder={qt.boredFoodsPlaceholder}
+              placeholder={p.boredFoodsPlaceholder}
               placeholderTextColor={theme.textTertiary}
               multiline
               numberOfLines={2}
@@ -410,12 +410,12 @@ export default function ProgressScreen() {
 
           {/* Observations */}
           <View style={styles.inputSection}>
-            <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{qt.observations}</Text>
+            <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{p.observations}</Text>
             <TextInput
               style={[styles.textArea, { color: theme.text, borderColor: theme.border, backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(241, 245, 249, 0.8)' }]}
               value={questionnaire.observations}
               onChangeText={(v) => setQuestionnaire({...questionnaire, observations: v})}
-              placeholder={qt.observationsPlaceholder}
+              placeholder={p.observationsPlaceholder}
               placeholderTextColor={theme.textTertiary}
               multiline
               numberOfLines={3}
@@ -435,7 +435,7 @@ export default function ProgressScreen() {
             >
               <Check size={20} color="#FFF" />
               <Text style={styles.saveButtonText}>
-                {saving ? t.common.saving : qt.saveAndAdjust}
+                {saving ? t.common.saving : p.saveAndAdjust}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
