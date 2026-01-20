@@ -466,10 +466,18 @@ FOOD_NORMALIZATION = {
     
     # CARBOIDRATOS
     "white_rice": "arroz_branco", "brown_rice": "arroz_integral", "rice": "arroz_branco",
+    "arroz": "arroz_branco", "arroz branco": "arroz_branco", "Arroz": "arroz_branco",
+    "arroz integral": "arroz_integral", "Arroz Integral": "arroz_integral",
     "sweet_potato": "batata_doce", "potato": "batata", "oats": "aveia",
+    "batata doce": "batata_doce", "Batata Doce": "batata_doce", "batata": "batata_doce",
+    "aveia": "aveia", "Aveia": "aveia",
     "pasta": "macarrao", "bread": "pao", "whole_bread": "pao_integral",
+    "macarrao": "macarrao", "macarrão": "macarrao", "Macarrão": "macarrao",
+    "pao": "pao_integral", "pão": "pao_integral", "Pão": "pao_integral",
+    "pao integral": "pao_integral", "pão integral": "pao_integral",
     "quinoa": "quinoa", "couscous": "cuscuz", "tapioca": "tapioca",
     "corn": "milho", "beans": "feijao", "lentils": "lentilha", "chickpeas": "grao_de_bico",
+    "feijao": "feijao", "feijão": "feijao", "Feijão": "feijao",
     
     # GORDURAS
     "olive_oil": "azeite", "peanut_butter": "pasta_amendoim",
