@@ -456,7 +456,7 @@ def get_complementary_carbs_for_meal(meal_type: str, available_carbs: Set[str]) 
 # ==================== NORMALIZAÇÃO ====================
 
 FOOD_NORMALIZATION = {
-    # PROTEÍNAS
+    # PROTEÍNAS - Inglês
     "chicken_breast": "frango", "chicken": "frango", "chicken_thigh": "coxa_frango",
     "lean_beef": "patinho", "ground_beef": "carne_moida", "beef": "patinho",
     "pork": "suino", "eggs": "ovos", "egg_whites": "claras",
@@ -464,7 +464,19 @@ FOOD_NORMALIZATION = {
     "shrimp": "camarao", "sardine": "sardinha", "turkey": "peru", "fish": "tilapia",
     "greek_yogurt": "cottage", "natural_yogurt": "cottage", "tofu": "tofu",
     
-    # CARBOIDRATOS
+    # PROTEÍNAS - Português
+    "frango": "frango", "Frango": "frango", "peito de frango": "frango",
+    "carne": "patinho", "Carne": "patinho", "carne moida": "carne_moida", "carne moída": "carne_moida",
+    "ovo": "ovos", "ovos": "ovos", "Ovos": "ovos", "Ovo": "ovos",
+    "peixe": "tilapia", "Peixe": "tilapia", "tilápia": "tilapia",
+    "atum": "atum", "Atum": "atum",
+    "salmão": "salmao", "salmao": "salmao", "Salmão": "salmao",
+    "camarão": "camarao", "camarao": "camarao",
+    "whey": "whey_protein", "Whey": "whey_protein", "whey protein": "whey_protein",
+    "iogurte": "iogurte_zero", "Iogurte": "iogurte_zero", "iogurte zero": "iogurte_zero",
+    "cottage": "cottage", "Cottage": "cottage", "queijo cottage": "cottage",
+    
+    # CARBOIDRATOS - Inglês
     "white_rice": "arroz_branco", "brown_rice": "arroz_integral", "rice": "arroz_branco",
     "arroz": "arroz_branco", "arroz branco": "arroz_branco", "Arroz": "arroz_branco",
     "arroz integral": "arroz_integral", "Arroz Integral": "arroz_integral",
