@@ -498,12 +498,27 @@ FOOD_NORMALIZATION = {
     "walnuts": "nozes", "chia": "chia", "flaxseed": "linhaca",
     "cheese": "queijo", "cream_cheese": "cream_cheese",
     
-    # FRUTAS
+    # FRUTAS - Inglês
     "banana": "banana", "apple": "maca", "orange": "laranja",
     "strawberry": "morango", "papaya": "mamao", "mango": "manga",
     "watermelon": "melancia", "avocado": "abacate", "grape": "uva",
     "pineapple": "abacaxi", "melon": "melao", "kiwi": "kiwi",
     "pear": "pera", "peach": "pessego", "blueberry": "mirtilo", "açai": "acai",
+    
+    # FRUTAS - Português
+    "Banana": "banana", "maçã": "maca", "Maçã": "maca", "maca": "maca",
+    "morango": "morango", "Morango": "morango",
+    "mamão": "mamao", "Mamão": "mamao", "mamao": "mamao",
+    "abacate": "abacate", "Abacate": "abacate",
+    "uva": "uva", "Uva": "uva",
+    "abacaxi": "abacaxi", "Abacaxi": "abacaxi",
+    "laranja": "laranja", "Laranja": "laranja",
+    
+    # GORDURAS - Português
+    "azeite": "azeite", "Azeite": "azeite", "azeite de oliva": "azeite",
+    "castanha": "castanhas", "castanhas": "castanhas", "Castanhas": "castanhas",
+    "amendoim": "amendoim", "Amendoim": "amendoim",
+    "pasta de amendoim": "pasta_amendoim", "Pasta de Amendoim": "pasta_amendoim",
     
     # VEGETAIS E LEGUMES
     "broccoli": "brocolis", "spinach": "espinafre", "kale": "couve",
