@@ -672,7 +672,30 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
 
 def normalize_food(pref: str) -> str:
     """Normaliza nome do alimento para chave do banco"""
-    return FOOD_NORMALIZATION.get(pref, pref)
+    # Tenta encontrar exatamente como está
+    if pref in FOOD_NORMALIZATION:
+        return FOOD_NORMALIZATION[pref]
+    
+    # Tenta em lowercase
+    pref_lower = pref.lower().strip()
+    if pref_lower in FOOD_NORMALIZATION:
+        return FOOD_NORMALIZATION[pref_lower]
+    
+    # Tenta remover acentos e caracteres especiais
+    pref_clean = pref_lower.replace("á", "a").replace("é", "e").replace("í", "i").replace("ó", "o").replace("ú", "u")
+    pref_clean = pref_clean.replace("ã", "a").replace("õ", "o").replace("ç", "c")
+    
+    if pref_clean in FOOD_NORMALIZATION:
+        return FOOD_NORMALIZATION[pref_clean]
+    
+    # Verifica se já é uma chave válida no banco de alimentos
+    if pref_lower in FOODS:
+        return pref_lower
+    if pref_clean in FOODS:
+        return pref_clean
+    
+    # Retorna como está (pode ser uma chave já normalizada)
+    return pref
 
 
 def calc_food(food_key: str, grams: float, round_down: bool = False) -> Dict:
