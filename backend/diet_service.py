@@ -28,6 +28,37 @@ import uuid
 import random
 
 
+# ==================== NORMALIZAÇÃO DE OBJETIVO ====================
+
+def normalize_goal(goal: str) -> str:
+    """
+    Normaliza o objetivo para valores consistentes.
+    
+    Aceita:
+    - "ganho_muscular", "bulking", "hipertrofia" → "bulking"
+    - "cutting", "definicao", "emagrecimento" → "cutting"
+    - "manutencao", "manutenção", "maintenance" → "manutencao"
+    """
+    if not goal:
+        return "manutencao"
+    
+    goal = goal.lower().strip()
+    
+    # Bulking aliases
+    if goal in ["ganho_muscular", "bulking", "hipertrofia", "ganho", "massa"]:
+        return "bulking"
+    
+    # Cutting aliases
+    if goal in ["cutting", "definicao", "definição", "emagrecimento", "emagrecer"]:
+        return "cutting"
+    
+    # Manutenção aliases
+    if goal in ["manutencao", "manutenção", "maintenance", "manter"]:
+        return "manutencao"
+    
+    return "manutencao"  # Default
+
+
 # ==================== MODELS ====================
 
 class Meal(BaseModel):
