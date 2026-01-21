@@ -2988,8 +2988,10 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
         if safe_protein:
             validated_meals[target_meal]["foods"].append(calc_food(safe_protein, 100))
         else:
-            # Se nenhuma proteína é válida, adiciona carb
-            validated_meals[target_meal]["foods"].append(calc_food("arroz_branco", 100))
+            # Se nenhuma proteína é válida, adiciona carb (respeitando restrições)
+            safe_carb = get_safe_fallback("carb_principal", restrictions, ["batata_doce", "arroz_integral", "arroz_branco"])
+            if safe_carb:
+                validated_meals[target_meal]["foods"].append(calc_food(safe_carb, 100))
         
         # Recalcula totais da refeição
         mp, mc, mf, mcal = sum_foods(validated_meals[target_meal]["foods"])
