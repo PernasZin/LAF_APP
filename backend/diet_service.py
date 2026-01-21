@@ -3140,6 +3140,63 @@ class DietAIService:
         # ✅ PASSA RESTRIÇÕES para garantir que fallbacks respeitam dietas!
         meals = validate_and_fix_diet(meals, target_p, target_c, target_f, preferred_foods, meal_count, dietary_restrictions)
         
+        # 🔒 GARANTIA DE PROTEÍNA - Garante que refeições principais tenham proteína
+        def ensure_protein_in_meals(meals_list, user_proteins, target_protein, weight):
+            """
+            Garante que há proteína suficiente nas refeições principais.
+            Se uma refeição principal (almoço/jantar) não tem proteína, adiciona.
+            """
+            # Identifica refeições principais (índices 2 e 4 para 6 refeições)
+            main_indices = [2, 4] if len(meals_list) == 6 else [1, 2]
+            
+            # Seleciona proteína do usuário (preferencia frango > ovos > tilapia)
+            user_protein = None
+            for p in ["frango", "ovos", "tilapia", "patinho"]:
+                if p in user_proteins:
+                    user_protein = p
+                    break
+            
+            if not user_protein and user_proteins:
+                user_protein = list(user_proteins)[0]
+            
+            if not user_protein:
+                return meals_list  # Sem proteína disponível
+            
+            # Para cada refeição principal
+            for idx in main_indices:
+                if idx >= len(meals_list):
+                    continue
+                
+                meal = meals_list[idx]
+                meal_protein = sum(f.get("protein", 0) for f in meal.get("foods", []))
+                
+                # Se tem menos de 20g de proteína, adiciona
+                min_protein_per_main = target_protein / 4  # ~40g para 160g alvo
+                if meal_protein < min_protein_per_main:
+                    # Calcula quanto precisa adicionar
+                    protein_needed = min_protein_per_main - meal_protein
+                    
+                    # Calcula gramas de proteína para atingir
+                    food_info = FOODS.get(user_protein, {})
+                    protein_per_100g = food_info.get("p", 25)
+                    grams_needed = (protein_needed / protein_per_100g) * 100
+                    grams_needed = round_to_10(grams_needed)
+                    grams_needed = max(150, min(300, grams_needed))  # Entre 150-300g
+                    
+                    # Adiciona proteína na refeição
+                    meals_list[idx]["foods"].append(calc_food(user_protein, grams_needed))
+                    
+                    # Recalcula totais
+                    mp, mc, mf, mcal = sum_foods(meals_list[idx]["foods"])
+                    meals_list[idx]["total_calories"] = mcal
+                    meals_list[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            return meals_list
+        
+        # Identifica proteínas do usuário
+        user_proteins = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "protein"}
+        meals = ensure_protein_in_meals(meals, user_proteins, target_p, weight)
+        
         # ✅ APLICA LIMITES GLOBAIS (cottage max 20g, aveia max 80g, feijão só com arroz)
         meals = apply_global_limits(meals, raw_preferred)
         
