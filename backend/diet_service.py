@@ -992,12 +992,18 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     # Se o usuário escolheu batata_doce, usa batata_doce em todas as refeições!
     if len(carbs) == 0:
         defaults = ["arroz_branco", "aveia", "batata_doce", "pao_integral"]
+        print(f"[AUTO-COMPLETE CARB] Nenhum carb selecionado, tentando defaults: {defaults}")
+        print(f"[AUTO-COMPLETE CARB] Restrições: {restrictions}")
         for d in defaults:
             if d not in final_foods and d in FOODS:
-                if d not in filter_by_restrictions({d}, restrictions):
+                filtered = filter_by_restrictions({d}, restrictions)
+                print(f"[AUTO-COMPLETE CARB] {d}: filtered={filtered}, add={d in filtered}")
+                if d not in filtered:
+                    print(f"[AUTO-COMPLETE CARB] Pulando {d} - bloqueado por restrição")
                     continue
                 final_foods.add(d)
                 auto_added.append(FOODS[d]["name"])
+                print(f"[AUTO-COMPLETE CARB] Adicionado: {d}")
                 break  # Apenas 1 carb de fallback
     
     # ✅ Auto-completar GORDURAS (mínimo 1) - mantém porque gordura é essencial
