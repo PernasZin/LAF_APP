@@ -490,18 +490,21 @@ export default function WorkoutScreen() {
               if (response.ok) {
                 const data = await response.json();
                 setIsTraining(false);
+                setTrainingSeconds(0);
                 setHasTrainedToday(true);
+                setWorkoutStatus('completed');
                 
-                // Limpa estado local
+                // Limpa TODOS os estados locais
                 await AsyncStorage.removeItem('training_in_progress');
                 await AsyncStorage.removeItem('training_start_time');
+                await AsyncStorage.removeItem('training_paused_seconds');
                 
                 Alert.alert(
                   '🎉 Treino Concluído!',
-                  `Parabéns! Você treinou por ${data.session.duration_formatted}.\n\nAgora sua dieta será ajustada para o dia de treino.`
+                  `Parabéns! Você treinou por ${data.session.duration_formatted}.\n\nDescanse hoje e volte amanhã para o próximo treino!`
                 );
                 
-                // Recarrega status
+                // Recarrega status para atualizar a UI
                 await loadCycleStatus(userId);
               }
             } catch (error) {
