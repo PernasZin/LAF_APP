@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
   }
   
   // Default fallback
-  return 'https://nutriworkout-4.preview.emergentagent.com';
+  return 'https://fitfood-debug.preview.emergentagent.com';
 };
 
 export const config = {

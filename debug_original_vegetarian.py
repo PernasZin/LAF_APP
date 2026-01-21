@@ -8,7 +8,7 @@ import json
 from datetime import datetime
 import time
 
-BASE_URL = "https://nutriworkout-4.preview.emergentagent.com/api"
+BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def debug_original_vegetarian():
