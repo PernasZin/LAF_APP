@@ -964,14 +964,25 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     # 🎯 NOVA LÓGICA: NÃO auto-completar PROTEÍNAS
     # Se o usuário escolheu tilápia, usa tilápia em todas as refeições!
     # Apenas auto-completa se o usuário não escolheu NENHUMA proteína
-    if len(proteins) == 0:
-        defaults = ["frango", "ovos", "patinho", "tilapia", "whey_protein"]
+    
+    # Define proteínas PRINCIPAIS (adequadas para almoço/jantar)
+    PROTEINAS_PRINCIPAIS = {"frango", "patinho", "tilapia", "salmao", "atum", "carne_moida", 
+                            "coxa_frango", "peru", "suino", "sardinha", "camarao", "tofu", 
+                            "tempeh", "seitan"}
+    
+    # Verifica se tem alguma proteína principal
+    has_main_protein = any(p in PROTEINAS_PRINCIPAIS for p in proteins)
+    
+    if len(proteins) == 0 or not has_main_protein:
+        # Se não tem proteína OU não tem proteína principal, adiciona uma
+        defaults = ["frango", "patinho", "tilapia", "tofu"]  # Proteínas principais
         for d in defaults:
             if d not in final_foods and d in FOODS:
                 if d not in filter_by_restrictions({d}, restrictions):
                     continue
                 final_foods.add(d)
                 auto_added.append(FOODS[d]["name"])
+                print(f"[AUTO-COMPLETE] Adicionando proteína principal: {FOODS[d]['name']}")
                 break  # Apenas 1 proteína de fallback
     
     # 🎯 NOVA LÓGICA: NÃO auto-completar CARBOIDRATOS
