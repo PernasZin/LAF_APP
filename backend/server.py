@@ -526,7 +526,7 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
     )
     
     # ✅ SALVA meal_count nas user_settings também
-    meal_count = profile_data.meal_count if profile_data.meal_count and profile_data.meal_count in [4, 5, 6] else 6
+    meal_count = profile_data.meal_count if profile_data.meal_count and profile_data.meal_count in [3, 4, 5, 6] else 6
     logger.info(f"Saving meal_count={meal_count} for user {profile_data.id}")
     
     await db.user_settings.update_one(
