@@ -1485,6 +1485,15 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     if original_preferred is None:
         original_preferred = preferred
     
+    # ==================== VALIDAÇÃO DO NÚMERO DE REFEIÇÕES ====================
+    # ⚠️ Mínimo 4 refeições - se receber menos, ajusta para 4
+    if meal_count < 4:
+        print(f"[DIET] meal_count={meal_count} é menor que o mínimo (4). Ajustando para 4.")
+        meal_count = 4
+    elif meal_count > 6:
+        print(f"[DIET] meal_count={meal_count} é maior que o máximo (6). Ajustando para 6.")
+        meal_count = 6
+    
     # ==================== QUANTIDADES DE FEIJÃO POR OBJETIVO ====================
     # 🫘 FEIJÃO: Usar apenas se selecionado pelo usuário, máximo 100g
     FEIJAO_POR_OBJETIVO = {
