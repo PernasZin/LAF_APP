@@ -125,9 +125,9 @@ def test_tdee_cardio_calculation():
                 "goal": "manutencao",
                 "training_level": "iniciante",
                 "weekly_training_frequency": 3,
-                "training_days": [1, 3, 5],
+                "available_time_per_session": 45,
                 "dietary_restrictions": [],
-                "preferred_foods": ["peixe", "batata_doce", "banana"],
+                "food_preferences": ["peixe", "batata_doce", "banana"],
                 "meal_count": 5
             }
         }
