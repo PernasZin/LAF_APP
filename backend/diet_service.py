@@ -1671,9 +1671,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                         grams = 30 if safe_protein == "whey_protein" else 150
                         foods.append(calc_food(safe_protein, grams))
             
-            # 🍞 PÃO (sempre presente no café)
+            # 🍞 PÃO (APENAS se não tiver restrição sem_gluten)
             # MÍNIMO: 2 fatias (50g) | PODE AUMENTAR: 4-5 fatias (100-125g) se precisar de mais carbs
-            # Isso ajuda a não sobrecarregar o arroz nas refeições principais
+            # Para SEM GLÚTEN: usar tapioca ou batata doce
             pao_grams = 50  # Base: 2 fatias
             
             # Se o objetivo é bulking ou a meta de carbs é alta, aumenta o pão
@@ -1682,13 +1682,19 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             elif target_c > 250:
                 pao_grams = 75   # 3 fatias para metas intermediárias
             
-            if carb_pao and carb_pao in FOODS:
+            # Verifica se pode usar pão (sem_gluten não pode)
+            has_gluten_restriction = "sem_gluten" in restrictions or "Sem Glúten" in restrictions
+            
+            if carb_pao and carb_pao in FOODS and not has_gluten_restriction:
                 foods.append(calc_food(carb_pao, pao_grams))
             else:
-                # 🧠 FALLBACK: carb de café seguro (respeita sem glúten)
-                safe_carb = get_safe_fallback("carb_cafe", restrictions, ["pao_integral", "tapioca", "aveia"])
+                # 🧠 FALLBACK: carb de café seguro (PRIORIZA tapioca para sem glúten)
+                safe_carb_options = ["tapioca", "batata_doce", "cuscuz"] if has_gluten_restriction else ["tapioca", "batata_doce"]
+                safe_carb = get_safe_fallback("carb_cafe", restrictions, safe_carb_options)
                 if safe_carb:
-                    foods.append(calc_food(safe_carb, pao_grams))
+                    # Ajusta gramas para equivalência calórica
+                    equiv_grams = pao_grams * 2 if safe_carb in ["batata_doce", "tapioca"] else pao_grams
+                    foods.append(calc_food(safe_carb, equiv_grams))
             
             # 🥣 AVEIA (opcional, se o usuário tiver e não for sem glúten)
             if carb_aveia and carb_aveia in FOODS and carb_aveia not in excluded_restrictions:
