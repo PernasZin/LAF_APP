@@ -354,6 +354,16 @@ CARBS_COMPLEMENTARES = {"feijao", "lentilha"}
 # Carboidratos de Lanche / Rápidos
 CARBS_LANCHE = {"pao_integral", "pao", "tapioca", "aveia"}
 
+# 🥔 BATATA DOCE - REGRAS ESPECIAIS
+# Batata doce SÓ pode aparecer no ALMOÇO e JANTAR (NUNCA café, lanches ou ceia)
+BATATA_DOCE_PERMITIDA_EM = {"almoco", "jantar", "almoco_jantar"}
+
+# 🥚 OVOS - REGRAS ESPECIAIS
+# Ovos SÓ podem aparecer no CAFÉ DA MANHÃ
+# Limite máximo: 6 ovos (300g)
+OVOS_PERMITIDO_EM = {"cafe", "cafe_da_manha"}
+OVOS_LIMITE_MAXIMO = 300  # 6 ovos × 50g = 300g
+
 # 🥑 GORDURAS
 # Gorduras Saudáveis Principais
 GORDURAS_PRINCIPAIS = {"azeite", "abacate"}
@@ -376,7 +386,7 @@ LEGUMES_PRINCIPAIS = {"brocolis", "espinafre", "couve", "cenoura", "abobrinha"}
 VERDURAS_SALADA = {"alface", "pepino", "tomate", "salada"}
 
 # Carboidrato principal para almoço/jantar - SEMPRE arroz ou macarrão
-CARBS_ALMOCO_JANTAR = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_integral"}
+CARBS_ALMOCO_JANTAR = {"arroz_branco", "arroz_integral", "macarrao", "macarrao_integral", "batata_doce"}
 
 # Proteína principal para almoço/jantar - NUNCA ovo
 PROTEINS_ALMOCO_JANTAR = {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", "salmao", "camarao", "peru", "suino"}
