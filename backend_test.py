@@ -3,7 +3,7 @@
 TESTE DE PREFERÊNCIAS ALIMENTARES - LAF Backend Testing
 Testa se os alimentos PREFERIDOS realmente aparecem na dieta gerada.
 
-Base URL: https://workoutcycler.preview.emergentagent.com/api
+Base URL: https://nutri-tracker-fix.preview.emergentagent.com/api
 """
 
 import requests
@@ -12,7 +12,7 @@ import time
 from typing import Dict, List, Any
 
 # Configuração
-BASE_URL = "https://workoutcycler.preview.emergentagent.com/api"
+BASE_URL = "https://nutri-tracker-fix.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class FoodPreferencesTester:

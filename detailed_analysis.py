@@ -9,7 +9,7 @@ import json
 from typing import Dict, List, Any
 
 # Configuração
-BASE_URL = "https://workoutcycler.preview.emergentagent.com/api"
+BASE_URL = "https://nutri-tracker-fix.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def get_diet_details(user_id: str) -> Dict:

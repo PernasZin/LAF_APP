@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import sys
 
 # Get backend URL from environment
-BACKEND_URL = "https://workoutcycler.preview.emergentagent.com/api"
+BACKEND_URL = "https://nutri-tracker-fix.preview.emergentagent.com/api"
 
 class WorkoutTrackingTester:
     def __init__(self):

@@ -15,7 +15,7 @@ index 00000000..00d8c0c4
 +from typing import Dict, List, Any
 +
 +# Configuração
-+BASE_URL = "https://workoutcycler.preview.emergentagent.com/api"
++BASE_URL = "https://nutri-tracker-fix.preview.emergentagent.com/api"
 +HEADERS = {"Content-Type": "application/json"}
 +
 +def get_diet_details(user_id: str) -> Dict:
@@ -962,7 +962,7 @@ index 84e184e4..295cc958 100644
 -----------+from datetime import datetime
 -----------+
 -----------+# URL base do backend
------------+BASE_URL = "https://workoutcycler.preview.emergentagent.com/api"
+-----------+BASE_URL = "https://nutri-tracker-fix.preview.emergentagent.com/api"
 -----------+
 -----------+def make_request(method, endpoint, data=None):
 -----------+    """Helper para fazer requisições HTTP"""
@@ -1314,7 +1314,7 @@ index 84e184e4..295cc958 100644
 --------+import sys
 --------+
 --------+# Get backend URL from environment
---------+BACKEND_URL = "https://workoutcycler.preview.emergentagent.com/api"
+--------+BACKEND_URL = "https://nutri-tracker-fix.preview.emergentagent.com/api"
 --------+
 --------+class WorkoutTrackingTester:
 --------+    def __init__(self):
@@ -1677,7 +1677,7 @@ index 84e184e4..295cc958 100644
 --------+import sys
 --------+
 --------+# Get backend URL from environment
---------+BACKEND_URL = "https://workoutcycler.preview.emergentagent.com/api"
+--------+BACKEND_URL = "https://nutri-tracker-fix.preview.emergentagent.com/api"
 --------+
 --------+class WorkoutTrackingTester:
 --------+    def __init__(self):
