@@ -1851,6 +1851,17 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if safe_carb:
                     foods.append(calc_food(safe_carb, 200))
             
+            # 🥦 VEGETAIS OBRIGATÓRIOS NO ALMOÇO - Salada ou brócolis
+            # Prioriza brócolis se o usuário escolheu, senão salada
+            vegetal_almoco = None
+            if "brocolis" in preferred:
+                vegetal_almoco = "brocolis"
+            elif "salada" in preferred:
+                vegetal_almoco = "salada"
+            else:
+                vegetal_almoco = "salada"  # Default: salada
+            foods.append(calc_food(vegetal_almoco, 100))
+            
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
             
