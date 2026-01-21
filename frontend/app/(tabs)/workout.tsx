@@ -480,16 +480,6 @@ export default function WorkoutScreen() {
     await AsyncStorage.setItem('training_paused_seconds', trainingSeconds.toString());
   };
 
-  // Resume workout from paused state
-  const resumeWorkout = async () => {
-    // Verifica se há tempo pausado salvo
-    const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
-    if (pausedSeconds) {
-      setTrainingSeconds(parseInt(pausedSeconds, 10));
-    }
-    setIsTraining(true);
-  };
-
   // Finish workout
   const finishWorkout = async () => {
     if (!userId || !BACKEND_URL) return;
