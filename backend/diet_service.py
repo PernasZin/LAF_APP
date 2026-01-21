@@ -3198,10 +3198,18 @@ class DietAIService:
             # Divide o déficit entre almoço e jantar
             carb_per_meal = carb_deficit / 2
             
-            # 🍞 COMPENSAÇÃO DE CARBOIDRATOS - PÃO INTEGRAL NO CAFÉ DA MANHÃ
-            # Se falta carbs, aumenta pão integral no café (não no almoço/jantar!)
+            # 🍞 COMPENSAÇÃO DE CARBOIDRATOS - CARB SEGURO NO CAFÉ DA MANHÃ
+            # Se falta carbs, aumenta carboidrato no café (não no almoço/jantar!)
+            # RESPEITA RESTRIÇÕES: sem_gluten não pode ter pão
             
-            pao_key = "pao_integral"  # Pão integral para o café
+            has_gluten_restriction = "sem_gluten" in dietary_restrictions or "Sem Glúten" in dietary_restrictions
+            
+            # Escolhe carb seguro para o café baseado nas restrições
+            if has_gluten_restriction:
+                pao_key = "tapioca"  # Tapioca para sem glúten
+            else:
+                pao_key = "pao_integral"  # Pão integral para quem pode
+            
             pao_carbs_per_100g = FOODS.get(pao_key, {}).get("c", 42)
             
             safe_carb = get_safe_fallback("carb_principal", dietary_restrictions, ["arroz_branco", "arroz_integral", "batata_doce"])
@@ -3210,21 +3218,21 @@ class DietAIService:
             # Encontra o índice do café da manhã
             cafe_idx = 0  # Café da manhã é sempre a primeira refeição
             
-            # Quanto podemos adicionar de pão no café (máx 200g = ~84g carbs)
-            max_pao_cafe = 200  # máximo de pão no café
+            # Quanto podemos adicionar de carb no café (máx 200g)
+            max_pao_cafe = 200  # máximo de carb no café
             max_carbs_com_pao = (pao_carbs_per_100g / 100) * max_pao_cafe
             
             if carb_deficit <= max_carbs_com_pao:
-                # Só pão integral no café é suficiente
+                # Só carb no café é suficiente
                 pao_extra = round_to_10((carb_deficit / pao_carbs_per_100g) * 100)
                 arroz_extra_por_refeicao = 0
             else:
-                # Pão no café + arroz extra no almoço/jantar
+                # Carb no café + arroz extra no almoço/jantar
                 pao_extra = max_pao_cafe
                 carbs_restantes = carb_deficit - max_carbs_com_pao
                 arroz_extra_por_refeicao = round_to_10((carbs_restantes / 2) / carb_per_100g * 100)
             
-            # Adiciona pão integral no café da manhã
+            # Adiciona carb no café da manhã
             if pao_extra > 0 and cafe_idx < len(meals):
                 pao_idx = None
                 for f_idx, food in enumerate(meals[cafe_idx]["foods"]):
