@@ -760,23 +760,54 @@ export default function WorkoutScreen() {
             </Animated.View>
           )}
 
-          {/* Rest Timer (for exercises) */}
+          {/* Rest Timer (for exercises) - com pausar/continuar */}
           {restTimerActive && (
             <Animated.View entering={FadeInUp.springify()}>
               <GlassCard isDark={isDark} style={styles.restTimerCard}>
                 <Text style={[styles.restTimerLabel, { color: theme.textSecondary }]}>
-                  Descanso
+                  {restTimerPaused ? 'Descanso (Pausado)' : 'Descanso'}
                 </Text>
-                <Text style={[styles.restTimerDisplay, { color: theme.text }]}>
+                <Text style={[styles.restTimerDisplay, { color: restTimerPaused ? '#F59E0B' : theme.text }]}>
                   {formatTime(restTimerSeconds)}
                 </Text>
-                <TouchableOpacity
-                  style={[styles.restTimerBtn, { backgroundColor: '#EF444420' }]}
-                  onPress={stopRestTimer}
-                >
-                  <StopCircle size={20} color="#EF4444" />
-                  <Text style={[styles.restTimerBtnText, { color: '#EF4444' }]}>Parar</Text>
-                </TouchableOpacity>
+                <View style={styles.restTimerButtons}>
+                  {/* Botão Pausar/Continuar */}
+                  {restTimerPaused ? (
+                    <TouchableOpacity
+                      style={[styles.restTimerBtn, { backgroundColor: '#10B98120' }]}
+                      onPress={resumeRestTimer}
+                    >
+                      <Play size={20} color="#10B981" />
+                      <Text style={[styles.restTimerBtnText, { color: '#10B981' }]}>Continuar</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.restTimerBtn, { backgroundColor: '#F59E0B20' }]}
+                      onPress={pauseRestTimer}
+                    >
+                      <Pause size={20} color="#F59E0B" />
+                      <Text style={[styles.restTimerBtnText, { color: '#F59E0B' }]}>Pausar</Text>
+                    </TouchableOpacity>
+                  )}
+                  
+                  {/* Botão Resetar */}
+                  <TouchableOpacity
+                    style={[styles.restTimerBtn, { backgroundColor: '#3B82F620' }]}
+                    onPress={resetRestTimer}
+                  >
+                    <RotateCcw size={20} color="#3B82F6" />
+                    <Text style={[styles.restTimerBtnText, { color: '#3B82F6' }]}>Resetar</Text>
+                  </TouchableOpacity>
+                  
+                  {/* Botão Parar */}
+                  <TouchableOpacity
+                    style={[styles.restTimerBtn, { backgroundColor: '#EF444420' }]}
+                    onPress={stopRestTimer}
+                  >
+                    <StopCircle size={20} color="#EF4444" />
+                    <Text style={[styles.restTimerBtnText, { color: '#EF4444' }]}>Parar</Text>
+                  </TouchableOpacity>
+                </View>
               </GlassCard>
             </Animated.View>
           )}
