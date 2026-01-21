@@ -3292,6 +3292,104 @@ class DietAIService:
         # ✅ APLICA LIMITES GLOBAIS (cottage max 20g, aveia max 80g, feijão só com arroz)
         meals = apply_global_limits(meals, raw_preferred)
         
+        # 🚫 VALIDAÇÃO DE REGRAS ALIMENTARES
+        # Remove alimentos que não deveriam estar em certas refeições
+        def enforce_food_rules(meals_list, user_carbs, user_proteins):
+            """
+            Garante que certas regras alimentares sejam respeitadas:
+            - BATATA DOCE: Apenas no almoço e jantar (índices 2 e 4)
+            - OVOS: Apenas no café da manhã (índice 0), máximo 300g (6 ovos)
+            - CARNES: Apenas no almoço e jantar
+            """
+            num_meals = len(meals_list)
+            
+            # Índices por tipo de refeição (para 6 refeições)
+            if num_meals == 6:
+                cafe_idx = 0
+                lanche_manha_idx = 1
+                almoco_idx = 2
+                lanche_tarde_idx = 3
+                jantar_idx = 4
+                ceia_idx = 5
+                indices_almoco_jantar = {2, 4}
+                indices_lanches = {1, 3}
+                indices_cafe_ceia = {0, 5}
+            else:
+                cafe_idx = 0
+                indices_almoco_jantar = {1, 2} if num_meals >= 3 else {1}
+                indices_lanches = set()
+                indices_cafe_ceia = {0, num_meals - 1}
+            
+            for idx, meal in enumerate(meals_list):
+                foods_to_remove = []
+                
+                for food_idx, food in enumerate(meal.get("foods", [])):
+                    food_key = food.get("key", "")
+                    
+                    # REGRA: Batata doce só no almoço/jantar
+                    if food_key == "batata_doce" and idx not in indices_almoco_jantar:
+                        foods_to_remove.append(food_idx)
+                        print(f"[FOOD RULES] Removendo batata_doce da refeição {idx} ({meal.get('name')})")
+                    
+                    # REGRA: Ovos só no café da manhã
+                    if food_key in {"ovos", "claras"} and idx != cafe_idx:
+                        foods_to_remove.append(food_idx)
+                        print(f"[FOOD RULES] Removendo {food_key} da refeição {idx} ({meal.get('name')})")
+                    
+                    # REGRA: Carnes só no almoço/jantar
+                    if food_key in CARNES_APENAS_ALMOCO_JANTAR and idx not in indices_almoco_jantar:
+                        foods_to_remove.append(food_idx)
+                        print(f"[FOOD RULES] Removendo {food_key} da refeição {idx} ({meal.get('name')})")
+                
+                # Remove alimentos marcados (em ordem reversa para não afetar índices)
+                for food_idx in reversed(foods_to_remove):
+                    meals_list[idx]["foods"].pop(food_idx)
+                
+                # Recalcula totais
+                if foods_to_remove:
+                    mp, mc, mf, mcal = sum_foods(meals_list[idx]["foods"])
+                    meals_list[idx]["total_calories"] = mcal
+                    meals_list[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            # Limita ovos no café a 300g (6 ovos)
+            if num_meals > 0:
+                cafe_meal = meals_list[cafe_idx]
+                ovos_total = 0
+                for food in cafe_meal.get("foods", []):
+                    if food.get("key") == "ovos":
+                        ovos_total += food.get("grams", 0)
+                
+                if ovos_total > 300:
+                    # Reduz para 300g
+                    for food in cafe_meal.get("foods", []):
+                        if food.get("key") == "ovos":
+                            excess = ovos_total - 300
+                            new_grams = max(0, food.get("grams", 0) - excess)
+                            food["grams"] = new_grams
+                            # Recalcula macros do alimento
+                            food_info = FOODS.get("ovos", {})
+                            ratio = new_grams / 100
+                            food["protein"] = round(food_info.get("p", 13) * ratio)
+                            food["carbs"] = round(food_info.get("c", 1) * ratio)
+                            food["fat"] = round(food_info.get("f", 11) * ratio)
+                            food["calories"] = round((food["protein"] * 4) + (food["carbs"] * 4) + (food["fat"] * 9))
+                            print(f"[FOOD RULES] Limitando ovos no café a 300g")
+                            break
+                    
+                    # Recalcula totais do café
+                    mp, mc, mf, mcal = sum_foods(cafe_meal.get("foods", []))
+                    meals_list[cafe_idx]["total_calories"] = mcal
+                    meals_list[cafe_idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            
+            return meals_list
+        
+        # Identifica carbs e proteínas do usuário
+        user_carbs_set = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "carb"}
+        user_proteins_set = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "protein"}
+        
+        # Aplica regras alimentares
+        meals = enforce_food_rules(meals, user_carbs_set, user_proteins_set)
+        
         # ✅ VALIDA FREQUÊNCIA DE ALIMENTOS (nenhum alimento > 2x/dia)
         # 🚫 Passa preferred_foods para substituições apenas com alimentos do usuário!
         meals = validate_food_frequency(meals, preferred_foods)
