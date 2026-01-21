@@ -3327,11 +3327,24 @@ class DietAIService:
                     is_lanche = idx in [1, 3]
                     is_almoco_jantar = idx in [2, 4]
                     is_ceia = idx == 5
+                elif num_meals == 5:
+                    # Para 5 refeições: Café, Lanche1, Almoço, Lanche2, Jantar
+                    is_cafe = idx == 0
+                    is_lanche = idx in [1, 3]
+                    is_almoco_jantar = idx in [2, 4]  # Almoço e Jantar são idx 2 e 4
+                    is_ceia = False  # Não tem ceia com 5 refeições
+                elif num_meals == 4:
+                    # Para 4 refeições: Café, Almoço, Lanche, Jantar
+                    is_cafe = idx == 0
+                    is_lanche = idx == 2
+                    is_almoco_jantar = idx in [1, 3]
+                    is_ceia = False
                 else:
+                    # Para 3 refeições: Café, Almoço, Jantar
                     is_cafe = idx == 0
                     is_lanche = False
                     is_almoco_jantar = idx in [1, 2]
-                    is_ceia = idx == num_meals - 1
+                    is_ceia = idx == num_meals - 1 if num_meals > 3 else False
                 
                 print(f"[PROTEIN GUARANTEE] {meal_name}: current={current_protein}g, is_almoco_jantar={is_almoco_jantar}")
                 
