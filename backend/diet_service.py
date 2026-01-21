@@ -1675,8 +1675,20 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         
         carb_grams = base_carb_grams
     else:
-        main_carb = "arroz_branco"
-        carb_grams = 250
+        # Fallback: verifica restrições antes de usar arroz_branco
+        default_carbs = ["arroz_branco", "batata_doce", "macarrao", "quinoa"]
+        main_carb = None
+        for dc in default_carbs:
+            if dc in FOODS and dc not in excluded_by_restrictions:
+                main_carb = dc
+                break
+        
+        if not main_carb:
+            # Low carb extremo: não usa carboidrato principal
+            main_carb = None
+            carb_grams = 0
+        else:
+            carb_grams = 250
     
     # Feijão: só se nas preferências
     feijao_nas_preferencias = "feijao" in preferred
