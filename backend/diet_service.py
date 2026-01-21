@@ -1719,7 +1719,13 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     meals = []
     
     # Estrutura base
-    if meal_count == 4:
+    if meal_count == 3:
+        meal_structure = [
+            {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe'},
+            {'name': 'Almoço', 'time': '12:30', 'type': 'almoco'},
+            {'name': 'Jantar', 'time': '20:00', 'type': 'jantar'},
+        ]
+    elif meal_count == 4:
         meal_structure = [
             {'name': 'Café da Manhã', 'time': '07:00', 'type': 'cafe'},
             {'name': 'Almoço', 'time': '12:00', 'type': 'almoco'},
