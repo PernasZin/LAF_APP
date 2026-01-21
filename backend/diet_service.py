@@ -3156,15 +3156,20 @@ class DietAIService:
             """
             Garante que há proteína suficiente em TODAS as refeições.
             
-            Distribuição alvo de proteína (para 160g total):
-            - Café: 25-30g (ovos ou proteína do usuário)
-            - Lanche Manhã: 0-10g (opcional)
-            - Almoço: 45-50g (proteína principal)
-            - Lanche Tarde: 0-10g (opcional)
-            - Jantar: 45-50g (proteína principal)
-            - Ceia: 20-25g (opcional - whey ou ovos)
+            REGRAS IMPORTANTES:
+            - OVOS: Apenas no café da manhã, MÁXIMO 6 ovos (300g)
+            - BATATA DOCE: Apenas no almoço e jantar
+            - Carnes (frango, etc): Apenas no almoço e jantar
             
-            Total: ~150-175g
+            Distribuição alvo de proteína (para 160g total):
+            - Café: 25-40g (ovos - máx 6 = ~40g proteína)
+            - Lanche Manhã: 0g (sem proteína)
+            - Almoço: 50-60g (frango/carne)
+            - Lanche Tarde: 0g (sem proteína)
+            - Jantar: 50-60g (frango/carne)
+            - Ceia: 0-10g (whey opcional, NUNCA ovos)
+            
+            Total: ~150-170g
             """
             print(f"[PROTEIN GUARANTEE] Entrando com {len(user_proteins)} proteínas, target={target_protein}g")
             
@@ -3172,108 +3177,111 @@ class DietAIService:
                 print("[PROTEIN GUARANTEE] Sem proteínas do usuário!")
                 return meals_list
             
-            # Ordena proteínas por preferência
-            protein_priority = ["frango", "ovos", "tilapia", "patinho", "tofu"]
-            user_protein_list = sorted(
-                list(user_proteins), 
-                key=lambda x: protein_priority.index(x) if x in protein_priority else 99
-            )
-            primary_protein = user_protein_list[0] if user_protein_list else None
-            secondary_protein = user_protein_list[1] if len(user_protein_list) > 1 else primary_protein
+            # Separa proteínas por tipo
+            # Proteínas para CAFÉ (leves): ovos, whey, cottage
+            proteinas_cafe = [p for p in user_proteins if p in {"ovos", "claras", "whey_protein", "cottage", "iogurte_zero"}]
+            # Proteínas para ALMOÇO/JANTAR (principais): frango, carne, peixe
+            proteinas_principais = [p for p in user_proteins if p in PROTEINS_ALMOCO_JANTAR]
             
-            print(f"[PROTEIN GUARANTEE] Primary: {primary_protein}, Secondary: {secondary_protein}")
+            # Se não tem proteína principal, usa ovos como fallback apenas para almoço/jantar
+            if not proteinas_principais:
+                proteinas_principais = proteinas_cafe.copy()
             
-            if not primary_protein:
-                return meals_list
+            print(f"[PROTEIN GUARANTEE] Café: {proteinas_cafe}, Principal: {proteinas_principais}")
             
             num_meals = len(meals_list)
             
-            # Define quantidades mínimas de proteína por refeição
-            if num_meals == 6:
-                # Café(0), Lanche(1), Almoço(2), Lanche(3), Jantar(4), Ceia(5)
-                protein_targets = {
-                    0: 25,   # Café - precisa de proteína!
-                    1: 0,    # Lanche manhã - opcional
-                    2: 45,   # Almoço - obrigatório
-                    3: 0,    # Lanche tarde - opcional
-                    4: 45,   # Jantar - obrigatório
-                    5: 20    # Ceia - bom ter proteína leve
-                }
-            else:
-                protein_targets = {i: 30 for i in range(num_meals)}
+            # Controla uso de ovos (máximo 300g = 6 ovos)
+            ovos_usados = 0
+            OVOS_MAX = 300  # 6 ovos × 50g
             
-            # Para cada refeição, garante proteína mínima
+            # Para cada refeição
             for idx, meal in enumerate(meals_list):
-                min_protein = protein_targets.get(idx, 0)
-                if min_protein == 0:
-                    continue  # Pula lanches opcionais
-                
+                meal_name = meal.get('name', f'Meal {idx}')
                 current_protein = sum(f.get("protein", 0) for f in meal.get("foods", []))
                 
-                if current_protein < min_protein:
-                    protein_needed = min_protein - current_protein
-                    
-                    # Escolhe qual proteína usar
-                    # Café e Ceia: prefere ovos (mais leve)
-                    # Almoço e Jantar: prefere frango/carne
-                    if idx in [0, 5]:  # Café ou Ceia
-                        chosen_protein = "ovos" if "ovos" in user_proteins else primary_protein
-                    else:
-                        chosen_protein = primary_protein if primary_protein != "ovos" else secondary_protein
-                    
-                    # Calcula gramas necessárias
-                    food_info = FOODS.get(chosen_protein, {})
-                    protein_per_100g = food_info.get("p", 25)
-                    grams_needed = (protein_needed / protein_per_100g) * 100
-                    grams_needed = round_to_10(grams_needed)
-                    
-                    # Limites por tipo de refeição
-                    if idx == 0:  # Café
-                        grams_needed = max(100, min(150, grams_needed))
-                    elif idx == 5:  # Ceia
-                        grams_needed = max(80, min(120, grams_needed))
-                    else:  # Almoço/Jantar
+                # Define tipo de refeição
+                if num_meals == 6:
+                    # Café(0), Lanche(1), Almoço(2), Lanche(3), Jantar(4), Ceia(5)
+                    is_cafe = idx == 0
+                    is_lanche = idx in [1, 3]
+                    is_almoco_jantar = idx in [2, 4]
+                    is_ceia = idx == 5
+                else:
+                    is_cafe = idx == 0
+                    is_lanche = False
+                    is_almoco_jantar = idx in [1, 2]
+                    is_ceia = idx == num_meals - 1
+                
+                # LANCHES: Não adiciona proteína
+                if is_lanche:
+                    continue
+                
+                # CAFÉ DA MANHÃ: Usa ovos (máx 6 = 300g)
+                if is_cafe:
+                    min_protein = 30  # ~6 ovos dão ~40g
+                    if current_protein < min_protein and "ovos" in user_proteins:
+                        protein_needed = min_protein - current_protein
+                        # Calcula gramas de ovos necessários
+                        grams_needed = (protein_needed / 13.0) * 100  # 13g proteína por 100g de ovo
+                        grams_needed = round_to_10(grams_needed)
+                        # Respeita limite de 6 ovos
+                        grams_needed = min(OVOS_MAX - ovos_usados, grams_needed)
+                        grams_needed = max(0, min(300, grams_needed))
+                        
+                        if grams_needed >= 50:
+                            print(f"[PROTEIN GUARANTEE] {meal_name}: P={current_protein}g, adding {grams_needed}g ovos")
+                            meals_list[idx]["foods"].append(calc_food("ovos", grams_needed))
+                            ovos_usados += grams_needed
+                
+                # ALMOÇO E JANTAR: Usa carne/frango (NUNCA ovos)
+                elif is_almoco_jantar:
+                    min_protein = 50
+                    if current_protein < min_protein and proteinas_principais:
+                        # Escolhe proteína principal (prioriza frango)
+                        chosen = "frango" if "frango" in proteinas_principais else proteinas_principais[0]
+                        
+                        # Calcula gramas necessários
+                        food_info = FOODS.get(chosen, {})
+                        protein_per_100g = food_info.get("p", 25)
+                        protein_needed = min_protein - current_protein
+                        grams_needed = (protein_needed / protein_per_100g) * 100
+                        grams_needed = round_to_10(grams_needed)
                         grams_needed = max(150, min(250, grams_needed))
-                    
-                    print(f"[PROTEIN GUARANTEE] {meal.get('name', f'Meal {idx}')}: P={current_protein}g, adding {grams_needed}g {chosen_protein}")
-                    
-                    # Adiciona a proteína
-                    meals_list[idx]["foods"].append(calc_food(chosen_protein, grams_needed))
-                    
-                    # Recalcula totais
-                    mp, mc, mf, mcal = sum_foods(meals_list[idx]["foods"])
-                    meals_list[idx]["total_calories"] = mcal
-                    meals_list[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+                        
+                        print(f"[PROTEIN GUARANTEE] {meal_name}: P={current_protein}g, adding {grams_needed}g {chosen}")
+                        meals_list[idx]["foods"].append(calc_food(chosen, grams_needed))
+                
+                # CEIA: Não adiciona ovos! Pode usar whey ou cottage se disponível
+                elif is_ceia:
+                    min_protein = 15
+                    if current_protein < min_protein:
+                        # Tenta whey ou cottage (NUNCA ovos na ceia)
+                        ceia_options = [p for p in user_proteins if p in {"whey_protein", "cottage", "iogurte_zero"}]
+                        if ceia_options:
+                            chosen = ceia_options[0]
+                            food_info = FOODS.get(chosen, {})
+                            protein_per_100g = food_info.get("p", 10)
+                            protein_needed = min_protein - current_protein
+                            grams_needed = (protein_needed / protein_per_100g) * 100
+                            grams_needed = round_to_10(grams_needed)
+                            grams_needed = max(100, min(200, grams_needed))
+                            
+                            print(f"[PROTEIN GUARANTEE] {meal_name}: P={current_protein}g, adding {grams_needed}g {chosen}")
+                            meals_list[idx]["foods"].append(calc_food(chosen, grams_needed))
+                        # Se não tem opção leve, não adiciona proteína na ceia
+                
+                # Recalcula totais da refeição
+                mp, mc, mf, mcal = sum_foods(meals_list[idx]["foods"])
+                meals_list[idx]["total_calories"] = mcal
+                meals_list[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             
             # Verifica total de proteína
             total_protein = sum(
                 sum(f.get("protein", 0) for f in m.get("foods", []))
                 for m in meals_list
             )
-            print(f"[PROTEIN GUARANTEE] Total após ajustes: {total_protein}g")
-            
-            # Se ainda está muito baixo, adiciona mais no almoço/jantar
-            if total_protein < target_protein * 0.85:  # Menos de 85% do alvo
-                deficit = target_protein - total_protein
-                extra_per_meal = deficit / 2
-                
-                for idx in [2, 4]:  # Almoço e Jantar
-                    if idx >= len(meals_list):
-                        continue
-                    
-                    food_info = FOODS.get(primary_protein, {})
-                    protein_per_100g = food_info.get("p", 25)
-                    extra_grams = (extra_per_meal / protein_per_100g) * 100
-                    extra_grams = round_to_10(extra_grams)
-                    extra_grams = min(100, extra_grams)  # Máximo 100g extra
-                    
-                    if extra_grams >= 50:
-                        print(f"[PROTEIN GUARANTEE] Adicionando extra {extra_grams}g {primary_protein} na refeição {idx}")
-                        meals_list[idx]["foods"].append(calc_food(primary_protein, extra_grams))
-                        
-                        mp, mc, mf, mcal = sum_foods(meals_list[idx]["foods"])
-                        meals_list[idx]["total_calories"] = mcal
-                        meals_list[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+            print(f"[PROTEIN GUARANTEE] Total após ajustes: {total_protein}g (ovos usados: {ovos_usados}g)")
             
             return meals_list
         
