@@ -3035,8 +3035,10 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
                             filtered_foods[f_idx] = calc_food(food.get("key"), new_grams)
                             break
                 elif not existing_arroz:
-                    # Adiciona arroz se não tinha
-                    filtered_foods.append(calc_food("arroz_branco", 150))
+                    # Adiciona arroz se não tinha (respeitando restrições)
+                    safe_carb = get_safe_fallback("carb_principal", restrictions, ["batata_doce", "arroz_integral", "arroz_branco"])
+                    if safe_carb:
+                        filtered_foods.append(calc_food(safe_carb, 150))
                 
                 validated_meals[meal_idx]["foods"] = filtered_foods
                 mp, mc, mf, mcal = sum_foods(filtered_foods)
