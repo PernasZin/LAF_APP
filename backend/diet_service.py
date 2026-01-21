@@ -1440,14 +1440,21 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     
     def get_user_foods_with_fallback(category: str, meal_type: str = "geral") -> List[str]:
         """
-        🧠 AUTO-COMPLETAR INTELIGENTE COM RESPEITO ÀS RESTRIÇÕES
+        🧠 PRIORIZA ALIMENTOS DO USUÁRIO - FALLBACK APENAS SE VAZIO
         
-        1. Prioriza alimentos escolhidos pelo usuário
-        2. Se não tiver da categoria, usa fallback adequado
-        3. NUNCA deixa refeição vazia
+        🎯 REGRA PRINCIPAL: Se o usuário escolheu alimentos da categoria,
+        usa ESSES alimentos em TODAS as refeições (não importa o meal_type).
+        
+        Exemplo: Se o usuário só escolheu "tilapia" como proteína,
+        tilapia será usada no café, almoço, jantar e ceia!
+        
+        Fallbacks só são usados se o usuário não escolheu NENHUM alimento
+        daquela categoria.
+        
         4. ✅ SEMPRE filtra restrições alimentares!
         """
-        # Primeiro: tenta pegar alimentos do usuário (já filtrados por restrições)
+        # Primeiro: tenta pegar TODOS os alimentos do usuário da categoria
+        # (ignora meal_type - o que importa é a preferência do usuário!)
         user_foods = []
         for p in preferred:
             if p in FOODS and p not in excluded_by_restrictions:
@@ -1459,11 +1466,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         print(f"[DEBUG]   preferred: {preferred}")
         print(f"[DEBUG]   user_foods encontrados: {user_foods}")
         
+        # 🎯 SE O USUÁRIO TEM ALIMENTOS DA CATEGORIA, USA ESSES!
+        # Não importa se é "proteína leve" ou "proteína principal"
         if user_foods:
+            print(f"[DEBUG]   ✅ Usando alimentos do usuário: {user_foods}")
             return user_foods
         
-        # Se não tem, usa fallback baseado no tipo de refeição
-        # ✅ FILTRA RESTRIÇÕES nos fallbacks também!
+        # 🔄 FALLBACK: Só usa se o usuário NÃO escolheu NADA dessa categoria
+        print(f"[DEBUG]   ⚠️ Usuário não escolheu {category}, usando fallback...")
         fallback_list = []
         if category == "protein":
             if meal_type in ["cafe", "lanche", "ceia"]:
