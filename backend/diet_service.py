@@ -3269,6 +3269,8 @@ class DietAIService:
                     is_almoco_jantar = idx in [1, 2]
                     is_ceia = idx == num_meals - 1
                 
+                print(f"[PROTEIN GUARANTEE] {meal_name}: current={current_protein}g, is_almoco_jantar={is_almoco_jantar}")
+                
                 # LANCHES: Não adiciona proteína
                 if is_lanche:
                     continue
