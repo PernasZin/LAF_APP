@@ -434,6 +434,20 @@ export default function WorkoutScreen() {
     }
 
     try {
+      // Verifica se há tempo pausado - se sim, apenas retoma
+      const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
+      if (pausedSeconds) {
+        const seconds = parseInt(pausedSeconds, 10);
+        if (!isNaN(seconds) && seconds > 0) {
+          // Retoma do tempo pausado
+          setTrainingSeconds(seconds);
+          setIsTraining(true);
+          await AsyncStorage.removeItem('training_paused_seconds'); // Limpa após retomar
+          return;
+        }
+      }
+
+      // Novo treino - chama backend
       const response = await safeFetch(
         `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' } }
@@ -448,6 +462,7 @@ export default function WorkoutScreen() {
         // Salva estado localmente também
         await AsyncStorage.setItem('training_in_progress', 'true');
         await AsyncStorage.setItem('training_start_time', data.session.started_at);
+        await AsyncStorage.removeItem('training_paused_seconds'); // Limpa tempo pausado
       } else {
         const errorData = await response.json().catch(() => ({}));
         Alert.alert('Erro', errorData.detail || 'Não foi possível iniciar o treino');
