@@ -1964,7 +1964,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # 🥦 VEGETAIS OBRIGATÓRIOS NO JANTAR - Brócolis ou salada
             # Prioriza o que o usuário escolheu
             vegetal_jantar = None
-            VEGETAIS_PERMITIDOS = ["brocolis", "salada", "espinafre", "cenoura", "abobrinha", "couve"]
+            VEGETAIS_PERMITIDOS = ["brocolis", "salada", "espinafre", "cenoura", "abobrinha", "couve", "tomate", "pepino", "alface", "rucula"]
             for v in VEGETAIS_PERMITIDOS:
                 if v in preferred and v not in excluded_restrictions:
                     vegetal_jantar = v
