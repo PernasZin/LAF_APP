@@ -1486,14 +1486,15 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         original_preferred = preferred
     
     # ==================== QUANTIDADES DE FEIJÃO POR OBJETIVO ====================
+    # 🫘 FEIJÃO: Usar apenas se selecionado pelo usuário, máximo 100g
     FEIJAO_POR_OBJETIVO = {
-        "bulking": {"min": 160, "max": 180},
-        "manutencao": {"min": 130, "max": 160},
-        "cutting": {"min": 100, "max": 130},
+        "bulking": {"min": 80, "max": 100},
+        "manutencao": {"min": 80, "max": 100},
+        "cutting": {"min": 60, "max": 100},
     }
     
     feijao_limits = FEIJAO_POR_OBJETIVO.get(goal, FEIJAO_POR_OBJETIVO["manutencao"])
-    feijao_grams = (feijao_limits["min"] + feijao_limits["max"]) // 2  # Média
+    feijao_grams = min(100, (feijao_limits["min"] + feijao_limits["max"]) // 2)  # Max 100g
     
     # ==================== SELEÇÃO DE ALIMENTOS ====================
     TIPOS_ARROZ = {"arroz_branco", "arroz_integral"}
