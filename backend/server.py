@@ -401,6 +401,7 @@ def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[s
          * BULKING: peso × 4.5
        - Ajustado para bater calorias ±5%
     """
+    goal = normalize_goal(goal)
     
     # 1. PROTEÍNA - fixa em 2.0 g/kg
     protein_g = weight * 2.0
