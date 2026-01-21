@@ -1941,8 +1941,6 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(main_protein, protein_grams))
                 print(f"[BUILD_MEAL] Almoço: adicionado {main_protein} {protein_grams}g")
             else:
-                foods.append(calc_food(main_protein, protein_grams))
-            else:
                 # 🧠 FALLBACK: proteína segura (respeita vegetariano - tofu primeiro)
                 safe_main_protein = get_safe_fallback("protein", restrictions, ["tofu", "ovos", "frango"])
                 if safe_main_protein:
