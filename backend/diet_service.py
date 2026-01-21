@@ -1936,7 +1936,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # 🍛 ALMOÇO - Refeição completa
             # ✅ Permitido: proteína principal, arroz, batata, macarrão, feijão, legumes, azeite
             # ⭐ IGUAL AO JANTAR
+            print(f"[BUILD_MEAL] Almoço: main_protein={main_protein}, excluded={main_protein in excluded_by_restrictions if main_protein else 'N/A'}")
             if main_protein and main_protein in FOODS and main_protein not in excluded_by_restrictions:
+                foods.append(calc_food(main_protein, protein_grams))
+                print(f"[BUILD_MEAL] Almoço: adicionado {main_protein} {protein_grams}g")
+            else:
                 foods.append(calc_food(main_protein, protein_grams))
             else:
                 # 🧠 FALLBACK: proteína segura (respeita vegetariano - tofu primeiro)
