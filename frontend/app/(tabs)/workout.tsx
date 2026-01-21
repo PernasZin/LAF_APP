@@ -296,9 +296,11 @@ export default function WorkoutScreen() {
   const [hasTrainedToday, setHasTrainedToday] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Rest timer state
+  // Rest timer state - com persistência para pausar/continuar
   const [restTimerActive, setRestTimerActive] = useState(false);
   const [restTimerSeconds, setRestTimerSeconds] = useState(0);
+  const [restTimerInitialSeconds, setRestTimerInitialSeconds] = useState(0); // Para resetar
+  const [restTimerPaused, setRestTimerPaused] = useState(false);
   const restTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Exercise modal
