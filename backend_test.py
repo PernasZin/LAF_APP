@@ -184,9 +184,10 @@ class DietaryRestrictionsTest:
             "goal": "bulking",
             "training_level": "intermediario",
             "weekly_training_frequency": 4,
+            "available_time_per_session": 60,
             "training_days": [1, 3, 5, 6],
             "dietary_restrictions": ["sem_gluten"],
-            "preferred_foods": ["arroz", "frango", "ovo"],
+            "food_preferences": ["arroz", "frango", "ovo"],
             "meal_count": 5
         }
         
