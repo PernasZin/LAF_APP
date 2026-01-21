@@ -2346,21 +2346,32 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     """
     ✅ Valida e corrige uma refeição seguindo as REGRAS POR TIPO.
     
+    🎯 PRIORIDADE ABSOLUTA: Usar alimentos PREFERIDOS do usuário!
+    
     GARANTIAS:
     - Refeição NUNCA vazia
     - Todos alimentos válidos
     - Respeita regras de cada tipo de refeição
     - Totais calculados corretamente
     - ✅ RESPEITA RESTRIÇÕES ALIMENTARES
+    - ✅ USA ALIMENTOS PREFERIDOS DO USUÁRIO
     """
     if restrictions is None:
         restrictions = []
+    if preferred is None:
+        preferred = set()
     
     # Calcula alimentos excluídos por restrições
     excluded_by_restrictions = set()
     for r in restrictions:
         if r in RESTRICTION_EXCLUSIONS:
             excluded_by_restrictions.update(RESTRICTION_EXCLUSIONS[r])
+    
+    # 🎯 EXTRAI ALIMENTOS PREFERIDOS POR CATEGORIA
+    user_proteins = [p for p in preferred if p in FOODS and FOODS[p]["category"] == "protein" and p not in excluded_by_restrictions]
+    user_carbs = [p for p in preferred if p in FOODS and FOODS[p]["category"] == "carb" and p not in excluded_by_restrictions]
+    user_fats = [p for p in preferred if p in FOODS and FOODS[p]["category"] == "fat" and p not in excluded_by_restrictions]
+    user_fruits = [p for p in preferred if p in FOODS and FOODS[p]["category"] == "fruit" and p not in excluded_by_restrictions]
     
     # Meal names padrão (6 refeições)
     default_meals = [
@@ -2383,9 +2394,13 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     # Obtém lista de foods
     foods = meal.get("foods", [])
     
-    # ✅ FALLBACKS SEGUROS que respeitam restrições
+    # ✅ PRIORIZA ALIMENTOS DO USUÁRIO, fallback apenas se não tem
     def get_safe_protein_main():
-        """Proteína para almoço/jantar que respeita restrições"""
+        """Proteína para almoço/jantar - PRIORIZA preferências do usuário!"""
+        # 🎯 PRIMEIRO: Usa proteína que o usuário escolheu
+        if user_proteins:
+            return user_proteins[0]
+        # Fallback apenas se usuário não escolheu proteína
         options = ["tofu", "ovos", "frango", "tilapia"]
         for opt in options:
             if opt not in excluded_by_restrictions:
