@@ -3426,8 +3426,13 @@ class DietAIService:
         user_carbs_set = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "carb"}
         user_proteins_set = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "protein"}
         
-        # Aplica regras alimentares
+        # 🚫 PASSO 2: APLICA REGRAS ALIMENTARES (remove ovos fora do café, carnes fora do almoço/jantar)
         meals = enforce_food_rules(meals, user_carbs_set, user_proteins_set)
+        
+        # ✅ PASSO 3: GARANTE PROTEÍNA SUFICIENTE (DEPOIS de enforce_food_rules!)
+        # Agora que os ovos foram removidos do almoço/jantar, adiciona tofu para vegetarianos
+        user_proteins = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "protein"}
+        meals = ensure_protein_in_meals(meals, user_proteins, target_p, weight, dietary_restrictions)
         
         # ✅ VALIDA FREQUÊNCIA DE ALIMENTOS (nenhum alimento > 2x/dia)
         # 🚫 Passa preferred_foods para substituições apenas com alimentos do usuário!
