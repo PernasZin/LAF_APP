@@ -3761,7 +3761,9 @@ class DietAIService:
             # 🍚 Adiciona nas refeições principais (almoço/jantar)
             if cal_diff_remaining > target_calories * 0.10:
                 # Determina índices das refeições principais (almoço e jantar)
-                if meal_count == 4:
+                if meal_count == 3:
+                    main_meal_indices = [1, 2]
+                elif meal_count == 4:
                     main_meal_indices = [1, 3]
                 elif meal_count == 5:
                     main_meal_indices = [2, 4]
@@ -3792,7 +3794,9 @@ class DietAIService:
                 safe_protein = get_restriction_safe_protein()
                 if safe_protein:
                     extra_protein_grams = 100
-                    if meal_count == 4:
+                    if meal_count == 3:
+                        main_meal_indices = [1, 2]
+                    elif meal_count == 4:
                         main_meal_indices = [1, 3]
                     elif meal_count == 5:
                         main_meal_indices = [2, 4]
