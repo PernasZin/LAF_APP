@@ -1,605 +1,465 @@
 #!/usr/bin/env python3
 """
-TESTE DE PREFERÊNCIAS ALIMENTARES - LAF Backend Testing
-Testa se os alimentos PREFERIDOS realmente aparecem na dieta gerada.
-
-Base URL: https://nutriworkout-4.preview.emergentagent.com/api
+Teste completo das correções de dieta - LAF Backend Testing
+Cenários específicos: Vegetariano, Normal, Vegano
 """
 
 import requests
 import json
+import uuid
+from datetime import datetime
 import time
-from typing import Dict, List, Any
 
 # Configuração
 BASE_URL = "https://nutriworkout-4.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
-class FoodPreferencesTester:
+class DietTestRunner:
     def __init__(self):
         self.results = []
         self.total_tests = 0
         self.passed_tests = 0
         
-    def log_result(self, test_name: str, success: bool, details: str):
+    def log_result(self, test_name, passed, details=""):
         """Log test result"""
         self.total_tests += 1
-        if success:
+        if passed:
             self.passed_tests += 1
-            print(f"✅ {test_name}: {details}")
+            status = "✅ PASS"
         else:
-            print(f"❌ {test_name}: {details}")
+            status = "❌ FAIL"
         
-        self.results.append({
-            "test": test_name,
-            "success": success,
-            "details": details
-        })
-    
-    def create_profile(self, profile_data: Dict) -> bool:
-        """Create user profile"""
+        result = f"{status} - {test_name}"
+        if details:
+            result += f" | {details}"
+        
+        print(result)
+        self.results.append({"test": test_name, "passed": passed, "details": details})
+        
+    def create_user_and_profile(self, name, email, dietary_restrictions, food_preferences, goal="bulking", weight=70):
+        """Cria usuário e perfil completo"""
         try:
-            response = requests.post(f"{BASE_URL}/user/profile", json=profile_data, headers=HEADERS)
-            if response.status_code == 200:
-                return True
-            else:
-                print(f"❌ Erro ao criar perfil {profile_data['id']}: {response.status_code} - {response.text}")
-                return False
+            # 1. Signup
+            signup_data = {
+                "email": email,
+                "password": "TestPass123!"
+            }
+            
+            signup_response = requests.post(f"{BASE_URL}/auth/signup", json=signup_data, headers=HEADERS)
+            if signup_response.status_code != 200:
+                return None, f"Signup failed: {signup_response.text}"
+            
+            user_data = signup_response.json()
+            user_id = user_data.get("user_id")
+            
+            # 2. Create Profile
+            profile_data = {
+                "id": user_id,
+                "name": name,
+                "age": 30,
+                "sex": "masculino",
+                "height": 175.0,
+                "weight": float(weight),
+                "goal": goal,
+                "training_level": "intermediario",
+                "weekly_training_frequency": 4,
+                "available_time_per_session": 60,
+                "dietary_restrictions": dietary_restrictions,
+                "food_preferences": food_preferences,
+                "meal_count": 6
+            }
+            
+            profile_response = requests.post(f"{BASE_URL}/user/profile", json=profile_data, headers=HEADERS)
+            if profile_response.status_code != 200:
+                return None, f"Profile creation failed: {profile_response.text}"
+            
+            return user_id, "Success"
+            
         except Exception as e:
-            print(f"❌ Exceção ao criar perfil {profile_data['id']}: {e}")
-            return False
+            return None, f"Exception: {str(e)}"
     
-    def generate_diet(self, user_id: str) -> Dict:
-        """Generate diet for user"""
+    def generate_diet(self, user_id):
+        """Gera dieta para o usuário"""
         try:
             response = requests.post(f"{BASE_URL}/diet/generate?user_id={user_id}", headers=HEADERS)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                print(f"❌ Erro ao gerar dieta para {user_id}: {response.status_code} - {response.text}")
-                return {}
+            if response.status_code != 200:
+                return None, f"Diet generation failed: {response.text}"
+            
+            return response.json(), "Success"
+            
         except Exception as e:
-            print(f"❌ Exceção ao gerar dieta para {user_id}: {e}")
-            return {}
+            return None, f"Exception: {str(e)}"
     
-    def extract_foods_from_diet(self, diet_plan: Dict) -> List[str]:
-        """Extract all food names/keys from diet plan"""
-        foods = []
-        for meal in diet_plan.get("meals", []):
+    def analyze_diet_foods(self, diet_data):
+        """Analisa os alimentos da dieta"""
+        foods_by_meal = {}
+        total_protein = 0
+        total_carbs = 0
+        total_calories = 0
+        
+        all_foods = []
+        
+        for meal in diet_data.get("meals", []):
+            meal_name = meal.get("name", "Unknown")
+            meal_foods = []
+            
             for food in meal.get("foods", []):
-                food_key = food.get("key", "").lower()
-                food_name = food.get("name", "").lower()
-                foods.append(food_key)
-                foods.append(food_name)
-        return foods
-    
-    def check_food_preferences(self, user_id: str, preferred_foods: List[str], diet_plan: Dict) -> Dict:
-        """Check if preferred foods appear in diet"""
-        diet_foods = self.extract_foods_from_diet(diet_plan)
-        diet_foods_str = " ".join(diet_foods).lower()
-        
-        results = {}
-        found_preferences = []
-        
-        # Mapeamento de preferências para possíveis variações nos alimentos
-        food_mappings = {
-            "batata_doce": ["batata_doce", "batata doce", "sweet_potato"],
-            "tilapia": ["tilapia", "tilápia"],
-            "abacate": ["abacate", "avocado"],
-            "morango": ["morango", "strawberry"],
-            "macarrao": ["macarrao", "macarrão", "pasta", "massa"],
-            "carne_moida": ["carne_moida", "carne moída", "ground_beef", "patinho"],
-            "banana": ["banana"],
-            "castanhas": ["castanhas", "castanha", "nuts", "nozes"],
-            "aveia": ["aveia", "oat", "oats"],
-            "salmao": ["salmao", "salmão", "salmon"],
-            "mamao": ["mamao", "mamão", "papaya"],
-            "amendoim": ["amendoim", "peanut", "pasta_amendoim"],
-            "arroz_integral": ["arroz_integral", "arroz integral", "brown_rice"],
-            "atum": ["atum", "tuna"],
-            "laranja": ["laranja", "orange"],
-            "azeite": ["azeite", "olive_oil", "azeite_oliva"],
-            "feijao": ["feijao", "feijão", "beans"],
-            "whey_protein": ["whey", "whey_protein", "proteina"],
-            "maca": ["maca", "maçã", "apple"],
-            "cottage": ["cottage", "queijo_cottage"],
-            "tapioca": ["tapioca"],
-            "peru": ["peru", "turkey"],
-            "melancia": ["melancia", "watermelon"],
-            "granola": ["granola"]
-        }
-        
-        for pref in preferred_foods:
-            pref_lower = pref.lower()
-            variations = food_mappings.get(pref_lower, [pref_lower])
+                food_info = {
+                    "name": food.get("name", ""),
+                    "key": food.get("key", ""),
+                    "grams": food.get("grams", 0),
+                    "protein": food.get("protein", 0),
+                    "carbs": food.get("carbs", 0),
+                    "calories": food.get("calories", 0)
+                }
+                meal_foods.append(food_info)
+                all_foods.append(food_info)
+                
+                total_protein += food_info["protein"]
+                total_carbs += food_info["carbs"] 
+                total_calories += food_info["calories"]
             
-            found = False
-            for variation in variations:
-                if variation in diet_foods_str:
-                    found = True
-                    found_preferences.append(pref)
-                    break
-            
-            results[pref] = found
+            foods_by_meal[meal_name] = meal_foods
         
         return {
-            "results": results,
-            "found_count": len(found_preferences),
-            "total_preferences": len(preferred_foods),
-            "found_preferences": found_preferences,
-            "diet_foods": diet_foods[:10]  # Primeiros 10 alimentos para debug
+            "foods_by_meal": foods_by_meal,
+            "all_foods": all_foods,
+            "total_protein": total_protein,
+            "total_carbs": total_carbs,
+            "total_calories": total_calories
         }
     
-    def test_profile_1_batata_tilapia(self):
-        """PERFIL 1 - Preferência: BATATA DOCE + TILÁPIA + ABACATE + MORANGO"""
-        print("\n🧪 TESTANDO PERFIL 1 - BATATA DOCE + TILÁPIA + ABACATE + MORANGO")
+    def check_vegetarian_restrictions(self, analysis):
+        """Verifica restrições vegetarianas"""
+        violations = []
         
-        profile_data = {
-            "id": "pref-test-1",
-            "user_id": "pref-test-1",
-            "name": "Teste Batata Tilapia",
-            "email": "pref1@test.com",
-            "age": 28,
-            "sex": "masculino",
-            "height": 180,
-            "weight": 80,
-            "target_weight": 75,
-            "goal": "cutting",
-            "training_level": "intermediario",
-            "weekly_training_frequency": 4,
-            "available_time_per_session": 60,
-            "dietary_restrictions": [],
-            "food_preferences": ["batata_doce", "tilapia", "abacate", "morango"],
-            "meal_count": 5
-        }
+        # Lista de carnes proibidas para vegetarianos
+        meat_keywords = [
+            "frango", "chicken", "patinho", "beef", "carne", "meat",
+            "tilapia", "fish", "peixe", "salmao", "salmon", "atum", "tuna",
+            "peru", "turkey", "porco", "pork", "bacon"
+        ]
         
-        # Criar perfil
-        if not self.create_profile(profile_data):
-            self.log_result("PERFIL 1 - Criação", False, "Falha ao criar perfil")
-            return
+        for food in analysis["all_foods"]:
+            food_name = food["name"].lower()
+            food_key = food["key"].lower()
+            
+            for meat in meat_keywords:
+                if meat in food_name or meat in food_key:
+                    violations.append(f"Carne encontrada: {food['name']} ({food['grams']}g)")
         
-        self.log_result("PERFIL 1 - Criação", True, "Perfil criado com sucesso")
-        
-        # Gerar dieta
-        diet_plan = self.generate_diet("pref-test-1")
-        if not diet_plan:
-            self.log_result("PERFIL 1 - Geração Dieta", False, "Falha ao gerar dieta")
-            return
-        
-        self.log_result("PERFIL 1 - Geração Dieta", True, f"Dieta gerada com {len(diet_plan.get('meals', []))} refeições")
-        
-        # Verificar preferências
-        pref_results = self.check_food_preferences("pref-test-1", ["batata_doce", "tilapia", "abacate", "morango"], diet_plan)
-        
-        # Validações específicas
-        results = pref_results["results"]
-        
-        # BATATA DOCE deve aparecer (não arroz como carboidrato principal)
-        batata_found = results.get("batata_doce", False)
-        self.log_result("PERFIL 1 - BATATA DOCE", batata_found, 
-                       "BATATA DOCE encontrada na dieta" if batata_found else "BATATA DOCE NÃO encontrada - pode ter arroz como principal")
-        
-        # TILÁPIA deve aparecer (não frango como proteína principal)
-        tilapia_found = results.get("tilapia", False)
-        self.log_result("PERFIL 1 - TILÁPIA", tilapia_found,
-                       "TILÁPIA encontrada na dieta" if tilapia_found else "TILÁPIA NÃO encontrada - pode ter frango como principal")
-        
-        # ABACATE deve aparecer
-        abacate_found = results.get("abacate", False)
-        self.log_result("PERFIL 1 - ABACATE", abacate_found,
-                       "ABACATE encontrado na dieta" if abacate_found else "ABACATE NÃO encontrado")
-        
-        # MORANGO deve aparecer
-        morango_found = results.get("morango", False)
-        self.log_result("PERFIL 1 - MORANGO", morango_found,
-                       "MORANGO encontrado na dieta" if morango_found else "MORANGO NÃO encontrado")
-        
-        # Verificar número de refeições
-        meal_count = len(diet_plan.get("meals", []))
-        expected_meals = 5
-        meals_correct = meal_count == expected_meals
-        self.log_result("PERFIL 1 - MEAL COUNT", meals_correct,
-                       f"Correto: {meal_count} refeições" if meals_correct else f"Incorreto: {meal_count} refeições (esperado {expected_meals})")
-        
-        print(f"📊 PERFIL 1 RESUMO: {pref_results['found_count']}/{pref_results['total_preferences']} preferências encontradas")
-        print(f"🍽️ Alimentos encontrados: {pref_results['found_preferences']}")
+        return violations
     
-    def test_profile_2_macarrao_carne(self):
-        """PERFIL 2 - Preferência: MACARRÃO + CARNE MOÍDA + BANANA + CASTANHAS"""
-        print("\n🧪 TESTANDO PERFIL 2 - MACARRÃO + CARNE MOÍDA + BANANA + CASTANHAS")
+    def check_vegan_restrictions(self, analysis):
+        """Verifica restrições veganas"""
+        violations = []
         
-        profile_data = {
-            "id": "pref-test-2",
-            "user_id": "pref-test-2",
-            "name": "Teste Macarrao Carne",
-            "email": "pref2@test.com",
-            "age": 30,
-            "sex": "feminino",
-            "height": 165,
-            "weight": 60,
-            "target_weight": 65,
-            "goal": "bulking",
-            "training_level": "avancado",
-            "weekly_training_frequency": 5,
-            "available_time_per_session": 90,
-            "dietary_restrictions": [],
-            "food_preferences": ["macarrao", "carne_moida", "banana", "castanhas"],
-            "meal_count": 5
-        }
+        # Lista de produtos proibidos para veganos
+        forbidden_keywords = [
+            "frango", "chicken", "patinho", "beef", "carne", "meat",
+            "tilapia", "fish", "peixe", "salmao", "salmon", "atum", "tuna",
+            "peru", "turkey", "porco", "pork", "bacon",
+            "ovos", "eggs", "ovo", "egg",
+            "leite", "milk", "queijo", "cheese", "iogurte", "yogurt",
+            "whey", "cottage", "ricotta"
+        ]
         
-        # Criar perfil
-        if not self.create_profile(profile_data):
-            self.log_result("PERFIL 2 - Criação", False, "Falha ao criar perfil")
-            return
+        for food in analysis["all_foods"]:
+            food_name = food["name"].lower()
+            food_key = food["key"].lower()
+            
+            for forbidden in forbidden_keywords:
+                if forbidden in food_name or forbidden in food_key:
+                    violations.append(f"Produto animal encontrado: {food['name']} ({food['grams']}g)")
         
-        self.log_result("PERFIL 2 - Criação", True, "Perfil criado com sucesso")
-        
-        # Gerar dieta
-        diet_plan = self.generate_diet("pref-test-2")
-        if not diet_plan:
-            self.log_result("PERFIL 2 - Geração Dieta", False, "Falha ao gerar dieta")
-            return
-        
-        self.log_result("PERFIL 2 - Geração Dieta", True, f"Dieta gerada com {len(diet_plan.get('meals', []))} refeições")
-        
-        # Verificar preferências
-        pref_results = self.check_food_preferences("pref-test-2", ["macarrao", "carne_moida", "banana", "castanhas"], diet_plan)
-        
-        # Validações específicas
-        results = pref_results["results"]
-        
-        # MACARRÃO deve aparecer (não arroz)
-        macarrao_found = results.get("macarrao", False)
-        self.log_result("PERFIL 2 - MACARRÃO", macarrao_found,
-                       "MACARRÃO encontrado na dieta" if macarrao_found else "MACARRÃO NÃO encontrado - pode ter arroz")
-        
-        # CARNE MOÍDA deve aparecer (não frango)
-        carne_found = results.get("carne_moida", False)
-        self.log_result("PERFIL 2 - CARNE MOÍDA", carne_found,
-                       "CARNE MOÍDA encontrada na dieta" if carne_found else "CARNE MOÍDA NÃO encontrada - pode ter frango")
-        
-        # BANANA deve aparecer
-        banana_found = results.get("banana", False)
-        self.log_result("PERFIL 2 - BANANA", banana_found,
-                       "BANANA encontrada na dieta" if banana_found else "BANANA NÃO encontrada")
-        
-        # CASTANHAS devem aparecer
-        castanhas_found = results.get("castanhas", False)
-        self.log_result("PERFIL 2 - CASTANHAS", castanhas_found,
-                       "CASTANHAS encontradas na dieta" if castanhas_found else "CASTANHAS NÃO encontradas")
-        
-        print(f"📊 PERFIL 2 RESUMO: {pref_results['found_count']}/{pref_results['total_preferences']} preferências encontradas")
-        print(f"🍽️ Alimentos encontrados: {pref_results['found_preferences']}")
+        return violations
     
-    def test_profile_3_aveia_salmao(self):
-        """PERFIL 3 - Preferência: AVEIA + SALMÃO + MAMÃO + AMENDOIM"""
-        print("\n🧪 TESTANDO PERFIL 3 - AVEIA + SALMÃO + MAMÃO + AMENDOIM")
+    def check_protein_sources(self, analysis, diet_type):
+        """Verifica fontes de proteína adequadas"""
+        protein_sources = []
         
-        profile_data = {
-            "id": "pref-test-3",
-            "user_id": "pref-test-3",
-            "name": "Teste Aveia Salmao",
-            "email": "pref3@test.com",
-            "age": 35,
-            "sex": "masculino",
-            "height": 175,
-            "weight": 85,
-            "target_weight": 85,
-            "goal": "manutencao",
-            "training_level": "iniciante",
-            "weekly_training_frequency": 3,
-            "available_time_per_session": 45,
-            "dietary_restrictions": [],
-            "food_preferences": ["aveia", "salmao", "mamao", "amendoim"],
-            "meal_count": 5
-        }
+        for meal_name, foods in analysis["foods_by_meal"].items():
+            for food in foods:
+                if food["protein"] > 10:  # Considera alimento com >10g proteína como fonte proteica
+                    protein_sources.append({
+                        "meal": meal_name,
+                        "food": food["name"],
+                        "protein": food["protein"],
+                        "grams": food["grams"]
+                    })
         
-        # Criar perfil
-        if not self.create_profile(profile_data):
-            self.log_result("PERFIL 3 - Criação", False, "Falha ao criar perfil")
-            return
-        
-        self.log_result("PERFIL 3 - Criação", True, "Perfil criado com sucesso")
-        
-        # Gerar dieta
-        diet_plan = self.generate_diet("pref-test-3")
-        if not diet_plan:
-            self.log_result("PERFIL 3 - Geração Dieta", False, "Falha ao gerar dieta")
-            return
-        
-        self.log_result("PERFIL 3 - Geração Dieta", True, f"Dieta gerada com {len(diet_plan.get('meals', []))} refeições")
-        
-        # Verificar preferências
-        pref_results = self.check_food_preferences("pref-test-3", ["aveia", "salmao", "mamao", "amendoim"], diet_plan)
-        
-        # Validações específicas
-        results = pref_results["results"]
-        
-        # AVEIA deve aparecer no café da manhã
-        aveia_found = results.get("aveia", False)
-        self.log_result("PERFIL 3 - AVEIA", aveia_found,
-                       "AVEIA encontrada na dieta" if aveia_found else "AVEIA NÃO encontrada no café da manhã")
-        
-        # SALMÃO deve aparecer (não frango ou tilápia)
-        salmao_found = results.get("salmao", False)
-        self.log_result("PERFIL 3 - SALMÃO", salmao_found,
-                       "SALMÃO encontrado na dieta" if salmao_found else "SALMÃO NÃO encontrado - pode ter frango/tilápia")
-        
-        # MAMÃO deve aparecer
-        mamao_found = results.get("mamao", False)
-        self.log_result("PERFIL 3 - MAMÃO", mamao_found,
-                       "MAMÃO encontrado na dieta" if mamao_found else "MAMÃO NÃO encontrado")
-        
-        # AMENDOIM deve aparecer
-        amendoim_found = results.get("amendoim", False)
-        self.log_result("PERFIL 3 - AMENDOIM", amendoim_found,
-                       "AMENDOIM encontrado na dieta" if amendoim_found else "AMENDOIM NÃO encontrado")
-        
-        print(f"📊 PERFIL 3 RESUMO: {pref_results['found_count']}/{pref_results['total_preferences']} preferências encontradas")
-        print(f"🍽️ Alimentos encontrados: {pref_results['found_preferences']}")
+        return protein_sources
     
-    def test_profile_4_arroz_atum(self):
-        """PERFIL 4 - Preferência: ARROZ INTEGRAL + ATUM + LARANJA + AZEITE"""
-        print("\n🧪 TESTANDO PERFIL 4 - ARROZ INTEGRAL + ATUM + LARANJA + AZEITE")
+    def check_eggs_placement(self, analysis):
+        """Verifica se ovos estão apenas no café da manhã"""
+        violations = []
         
-        profile_data = {
-            "id": "pref-test-4",
-            "user_id": "pref-test-4",
-            "name": "Teste Arroz Atum",
-            "email": "pref4@test.com",
-            "age": 25,
-            "sex": "feminino",
-            "height": 160,
-            "weight": 55,
-            "target_weight": 52,
-            "goal": "cutting",
-            "training_level": "iniciante",
-            "weekly_training_frequency": 2,
-            "available_time_per_session": 30,
-            "dietary_restrictions": [],
-            "food_preferences": ["arroz_integral", "atum", "laranja", "azeite"],
-            "meal_count": 4
-        }
+        for meal_name, foods in analysis["foods_by_meal"].items():
+            for food in foods:
+                food_name = food["name"].lower()
+                food_key = food["key"].lower()
+                
+                if "ovo" in food_name or "egg" in food_name or "ovo" in food_key:
+                    if "café" not in meal_name.lower() and "breakfast" not in meal_name.lower():
+                        violations.append(f"Ovos fora do café da manhã: {food['name']} em {meal_name}")
         
-        # Criar perfil
-        if not self.create_profile(profile_data):
-            self.log_result("PERFIL 4 - Criação", False, "Falha ao criar perfil")
-            return
-        
-        self.log_result("PERFIL 4 - Criação", True, "Perfil criado com sucesso")
-        
-        # Gerar dieta
-        diet_plan = self.generate_diet("pref-test-4")
-        if not diet_plan:
-            self.log_result("PERFIL 4 - Geração Dieta", False, "Falha ao gerar dieta")
-            return
-        
-        self.log_result("PERFIL 4 - Geração Dieta", True, f"Dieta gerada com {len(diet_plan.get('meals', []))} refeições")
-        
-        # Verificar preferências
-        pref_results = self.check_food_preferences("pref-test-4", ["arroz_integral", "atum", "laranja", "azeite"], diet_plan)
-        
-        # Validações específicas
-        results = pref_results["results"]
-        
-        # ARROZ INTEGRAL deve aparecer (não arroz branco)
-        arroz_found = results.get("arroz_integral", False)
-        self.log_result("PERFIL 4 - ARROZ INTEGRAL", arroz_found,
-                       "ARROZ INTEGRAL encontrado na dieta" if arroz_found else "ARROZ INTEGRAL NÃO encontrado - pode ter arroz branco")
-        
-        # ATUM deve aparecer (não frango)
-        atum_found = results.get("atum", False)
-        self.log_result("PERFIL 4 - ATUM", atum_found,
-                       "ATUM encontrado na dieta" if atum_found else "ATUM NÃO encontrado - pode ter frango")
-        
-        # LARANJA deve aparecer
-        laranja_found = results.get("laranja", False)
-        self.log_result("PERFIL 4 - LARANJA", laranja_found,
-                       "LARANJA encontrada na dieta" if laranja_found else "LARANJA NÃO encontrada")
-        
-        # AZEITE deve aparecer
-        azeite_found = results.get("azeite", False)
-        self.log_result("PERFIL 4 - AZEITE", azeite_found,
-                       "AZEITE encontrado na dieta" if azeite_found else "AZEITE NÃO encontrado")
-        
-        # Verificar número de refeições (4)
-        meal_count = len(diet_plan.get("meals", []))
-        expected_meals = 4
-        meals_correct = meal_count == expected_meals
-        self.log_result("PERFIL 4 - MEAL COUNT", meals_correct,
-                       f"Correto: {meal_count} refeições" if meals_correct else f"Incorreto: {meal_count} refeições (esperado {expected_meals})")
-        
-        print(f"📊 PERFIL 4 RESUMO: {pref_results['found_count']}/{pref_results['total_preferences']} preferências encontradas")
-        print(f"🍽️ Alimentos encontrados: {pref_results['found_preferences']}")
+        return violations
     
-    def test_profile_5_feijao_whey(self):
-        """PERFIL 5 - Preferência: FEIJÃO + WHEY + MAÇÃ + COTTAGE"""
-        print("\n🧪 TESTANDO PERFIL 5 - FEIJÃO + WHEY + MAÇÃ + COTTAGE")
+    def check_tofu_presence(self, analysis):
+        """Verifica presença de tofu no almoço/jantar"""
+        tofu_meals = []
         
-        profile_data = {
-            "id": "pref-test-5",
-            "user_id": "pref-test-5",
-            "name": "Teste Feijao Whey",
-            "email": "pref5@test.com",
-            "age": 40,
-            "sex": "masculino",
-            "height": 170,
-            "weight": 90,
-            "target_weight": 80,
-            "goal": "cutting",
-            "training_level": "intermediario",
-            "weekly_training_frequency": 4,
-            "available_time_per_session": 60,
-            "dietary_restrictions": [],
-            "food_preferences": ["feijao", "whey_protein", "maca", "cottage"],
-            "meal_count": 6
-        }
+        for meal_name, foods in analysis["foods_by_meal"].items():
+            for food in foods:
+                food_name = food["name"].lower()
+                food_key = food["key"].lower()
+                
+                if "tofu" in food_name or "tofu" in food_key:
+                    tofu_meals.append(f"Tofu em {meal_name}: {food['name']} ({food['grams']}g)")
         
-        # Criar perfil
-        if not self.create_profile(profile_data):
-            self.log_result("PERFIL 5 - Criação", False, "Falha ao criar perfil")
-            return
-        
-        self.log_result("PERFIL 5 - Criação", True, "Perfil criado com sucesso")
-        
-        # Gerar dieta
-        diet_plan = self.generate_diet("pref-test-5")
-        if not diet_plan:
-            self.log_result("PERFIL 5 - Geração Dieta", False, "Falha ao gerar dieta")
-            return
-        
-        self.log_result("PERFIL 5 - Geração Dieta", True, f"Dieta gerada com {len(diet_plan.get('meals', []))} refeições")
-        
-        # Verificar preferências
-        pref_results = self.check_food_preferences("pref-test-5", ["feijao", "whey_protein", "maca", "cottage"], diet_plan)
-        
-        # Validações específicas
-        results = pref_results["results"]
-        
-        # FEIJÃO deve aparecer
-        feijao_found = results.get("feijao", False)
-        self.log_result("PERFIL 5 - FEIJÃO", feijao_found,
-                       "FEIJÃO encontrado na dieta" if feijao_found else "FEIJÃO NÃO encontrado")
-        
-        # WHEY PROTEIN deve aparecer nos lanches
-        whey_found = results.get("whey_protein", False)
-        self.log_result("PERFIL 5 - WHEY PROTEIN", whey_found,
-                       "WHEY PROTEIN encontrado na dieta" if whey_found else "WHEY PROTEIN NÃO encontrado nos lanches")
-        
-        # MAÇÃ deve aparecer
-        maca_found = results.get("maca", False)
-        self.log_result("PERFIL 5 - MAÇÃ", maca_found,
-                       "MAÇÃ encontrada na dieta" if maca_found else "MAÇÃ NÃO encontrada")
-        
-        # COTTAGE deve aparecer
-        cottage_found = results.get("cottage", False)
-        self.log_result("PERFIL 5 - COTTAGE", cottage_found,
-                       "COTTAGE encontrado na dieta" if cottage_found else "COTTAGE NÃO encontrado")
-        
-        # Verificar número de refeições (6)
-        meal_count = len(diet_plan.get("meals", []))
-        expected_meals = 6
-        meals_correct = meal_count == expected_meals
-        self.log_result("PERFIL 5 - MEAL COUNT", meals_correct,
-                       f"Correto: {meal_count} refeições" if meals_correct else f"Incorreto: {meal_count} refeições (esperado {expected_meals})")
-        
-        print(f"📊 PERFIL 5 RESUMO: {pref_results['found_count']}/{pref_results['total_preferences']} preferências encontradas")
-        print(f"🍽️ Alimentos encontrados: {pref_results['found_preferences']}")
+        return tofu_meals
     
-    def test_profile_6_tapioca_peru(self):
-        """PERFIL 6 - Preferência: TAPIOCA + PERU + MELANCIA + GRANOLA"""
-        print("\n🧪 TESTANDO PERFIL 6 - TAPIOCA + PERU + MELANCIA + GRANOLA")
+    def check_beans_quantity(self, analysis):
+        """Verifica se feijão não excede 300g total"""
+        total_beans = 0
+        bean_foods = []
         
-        profile_data = {
-            "id": "pref-test-6",
-            "user_id": "pref-test-6",
-            "name": "Teste Tapioca Peru",
-            "email": "pref6@test.com",
-            "age": 22,
-            "sex": "feminino",
-            "height": 168,
-            "weight": 58,
-            "target_weight": 62,
-            "goal": "bulking",
-            "training_level": "avancado",
-            "weekly_training_frequency": 6,
-            "available_time_per_session": 75,
-            "dietary_restrictions": [],
-            "food_preferences": ["tapioca", "peru", "melancia", "granola"],
-            "meal_count": 6
-        }
+        for food in analysis["all_foods"]:
+            food_name = food["name"].lower()
+            food_key = food["key"].lower()
+            
+            if "feijao" in food_name or "bean" in food_name or "feijao" in food_key:
+                total_beans += food["grams"]
+                bean_foods.append(f"{food['name']} ({food['grams']}g)")
         
-        # Criar perfil
-        if not self.create_profile(profile_data):
-            self.log_result("PERFIL 6 - Criação", False, "Falha ao criar perfil")
+        return total_beans, bean_foods
+    
+    def check_rice_vs_beans(self, analysis):
+        """Verifica se arroz > feijão em quantidade"""
+        total_rice = 0
+        total_beans = 0
+        
+        for food in analysis["all_foods"]:
+            food_name = food["name"].lower()
+            food_key = food["key"].lower()
+            
+            if "arroz" in food_name or "rice" in food_name or "arroz" in food_key:
+                total_rice += food["grams"]
+            elif "feijao" in food_name or "bean" in food_name or "feijao" in food_key:
+                total_beans += food["grams"]
+        
+        return total_rice, total_beans
+    
+    def test_scenario_1_vegetarian(self):
+        """Cenário 1: Dieta Vegetariana"""
+        print("\n🥬 CENÁRIO 1: DIETA VEGETARIANA")
+        print("=" * 50)
+        
+        # Criar usuário vegetariano
+        user_id, error = self.create_user_and_profile(
+            name="Test Vegetariano",
+            email=f"vegetariano_{int(time.time())}@test.com",
+            dietary_restrictions=["vegetariano"],
+            food_preferences=["ovos", "arroz_branco", "feijao", "banana", "castanhas", "azeite"],
+            weight=70
+        )
+        
+        if not user_id:
+            self.log_result("Vegetariano - Criação de usuário", False, error)
             return
         
-        self.log_result("PERFIL 6 - Criação", True, "Perfil criado com sucesso")
+        self.log_result("Vegetariano - Criação de usuário", True, f"User ID: {user_id}")
         
         # Gerar dieta
-        diet_plan = self.generate_diet("pref-test-6")
-        if not diet_plan:
-            self.log_result("PERFIL 6 - Geração Dieta", False, "Falha ao gerar dieta")
+        diet_data, error = self.generate_diet(user_id)
+        if not diet_data:
+            self.log_result("Vegetariano - Geração de dieta", False, error)
             return
         
-        self.log_result("PERFIL 6 - Geração Dieta", True, f"Dieta gerada com {len(diet_plan.get('meals', []))} refeições")
+        self.log_result("Vegetariano - Geração de dieta", True, "Dieta gerada com sucesso")
         
-        # Verificar preferências
-        pref_results = self.check_food_preferences("pref-test-6", ["tapioca", "peru", "melancia", "granola"], diet_plan)
+        # Analisar dieta
+        analysis = self.analyze_diet_foods(diet_data)
         
-        # Validações específicas
-        results = pref_results["results"]
+        # Teste 1: NÃO deve ter carnes
+        meat_violations = self.check_vegetarian_restrictions(analysis)
+        if meat_violations:
+            self.log_result("Vegetariano - Sem carnes", False, f"Violações: {'; '.join(meat_violations)}")
+        else:
+            self.log_result("Vegetariano - Sem carnes", True, "Nenhuma carne encontrada")
         
-        # TAPIOCA deve aparecer no café da manhã
-        tapioca_found = results.get("tapioca", False)
-        self.log_result("PERFIL 6 - TAPIOCA", tapioca_found,
-                       "TAPIOCA encontrada na dieta" if tapioca_found else "TAPIOCA NÃO encontrada no café da manhã")
+        # Teste 2: DEVE ter tofu no almoço/jantar
+        tofu_meals = self.check_tofu_presence(analysis)
+        if tofu_meals:
+            self.log_result("Vegetariano - Tofu presente", True, f"Encontrado: {'; '.join(tofu_meals)}")
+        else:
+            self.log_result("Vegetariano - Tofu presente", False, "Tofu não encontrado no almoço/jantar")
         
-        # PERU deve aparecer (não frango)
-        peru_found = results.get("peru", False)
-        self.log_result("PERFIL 6 - PERU", peru_found,
-                       "PERU encontrado na dieta" if peru_found else "PERU NÃO encontrado - pode ter frango")
+        # Teste 3: Ovos APENAS no café da manhã
+        egg_violations = self.check_eggs_placement(analysis)
+        if egg_violations:
+            self.log_result("Vegetariano - Ovos só no café", False, f"Violações: {'; '.join(egg_violations)}")
+        else:
+            self.log_result("Vegetariano - Ovos só no café", True, "Ovos apenas no café da manhã")
         
-        # MELANCIA deve aparecer
-        melancia_found = results.get("melancia", False)
-        self.log_result("PERFIL 6 - MELANCIA", melancia_found,
-                       "MELANCIA encontrada na dieta" if melancia_found else "MELANCIA NÃO encontrada")
+        # Teste 4: Proteína total adequada (>100g para 70kg)
+        total_protein = analysis["total_protein"]
+        if total_protein >= 100:
+            self.log_result("Vegetariano - Proteína adequada", True, f"Proteína total: {total_protein:.1f}g")
+        else:
+            self.log_result("Vegetariano - Proteína adequada", False, f"Proteína insuficiente: {total_protein:.1f}g (mínimo 100g)")
         
-        # GRANOLA deve aparecer
-        granola_found = results.get("granola", False)
-        self.log_result("PERFIL 6 - GRANOLA", granola_found,
-                       "GRANOLA encontrada na dieta" if granola_found else "GRANOLA NÃO encontrada")
+        return user_id, analysis
+    
+    def test_scenario_2_normal(self):
+        """Cenário 2: Dieta Normal (sem restrições)"""
+        print("\n🍗 CENÁRIO 2: DIETA NORMAL")
+        print("=" * 50)
         
-        # Verificar número de refeições (6)
-        meal_count = len(diet_plan.get("meals", []))
-        expected_meals = 6
-        meals_correct = meal_count == expected_meals
-        self.log_result("PERFIL 6 - MEAL COUNT", meals_correct,
-                       f"Correto: {meal_count} refeições" if meals_correct else f"Incorreto: {meal_count} refeições (esperado {expected_meals})")
+        # Criar usuário normal
+        user_id, error = self.create_user_and_profile(
+            name="Test Normal",
+            email=f"normal_{int(time.time())}@test.com",
+            dietary_restrictions=[],
+            food_preferences=["frango", "arroz", "feijao"],
+            weight=70
+        )
         
-        print(f"📊 PERFIL 6 RESUMO: {pref_results['found_count']}/{pref_results['total_preferences']} preferências encontradas")
-        print(f"🍽️ Alimentos encontrados: {pref_results['found_preferences']}")
+        if not user_id:
+            self.log_result("Normal - Criação de usuário", False, error)
+            return
+        
+        self.log_result("Normal - Criação de usuário", True, f"User ID: {user_id}")
+        
+        # Gerar dieta
+        diet_data, error = self.generate_diet(user_id)
+        if not diet_data:
+            self.log_result("Normal - Geração de dieta", False, error)
+            return
+        
+        self.log_result("Normal - Geração de dieta", True, "Dieta gerada com sucesso")
+        
+        # Analisar dieta
+        analysis = self.analyze_diet_foods(diet_data)
+        
+        # Teste 1: Feijão não deve exceder 300g total
+        total_beans, bean_foods = self.check_beans_quantity(analysis)
+        if total_beans <= 300:
+            self.log_result("Normal - Feijão ≤300g", True, f"Feijão total: {total_beans}g")
+        else:
+            self.log_result("Normal - Feijão ≤300g", False, f"Feijão excessivo: {total_beans}g (máximo 300g)")
+        
+        # Teste 2: Arroz deve ser > feijão
+        total_rice, total_beans = self.check_rice_vs_beans(analysis)
+        if total_rice > total_beans:
+            self.log_result("Normal - Arroz > Feijão", True, f"Arroz: {total_rice}g, Feijão: {total_beans}g")
+        else:
+            self.log_result("Normal - Arroz > Feijão", False, f"Proporção inadequada - Arroz: {total_rice}g, Feijão: {total_beans}g")
+        
+        # Teste 3: Proteína adequada com frango
+        protein_sources = self.check_protein_sources(analysis, "normal")
+        chicken_found = any("frango" in p["food"].lower() or "chicken" in p["food"].lower() for p in protein_sources)
+        total_protein = analysis["total_protein"]
+        
+        if chicken_found and total_protein >= 100:
+            self.log_result("Normal - Proteína com frango", True, f"Frango presente, proteína: {total_protein:.1f}g")
+        else:
+            details = f"Frango: {'Sim' if chicken_found else 'Não'}, Proteína: {total_protein:.1f}g"
+            self.log_result("Normal - Proteína com frango", False, details)
+        
+        return user_id, analysis
+    
+    def test_scenario_3_vegan(self):
+        """Cenário 3: Dieta Vegana"""
+        print("\n🌱 CENÁRIO 3: DIETA VEGANA")
+        print("=" * 50)
+        
+        # Criar usuário vegano
+        user_id, error = self.create_user_and_profile(
+            name="Test Vegano",
+            email=f"vegano_{int(time.time())}@test.com",
+            dietary_restrictions=["vegano"],
+            food_preferences=["tofu", "arroz", "feijao", "banana"],
+            weight=70
+        )
+        
+        if not user_id:
+            self.log_result("Vegano - Criação de usuário", False, error)
+            return
+        
+        self.log_result("Vegano - Criação de usuário", True, f"User ID: {user_id}")
+        
+        # Gerar dieta
+        diet_data, error = self.generate_diet(user_id)
+        if not diet_data:
+            self.log_result("Vegano - Geração de dieta", False, error)
+            return
+        
+        self.log_result("Vegano - Geração de dieta", True, "Dieta gerada com sucesso")
+        
+        # Analisar dieta
+        analysis = self.analyze_diet_foods(diet_data)
+        
+        # Teste 1: NÃO deve ter carnes, ovos, laticínios
+        vegan_violations = self.check_vegan_restrictions(analysis)
+        if vegan_violations:
+            self.log_result("Vegano - Sem produtos animais", False, f"Violações: {'; '.join(vegan_violations)}")
+        else:
+            self.log_result("Vegano - Sem produtos animais", True, "Nenhum produto animal encontrado")
+        
+        # Teste 2: DEVE ter tofu ou tempeh como proteína
+        protein_sources = self.check_protein_sources(analysis, "vegan")
+        vegan_proteins = [p for p in protein_sources if "tofu" in p["food"].lower() or "tempeh" in p["food"].lower()]
+        
+        if vegan_proteins:
+            protein_list = [f"{p['food']} ({p['protein']}g)" for p in vegan_proteins]
+            self.log_result("Vegano - Proteína vegana", True, f"Encontrado: {'; '.join(protein_list)}")
+        else:
+            self.log_result("Vegano - Proteína vegana", False, "Tofu/tempeh não encontrado como fonte proteica")
+        
+        # Teste 3: Proteína total adequada (>80g)
+        total_protein = analysis["total_protein"]
+        if total_protein >= 80:
+            self.log_result("Vegano - Proteína adequada", True, f"Proteína total: {total_protein:.1f}g")
+        else:
+            self.log_result("Vegano - Proteína adequada", False, f"Proteína insuficiente: {total_protein:.1f}g (mínimo 80g)")
+        
+        return user_id, analysis
     
     def run_all_tests(self):
-        """Run all food preference tests"""
-        print("🚀 INICIANDO TESTE DE PREFERÊNCIAS ALIMENTARES - LAF")
-        print("=" * 80)
+        """Executa todos os cenários de teste"""
+        print("🧪 TESTE COMPLETO DAS CORREÇÕES DE DIETA - LAF")
+        print("=" * 60)
+        print(f"URL Base: {BASE_URL}")
+        print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test all profiles
-        self.test_profile_1_batata_tilapia()
-        self.test_profile_2_macarrao_carne()
-        self.test_profile_3_aveia_salmao()
-        self.test_profile_4_arroz_atum()
-        self.test_profile_5_feijao_whey()
-        self.test_profile_6_tapioca_peru()
+        # Executar cenários
+        scenario1_result = self.test_scenario_1_vegetarian()
+        scenario2_result = self.test_scenario_2_normal()
+        scenario3_result = self.test_scenario_3_vegan()
         
-        # Final summary
-        print("\n" + "=" * 80)
-        print("📊 RESUMO FINAL DOS TESTES DE PREFERÊNCIAS ALIMENTARES")
-        print("=" * 80)
-        print(f"✅ Testes Passaram: {self.passed_tests}")
-        print(f"❌ Testes Falharam: {self.total_tests - self.passed_tests}")
-        print(f"📈 Taxa de Sucesso: {(self.passed_tests/self.total_tests)*100:.1f}%")
+        # Resumo final
+        print("\n📊 RESUMO DOS TESTES")
+        print("=" * 50)
+        print(f"Total de testes: {self.total_tests}")
+        print(f"Testes aprovados: {self.passed_tests}")
+        print(f"Testes falharam: {self.total_tests - self.passed_tests}")
+        print(f"Taxa de sucesso: {(self.passed_tests/self.total_tests*100):.1f}%")
         
-        # Detailed results
-        print("\n🔍 DETALHES DOS RESULTADOS:")
-        for result in self.results:
-            status = "✅" if result["success"] else "❌"
-            print(f"{status} {result['test']}: {result['details']}")
+        # Detalhes dos falhas
+        failed_tests = [r for r in self.results if not r["passed"]]
+        if failed_tests:
+            print(f"\n❌ TESTES FALHARAM ({len(failed_tests)}):")
+            for test in failed_tests:
+                print(f"  • {test['test']}: {test['details']}")
         
-        return self.passed_tests, self.total_tests
-
-def main():
-    """Main test function"""
-    tester = FoodPreferencesTester()
-    passed, total = tester.run_all_tests()
-    
-    if passed == total:
-        print(f"\n🎉 TODOS OS TESTES PASSARAM! ({passed}/{total})")
-        exit(0)
-    else:
-        print(f"\n⚠️ ALGUNS TESTES FALHARAM ({total-passed}/{total})")
-        exit(1)
+        return {
+            "total_tests": self.total_tests,
+            "passed_tests": self.passed_tests,
+            "success_rate": self.passed_tests/self.total_tests*100 if self.total_tests > 0 else 0,
+            "failed_tests": failed_tests
+        }
 
 if __name__ == "__main__":
-    main()
+    runner = DietTestRunner()
+    results = runner.run_all_tests()
