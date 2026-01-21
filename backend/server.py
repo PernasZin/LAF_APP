@@ -557,7 +557,7 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                 age=current_profile.age,
                 sex=current_profile.sex
             )
-            tdee = calculate_tdee(bmr, new_frequency, new_level)
+            tdee = calculate_tdee(bmr, new_frequency, new_level, new_goal)  # INCLUI CARDIO!
             target_calories = calculate_target_calories(tdee, new_goal, new_weight)
             macros = calculate_macros(target_calories, new_weight, new_goal)
             
