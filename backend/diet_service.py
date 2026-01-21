@@ -2952,7 +2952,10 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
     total_p, total_c, total_f, total_cal = sum_foods(all_foods)
     
     # Determina índices das refeições principais
-    if meal_count == 4:
+    if meal_count == 3:
+        # 3 refeições: Café(0), Almoço(1), Jantar(2)
+        main_meal_indices = [1, 2]
+    elif meal_count == 4:
         # Café(0), Almoço(1), Lanche(2), Jantar(3)
         main_meal_indices = [1, 3]
     elif meal_count == 5:
