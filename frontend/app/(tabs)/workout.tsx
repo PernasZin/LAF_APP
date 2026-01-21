@@ -434,9 +434,21 @@ export default function WorkoutScreen() {
     }
   };
 
-  // Pause workout
-  const pauseWorkout = () => {
+  // Pause workout - salva estado localmente
+  const pauseWorkout = async () => {
     setIsTraining(false);
+    // Salva o tempo pausado localmente
+    await AsyncStorage.setItem('training_paused_seconds', trainingSeconds.toString());
+  };
+
+  // Resume workout from paused state
+  const resumeWorkout = async () => {
+    // Verifica se há tempo pausado salvo
+    const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
+    if (pausedSeconds) {
+      setTrainingSeconds(parseInt(pausedSeconds, 10));
+    }
+    setIsTraining(true);
   };
 
   // Finish workout
