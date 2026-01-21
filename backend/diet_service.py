@@ -2829,6 +2829,11 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
             # 2. E tem arroz na mesma refeição
             if food_key == "feijao":
                 if feijao_nas_preferencias and tem_arroz:
+                    # 🫘 Limita feijão a máximo 100g por refeição
+                    current_grams = food.get("grams", 0)
+                    if current_grams > 100:
+                        food = calc_food("feijao", 100)
+                        print(f"[GLOBAL LIMITS] Reduzindo feijão de {current_grams}g para 100g")
                     foods_to_keep.append(food)
                 # Senão, não adiciona (remove feijão)
             else:
