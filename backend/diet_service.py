@@ -3448,16 +3448,32 @@ class DietAIService:
                     if current_protein < min_protein and proteinas_principais:
                         chosen = proteinas_principais[0]
                         
-                        # Calcula gramas
+                        # Calcula gramas baseado no tipo de proteína
                         food_info = FOODS.get(chosen, {})
                         protein_per_100g = food_info.get("p", 20)
                         protein_needed = min_protein - current_protein
                         grams_needed = (protein_needed / protein_per_100g) * 100
                         grams_needed = round_to_10(grams_needed)
-                        grams_needed = max(150, min(250, grams_needed))
+                        
+                        # Ajusta limites baseado no tipo de proteína
+                        if chosen == "tofu":
+                            # Tofu tem menos proteína, precisa de mais quantidade
+                            grams_needed = max(250, min(350, grams_needed))
+                        elif chosen == "proteina_ervilha":
+                            # Suplemento: 30g (1 scoop)
+                            grams_needed = 30
+                        else:
+                            grams_needed = max(150, min(250, grams_needed))
                         
                         print(f"[PROTEIN GUARANTEE] {meal_name}: adding {grams_needed}g {chosen}")
                         meals_list[idx]["foods"].append(calc_food(chosen, grams_needed))
+                        
+                        # Para vegetarianos: adiciona proteína de ervilha se ainda precisar de mais proteína
+                        if is_vegetarian and chosen == "tofu":
+                            new_protein = current_protein + (grams_needed * protein_per_100g / 100)
+                            if new_protein < min_protein + 15:  # Se ainda está abaixo do ideal
+                                print(f"[PROTEIN GUARANTEE] {meal_name}: adding 30g proteina_ervilha (vegetariano)")
+                                meals_list[idx]["foods"].append(calc_food("proteina_ervilha", 30))
                 
                 # CEIA
                 elif is_ceia:
