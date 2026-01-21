@@ -373,6 +373,8 @@ def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
     MANUTENÇÃO: TDEE × 1.00
     BULKING: TDEE × 1.12 (superávit de 12%)
     """
+    goal = normalize_goal(goal)
+    
     if goal == "cutting":
         return tdee * 0.80  # -20% déficit
     elif goal == "bulking":
