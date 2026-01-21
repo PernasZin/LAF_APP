@@ -2770,8 +2770,8 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
         meal["total_calories"] = mcal
         meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
     
-    # ========== PASSO 4: WHEY PROTEIN MÁXIMO 60g POR DIA (2 SCOOPS) ==========
-    MAX_WHEY_TOTAL = 60  # 2 scoops
+    # ========== PASSO 4: WHEY PROTEIN MÁXIMO 30g POR DIA (1 SCOOP) ==========
+    MAX_WHEY_TOTAL = 30  # 1 scoop apenas
     total_whey = 0
     for meal in meals:
         for food in meal.get("foods", []):
