@@ -2408,38 +2408,70 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         return "arroz_branco"  # Último fallback: carb
     
     def get_safe_protein_light():
-        """Proteína leve para lanches que respeita restrições"""
+        """Proteína leve para lanches - PRIORIZA preferências do usuário!"""
+        # 🎯 PRIMEIRO: Usa proteína que o usuário escolheu (mesmo que seja "principal")
+        if user_proteins:
+            return user_proteins[0]
+        # Fallback apenas se usuário não escolheu proteína
         options = ["ovos", "tofu", "iogurte_zero", "cottage"]
         for opt in options:
             if opt not in excluded_by_restrictions:
                 return opt
         return "banana"  # Último fallback: fruta
     
-    # Se refeição vazia, adiciona alimento padrão SEGUINDO AS REGRAS E RESTRIÇÕES
+    def get_user_carb():
+        """Carb - PRIORIZA preferências do usuário!"""
+        if user_carbs:
+            return user_carbs[0]
+        return "arroz_branco"  # Fallback
+    
+    def get_user_fat():
+        """Gordura - PRIORIZA preferências do usuário!"""
+        if user_fats:
+            return user_fats[0]
+        return "azeite"  # Fallback
+    
+    def get_user_fruit():
+        """Fruta - PRIORIZA preferências do usuário!"""
+        if user_fruits:
+            return user_fruits[0]
+        return get_restriction_safe_fruit()  # Fallback
+    
+    # Se refeição vazia, adiciona alimento padrão USANDO PREFERÊNCIAS DO USUÁRIO!
     if not foods or len(foods) == 0:
         if meal_index == 0:  # Café da Manhã
-            # PERMITIDO: ovos, aveia, frutas | PROIBIDO: carnes, azeite
+            # 🎯 USA ALIMENTOS DO USUÁRIO!
             safe_protein = get_safe_protein_light()
-            safe_carb = get_restriction_safe_breakfast_carb()  # Usa função inteligente
-            foods = [calc_food(safe_protein, 100), calc_food(safe_carb, 40), calc_food(get_restriction_safe_fruit(), 100)]
+            safe_carb = user_carbs[0] if user_carbs else get_restriction_safe_breakfast_carb()
+            safe_fruit = get_user_fruit()
+            foods = [calc_food(safe_protein, 100), calc_food(safe_carb, 40), calc_food(safe_fruit, 100)]
         elif meal_index == 1:  # Lanche manhã
-            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
-            foods = [calc_food("maca", 150), calc_food("castanhas", 20)]
+            # 🎯 USA FRUTA e GORDURA do usuário!
+            safe_fruit = get_user_fruit()
+            safe_fat = get_user_fat() if get_user_fat() != "azeite" else "castanhas"
+            foods = [calc_food(safe_fruit, 150), calc_food(safe_fat, 20)]
         elif meal_index == 2:  # Almoço
-            # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
+            # 🎯 USA PROTEÍNA, CARB e GORDURA do usuário!
             safe_protein = get_safe_protein_main()
-            foods = [calc_food(safe_protein, 150), calc_food("arroz_branco", 150), calc_food("salada", 100), calc_food("azeite", 10)]
+            safe_carb = get_user_carb()
+            safe_fat = get_user_fat()
+            foods = [calc_food(safe_protein, 150), calc_food(safe_carb, 150), calc_food("salada", 100), calc_food(safe_fat, 10)]
         elif meal_index == 3:  # Lanche tarde
-            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, azeite, cottage
-            foods = [calc_food("laranja", 150), calc_food("castanhas", 20)]
+            # 🎯 USA FRUTA e GORDURA do usuário!
+            safe_fruit = get_user_fruit()
+            safe_fat = get_user_fat() if get_user_fat() != "azeite" else "castanhas"
+            foods = [calc_food(safe_fruit, 150), calc_food(safe_fat, 20)]
         elif meal_index == 4:  # Jantar
-            # OBRIGATÓRIO: 1 proteína + 1 carboidrato | PERMITIDO: azeite
+            # 🎯 USA PROTEÍNA, CARB e GORDURA do usuário!
             safe_protein = get_safe_protein_main()
-            safe_carb = "arroz_integral" if "arroz_integral" not in excluded_by_restrictions else "arroz_branco"
-            foods = [calc_food(safe_protein, 150), calc_food(safe_carb, 120), calc_food("brocolis", 100), calc_food("azeite", 10)]
+            safe_carb = get_user_carb()
+            safe_fat = get_user_fat()
+            foods = [calc_food(safe_protein, 150), calc_food(safe_carb, 120), calc_food("brocolis", 100), calc_food(safe_fat, 10)]
         else:  # Ceia
-            # PERMITIDO: frutas, oleaginosas | PROIBIDO: carnes, carbs complexos, OVOS, cottage
-            foods = [calc_food("morango", 150), calc_food("castanhas", 20)]
+            # 🎯 USA FRUTA do usuário! (evita proteína na ceia)
+            safe_fruit = get_user_fruit()
+            safe_fat = get_user_fat() if get_user_fat() != "azeite" else "castanhas"
+            foods = [calc_food(safe_fruit, 150), calc_food(safe_fat, 20)]
     
     # Valida cada alimento
     validated_foods = []
@@ -2448,18 +2480,18 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         if validated_food:
             # REGRA ABSOLUTA: Se for CEIA, NUNCA permite ovos
             if meal_index == 5 and validated_food.get("key") == "ovos":
-                validated_food = calc_food(get_restriction_safe_fruit(), validated_food.get("grams", 100))
+                validated_food = calc_food(get_user_fruit(), validated_food.get("grams", 100))
             validated_foods.append(validated_food)
     
-    # Garante que tem pelo menos 1 alimento (RESPEITANDO regras da refeição E RESTRIÇÕES)
+    # Garante que tem pelo menos 1 alimento (USANDO PREFERÊNCIAS DO USUÁRIO!)
     if len(validated_foods) == 0:
         if meal_index == 0:  # Café - proteína leve
             safe_protein = get_safe_protein_light()
             validated_foods = [calc_food(safe_protein, 100)]
-        elif meal_index == 5:  # Ceia - NUNCA OVOS, sem cottage!
-            validated_foods = [calc_food("morango", 150)]
-        elif meal_index in [1, 3]:  # Lanches - fruta (NUNCA carne!)
-            validated_foods = [calc_food(get_restriction_safe_fruit(), 150)]
+        elif meal_index == 5:  # Ceia - fruta do usuário!
+            validated_foods = [calc_food(get_user_fruit(), 150)]
+        elif meal_index in [1, 3]:  # Lanches - fruta do usuário!
+            validated_foods = [calc_food(get_user_fruit(), 150)]
         else:  # Almoço/Jantar - proteína principal
             safe_protein = get_safe_protein_main()
             validated_foods = [calc_food(safe_protein, 150)]
