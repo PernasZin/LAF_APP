@@ -348,6 +348,18 @@ backend:
         agent: "testing"
         comment: "🚨 VIOLAÇÃO CRÍTICA DE RESTRIÇÕES ALIMENTARES ENCONTRADA - Executei teste específico das 3 principais restrições alimentares conforme solicitação da revisão. RESULTADO: 93.3% sucesso (14/15 testes), mas 1 VIOLAÇÃO CRÍTICA encontrada que representa RISCO DE SAÚDE. ✅ SUCESSOS: (1) SEM LACTOSE: 100% compliant - ZERO laticínios (leite, queijo, whey) encontrados, frango e arroz presentes conforme esperado, (2) VEGETARIANO: 100% compliant - ZERO carnes/peixes encontrados, ovos, queijo e feijão presentes como proteínas vegetais adequadas. ❌ VIOLAÇÃO CRÍTICA: (3) SEM GLÚTEN: Dieta contém 'pão integral (pao_integral)' que é PROIBIDO para usuários sem glúten. DETALHES: Perfil fix-test-sem-gluten (bulking, masculino, 30 anos) com dietary_restrictions=['sem_gluten'] recebeu dieta com pão integral, violando restrição crítica que pode causar problemas de saúde graves para usuários celíacos. OUTROS ALIMENTOS OK: Arroz branco, tapioca, banana, frango presentes conforme esperado. CONCLUSÃO: Sistema de restrições alimentares tem BUG CRÍTICO na validação de glúten que precisa correção URGENTE."
 
+  - task: "Food Preferences Implementation - Specific Proteins"
+    implemented: true
+    working: false
+    file: "/app/backend/diet_service.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ PREFERÊNCIAS ALIMENTARES PARCIALMENTE FUNCIONAIS - Teste específico das 6 combinações de preferências revelou problemas: Taxa de sucesso 70.8% (17/24 preferências encontradas). PROBLEMAS CRÍTICOS: (1) Proteínas específicas (salmão, peru, carne moída) sendo substituídas por frango genérico, (2) Arroz integral sendo substituído por arroz branco, (3) Whey protein não aparecendo nos lanches, (4) Alguns alimentos específicos (abacate, amendoim) não sendo incluídos. SUCESSOS: Carboidratos básicos (batata doce, macarrão), frutas (morango, banana, mamão, melancia), oleaginosas (castanhas), alguns lácteos (cottage) funcionam corretamente. Sistema precisa melhorar priorização de proteínas específicas e inclusão de alimentos especiais nas preferências."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
