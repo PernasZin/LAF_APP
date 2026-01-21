@@ -3822,7 +3822,9 @@ class DietAIService:
         
         if carb_deficit > 30:  # Se falta mais de 30g de carbs
             # Determina refeições principais (almoço e jantar)
-            if meal_count == 4:
+            if meal_count == 3:
+                main_meal_indices = [1, 2]  # Almoço e Jantar para 3 refeições
+            elif meal_count == 4:
                 main_meal_indices = [1, 3]  # Almoço e Jantar
             elif meal_count == 5:
                 main_meal_indices = [2, 4]  # Almoço e Jantar
