@@ -1626,7 +1626,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
     # 🎯 O TOTAL DE MACROS DEVE SER MANTIDO, independente do número de refeições!
     # Apenas redistribui proporcionalmente entre as refeições disponíveis
     
-    if meal_count == 4:
+    if meal_count == 3:
+        # 3 refeições: Café (25%), Almoço (40%), Jantar (35%)
+        MEAL_DISTRIBUTION = {
+            'cafe': {'p': 0.25, 'c': 0.25, 'f': 0.20},
+            'almoco': {'p': 0.40, 'c': 0.40, 'f': 0.45},
+            'jantar': {'p': 0.35, 'c': 0.35, 'f': 0.35}
+        }
+    elif meal_count == 4:
         # 4 refeições: Café (20%), Almoço (35%), Lanche (10%), Jantar (35%)
         MEAL_DISTRIBUTION = {
             'cafe': {'p': 0.20, 'c': 0.20, 'f': 0.15},
