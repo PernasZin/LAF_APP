@@ -534,15 +534,44 @@ export default function WorkoutScreen() {
     setShowExerciseModal(true);
   };
 
-  // Rest timer functions
+  // Rest timer functions - com suporte a pausar/continuar
   const startRestTimer = (seconds: number | string) => {
-    const secs = Number(seconds) || 60; // Default 60 segundos se inválido
+    const secs = Number(seconds) || 60;
     setRestTimerSeconds(secs);
+    setRestTimerInitialSeconds(secs);
     setRestTimerActive(true);
+    setRestTimerPaused(false);
+    
+    if (restTimerRef.current) clearInterval(restTimerRef.current);
+    
     restTimerRef.current = setInterval(() => {
       setRestTimerSeconds((prev) => {
         if (prev <= 1) {
           setRestTimerActive(false);
+          setRestTimerPaused(false);
+          if (restTimerRef.current) clearInterval(restTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const pauseRestTimer = () => {
+    setRestTimerPaused(true);
+    if (restTimerRef.current) {
+      clearInterval(restTimerRef.current);
+      restTimerRef.current = null;
+    }
+  };
+
+  const resumeRestTimer = () => {
+    setRestTimerPaused(false);
+    restTimerRef.current = setInterval(() => {
+      setRestTimerSeconds((prev) => {
+        if (prev <= 1) {
+          setRestTimerActive(false);
+          setRestTimerPaused(false);
           if (restTimerRef.current) clearInterval(restTimerRef.current);
           return 0;
         }
@@ -553,7 +582,25 @@ export default function WorkoutScreen() {
 
   const stopRestTimer = () => {
     setRestTimerActive(false);
+    setRestTimerPaused(false);
+    setRestTimerSeconds(0);
     if (restTimerRef.current) clearInterval(restTimerRef.current);
+  };
+
+  const resetRestTimer = () => {
+    if (restTimerRef.current) clearInterval(restTimerRef.current);
+    setRestTimerSeconds(restTimerInitialSeconds);
+    setRestTimerPaused(false);
+    restTimerRef.current = setInterval(() => {
+      setRestTimerSeconds((prev) => {
+        if (prev <= 1) {
+          setRestTimerActive(false);
+          if (restTimerRef.current) clearInterval(restTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   // Load workout history
