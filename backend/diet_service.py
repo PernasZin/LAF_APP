@@ -117,7 +117,7 @@ MIN_FRUITS = 2
 # Ordem de prioridade para auto-complete (alimentos comuns e baratos no Brasil)
 
 DEFAULT_PROTEINS = ["frango", "patinho", "ovos", "atum", "cottage", "tilapia"]
-DEFAULT_CARBS = ["arroz_branco", "arroz_integral", "batata_doce", "aveia", "macarrao", "feijao", "pao_integral", "lentilha"]
+DEFAULT_CARBS = ["arroz_branco", "arroz_integral", "batata_doce", "aveia", "macarrao", "pao_integral"]  # Feijão removido - só usar se selecionado
 DEFAULT_FATS = ["azeite", "pasta_amendoim", "castanhas", "amendoas", "queijo"]
 DEFAULT_FRUITS = ["banana", "maca", "laranja", "morango", "mamao", "melancia"]
 
