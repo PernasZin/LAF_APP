@@ -1886,6 +1886,17 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if safe_carb:
                     foods.append(calc_food(safe_carb, 200))
             
+            # 🥦 VEGETAIS OBRIGATÓRIOS NO JANTAR - Brócolis ou salada
+            # Prioriza brócolis se o usuário escolheu, senão salada
+            vegetal_jantar = None
+            if "brocolis" in preferred:
+                vegetal_jantar = "brocolis"
+            elif "salada" in preferred:
+                vegetal_jantar = "salada"
+            else:
+                vegetal_jantar = "brocolis"  # Default: brócolis no jantar
+            foods.append(calc_food(vegetal_jantar, 100))
+            
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
             
