@@ -1752,19 +1752,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if carb_aveia and carb_aveia in FOODS and carb_aveia not in excluded_restrictions:
                 foods.append(calc_food(carb_aveia, 40))
             
-            # Fruta
-            if fruit and fruit in FOODS:
-                foods.append(calc_food(fruit, 120))
-            else:
-                # 🧠 FALLBACK: fruta segura
-                foods.append(calc_food(get_restriction_safe_fruit(), 120))
+            # Fruta - usa a que o usuário escolheu!
+            if user_fruit and user_fruit in FOODS:
+                foods.append(calc_food(user_fruit, 120))
+            # Não adiciona fallback de fruta - café pode ser só proteína+carb!
             
             # Gordura (opcional) - NO CAFÉ APENAS CASTANHAS, NÃO AZEITE!
-            # Reduzido para evitar excesso de gordura
-            if goal != "cutting":
-                if fat and fat in FOODS and fat != "azeite":
-                    foods.append(calc_food(fat, 10))  # Reduzido de 15 para 10g
-                # NÃO adiciona castanhas no fallback para evitar gordura excessiva
+            # Só adiciona se o usuário escolheu uma gordura adequada para café
+            # NÃO adiciona fallback para evitar gordura excessiva
                 
         elif meal_type in ['lanche_manha', 'lanche_tarde', 'lanche']:
             # 🥪 Lanches
