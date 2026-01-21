@@ -105,7 +105,7 @@ export default function OnboardingScreen() {
         }
         break;
       case 2:
-        if (!formData.training_level || !formData.weekly_training_frequency) {
+        if (!formData.training_level || !formData.weekly_training_frequency || !formData.available_time_per_session) {
           showAlert(t.requiredFields, t.fillTrainingFields);
           return false;
         }
