@@ -1764,62 +1764,70 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # ✅ Permitido: frutas, whey, iogurte, castanhas
             # ❌ Proibido: nada pesado (carne, peixe)
             
-            # Para lanches, NÃO usar proteínas principais - usar lista específica de leves
-            # Respeitando restrições alimentares
-            LANCHE_PROTEINS = ["iogurte_zero", "cottage", "whey_protein"]
+            # 🎯 PRIORIZA proteína do usuário (mesmo que seja peixe/carne)
+            # Se o usuário só escolheu tilápia, usa tilápia!
             lanche_protein = None
+            # Primeiro tenta pegar proteína leve das preferências
+            LANCHE_PROTEINS = ["iogurte_zero", "cottage", "whey_protein"]
             for p in LANCHE_PROTEINS:
                 if p in preferred and p not in excluded_restrictions:
                     lanche_protein = p
                     break
             
-            # Fruta e gordura para lanche
+            # Se não encontrou proteína leve, usa qualquer proteína do usuário
+            if not lanche_protein:
+                for p in protein_priority:
+                    if p in preferred and p not in excluded_restrictions:
+                        lanche_protein = p
+                        break
+            
+            # Fruta - prioriza a que o usuário escolheu
             lanche_fruit = None
             for f in fruit_priority:
                 if f in preferred and f not in excluded_restrictions:
                     lanche_fruit = f
                     break
             
+            # Gordura - prioriza a que o usuário escolheu (exceto azeite que é para refeições principais)
             lanche_fat = None
             for f in fat_priority_lanche:
-                if f in preferred and f not in excluded_restrictions:
+                if f in preferred and f not in excluded_restrictions and f != "azeite":
                     lanche_fat = f
                     break
             
+            # Adiciona proteína (se houver)
             if lanche_protein and lanche_protein in FOODS:
                 # Ajusta quantidade baseado no tipo de proteína
                 if lanche_protein == 'whey_protein' or lanche_protein == 'proteina_ervilha':
                     foods.append(calc_food(lanche_protein, 30))  # Máximo 1 scoop
                 elif lanche_protein == 'iogurte_zero':
                     foods.append(calc_food(lanche_protein, 170))
+                elif lanche_protein in ['tilapia', 'frango', 'patinho']:
+                    # Se é proteína principal (escolhida pelo usuário), usar quantidade menor
+                    foods.append(calc_food(lanche_protein, 80))
                 else:
                     foods.append(calc_food(lanche_protein, 100))
-            else:
-                # 🧠 FALLBACK PROTEÍNA NOS LANCHES
-                # Em CUTTING: adiciona proteína (essencial para preservar massa)
-                # Em BULKING: não adiciona (para evitar excesso)
-                if goal == "cutting":
-                    safe_protein = get_safe_fallback("protein", restrictions, ["iogurte_zero", "cottage"])
-                    if safe_protein:
-                        foods.append(calc_food(safe_protein, 120))
+            # Em lanches, não adiciona fallback de proteína - lanche pode ser só fruta
             
+            # Adiciona fruta (obrigatório em lanches)
             if lanche_fruit and lanche_fruit in FOODS:
                 foods.append(calc_food(lanche_fruit, 120))  # Aumentado para compensar
             else:
                 # 🧠 FALLBACK: fruta segura (respeita diabético)
                 foods.append(calc_food(get_restriction_safe_fruit(), 120))
             
+            # Gordura só se o usuário escolheu (não adiciona fallback)
             if lanche_fat and lanche_fat in FOODS:
-                # Gordura nos lanches: apenas 10g (independente do objetivo)
                 foods.append(calc_food(lanche_fat, 10))
-            # Em TODOS os objetivos, não adiciona castanhas no fallback
-            # Isso evita gordura excessiva quando o usuário não define preferências
             
             # 🔒 GARANTIA: Se o lanche está muito leve, adiciona mais FRUTA (não proteína pesada)
             meal_cal = sum(f.get('calories', 0) for f in foods if isinstance(f, dict))
             if meal_cal < 150:
-                # Adiciona mais uma fruta (não proteína que adiciona gordura)
-                foods.append(calc_food(get_restriction_safe_fruit(), 100))
+                # Adiciona mais fruta do usuário (não uma genérica)
+                if lanche_fruit and lanche_fruit in FOODS:
+                    foods.append(calc_food(lanche_fruit, 100))
+                else:
+                    foods.append(calc_food(get_restriction_safe_fruit(), 100))
                 
         elif meal_type == 'almoco':
             # 🍛 ALMOÇO - Refeição completa
