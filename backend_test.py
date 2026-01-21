@@ -100,9 +100,9 @@ def test_tdee_cardio_calculation():
                 "goal": "bulking",
                 "training_level": "avancado",
                 "weekly_training_frequency": 5,
-                "training_days": [0, 1, 2, 3, 4],
+                "available_time_per_session": 75,
                 "dietary_restrictions": [],
-                "preferred_foods": ["frango", "arroz", "batata_doce"],
+                "food_preferences": ["frango", "arroz", "batata_doce"],
                 "meal_count": 6
             }
         },
