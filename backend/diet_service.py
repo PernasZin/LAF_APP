@@ -1655,11 +1655,22 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         
         if meal_type == 'cafe':
             # 🍳 Café da Manhã
-            # ✅ Permitido: ovos, whey, iogurte, cottage, pão, aveia, frutas
-            # ❌ Proibido: carne, arroz, macarrão
-            protein = select_best_food("cafe_da_manha", preferred, restrictions, "protein", light_protein_priority_cafe)
-            fruit = select_best_food("cafe_da_manha", preferred, restrictions, "fruit", fruit_priority)
-            fat = select_best_food("cafe_da_manha", preferred, restrictions, "fat", fat_priority_cafe)
+            # 🎯 PRIORIZA proteína do usuário, mesmo que seja peixe/carne!
+            # Se o usuário escolheu tilápia, usa tilápia no café também!
+            
+            # Procura proteína nas preferências do usuário
+            user_protein = None
+            for p in protein_priority:
+                if p in preferred and p not in excluded_by_restrictions:
+                    user_protein = p
+                    break
+            
+            # Procura fruta nas preferências do usuário
+            user_fruit = None
+            for f in fruit_priority:
+                if f in preferred and f not in excluded_by_restrictions:
+                    user_fruit = f
+                    break
             
             # Carboidratos para café: pão + aveia (ou apenas um se o usuário não tiver)
             CAFE_CARBS_PAO = ["pao_integral", "pao", "tapioca"]
