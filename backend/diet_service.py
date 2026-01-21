@@ -3378,8 +3378,8 @@ class DietAIService:
                 elif is_vegetarian:
                     # IMPORTANTE: NUNCA usar ovos no almoço/jantar!
                     # Ovos são removidos pela enforce_food_rules se não estiverem no café
-                    # Usar APENAS tofu para almoço/jantar de vegetarianos
-                    proteinas_principais = ["tofu"]
+                    # Usar tofu + proteína de ervilha para almoço/jantar de vegetarianos
+                    proteinas_principais = ["tofu", "proteina_ervilha"]
                 else:
                     proteinas_principais = ["frango"]
             
