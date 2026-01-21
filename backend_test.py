@@ -340,9 +340,10 @@ class DietaryRestrictionsTest:
             "goal": "cutting",
             "training_level": "intermediario",
             "weekly_training_frequency": 4,
+            "available_time_per_session": 60,
             "training_days": [0, 2, 4, 6],
             "dietary_restrictions": ["sem_lactose"],
-            "preferred_foods": ["frango", "arroz", "banana"],
+            "food_preferences": ["frango", "arroz", "banana"],
             "meal_count": 5
         }
         
