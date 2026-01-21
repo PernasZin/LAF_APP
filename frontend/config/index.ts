@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
   }
   
   // Default fallback
-  return 'https://nutri-tracker-fix.preview.emergentagent.com';
+  return 'https://nutriworkout-4.preview.emergentagent.com';
 };
 
 export const config = {
