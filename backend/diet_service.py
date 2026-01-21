@@ -3544,8 +3544,17 @@ class DietAIService:
                 indices_cafe_ceia = {0, 5}
             else:
                 cafe_idx = 0
-                indices_almoco_jantar = {1, 2} if num_meals >= 3 else {1}
-                indices_lanches = set()
+                # 4 refeições: Café(0), Almoço(1), Lanche(2), Jantar(3)
+                # 5 refeições: Café(0), LancheManhã(1), Almoço(2), LancheTarde(3), Jantar(4)
+                if num_meals == 4:
+                    indices_almoco_jantar = {1, 3}  # Almoço e Jantar
+                    indices_lanches = {2}  # Lanche
+                elif num_meals == 5:
+                    indices_almoco_jantar = {2, 4}  # Almoço e Jantar
+                    indices_lanches = {1, 3}  # Lanches
+                else:  # 3 refeições
+                    indices_almoco_jantar = {1, 2}  # Almoço e Jantar
+                    indices_lanches = set()
                 indices_cafe_ceia = {0, num_meals - 1}
             
             for idx, meal in enumerate(meals_list):
