@@ -358,6 +358,17 @@ export default function WorkoutScreen() {
           const data = await response.json();
           setWorkoutPlan(data);
         }
+        
+        // Restaura tempo pausado se existir
+        const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
+        const trainingInProgress = await AsyncStorage.getItem('training_in_progress');
+        if (pausedSeconds && trainingInProgress === 'true') {
+          const seconds = parseInt(pausedSeconds, 10);
+          if (!isNaN(seconds) && seconds > 0) {
+            setTrainingSeconds(seconds);
+            // Não inicia o timer automaticamente - usuário precisa clicar em "Continuar"
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading workout:', error);
