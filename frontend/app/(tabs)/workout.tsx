@@ -389,10 +389,23 @@ export default function WorkoutScreen() {
         setHasTrainedToday(data.has_trained_today);
         setIsTrainingBlocked(data.is_training_blocked || false);
         
-        // Se treino em andamento, restaura o estado
+        // Se treino em andamento, verifica se há tempo pausado localmente
         if (data.is_training_in_progress && data.training_session?.started_at) {
           setSessionStartedAt(data.training_session.started_at);
-          // Calcula segundos passados
+          
+          // Prioriza tempo pausado local sobre o tempo do servidor
+          const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
+          if (pausedSeconds) {
+            const seconds = parseInt(pausedSeconds, 10);
+            if (!isNaN(seconds) && seconds > 0) {
+              setTrainingSeconds(seconds);
+              // Treino está pausado - não inicia automaticamente
+              setIsTraining(false);
+              return;
+            }
+          }
+          
+          // Se não tem tempo pausado, calcula do servidor
           const startTime = new Date(data.training_session.started_at).getTime();
           const now = Date.now();
           const elapsedSeconds = Math.floor((now - startTime) / 1000);
