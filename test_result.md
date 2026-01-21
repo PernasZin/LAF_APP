@@ -161,6 +161,9 @@ backend:
       - working: true
         agent: "main"
         comment: "BMR calculation using Mifflin-St Jeor formula working correctly. TDEE calculation with activity factors working."
+      - working: true
+        agent: "testing"
+        comment: "🎯 NOVO CÁLCULO DE TDEE COM CARDIO VALIDADO - Testados todos os 3 objetivos conforme revisão: (1) CUTTING: TDEE=3109kcal incluindo 181kcal/dia de cardio (1270kcal/semana), Target=2488kcal (déficit 20%), (2) BULKING: TDEE=2794kcal incluindo 60kcal/dia de cardio (420kcal/semana), Target=3129kcal (superávit 12%), (3) MANUTENÇÃO: TDEE=1972kcal incluindo 94kcal/dia de cardio (656kcal/semana), Target=1972kcal (sem ajuste). LOGS CONFIRMADOS: Sistema mostra corretamente 'Cardio semanal (objetivo)=Xkcal -> diário=Ykcal' e 'TDEE_real = TDEE_base + cardio_daily'. Fórmula: TDEE_real = BMR × fator_atividade + (cardio_semanal/7). Todos os 13 testes passaram (100% sucesso)."
   
   - task: "Macros Distribution Calculation"
     implemented: true
