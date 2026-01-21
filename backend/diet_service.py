@@ -3072,7 +3072,7 @@ class DietAIService:
         # Obtém preferências e restrições
         food_preferences = user_profile.get('food_preferences', [])
         dietary_restrictions = user_profile.get('dietary_restrictions', [])
-        goal = user_profile.get('goal', 'manutencao')
+        goal = normalize_goal(user_profile.get('goal', 'manutencao'))  # NORMALIZA!
         
         # Converte preferências para chaves normalizadas
         raw_preferred = get_user_preferred_foods(food_preferences)
