@@ -440,6 +440,12 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
     profile_dict = profile_data.dict()
     profile_dict["id"] = profile_data.id
     
+    # MAPEAMENTO: preferred_foods -> food_preferences (compatibilidade frontend)
+    if hasattr(profile_data, 'preferred_foods') and profile_data.preferred_foods:
+        profile_dict["food_preferences"] = profile_data.preferred_foods
+    elif "preferred_foods" in profile_dict and profile_dict["preferred_foods"]:
+        profile_dict["food_preferences"] = profile_dict["preferred_foods"]
+    
     # Calcula BMR
     bmr = calculate_bmr(
         weight=profile_data.weight,
