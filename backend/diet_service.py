@@ -3146,6 +3146,8 @@ class DietAIService:
             Garante que há proteína suficiente nas refeições principais.
             Se uma refeição principal (almoço/jantar) não tem proteína, adiciona.
             """
+            print(f"[PROTEIN GUARANTEE] Entrando na função com {len(user_proteins)} proteínas do usuário")
+            
             # Identifica refeições principais (índices 2 e 4 para 6 refeições)
             main_indices = [2, 4] if len(meals_list) == 6 else [1, 2]
             
@@ -3159,7 +3161,10 @@ class DietAIService:
             if not user_protein and user_proteins:
                 user_protein = list(user_proteins)[0]
             
+            print(f"[PROTEIN GUARANTEE] Proteína selecionada: {user_protein}")
+            
             if not user_protein:
+                print("[PROTEIN GUARANTEE] Sem proteína disponível, saindo")
                 return meals_list  # Sem proteína disponível
             
             # Para cada refeição principal
@@ -3170,9 +3175,13 @@ class DietAIService:
                 meal = meals_list[idx]
                 meal_protein = sum(f.get("protein", 0) for f in meal.get("foods", []))
                 
+                print(f"[PROTEIN GUARANTEE] Refeição {idx} ({meal.get('name', 'N/A')}): P={meal_protein}g")
+                
                 # Se tem menos de 20g de proteína, adiciona
                 min_protein_per_main = target_protein / 4  # ~40g para 160g alvo
                 if meal_protein < min_protein_per_main:
+                    print(f"[PROTEIN GUARANTEE] Proteína baixa ({meal_protein}g < {min_protein_per_main}g), adicionando {user_protein}")
+                    
                     # Calcula quanto precisa adicionar
                     protein_needed = min_protein_per_main - meal_protein
                     
@@ -3182,6 +3191,8 @@ class DietAIService:
                     grams_needed = (protein_needed / protein_per_100g) * 100
                     grams_needed = round_to_10(grams_needed)
                     grams_needed = max(150, min(300, grams_needed))  # Entre 150-300g
+                    
+                    print(f"[PROTEIN GUARANTEE] Adicionando {grams_needed}g de {user_protein}")
                     
                     # Adiciona proteína na refeição
                     meals_list[idx]["foods"].append(calc_food(user_protein, grams_needed))
