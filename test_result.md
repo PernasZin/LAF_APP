@@ -336,6 +336,18 @@ backend:
         agent: "testing"
         comment: "🎉 TRAINING CYCLE AUTOMATIC SYSTEM VALIDATION COMPLETE - Executei validação completa dos NOVOS endpoints de Ciclo de Treino Automático conforme solicitação específica do usuário. RESULTADO: 100% SUCESSO (7/7 testes passaram). ENDPOINTS VALIDADOS: (1) POST /api/training-cycle/setup/{user_id} ✅ Aceita frequência 2-6, retorna first_day_type='rest' (dia 0 sempre descanso), salva startDate e frequência, (2) GET /api/training-cycle/status/{user_id} ✅ Retorna day_type correto, multiplicadores de dieta corretos (rest: cal×0.95, carb×0.80; train+treinou: cal×1.05, carb×1.15), (3) POST /api/training-cycle/start-session/{user_id} ✅ Inicia sessão, previne duplo início ('Treino já em andamento'), (4) POST /api/training-cycle/finish-session/{user_id} ✅ Finaliza sessão, salva duração (60:00), exercises_completed, (5) GET /api/training-cycle/week-preview/{user_id} ✅ Retorna 7 dias com day_type correto para cada frequência. VALIDAÇÕES CRÍTICAS CONFIRMADAS: • Dia 0 = SEMPRE descanso (testado freq 2-6x), • Dias de treino corretos (2x: [1,4], 3x: [1,3,5], 4x: [1,2,4,5], 5x: [1,2,3,4,5], 6x: [1,2,3,4,5,6]), • Não permite iniciar treino duas vezes ('Treino já foi concluído hoje'), • Timer salvo corretamente, • Multiplicadores de dieta corretos conforme lógica. Sistema funcionando PERFEITAMENTE conforme especificação da revisão."
 
+  - task: "Dietary Restrictions Validation - Critical Bug Found"
+    implemented: true
+    working: false
+    file: "/app/backend/diet_service.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "🚨 VIOLAÇÃO CRÍTICA DE RESTRIÇÕES ALIMENTARES ENCONTRADA - Executei teste específico das 3 principais restrições alimentares conforme solicitação da revisão. RESULTADO: 93.3% sucesso (14/15 testes), mas 1 VIOLAÇÃO CRÍTICA encontrada que representa RISCO DE SAÚDE. ✅ SUCESSOS: (1) SEM LACTOSE: 100% compliant - ZERO laticínios (leite, queijo, whey) encontrados, frango e arroz presentes conforme esperado, (2) VEGETARIANO: 100% compliant - ZERO carnes/peixes encontrados, ovos, queijo e feijão presentes como proteínas vegetais adequadas. ❌ VIOLAÇÃO CRÍTICA: (3) SEM GLÚTEN: Dieta contém 'pão integral (pao_integral)' que é PROIBIDO para usuários sem glúten. DETALHES: Perfil fix-test-sem-gluten (bulking, masculino, 30 anos) com dietary_restrictions=['sem_gluten'] recebeu dieta com pão integral, violando restrição crítica que pode causar problemas de saúde graves para usuários celíacos. OUTROS ALIMENTOS OK: Arroz branco, tapioca, banana, frango presentes conforme esperado. CONCLUSÃO: Sistema de restrições alimentares tem BUG CRÍTICO na validação de glúten que precisa correção URGENTE."
+
 frontend:
   - task: "Welcome Screen"
     implemented: true
