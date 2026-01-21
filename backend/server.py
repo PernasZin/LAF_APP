@@ -272,6 +272,35 @@ def calculate_bmr(weight: float, height: float, age: int, sex: str) -> float:
         bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
     return bmr
 
+def normalize_goal(goal: str) -> str:
+    """
+    Normaliza o objetivo para valores consistentes.
+    
+    Aceita:
+    - "ganho_muscular", "bulking", "hipertrofia" → "bulking"
+    - "cutting", "definicao", "emagrecimento" → "cutting"
+    - "manutencao", "manutenção", "maintenance" → "manutencao"
+    """
+    if not goal:
+        return "manutencao"
+    
+    goal = goal.lower().strip()
+    
+    # Bulking aliases
+    if goal in ["ganho_muscular", "bulking", "hipertrofia", "ganho", "massa"]:
+        return "bulking"
+    
+    # Cutting aliases
+    if goal in ["cutting", "definicao", "definição", "emagrecimento", "emagrecer"]:
+        return "cutting"
+    
+    # Manutenção aliases
+    if goal in ["manutencao", "manutenção", "maintenance", "manter"]:
+        return "manutencao"
+    
+    return "manutencao"  # Default
+
+
 def get_cardio_weekly_calories(goal: str) -> int:
     """
     Retorna as calorias semanais queimadas pelo cardio planejado.
@@ -282,7 +311,7 @@ def get_cardio_weekly_calories(goal: str) -> int:
     - Bulking: Cardio mínimo (2-3x/semana) ~420 kcal/semana
     - Manutenção: Cardio moderado (3-4x/semana) ~656 kcal/semana
     """
-    goal = goal.lower() if goal else "manutencao"
+    goal = normalize_goal(goal)
     
     if goal == "cutting":
         # 3x caminhada_inclinada + 2x bike_moderada + 1x escada
