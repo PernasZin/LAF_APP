@@ -715,7 +715,7 @@ async def generate_diet(user_id: str, request_meal_count: Optional[int] = None):
         meal_times = None
         
         # PRIORIDADE 1: User Settings (mais recente)
-        if user_settings and user_settings.get('meal_count') in [4, 5, 6]:
+        if user_settings and user_settings.get('meal_count') in [3, 4, 5, 6]:
             meal_count = user_settings.get('meal_count')
             meal_times = user_settings.get('meal_times', None)
         # PRIORIDADE 2: User Profile (fallback)
