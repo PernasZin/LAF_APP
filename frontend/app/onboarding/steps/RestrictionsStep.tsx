@@ -31,7 +31,6 @@ export default function RestrictionsStep({ formData, updateFormData, theme, isDa
   ];
 
   const PREFERENCES = [
-    { value: 'low_carb', label: t.lowCarb || 'Low Carb' },
     { value: 'high_protein', label: t.highProtein },
     { value: 'mediterranean', label: t.mediterranean },
     { value: 'whole_foods', label: t.wholeFoods },
