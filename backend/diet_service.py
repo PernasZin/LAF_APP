@@ -1933,7 +1933,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # 🫒 GORDURA - Prioriza o que o usuário escolheu
             gordura_almoco = None
-            GORDURAS_REFEICAO_ALMOCO = ["azeite", "castanhas", "pasta_amendoim", "oleo_coco"]
+            GORDURAS_REFEICAO_ALMOCO = ["azeite", "castanhas", "pasta_amendoim", "oleo_coco", "abacate", "amendoas", "nozes", "chia", "linhaca"]
             for g in GORDURAS_REFEICAO_ALMOCO:
                 if g in preferred and g not in excluded_restrictions:
                     gordura_almoco = g
