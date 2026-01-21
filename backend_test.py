@@ -261,9 +261,10 @@ class DietaryRestrictionsTest:
             "goal": "manutencao",
             "training_level": "iniciante",
             "weekly_training_frequency": 3,
+            "available_time_per_session": 45,
             "training_days": [1, 3, 5],
             "dietary_restrictions": ["vegetariano"],
-            "preferred_foods": ["ovo", "queijo", "arroz", "feijao"],
+            "food_preferences": ["ovo", "queijo", "arroz", "feijao"],
             "meal_count": 5
         }
         
