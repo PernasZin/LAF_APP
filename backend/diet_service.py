@@ -2105,7 +2105,9 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
         
         # Determina refeições principais (almoço e jantar)
         meal_count = len(meals)
-        if meal_count == 4:
+        if meal_count == 3:
+            main_meal_indices = [1, 2]  # Almoço e Jantar
+        elif meal_count == 4:
             main_meal_indices = [1, 3]
         elif meal_count == 5:
             main_meal_indices = [2, 4]
