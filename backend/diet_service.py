@@ -1325,25 +1325,42 @@ def select_best_food(meal_type: str, preferred: Set[str], restrictions: List[str
 def get_safe_fallback(category: str, restrictions: List[str], fallback_list: List[str] = None) -> Optional[str]:
     """
     Retorna um fallback seguro que respeita as restrições.
+    PRIORIZA opções seguras primeiro (ex: tapioca antes de pão para sem_gluten)
     """
     excluded = set()
     for r in restrictions:
         if r in RESTRICTION_EXCLUSIONS:
             excluded.update(RESTRICTION_EXCLUSIONS[r])
     
+    # Fallbacks ordenados por segurança (opções sem glúten/lactose primeiro)
     DEFAULT_FALLBACKS = {
-        "protein": ["ovos", "whey_protein", "tofu"],
-        "carb_cafe": ["tapioca", "batata_doce"],  # Para café sem glúten
-        "carb_principal": ["arroz_branco", "batata_doce", "tapioca"],
+        "protein": ["ovos", "tofu", "frango", "whey_protein"],
+        "carb_cafe": ["tapioca", "batata_doce", "cuscuz"],  # SEM pão/aveia - seguro para sem_gluten
+        "carb_principal": ["arroz_branco", "arroz_integral", "batata_doce", "tapioca"],
         "fat": ["azeite", "castanhas", "abacate"],
-        "fruit": ["banana", "maca", "morango"]
+        "fruit": ["maca", "morango", "kiwi", "pera"]  # Frutas de baixo IG primeiro (para diabéticos)
     }
     
     options = fallback_list if fallback_list else DEFAULT_FALLBACKS.get(category, [])
     
-    for fb in options:
-        if fb not in excluded and fb in FOODS:
-            return fb
+    # Filtra opções excluídas
+    safe_options = [fb for fb in options if fb not in excluded and fb in FOODS]
+    
+    if safe_options:
+        return safe_options[0]
+    
+    # Se nenhuma opção da lista for segura, tenta encontrar alternativa genérica
+    generic_safe = {
+        "protein": ["ovos", "tofu"],
+        "carb_cafe": ["tapioca", "batata_doce"],
+        "carb_principal": ["arroz_branco", "batata_doce"],
+        "fat": ["azeite"],
+        "fruit": ["maca", "morango"]
+    }
+    
+    for alt in generic_safe.get(category, []):
+        if alt not in excluded and alt in FOODS:
+            return alt
     
     return None
 
