@@ -1008,6 +1008,18 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
                 auto_added.append(FOODS[d]["name"])
                 break
     
+    # ✅ Auto-completar VEGETAIS (mínimo 1) - essencial para almoço e jantar
+    vegetables = [f for f in final_foods if f in FOODS and FOODS[f]["category"] == "vegetable"]
+    if len(vegetables) < 1:
+        defaults = ["salada_verde", "brocolis", "cenoura", "abobrinha", "espinafre"]
+        for d in defaults:
+            if d not in final_foods and d in FOODS:
+                if d not in filter_by_restrictions({d}, restrictions):
+                    continue
+                final_foods.add(d)
+                auto_added.append(FOODS[d]["name"])
+                break
+    
     # Mensagem informativa se auto-completou
     if auto_added:
         message = f"Para garantir uma dieta completa, adicionamos automaticamente: {', '.join(auto_added)}. Você pode alterar nas configurações."
