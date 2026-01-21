@@ -3920,7 +3920,7 @@ class DietAIService:
                         meals[idx]["total_calories"] = mcal
                         meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             
-            # Verifica se também pode adicionar feijão (se nas preferências)
+            # Verifica se também pode adicionar feijão (APENAS se nas preferências do usuário)
             if "feijao" in preferred_foods and carb_deficit > 60:
                 feijao_allowed = True
                 for r in dietary_restrictions:
@@ -3934,7 +3934,8 @@ class DietAIService:
                             # Verifica se já tem feijão
                             has_feijao = any(f.get("key") == "feijao" for f in meals[idx]["foods"])
                             if not has_feijao:
-                                meals[idx]["foods"].append(calc_food("feijao", 120))
+                                # 🫘 Máximo 100g de feijão por refeição
+                                meals[idx]["foods"].append(calc_food("feijao", 100))
                                 mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
                                 meals[idx]["total_calories"] = mcal
                                 meals[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
