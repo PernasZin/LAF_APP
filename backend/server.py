@@ -270,15 +270,45 @@ def calculate_bmr(weight: float, height: float, age: int, sex: str) -> float:
         bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161
     return bmr
 
-def calculate_tdee(bmr: float, training_frequency: int, training_level: str) -> float:
+def get_cardio_weekly_calories(goal: str) -> int:
+    """
+    Retorna as calorias semanais queimadas pelo cardio planejado.
+    Baseado na função generate_cardio_for_goal.
+    
+    REGRAS:
+    - Cutting: Mais cardio (4-6x/semana) ~1270 kcal/semana
+    - Bulking: Cardio mínimo (2-3x/semana) ~420 kcal/semana
+    - Manutenção: Cardio moderado (3-4x/semana) ~656 kcal/semana
+    """
+    goal = goal.lower() if goal else "manutencao"
+    
+    if goal == "cutting":
+        # 3x caminhada_inclinada + 2x bike_moderada + 1x escada
+        return 1270
+    elif goal == "bulking":
+        # 2x caminhada_leve + 1x bike_leve
+        return 420
+    else:  # manutencao
+        # 2x caminhada_moderada + 1x bike_moderada + 1x escada_leve
+        return 656
+
+
+def calculate_tdee(bmr: float, training_frequency: int, training_level: str, goal: str = 'manutencao') -> float:
     """
     Calcula TDEE (Total Daily Energy Expenditure) baseado em atividade
+    
+    INCLUI GASTO DO CARDIO PLANEJADO PELO APP!
     
     Fatores de atividade:
     - 1.3 sedentário (0-1x/semana)
     - 1.45 leve (2-3x/semana)
     - 1.6 moderado (4-5x/semana)
     - 1.75 pesado (6-7x/semana)
+    
+    Fórmula:
+    TDEE_base = BMR × Fator de Atividade
+    Cardio_daily = Cardio_weekly / 7
+    TDEE_real = TDEE_base + Cardio_daily
     """
     # Mapeia frequência para fator de atividade
     if training_frequency <= 1:
@@ -290,7 +320,19 @@ def calculate_tdee(bmr: float, training_frequency: int, training_level: str) -> 
     else:
         factor = 1.75  # pesado
     
-    return bmr * factor
+    tdee_base = bmr * factor
+    
+    # NOVO: Adiciona gasto do cardio planejado
+    cardio_weekly = get_cardio_weekly_calories(goal)
+    cardio_daily = cardio_weekly / 7
+    
+    tdee_real = tdee_base + cardio_daily
+    
+    print(f"[TDEE] BMR={bmr:.0f} × {factor} = TDEE_base={tdee_base:.0f}")
+    print(f"[TDEE] Cardio semanal ({goal})={cardio_weekly}kcal -> diário={cardio_daily:.0f}kcal")
+    print(f"[TDEE] TDEE_real = {tdee_base:.0f} + {cardio_daily:.0f} = {tdee_real:.0f}kcal")
+    
+    return tdee_real
 
 def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
     """
