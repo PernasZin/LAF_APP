@@ -4011,6 +4011,9 @@ class DietAIService:
                 
                 meals[i]["foods"] = filtered_foods
         
+        # 🔒 APLICAÇÃO FINAL DOS LIMITES GLOBAIS (após todas as consolidações)
+        meals = apply_global_limits(meals, raw_preferred)
+        
         # Formata resultado
         final_meals = []
         for m in meals:
