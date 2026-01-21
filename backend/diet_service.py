@@ -1709,9 +1709,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         else:
             carb_grams = 250
     
-    # Feijão: só se nas preferências
+    # Feijão: só se nas preferências (não depende mais de arroz)
     feijao_nas_preferencias = "feijao" in preferred
-    use_feijao = feijao_nas_preferencias and main_carb in TIPOS_ARROZ
+    use_feijao = feijao_nas_preferencias
     
     # Azeite fixo
     azeite_grams = 10
