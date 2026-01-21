@@ -1144,7 +1144,8 @@ const styles = StyleSheet.create({
   restTimerCard: { padding: spacing.lg, alignItems: 'center' },
   restTimerLabel: { fontSize: 12, fontWeight: '600', marginBottom: 4 },
   restTimerDisplay: { fontSize: 48, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  restTimerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.lg, marginTop: spacing.md },
+  restTimerButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md, justifyContent: 'center' },
+  restTimerBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingVertical: 10, borderRadius: radius.lg },
   restTimerBtnText: { fontSize: 14, fontWeight: '600' },
 
   dayCard: { marginBottom: spacing.md },
