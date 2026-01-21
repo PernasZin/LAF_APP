@@ -462,17 +462,27 @@ export default function HomeScreen() {
           if (response.ok) {
             const data = await response.json();
             
-            // Carrega dieta para pegar os valores reais
+            // Carrega dieta para pegar os valores reais (AJUSTADOS para o tipo de dia!)
             try {
               const dietResponse = await safeFetch(`${BACKEND_URL}/api/diet/${storedUserId}`);
               if (dietResponse.ok) {
                 const dietData = await dietResponse.json();
-                // Usa os valores computados da dieta (reais) ao invés dos alvos do perfil
+                // Usa os valores computados da dieta (AJUSTADOS para treino/descanso)
                 if (dietData.computed_calories) {
                   data.target_calories = dietData.computed_calories;
                 }
-                if (dietData.computed_macros) {
-                  data.macros = dietData.computed_macros;
+                // Pega macros ajustados
+                if (dietData.computed_protein || dietData.computed_carbs || dietData.computed_fat) {
+                  data.macros = {
+                    protein: dietData.computed_protein || data.macros?.protein || 0,
+                    carbs: dietData.computed_carbs || data.macros?.carbs || 0,
+                    fat: dietData.computed_fat || data.macros?.fat || 0
+                  };
+                }
+                // Armazena info do tipo de dia
+                if (dietData.diet_type) {
+                  data.diet_type = dietData.diet_type;
+                  data.is_training_day = dietData.is_training_day;
                 }
               }
             } catch (dietError) {
