@@ -1023,7 +1023,7 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     # ✅ Auto-completar VEGETAIS (mínimo 1) - essencial para almoço e jantar
     vegetables = [f for f in final_foods if f in FOODS and FOODS[f]["category"] == "vegetable"]
     if len(vegetables) < 1:
-        defaults = ["salada_verde", "brocolis", "cenoura", "abobrinha", "espinafre"]
+        defaults = ["salada", "brocolis", "cenoura", "abobrinha", "espinafre"]
         for d in defaults:
             if d not in final_foods and d in FOODS:
                 if d not in filter_by_restrictions({d}, restrictions):
