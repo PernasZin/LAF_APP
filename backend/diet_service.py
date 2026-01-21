@@ -624,6 +624,8 @@ FOODS = {
     "cuscuz": {"name": "Cuscuz", "p": 3.5, "c": 25.0, "f": 0.2, "category": "carb", "unit": "porção", "unit_g": 100},
     "feijao": {"name": "Feijão", "p": 6.0, "c": 14.0, "f": 0.5, "category": "carb", "unit": "concha média", "unit_g": 100},
     "lentilha": {"name": "Lentilha", "p": 9.0, "c": 20.0, "f": 0.4, "category": "carb", "unit": "concha média", "unit_g": 100},
+    "quinoa": {"name": "Quinoa", "p": 4.4, "c": 21.3, "f": 1.9, "category": "carb", "unit": "porção", "unit_g": 100},
+    "gema": {"name": "Gema de Ovo", "p": 16.0, "c": 1.0, "f": 31.0, "category": "fat", "unit": "unidade", "unit_g": 17},
     "farofa": {"name": "Farofa", "p": 1.5, "c": 46.0, "f": 2.0, "category": "carb", "unit": "colher sopa", "unit_g": 20},
     "granola": {"name": "Granola", "p": 10.0, "c": 64.0, "f": 15.0, "category": "carb", "unit": "xícara", "unit_g": 40},
     
