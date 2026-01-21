@@ -2949,12 +2949,13 @@ def validate_food_frequency(meals: List[Dict], preferred: Set[str] = None) -> Li
         "fruit": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "fruit"]
     }
     
-    # 🎯 NOVA REGRA: Se o usuário tem apenas 1 alimento na categoria,
-    # NÃO limita a frequência desse alimento
+    # 🎯 NOVA REGRA: Se o usuário tem 2 ou menos alimentos na categoria,
+    # NÃO limita a frequência desses alimentos (podem aparecer mais de 2x)
     foods_with_limited_options = set()
     for category, foods_list in user_substitutes.items():
-        if len(foods_list) == 1:
-            foods_with_limited_options.add(foods_list[0])
+        if len(foods_list) <= 2:  # Alterado de == 1 para <= 2
+            for f in foods_list:
+                foods_with_limited_options.add(f)
     
     # Identifica alimentos com mais de 2 ocorrências
     # 🎯 EXCEÇÃO: Alimentos com opções limitadas podem aparecer mais vezes
