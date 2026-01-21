@@ -75,9 +75,9 @@ def test_tdee_cardio_calculation():
                 "goal": "cutting",
                 "training_level": "intermediario",
                 "weekly_training_frequency": 4,
-                "training_days": [1, 3, 5, 6],
+                "available_time_per_session": 60,
                 "dietary_restrictions": [],
-                "preferred_foods": ["frango", "arroz", "ovo"],
+                "food_preferences": ["frango", "arroz", "ovo"],
                 "meal_count": 5
             }
         },
