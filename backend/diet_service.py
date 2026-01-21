@@ -1919,13 +1919,13 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # 🥦 VEGETAIS OBRIGATÓRIOS NO ALMOÇO - Salada ou brócolis
             # Prioriza o que o usuário escolheu
             vegetal_almoco = None
-            VEGETAIS_PERMITIDOS_ALMOCO = ["salada_verde", "brocolis", "espinafre", "cenoura", "abobrinha", "couve"]
+            VEGETAIS_PERMITIDOS_ALMOCO = ["salada", "brocolis", "espinafre", "cenoura", "abobrinha", "couve"]
             for v in VEGETAIS_PERMITIDOS_ALMOCO:
                 if v in preferred and v not in excluded_restrictions:
                     vegetal_almoco = v
                     break
             if not vegetal_almoco:
-                vegetal_almoco = "salada_verde"  # Default: salada
+                vegetal_almoco = "salada"  # Default: salada
             foods.append(calc_food(vegetal_almoco, 100))
             
             if use_feijao:
