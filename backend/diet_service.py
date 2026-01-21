@@ -1243,9 +1243,28 @@ MEAL_RULES = {
 def get_allowed_foods(meal_type: str, preferred: Set[str], restrictions: List[str], category: str) -> List[str]:
     """
     Retorna alimentos PERMITIDOS para uma refeição específica.
-    Respeita: regras da refeição + preferências do usuário + restrições.
+    
+    🎯 REGRA PRINCIPAL: PRIORIZA preferências do usuário!
+    
+    Se o usuário selecionou um alimento (ex: tilapia), esse alimento
+    é usado em TODAS as refeições, mesmo que normalmente não seja
+    "recomendado" para aquele tipo de refeição.
+    
+    Respeita: preferências do usuário > regras da refeição > restrições.
     """
     rules = MEAL_RULES.get(meal_type, MEAL_RULES["almoco_jantar"])
+    
+    # 🎯 PRIMEIRO: Pega TODOS os alimentos do usuário da categoria
+    # (ignora as regras da refeição - a preferência do usuário é soberana!)
+    user_foods_in_category = []
+    for food_key in preferred:
+        if food_key in FOODS and FOODS[food_key]["category"] == category:
+            user_foods_in_category.append(food_key)
+    
+    # Se o usuário escolheu alimentos da categoria, usa ESSES
+    # (mesmo que não sejam "típicos" da refeição)
+    if user_foods_in_category:
+        return list(filter_by_restrictions(set(user_foods_in_category), restrictions))
     
     if category == "fruit":
         # Frutas: se permitido, retorna todas as frutas disponíveis
@@ -1255,18 +1274,14 @@ def get_allowed_foods(meal_type: str, preferred: Set[str], restrictions: List[st
             return list(filter_by_restrictions(set(available), restrictions))
         return []
     
-    # 🚫 REGRA ABSOLUTA: Usa APENAS alimentos selecionados pelo usuário!
-    # Filtra os alimentos da whitelist para incluir apenas os que o usuário selecionou
+    # Se o usuário NÃO escolheu nada da categoria, usa as regras da refeição
     allowed_in_meal = rules.get(f"{category}s", set())
     
     if not allowed_in_meal:
         return []
     
-    # Intersecção: alimentos permitidos na refeição E selecionados pelo usuário
-    available = []
-    for food_key in allowed_in_meal:
-        if food_key in FOODS and food_key in preferred:  # Adiciona filtro de preferência!
-            available.append(food_key)
+    # Retorna alimentos permitidos na refeição que não violam restrições
+    available = [food_key for food_key in allowed_in_meal if food_key in FOODS]
     
     return list(filter_by_restrictions(set(available), restrictions))
 
