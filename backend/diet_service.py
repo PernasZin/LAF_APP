@@ -2481,10 +2481,13 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
             safe_fruit = get_user_fruit()
             foods = [calc_food(safe_protein, 100), calc_food(safe_carb, 40), calc_food(safe_fruit, 100)]
         elif meal_index == 1:  # Lanche manhã
-            # 🎯 USA FRUTA e GORDURA do usuário!
+            # 🎯 USA FRUTA do usuário!
             safe_fruit = get_user_fruit()
-            safe_fat = get_user_fat() if get_user_fat() != "azeite" else "castanhas"
-            foods = [calc_food(safe_fruit, 150), calc_food(safe_fat, 20)]
+            foods = [calc_food(safe_fruit, 150)]
+            # Gordura só se o usuário escolheu uma adequada para lanche (não azeite)
+            user_lanche_fat = get_user_fat()
+            if user_lanche_fat and user_lanche_fat != "azeite" and user_lanche_fat in FOODS:
+                foods.append(calc_food(user_lanche_fat, 20))
         elif meal_index == 2:  # Almoço
             # 🎯 USA PROTEÍNA, CARB e GORDURA do usuário!
             safe_protein = get_safe_protein_main()
@@ -2492,10 +2495,13 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
             safe_fat = get_user_fat()
             foods = [calc_food(safe_protein, 150), calc_food(safe_carb, 150), calc_food("salada", 100), calc_food(safe_fat, 10)]
         elif meal_index == 3:  # Lanche tarde
-            # 🎯 USA FRUTA e GORDURA do usuário!
+            # 🎯 USA FRUTA do usuário!
             safe_fruit = get_user_fruit()
-            safe_fat = get_user_fat() if get_user_fat() != "azeite" else "castanhas"
-            foods = [calc_food(safe_fruit, 150), calc_food(safe_fat, 20)]
+            foods = [calc_food(safe_fruit, 150)]
+            # Gordura só se o usuário escolheu uma adequada para lanche (não azeite)
+            user_lanche_fat = get_user_fat()
+            if user_lanche_fat and user_lanche_fat != "azeite" and user_lanche_fat in FOODS:
+                foods.append(calc_food(user_lanche_fat, 20))
         elif meal_index == 4:  # Jantar
             # 🎯 USA PROTEÍNA, CARB e GORDURA do usuário!
             safe_protein = get_safe_protein_main()
@@ -2505,8 +2511,11 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
         else:  # Ceia
             # 🎯 USA FRUTA do usuário! (evita proteína na ceia)
             safe_fruit = get_user_fruit()
-            safe_fat = get_user_fat() if get_user_fat() != "azeite" else "castanhas"
-            foods = [calc_food(safe_fruit, 150), calc_food(safe_fat, 20)]
+            foods = [calc_food(safe_fruit, 150)]
+            # Gordura só se o usuário escolheu uma adequada para ceia (não azeite)
+            user_ceia_fat = get_user_fat()
+            if user_ceia_fat and user_ceia_fat != "azeite" and user_ceia_fat in FOODS:
+                foods.append(calc_food(user_ceia_fat, 20))
     
     # Valida cada alimento
     validated_foods = []
