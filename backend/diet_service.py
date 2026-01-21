@@ -920,8 +920,10 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     final_foods = set(available)
     auto_added = []
     
-    # ✅ Auto-completar PROTEÍNAS (mínimo 2)
-    if len(proteins) < 2:
+    # 🎯 NOVA LÓGICA: NÃO auto-completar PROTEÍNAS
+    # Se o usuário escolheu tilápia, usa tilápia em todas as refeições!
+    # Apenas auto-completa se o usuário não escolheu NENHUMA proteína
+    if len(proteins) == 0:
         defaults = ["frango", "ovos", "patinho", "tilapia", "whey_protein"]
         for d in defaults:
             if d not in final_foods and d in FOODS:
@@ -929,11 +931,11 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
                     continue
                 final_foods.add(d)
                 auto_added.append(FOODS[d]["name"])
-                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "protein"]) >= 2:
-                    break
+                break  # Apenas 1 proteína de fallback
     
-    # ✅ Auto-completar CARBOIDRATOS (mínimo 2)
-    if len(carbs) < 2:
+    # 🎯 NOVA LÓGICA: NÃO auto-completar CARBOIDRATOS
+    # Se o usuário escolheu batata_doce, usa batata_doce em todas as refeições!
+    if len(carbs) == 0:
         defaults = ["arroz_branco", "aveia", "batata_doce", "pao_integral"]
         for d in defaults:
             if d not in final_foods and d in FOODS:
@@ -941,10 +943,9 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
                     continue
                 final_foods.add(d)
                 auto_added.append(FOODS[d]["name"])
-                if len([f for f in final_foods if f in FOODS and FOODS[f]["category"] == "carb"]) >= 2:
-                    break
+                break  # Apenas 1 carb de fallback
     
-    # ✅ Auto-completar GORDURAS (mínimo 1)
+    # ✅ Auto-completar GORDURAS (mínimo 1) - mantém porque gordura é essencial
     if len(fats) < 1:
         defaults = ["azeite", "castanhas", "pasta_amendoim"]
         for d in defaults:
@@ -955,7 +956,7 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
                 auto_added.append(FOODS[d]["name"])
                 break
     
-    # ✅ Auto-completar FRUTAS (mínimo 1)
+    # ✅ Auto-completar FRUTAS (mínimo 1) - mantém porque fruta é essencial
     if len(fruits) < 1:
         defaults = ["banana", "maca", "morango", "laranja"]
         for d in defaults:
