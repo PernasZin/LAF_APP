@@ -1695,24 +1695,20 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     carb_aveia = c
                     break
             
-            # Proteína - ajustado por objetivo
-            if protein and protein in FOODS and protein not in excluded_restrictions:
-                # Em CUTTING: mais proteína para preservar massa muscular
-                # Em BULKING: proteína moderada
-                if goal == "cutting":
-                    p_grams = 150 if protein == "ovos" else 120  # Mais proteína em cutting
+            # Proteína - 🎯 USA O QUE O USUÁRIO ESCOLHEU!
+            if user_protein and user_protein in FOODS and user_protein not in excluded_restrictions:
+                # Ajusta quantidade baseado no tipo de proteína
+                if user_protein == "ovos":
+                    p_grams = 150 if goal == "cutting" else 100
+                elif user_protein in ["tilapia", "frango", "patinho"]:
+                    # Proteína principal no café: usar quantidade menor
+                    p_grams = 100 if goal == "cutting" else 80
+                elif user_protein == "whey_protein":
+                    p_grams = 30
                 else:
-                    p_grams = 100 if protein == "ovos" else 80
-                foods.append(calc_food(protein, p_grams))
-            else:
-                # 🧠 FALLBACK: proteína com BAIXA gordura
-                # Em CUTTING: adiciona proteína (essencial para preservar massa)
-                # Em BULKING: não adiciona (para evitar excesso)
-                if goal == "cutting":
-                    safe_protein = get_safe_fallback("protein", restrictions, ["iogurte_zero", "cottage", "whey_protein", "tofu"])
-                    if safe_protein:
-                        grams = 30 if safe_protein == "whey_protein" else 150
-                        foods.append(calc_food(safe_protein, grams))
+                    p_grams = 100
+                foods.append(calc_food(user_protein, p_grams))
+            # Não adiciona fallback de proteína no café - pode ser só carb+fruta!
             
             # 🍞 PÃO (APENAS se não tiver restrição sem_gluten)
             # MÍNIMO: 2 fatias (50g) | PODE AUMENTAR: 4-5 fatias (100-125g) se precisar de mais carbs
