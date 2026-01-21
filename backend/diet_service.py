@@ -975,7 +975,8 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     
     if len(proteins) == 0 or not has_main_protein:
         # Se não tem proteína OU não tem proteína principal, adiciona uma
-        defaults = ["frango", "patinho", "tilapia", "tofu"]  # Proteínas principais
+        # PRIORIDADE: frango > patinho > tilápia > tofu (nessa ordem!)
+        defaults = ["frango", "patinho", "tilapia", "tofu"]
         for d in defaults:
             if d not in final_foods and d in FOODS:
                 if d not in filter_by_restrictions({d}, restrictions):
