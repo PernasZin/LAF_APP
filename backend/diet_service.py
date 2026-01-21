@@ -1883,8 +1883,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # ✅ Permitido: iogurte, leite, whey, aveia, fruta leve
             # ❌ Proibido: carne, peixe, arroz, macarrão
             
-            # Para ceia, NÃO usar proteínas principais - usar lista específica de leves
-            # Respeitando restrições alimentares
+            # 🎯 PRIORIZA fruta do usuário (ceia pode ser só fruta!)
+            ceia_fruit = None
+            for f in fruit_priority:
+                if f in preferred and f not in excluded_restrictions:
+                    ceia_fruit = f
+                    break
+            
+            # Proteína leve (opcional - ceia pode ser só fruta)
             CEIA_PROTEINS = ["iogurte_zero", "cottage", "whey_protein"]
             ceia_protein = None
             for p in CEIA_PROTEINS:
@@ -1892,23 +1898,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     ceia_protein = p
                     break
             
-            # Fruta para ceia
-            ceia_fruit = None
-            for f in fruit_priority:
-                if f in preferred and f not in excluded_restrictions:
-                    ceia_fruit = f
-                    break
-            
+            # Adiciona proteína apenas se o usuário escolheu
             if ceia_protein and ceia_protein in FOODS:
-                foods.append(calc_food(ceia_protein, 170))
-            else:
-                # 🧠 FALLBACK CEIA: proteína leve segura (respeita sem lactose)
-                safe_ceia_protein = get_safe_fallback("protein", restrictions, ["whey_protein", "ovos"])
-                if safe_ceia_protein:
-                    foods.append(calc_food(safe_ceia_protein, 100 if safe_ceia_protein == "ovos" else 30))
+                foods.append(calc_food(ceia_protein, 170 if ceia_protein != "whey_protein" else 30))
+            # Não adiciona fallback de proteína na ceia - ceia pode ser só fruta!
             
+            # Fruta é obrigatória na ceia
             if ceia_fruit and ceia_fruit in FOODS:
-                foods.append(calc_food(ceia_fruit, 120))
+                foods.append(calc_food(ceia_fruit, 150))
             else:
                 # 🧠 FALLBACK: banana
                 foods.append(calc_food(get_restriction_safe_fruit(), 120))
