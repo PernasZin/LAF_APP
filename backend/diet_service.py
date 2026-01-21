@@ -1952,20 +1952,30 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     foods.append(calc_food(safe_carb, 200))
             
             # 🥦 VEGETAIS OBRIGATÓRIOS NO JANTAR - Brócolis ou salada
-            # Prioriza brócolis se o usuário escolheu, senão salada
+            # Prioriza o que o usuário escolheu
             vegetal_jantar = None
-            if "brocolis" in preferred:
-                vegetal_jantar = "brocolis"
-            elif "salada" in preferred:
-                vegetal_jantar = "salada"
-            else:
+            VEGETAIS_PERMITIDOS = ["brocolis", "salada_verde", "espinafre", "cenoura", "abobrinha", "couve"]
+            for v in VEGETAIS_PERMITIDOS:
+                if v in preferred and v not in excluded_restrictions:
+                    vegetal_jantar = v
+                    break
+            if not vegetal_jantar:
                 vegetal_jantar = "brocolis"  # Default: brócolis no jantar
             foods.append(calc_food(vegetal_jantar, 100))
             
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
             
-            foods.append(calc_food("azeite", azeite_grams))
+            # 🫒 GORDURA - Prioriza o que o usuário escolheu
+            gordura_jantar = None
+            GORDURAS_REFEICAO = ["azeite", "castanhas", "pasta_amendoim", "oleo_coco"]
+            for g in GORDURAS_REFEICAO:
+                if g in preferred and g not in excluded_restrictions:
+                    gordura_jantar = g
+                    break
+            if not gordura_jantar:
+                gordura_jantar = "azeite"  # Default
+            foods.append(calc_food(gordura_jantar, azeite_grams if gordura_jantar == "azeite" else 15))
             
         elif meal_type == 'ceia':
             # 🌙 CEIA - Somente leve
