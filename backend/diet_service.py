@@ -1917,20 +1917,30 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                     foods.append(calc_food(safe_carb, 200))
             
             # 🥦 VEGETAIS OBRIGATÓRIOS NO ALMOÇO - Salada ou brócolis
-            # Prioriza brócolis se o usuário escolheu, senão salada
+            # Prioriza o que o usuário escolheu
             vegetal_almoco = None
-            if "brocolis" in preferred:
-                vegetal_almoco = "brocolis"
-            elif "salada" in preferred:
-                vegetal_almoco = "salada"
-            else:
-                vegetal_almoco = "salada"  # Default: salada
+            VEGETAIS_PERMITIDOS_ALMOCO = ["salada_verde", "brocolis", "espinafre", "cenoura", "abobrinha", "couve"]
+            for v in VEGETAIS_PERMITIDOS_ALMOCO:
+                if v in preferred and v not in excluded_restrictions:
+                    vegetal_almoco = v
+                    break
+            if not vegetal_almoco:
+                vegetal_almoco = "salada_verde"  # Default: salada
             foods.append(calc_food(vegetal_almoco, 100))
             
             if use_feijao:
                 foods.append(calc_food("feijao", feijao_grams))
             
-            foods.append(calc_food("azeite", azeite_grams))
+            # 🫒 GORDURA - Prioriza o que o usuário escolheu
+            gordura_almoco = None
+            GORDURAS_REFEICAO_ALMOCO = ["azeite", "castanhas", "pasta_amendoim", "oleo_coco"]
+            for g in GORDURAS_REFEICAO_ALMOCO:
+                if g in preferred and g not in excluded_restrictions:
+                    gordura_almoco = g
+                    break
+            if not gordura_almoco:
+                gordura_almoco = "azeite"  # Default
+            foods.append(calc_food(gordura_almoco, azeite_grams if gordura_almoco == "azeite" else 15))
             
         elif meal_type == 'jantar':
             # 🍽️ JANTAR - Mesmo conceito do almoço
