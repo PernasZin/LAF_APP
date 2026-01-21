@@ -3456,6 +3456,11 @@ class DietAIService:
                     if food_key in CARNES_APENAS_ALMOCO_JANTAR and idx not in indices_almoco_jantar:
                         foods_to_remove.append(food_idx)
                         print(f"[FOOD RULES] Removendo {food_key} da refeição {idx} ({meal.get('name')})")
+                    
+                    # REGRA: Aveia só no café da manhã e lanches (NÃO no almoço/jantar)
+                    if food_key == "aveia" and idx in indices_almoco_jantar:
+                        foods_to_remove.append(food_idx)
+                        print(f"[FOOD RULES] Removendo aveia da refeição {idx} ({meal.get('name')}) - só permitido no café/lanches")
                 
                 # Remove alimentos marcados (em ordem reversa para não afetar índices)
                 for food_idx in reversed(foods_to_remove):
