@@ -2759,7 +2759,48 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
         meal["total_calories"] = mcal
         meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
     
-    # ========== PASSO 4: IOGURTE ZERO MÁXIMO 1X POR DIA ==========
+    # ========== PASSO 4: WHEY PROTEIN MÁXIMO 60g POR DIA (2 SCOOPS) ==========
+    MAX_WHEY_TOTAL = 60  # 2 scoops
+    total_whey = 0
+    for meal in meals:
+        for food in meal.get("foods", []):
+            if food.get("key") == "whey_protein":
+                total_whey += food.get("grams", 0)
+    
+    if total_whey > MAX_WHEY_TOTAL:
+        # Precisa reduzir whey
+        whey_to_remove = total_whey - MAX_WHEY_TOTAL
+        
+        for meal in meals:
+            foods_to_keep = []
+            for food in meal.get("foods", []):
+                if food.get("key") == "whey_protein":
+                    current_grams = food.get("grams", 0)
+                    if whey_to_remove >= current_grams:
+                        # Remove este whey completamente
+                        whey_to_remove -= current_grams
+                        print(f"[GLOBAL LIMITS] Removendo whey_protein ({current_grams}g) - limite excedido")
+                        continue  # Não adiciona à lista
+                    else:
+                        # Reduz este whey
+                        new_grams = current_grams - whey_to_remove
+                        if new_grams >= 25:  # Mínimo 25g para 1 scoop parcial
+                            food = calc_food("whey_protein", new_grams)
+                            print(f"[GLOBAL LIMITS] Reduzindo whey_protein para {new_grams}g")
+                            whey_to_remove = 0
+                        else:
+                            whey_to_remove -= current_grams
+                            print(f"[GLOBAL LIMITS] Removendo whey_protein ({current_grams}g) - muito pouco restante")
+                            continue  # Remove completamente
+                foods_to_keep.append(food)
+            meal["foods"] = foods_to_keep
+            
+            # Recalcula macros da refeição
+            mp, mc, mf, mcal = sum_foods(meal["foods"])
+            meal["total_calories"] = mcal
+            meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
+    # ========== PASSO 5: IOGURTE ZERO MÁXIMO 1X POR DIA ==========
     # Conta ocorrências de iogurte_zero
     iogurte_count = 0
     for meal in meals:
