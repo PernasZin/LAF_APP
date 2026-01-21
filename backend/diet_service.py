@@ -3223,9 +3223,18 @@ class DietAIService:
         - NUNCA deixa refeição vazia
         
         Parâmetros:
-        - meal_count: 4, 5 ou 6 refeições por dia
+        - meal_count: 4, 5 ou 6 refeições por dia (MÍNIMO 4)
         - meal_times: lista opcional com horários personalizados
         """
+        
+        # ==================== VALIDAÇÃO DO NÚMERO DE REFEIÇÕES ====================
+        # ⚠️ Mínimo 4 refeições - se receber menos, ajusta para 4
+        if meal_count < 4:
+            print(f"[DIET_PLAN] meal_count={meal_count} é menor que o mínimo (4). Ajustando para 4.")
+            meal_count = 4
+        elif meal_count > 6:
+            print(f"[DIET_PLAN] meal_count={meal_count} é maior que o máximo (6). Ajustando para 6.")
+            meal_count = 6
         
         # Obtém preferências e restrições
         food_preferences = user_profile.get('food_preferences', [])
