@@ -2864,7 +2864,13 @@ def validate_food_frequency(meals: List[Dict], preferred: Set[str] = None) -> Li
     
     ❌ Erro se um alimento aparece > 2 vezes/dia
     
-    Se um alimento aparecer mais de 2 vezes:
+    🎯 EXCEÇÃO IMPORTANTE: Se o usuário tem APENAS 1 alimento em uma categoria,
+    esse alimento pode aparecer em TODAS as refeições (não aplica limite de 2).
+    
+    Exemplo: Se usuário só escolheu "banana" como fruta, banana pode aparecer
+    em todos os lanches e ceias.
+    
+    Se um alimento aparecer mais de 2 vezes E o usuário tiver outras opções:
     1. Remove a terceira ocorrência
     2. Substitui por alimento da mesma categoria (🚫 APENAS do usuário!)
     
@@ -2885,13 +2891,7 @@ def validate_food_frequency(meals: List[Dict], preferred: Set[str] = None) -> Li
             if key:
                 food_count[key] = food_count.get(key, 0) + 1
     
-    # Identifica alimentos com mais de 2 ocorrências
-    foods_to_limit = {k: v for k, v in food_count.items() if v > 2}
-    
-    if not foods_to_limit:
-        return meals  # Nada a corrigir
-    
-    # 🚫 NOVA REGRA: Substitutos APENAS dentre os alimentos do usuário!
+    # 🎯 NOVA LÓGICA: Identifica categorias com opções limitadas
     # Organiza os alimentos preferidos por categoria
     user_substitutes = {
         "protein": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "protein"],
@@ -2899,6 +2899,23 @@ def validate_food_frequency(meals: List[Dict], preferred: Set[str] = None) -> Li
         "fat": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "fat"],
         "fruit": [f for f in preferred if f in FOODS and FOODS[f]["category"] == "fruit"]
     }
+    
+    # 🎯 NOVA REGRA: Se o usuário tem apenas 1 alimento na categoria,
+    # NÃO limita a frequência desse alimento
+    foods_with_limited_options = set()
+    for category, foods_list in user_substitutes.items():
+        if len(foods_list) == 1:
+            foods_with_limited_options.add(foods_list[0])
+    
+    # Identifica alimentos com mais de 2 ocorrências
+    # 🎯 EXCEÇÃO: Alimentos com opções limitadas podem aparecer mais vezes
+    foods_to_limit = {}
+    for k, v in food_count.items():
+        if v > 2 and k not in foods_with_limited_options:
+            foods_to_limit[k] = v
+    
+    if not foods_to_limit:
+        return meals  # Nada a corrigir
     
     # Substitutos permitidos na CEIA (apenas proteínas leves e frutas do usuário)
     CEIA_ALLOWED_PROTEINS = {"iogurte_zero", "cottage"}
