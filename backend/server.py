@@ -714,16 +714,16 @@ async def generate_diet(user_id: str, request_meal_count: Optional[int] = None):
         meal_count = 6  # Padrão
         meal_times = None
         
-        # PRIORIDADE 1: User Settings (mais recente)
-        if user_settings and user_settings.get('meal_count') in [3, 4, 5, 6]:
+        # PRIORIDADE 1: User Settings (mais recente) - mínimo 4 refeições
+        if user_settings and user_settings.get('meal_count') in [4, 5, 6]:
             meal_count = user_settings.get('meal_count')
             meal_times = user_settings.get('meal_times', None)
         # PRIORIDADE 2: User Profile (fallback)
-        elif user_profile.get('meal_count') and user_profile.get('meal_count') in [3, 4, 5, 6]:
+        elif user_profile.get('meal_count') and user_profile.get('meal_count') in [4, 5, 6]:
             meal_count = user_profile.get('meal_count')
         
-        # Valida meal_count
-        if meal_count not in [3, 4, 5, 6]:
+        # Valida meal_count (mínimo 4)
+        if meal_count not in [4, 5, 6]:
             meal_count = 6
         
         print(f"[DIET] Gerando dieta com meal_count={meal_count} para user={user_id}")
