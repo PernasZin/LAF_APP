@@ -90,9 +90,11 @@ class UserProfileCreate(BaseModel):
     goal: str  # "cutting", "bulking", "manutencao"
     dietary_restrictions: List[str] = Field(default_factory=list)
     food_preferences: List[str] = Field(default_factory=list)
+    preferred_foods: List[str] = Field(default_factory=list)  # Alias para food_preferences
     injury_history: List[str] = Field(default_factory=list)
     meal_count: Optional[int] = 6  # 4, 5, ou 6 refeições por dia
     language: str = "pt-BR"  # "pt-BR", "en-US", "es-ES"
+    training_days: List[int] = Field(default_factory=list)  # Dias da semana para treino
 
 class UserProfileUpdate(BaseModel):
     name: Optional[str] = None
