@@ -2543,15 +2543,21 @@ def validate_and_fix_meal(meal: Dict, meal_index: int, preferred: Set[str] = Non
     # Recalcula totais da refeição
     mp, mc, mf, mcal = sum_foods(validated_foods)
     
-    # Garante calorias mínimas (RESPEITANDO regras da refeição E RESTRIÇÕES)
+    # Garante calorias mínimas (RESPEITANDO regras da refeição E PREFERÊNCIAS DO USUÁRIO!)
     if mcal < MIN_MEAL_CALORIES:
-        if meal_index in [0, 5]:  # Café ou Ceia - adicionar carb ou fruta
-            # Usa a nova função inteligente que respeita todas as restrições
-            safe_carb = get_restriction_safe_breakfast_carb()
-            validated_foods.append(calc_food(safe_carb, 50) if meal_index == 0 else calc_food(get_restriction_safe_fruit(), 100))
-        elif meal_index in [1, 3]:  # Lanches - adicionar fruta (NUNCA carne!)
-            validated_foods.append(calc_food(get_restriction_safe_fruit(), 150))
-        else:  # Almoço/Jantar - adicionar proteína segura
+        if meal_index in [0, 5]:  # Café ou Ceia - adicionar carb ou fruta DO USUÁRIO!
+            if meal_index == 0:
+                # Café: usa carb do usuário
+                safe_carb = user_carbs[0] if user_carbs else get_restriction_safe_breakfast_carb()
+                validated_foods.append(calc_food(safe_carb, 50))
+            else:
+                # Ceia: usa fruta do usuário
+                safe_fruit = user_fruits[0] if user_fruits else get_restriction_safe_fruit()
+                validated_foods.append(calc_food(safe_fruit, 100))
+        elif meal_index in [1, 3]:  # Lanches - adicionar fruta DO USUÁRIO!
+            safe_fruit = user_fruits[0] if user_fruits else get_restriction_safe_fruit()
+            validated_foods.append(calc_food(safe_fruit, 150))
+        else:  # Almoço/Jantar - adicionar proteína DO USUÁRIO!
             safe_protein = get_safe_protein_main()
             validated_foods.append(calc_food(safe_protein, 100))
         mp, mc, mf, mcal = sum_foods(validated_foods)
