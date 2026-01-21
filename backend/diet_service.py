@@ -1453,6 +1453,11 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 if FOODS[p]["category"] == category:
                     user_foods.append(p)
         
+        # DEBUG: Log das preferências
+        print(f"[DEBUG] get_user_foods_with_fallback({category}, {meal_type})")
+        print(f"[DEBUG]   preferred: {preferred}")
+        print(f"[DEBUG]   user_foods encontrados: {user_foods}")
+        
         if user_foods:
             return user_foods
         
