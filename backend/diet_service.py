@@ -2149,7 +2149,12 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
     ADJUSTABLE_FATS = {"azeite", "oleo_coco", "pasta_amendoim", "castanhas", "amendoas", "nozes", "chia"}
     
     # Determina índices das refeições baseado no número
-    if num_meals == 4:
+    if num_meals == 3:
+        # 3 refeições: Café (0), Almoço (1), Jantar (2)
+        main_meal_indices = [1, 2]
+        lanche_indices = []
+        all_indices = [0, 1, 2]
+    elif num_meals == 4:
         main_meal_indices = [1, 3]
         lanche_indices = [2]
         all_indices = [0, 1, 2, 3]
