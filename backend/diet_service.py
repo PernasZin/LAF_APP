@@ -3152,40 +3152,95 @@ class DietAIService:
         meals = validate_and_fix_diet(meals, target_p, target_c, target_f, preferred_foods, meal_count, dietary_restrictions)
         
         # 🔒 GARANTIA DE PROTEÍNA - Garante que há proteína suficiente em TODAS as refeições
-        def ensure_protein_in_meals(meals_list, user_proteins, target_protein, weight):
+        def ensure_protein_in_meals(meals_list, user_proteins, target_protein, weight, restrictions):
             """
             Garante que há proteína suficiente em TODAS as refeições.
             
             REGRAS IMPORTANTES:
-            - OVOS: Apenas no café da manhã, MÁXIMO 6 ovos (300g)
-            - BATATA DOCE: Apenas no almoço e jantar
-            - Carnes (frango, etc): Apenas no almoço e jantar
-            
-            Distribuição alvo de proteína (para 160g total):
-            - Café: 25-40g (ovos - máx 6 = ~40g proteína)
-            - Lanche Manhã: 0g (sem proteína)
-            - Almoço: 50-60g (frango/carne)
-            - Lanche Tarde: 0g (sem proteína)
-            - Jantar: 50-60g (frango/carne)
-            - Ceia: 0-10g (whey opcional, NUNCA ovos)
-            
-            Total: ~150-170g
+            - VEGETARIANO: Não come carne/peixe, mas come ovos e laticínios
+            - VEGANO: Não come NADA de origem animal
+            - OVOS: Apenas no café da manhã, MÁXIMO 6 ovos (300g) - exceto veganos
+            - Carnes: Apenas no almoço e jantar - exceto vegetarianos/veganos
             """
             print(f"[PROTEIN GUARANTEE] Entrando com {len(user_proteins)} proteínas, target={target_protein}g")
+            print(f"[PROTEIN GUARANTEE] Restrições: {restrictions}")
+            
+            # Verifica tipo de dieta
+            is_vegetarian = "vegetariano" in restrictions
+            is_vegan = "vegano" in restrictions
+            
+            # PROTEÍNAS VEGETAIS (para vegetarianos e veganos)
+            PROTEINAS_VEGETAIS = {"tofu", "tempeh", "edamame", "proteina_ervilha", "seitan"}
+            
+            # PROTEÍNAS OVOLACTO (para vegetarianos que comem ovos/laticínios)
+            PROTEINAS_OVOLACTO = {"ovos", "claras", "cottage", "whey_protein", "iogurte_zero"}
+            
+            # PROTEÍNAS ANIMAIS (só para onívoros)
+            PROTEINAS_ANIMAIS = {"frango", "patinho", "tilapia", "atum", "salmao", "carne_moida"}
             
             if not user_proteins:
                 print("[PROTEIN GUARANTEE] Sem proteínas do usuário!")
-                return meals_list
+                
+                # Auto-completar com proteínas adequadas
+                if is_vegan:
+                    user_proteins = {"tofu"}  # Adiciona tofu para veganos
+                    print("[PROTEIN GUARANTEE] Adicionando tofu para vegano")
+                elif is_vegetarian:
+                    user_proteins = {"ovos", "tofu"}  # Adiciona ovos e tofu para vegetarianos
+                    print("[PROTEIN GUARANTEE] Adicionando ovos e tofu para vegetariano")
+                else:
+                    user_proteins = {"frango", "ovos"}  # Adiciona frango e ovos para onívoros
+                    print("[PROTEIN GUARANTEE] Adicionando frango e ovos como fallback")
             
-            # Separa proteínas por tipo
-            # Proteínas para CAFÉ (leves): ovos, whey, cottage
-            proteinas_cafe = [p for p in user_proteins if p in {"ovos", "claras", "whey_protein", "cottage", "iogurte_zero"}]
-            # Proteínas para ALMOÇO/JANTAR (principais): frango, carne, peixe
-            proteinas_principais = [p for p in user_proteins if p in PROTEINS_ALMOCO_JANTAR]
+            # Filtra proteínas válidas baseado nas restrições
+            proteinas_validas = set()
+            for p in user_proteins:
+                if is_vegan:
+                    # Veganos: só proteínas vegetais
+                    if p in PROTEINAS_VEGETAIS:
+                        proteinas_validas.add(p)
+                elif is_vegetarian:
+                    # Vegetarianos: proteínas vegetais + ovolacto
+                    if p in PROTEINAS_VEGETAIS or p in PROTEINAS_OVOLACTO:
+                        proteinas_validas.add(p)
+                else:
+                    # Onívoros: qualquer proteína
+                    proteinas_validas.add(p)
             
-            # Se não tem proteína principal, usa ovos como fallback apenas para almoço/jantar
+            # Se não tem proteínas válidas após filtragem, adiciona default
+            if not proteinas_validas:
+                if is_vegan:
+                    proteinas_validas = {"tofu"}
+                elif is_vegetarian:
+                    proteinas_validas = {"ovos", "tofu"}
+                else:
+                    proteinas_validas = {"frango", "ovos"}
+            
+            print(f"[PROTEIN GUARANTEE] Proteínas válidas: {proteinas_validas}")
+            
+            # Separa por tipo
+            proteinas_cafe = []  # Para café da manhã
+            proteinas_principais = []  # Para almoço/jantar
+            
+            for p in proteinas_validas:
+                if p in {"ovos", "claras", "whey_protein", "cottage", "iogurte_zero"}:
+                    proteinas_cafe.append(p)
+                if p in PROTEINAS_ANIMAIS or p in PROTEINAS_VEGETAIS:
+                    proteinas_principais.append(p)
+            
+            # Fallbacks
+            if not proteinas_cafe and not is_vegan:
+                proteinas_cafe = ["ovos"] if not is_vegetarian else ["ovos"]
+            if not proteinas_cafe and is_vegan:
+                proteinas_cafe = ["tofu"]  # Veganos usam tofu no café também
+                
             if not proteinas_principais:
-                proteinas_principais = proteinas_cafe.copy()
+                if is_vegan:
+                    proteinas_principais = ["tofu"]
+                elif is_vegetarian:
+                    proteinas_principais = ["tofu", "ovos"]
+                else:
+                    proteinas_principais = ["frango"]
             
             print(f"[PROTEIN GUARANTEE] Café: {proteinas_cafe}, Principal: {proteinas_principais}")
             
@@ -3193,16 +3248,14 @@ class DietAIService:
             
             # Controla uso de ovos (máximo 300g = 6 ovos)
             ovos_usados = 0
-            OVOS_MAX = 300  # 6 ovos × 50g
+            OVOS_MAX = 300
             
-            # Para cada refeição
             for idx, meal in enumerate(meals_list):
                 meal_name = meal.get('name', f'Meal {idx}')
                 current_protein = sum(f.get("protein", 0) for f in meal.get("foods", []))
                 
                 # Define tipo de refeição
                 if num_meals == 6:
-                    # Café(0), Lanche(1), Almoço(2), Lanche(3), Jantar(4), Ceia(5)
                     is_cafe = idx == 0
                     is_lanche = idx in [1, 3]
                     is_almoco_jantar = idx in [2, 4]
@@ -3217,61 +3270,46 @@ class DietAIService:
                 if is_lanche:
                     continue
                 
-                # CAFÉ DA MANHÃ: Usa ovos (máx 6 = 300g)
+                # CAFÉ DA MANHÃ
                 if is_cafe:
-                    min_protein = 30  # ~6 ovos dão ~40g
-                    if current_protein < min_protein and "ovos" in user_proteins:
-                        protein_needed = min_protein - current_protein
-                        # Calcula gramas de ovos necessários
-                        grams_needed = (protein_needed / 13.0) * 100  # 13g proteína por 100g de ovo
-                        grams_needed = round_to_10(grams_needed)
-                        # Respeita limite de 6 ovos
-                        grams_needed = min(OVOS_MAX - ovos_usados, grams_needed)
-                        grams_needed = max(0, min(300, grams_needed))
+                    min_protein = 25
+                    if current_protein < min_protein and proteinas_cafe:
+                        chosen = proteinas_cafe[0]
                         
-                        if grams_needed >= 50:
-                            print(f"[PROTEIN GUARANTEE] {meal_name}: P={current_protein}g, adding {grams_needed}g ovos")
-                            meals_list[idx]["foods"].append(calc_food("ovos", grams_needed))
-                            ovos_usados += grams_needed
+                        if chosen == "ovos" and not is_vegan:
+                            grams_needed = min(OVOS_MAX - ovos_usados, 200)
+                            if grams_needed >= 50:
+                                print(f"[PROTEIN GUARANTEE] {meal_name}: adding {grams_needed}g ovos")
+                                meals_list[idx]["foods"].append(calc_food("ovos", grams_needed))
+                                ovos_usados += grams_needed
+                        elif chosen == "tofu":
+                            print(f"[PROTEIN GUARANTEE] {meal_name}: adding 150g tofu")
+                            meals_list[idx]["foods"].append(calc_food("tofu", 150))
                 
-                # ALMOÇO E JANTAR: Usa carne/frango (NUNCA ovos)
+                # ALMOÇO E JANTAR
                 elif is_almoco_jantar:
-                    min_protein = 50
+                    min_protein = 45
                     if current_protein < min_protein and proteinas_principais:
-                        # Escolhe proteína principal (prioriza frango)
-                        chosen = "frango" if "frango" in proteinas_principais else proteinas_principais[0]
+                        chosen = proteinas_principais[0]
                         
-                        # Calcula gramas necessários
+                        # Calcula gramas
                         food_info = FOODS.get(chosen, {})
-                        protein_per_100g = food_info.get("p", 25)
+                        protein_per_100g = food_info.get("p", 20)
                         protein_needed = min_protein - current_protein
                         grams_needed = (protein_needed / protein_per_100g) * 100
                         grams_needed = round_to_10(grams_needed)
                         grams_needed = max(150, min(250, grams_needed))
                         
-                        print(f"[PROTEIN GUARANTEE] {meal_name}: P={current_protein}g, adding {grams_needed}g {chosen}")
+                        print(f"[PROTEIN GUARANTEE] {meal_name}: adding {grams_needed}g {chosen}")
                         meals_list[idx]["foods"].append(calc_food(chosen, grams_needed))
                 
-                # CEIA: Não adiciona ovos! Pode usar whey ou cottage se disponível
+                # CEIA
                 elif is_ceia:
-                    min_protein = 15
-                    if current_protein < min_protein:
-                        # Tenta whey ou cottage (NUNCA ovos na ceia)
-                        ceia_options = [p for p in user_proteins if p in {"whey_protein", "cottage", "iogurte_zero"}]
-                        if ceia_options:
-                            chosen = ceia_options[0]
-                            food_info = FOODS.get(chosen, {})
-                            protein_per_100g = food_info.get("p", 10)
-                            protein_needed = min_protein - current_protein
-                            grams_needed = (protein_needed / protein_per_100g) * 100
-                            grams_needed = round_to_10(grams_needed)
-                            grams_needed = max(100, min(200, grams_needed))
-                            
-                            print(f"[PROTEIN GUARANTEE] {meal_name}: P={current_protein}g, adding {grams_needed}g {chosen}")
-                            meals_list[idx]["foods"].append(calc_food(chosen, grams_needed))
-                        # Se não tem opção leve, não adiciona proteína na ceia
+                    # Para veganos, pode adicionar tofu pequeno
+                    # Para outros, não adiciona (a ceia geralmente é leve)
+                    pass
                 
-                # Recalcula totais da refeição
+                # Recalcula totais
                 mp, mc, mf, mcal = sum_foods(meals_list[idx]["foods"])
                 meals_list[idx]["total_calories"] = mcal
                 meals_list[idx]["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
@@ -3281,7 +3319,7 @@ class DietAIService:
                 sum(f.get("protein", 0) for f in m.get("foods", []))
                 for m in meals_list
             )
-            print(f"[PROTEIN GUARANTEE] Total após ajustes: {total_protein}g (ovos usados: {ovos_usados}g)")
+            print(f"[PROTEIN GUARANTEE] Total após ajustes: {total_protein}g")
             
             return meals_list
         
