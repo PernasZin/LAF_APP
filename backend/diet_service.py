@@ -2813,22 +2813,17 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
             meal["total_calories"] = mcal
             meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
     
-    # ========== PASSO 3: FEIJÃO SÓ COM ARROZ E SE NAS PREFERÊNCIAS ==========
+    # ========== PASSO 3: FEIJÃO SÓ SE NAS PREFERÊNCIAS E MÁXIMO 100g ==========
     feijao_nas_preferencias = "feijao" in preferred
     
     for meal in meals:
-        # Verifica se tem arroz nesta refeição
-        tem_arroz = any(f.get("key") in TIPOS_ARROZ for f in meal.get("foods", []))
-        
         foods_to_keep = []
         for food in meal.get("foods", []):
             food_key = food.get("key")
             
-            # Se é feijão, só mantém se:
-            # 1. Usuário selecionou feijão nas preferências
-            # 2. E tem arroz na mesma refeição
+            # Se é feijão, só mantém se usuário selecionou nas preferências
             if food_key == "feijao":
-                if feijao_nas_preferencias and tem_arroz:
+                if feijao_nas_preferencias:
                     # 🫘 Limita feijão a máximo 100g por refeição
                     current_grams = food.get("grams", 0)
                     if current_grams > 100:
