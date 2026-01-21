@@ -3328,15 +3328,11 @@ class DietAIService:
             
             return meals_list
         
-        # Identifica proteínas do usuário
-        user_proteins = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "protein"}
-        meals = ensure_protein_in_meals(meals, user_proteins, target_p, weight, dietary_restrictions)
-        
-        # ✅ APLICA LIMITES GLOBAIS (cottage max 20g, aveia max 80g, feijão só com arroz)
+        # ✅ PASSO 1: APLICA LIMITES GLOBAIS (cottage max 20g, aveia max 80g, feijão só com arroz)
         meals = apply_global_limits(meals, raw_preferred)
         
-        # 🚫 VALIDAÇÃO DE REGRAS ALIMENTARES
-        # Remove alimentos que não deveriam estar em certas refeições
+        # 🚫 PASSO 2: VALIDAÇÃO DE REGRAS ALIMENTARES (ANTES de ensure_protein!)
+        # Remove alimentos que não deveriam estar em certas refeições (ovos fora do café, etc.)
         def enforce_food_rules(meals_list, user_carbs, user_proteins):
             """
             Garante que certas regras alimentares sejam respeitadas:
