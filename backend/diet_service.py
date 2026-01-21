@@ -1785,9 +1785,13 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             
             # Fruta - prioriza a que o usuário escolheu
             lanche_fruit = None
+            print(f"[DEBUG] Procurando fruta em fruit_priority: {fruit_priority}")
+            print(f"[DEBUG] preferred: {preferred}")
+            print(f"[DEBUG] excluded_restrictions: {excluded_restrictions if 'excluded_restrictions' in dir() else 'NÃO DEFINIDA'}")
             for f in fruit_priority:
                 if f in preferred and f not in excluded_restrictions:
                     lanche_fruit = f
+                    print(f"[DEBUG] Fruta encontrada: {lanche_fruit}")
                     break
             
             # Gordura - prioriza a que o usuário escolheu (exceto azeite que é para refeições principais)
