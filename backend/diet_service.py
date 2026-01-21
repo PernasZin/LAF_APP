@@ -1287,7 +1287,7 @@ MEAL_RULES = {
         "proteins": {"frango", "coxa_frango", "patinho", "carne_moida", "tilapia", "atum", 
                      "salmao", "peru", "camarao", "sardinha", "suino", "tofu"},
         "carbs": {"arroz_branco", "arroz_integral", "batata_doce",
-                  "macarrao", "macarrao_integral", "feijao", "lentilha", "farofa"},
+                  "macarrao", "macarrao_integral", "feijao", "lentilha", "farofa", "cuscuz", "quinoa"},
         "fats": {"azeite"},  # PERMITIDO: apenas azeite
         "fruits": False,
         "description": "Refeição completa: 1 proteína + carboidratos (principal + feijão/lentilha) + azeite"
