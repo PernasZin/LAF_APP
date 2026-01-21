@@ -3328,7 +3328,7 @@ class DietAIService:
         
         # Identifica proteínas do usuário
         user_proteins = {f for f in preferred_foods if f in FOODS and FOODS[f]["category"] == "protein"}
-        meals = ensure_protein_in_meals(meals, user_proteins, target_p, weight)
+        meals = ensure_protein_in_meals(meals, user_proteins, target_p, weight, restrictions)
         
         # ✅ APLICA LIMITES GLOBAIS (cottage max 20g, aveia max 80g, feijão só com arroz)
         meals = apply_global_limits(meals, raw_preferred)
