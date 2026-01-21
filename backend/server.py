@@ -787,7 +787,13 @@ async def generate_diet(user_id: str, request_meal_count: Optional[int] = None):
 @api_router.get("/diet/{user_id}")
 async def get_user_diet(user_id: str):
     """
-    Busca o plano de dieta mais recente do usuário
+    Busca o plano de dieta mais recente do usuário.
+    
+    🎯 AJUSTE DINÂMICO POR DIA:
+    - Dia de Treino: quantidades originais (+5% cal, +15% carbs)
+    - Dia de Descanso: quantidades reduzidas (-5% cal, -20% carbs)
+    
+    Apenas as QUANTIDADES mudam, não os alimentos!
     """
     diet_plan = await db.diet_plans.find_one(
         {"user_id": user_id},
@@ -799,8 +805,110 @@ async def get_user_diet(user_id: str):
     
     diet_plan["id"] = diet_plan["_id"]
     
-    # Traduz baseado no idioma do perfil do usuário
+    # Busca perfil do usuário
     user_profile = await db.user_profiles.find_one({"_id": user_id})
+    
+    # 🎯 DETERMINA TIPO DE DIA (treino ou descanso)
+    training_days = user_profile.get("training_days", []) if user_profile else []
+    today_weekday = datetime.now().weekday()
+    is_training_day = today_weekday in training_days
+    
+    # 🎯 MULTIPLICADORES BASEADOS NO TIPO DE DIA
+    if is_training_day:
+        calorie_mult = 1.05  # +5% calorias
+        carb_mult = 1.15     # +15% carboidratos
+        diet_type = "training"
+    else:
+        calorie_mult = 0.95  # -5% calorias
+        carb_mult = 0.80     # -20% carboidratos
+        diet_type = "rest"
+    
+    # 🎯 AJUSTA QUANTIDADES DOS ALIMENTOS
+    adjusted_meals = []
+    total_calories = 0
+    total_protein = 0
+    total_carbs = 0
+    total_fat = 0
+    
+    for meal in diet_plan.get("meals", []):
+        adjusted_foods = []
+        meal_calories = 0
+        meal_protein = 0
+        meal_carbs = 0
+        meal_fat = 0
+        
+        for food in meal.get("foods", []):
+            # Copia o alimento
+            adjusted_food = dict(food)
+            
+            # Identifica se é carboidrato (arroz, batata, macarrão, etc)
+            food_key = food.get("key", food.get("name", "")).lower()
+            is_carb_food = any(carb in food_key for carb in [
+                "arroz", "rice", "batata", "potato", "macarr", "pasta", 
+                "aveia", "oat", "pao", "bread", "tapioca", "cuscuz", 
+                "quinoa", "feijao", "bean", "milho", "corn"
+            ])
+            
+            # Ajusta quantidade baseado no tipo de alimento
+            original_grams = food.get("grams", 100)
+            
+            if is_carb_food:
+                # Carboidratos: ajuste maior
+                adjusted_grams = round(original_grams * carb_mult)
+                
+                # Recalcula macros proporcionalmente
+                ratio = adjusted_grams / original_grams if original_grams > 0 else 1
+                adjusted_food["grams"] = adjusted_grams
+                adjusted_food["calories"] = round(food.get("calories", 0) * ratio)
+                adjusted_food["protein"] = round(food.get("protein", 0) * ratio, 1)
+                adjusted_food["carbs"] = round(food.get("carbs", 0) * ratio, 1)
+                adjusted_food["fat"] = round(food.get("fat", 0) * ratio, 1)
+            else:
+                # Outros alimentos: mantém igual
+                adjusted_food["grams"] = original_grams
+            
+            adjusted_foods.append(adjusted_food)
+            
+            # Soma macros da refeição
+            meal_calories += adjusted_food.get("calories", 0)
+            meal_protein += adjusted_food.get("protein", 0)
+            meal_carbs += adjusted_food.get("carbs", 0)
+            meal_fat += adjusted_food.get("fat", 0)
+        
+        # Monta refeição ajustada
+        adjusted_meal = dict(meal)
+        adjusted_meal["foods"] = adjusted_foods
+        adjusted_meal["calories"] = round(meal_calories)
+        adjusted_meal["total_calories"] = round(meal_calories)
+        adjusted_meal["protein"] = round(meal_protein, 1)
+        adjusted_meal["carbs"] = round(meal_carbs, 1)
+        adjusted_meal["fat"] = round(meal_fat, 1)
+        adjusted_meals.append(adjusted_meal)
+        
+        # Soma totais
+        total_calories += meal_calories
+        total_protein += meal_protein
+        total_carbs += meal_carbs
+        total_fat += meal_fat
+    
+    # Atualiza dieta com valores ajustados
+    diet_plan["meals"] = adjusted_meals
+    diet_plan["computed_calories"] = round(total_calories)
+    diet_plan["computed_protein"] = round(total_protein, 1)
+    diet_plan["computed_carbs"] = round(total_carbs, 1)
+    diet_plan["computed_fat"] = round(total_fat, 1)
+    
+    # Adiciona info do tipo de dia
+    diet_plan["diet_type"] = diet_type
+    diet_plan["is_training_day"] = is_training_day
+    diet_plan["adjustments"] = {
+        "type": diet_type,
+        "calorie_multiplier": calorie_mult,
+        "carb_multiplier": carb_mult,
+        "info": "Dia de Treino: +5% cal, +15% carbs" if is_training_day else "Dia de Descanso: -5% cal, -20% carbs"
+    }
+    
+    # Traduz baseado no idioma do perfil do usuário
     if user_profile:
         user_language = user_profile.get('language', 'pt-BR')
         lang_code = user_language.split('-')[0] if user_language else 'pt'
