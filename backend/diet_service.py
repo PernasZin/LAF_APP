@@ -2435,7 +2435,11 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
             else:  # Almoço/Jantar
                 safe_protein = get_safe_protein_main()
                 meals[m_idx]["foods"].insert(0, calc_food(safe_protein, 150))
-                meals[m_idx]["foods"].insert(1, calc_food("arroz_branco", 200))
+                # Verifica restrições antes de adicionar carboidrato
+                global _current_diet_restrictions
+                safe_carb = get_safe_fallback("carb_principal", _current_diet_restrictions, ["arroz_branco", "batata_doce", "quinoa", "cuscuz"])
+                if safe_carb:
+                    meals[m_idx]["foods"].insert(1, calc_food(safe_carb, 200))
     
     return meals
 
