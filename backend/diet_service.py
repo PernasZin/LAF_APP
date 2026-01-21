@@ -1036,14 +1036,59 @@ def select_food(preferred: Set[str], category: str, restrictions: List[str], pri
 
 # ==================== CÁLCULO DE TDEE/MACROS ====================
 
+def get_cardio_weekly_burn(goal: str) -> int:
+    """
+    Retorna as calorias semanais queimadas pelo cardio planejado.
+    Baseado na função generate_cardio_for_goal do server.py
+    
+    REGRAS:
+    - Cutting: Mais cardio (4-6x/semana) ~1500-2000 kcal/semana
+    - Bulking: Cardio mínimo (2-3x/semana) ~400-600 kcal/semana
+    - Manutenção: Cardio moderado (3-4x/semana) ~800-1200 kcal/semana
+    """
+    # Valores baseados nos exercícios definidos em CARDIO_EXERCISES
+    # caminhada_inclinada: 8 cal/min × 30min = 240 cal
+    # bicicleta_moderada: 8 cal/min × 25min = 200 cal
+    # escada_moderada: 10 cal/min × 15min = 150 cal
+    # caminhada_leve: 5 cal/min × 30min = 150 cal
+    # bicicleta_leve: 6 cal/min × 20min = 120 cal
+    # caminhada_moderada: 6 cal/min × 30min = 180 cal
+    # escada_leve: 8 cal/min × 12min = 96 cal
+    
+    goal = goal.lower()
+    
+    if goal == "cutting":
+        # 3x caminhada_inclinada (240×3=720) + 2x bike_moderada (200×2=400) + 1x escada (150)
+        return 1270
+    elif goal == "bulking":
+        # 2x caminhada_leve (150×2=300) + 1x bike_leve (120)
+        return 420
+    else:  # manutencao
+        # 2x caminhada_moderada (180×2=360) + 1x bike_moderada (200) + 1x escada_leve (96)
+        return 656
+
+
 def calculate_tdee(weight: float, height: float, age: int, gender: str, 
-                   activity_level: str, training_level: str) -> float:
-    """Calcula TDEE (Total Daily Energy Expenditure) usando Mifflin-St Jeor"""
+                   activity_level: str, training_level: str, 
+                   goal: str = 'manutencao', include_cardio: bool = True) -> float:
+    """
+    Calcula TDEE (Total Daily Energy Expenditure) usando Mifflin-St Jeor
+    
+    NOVO: Inclui gasto do cardio planejado pelo app
+    
+    Fórmula:
+    1. BMR (Metabolismo Basal) = Mifflin-St Jeor
+    2. TDEE_base = BMR × Fator de Atividade + Bônus de Treino
+    3. Cardio_daily = Cardio_weekly / 7
+    4. TDEE_real = TDEE_base + Cardio_daily
+    """
+    # PASSO 1: Calcular BMR
     if gender.lower() in ['masculino', 'male', 'm']:
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
     else:
         bmr = 10 * weight + 6.25 * height - 5 * age - 161
     
+    # PASSO 2: Multiplicador de atividade
     activity_multipliers = {
         'sedentary': 1.2, 'sedentario': 1.2,
         'lightly_active': 1.375, 'leve': 1.375,
@@ -1054,46 +1099,62 @@ def calculate_tdee(weight: float, height: float, age: int, gender: str,
     
     multiplier = activity_multipliers.get(activity_level.lower(), 1.55)
     
+    # PASSO 3: Bônus de treino
     training_bonus = {
-        'beginner': 0, 'iniciante': 0,
+        'beginner': 0, 'iniciante': 0, 'novato': 0,
         'intermediate': 50, 'intermediario': 50,
         'advanced': 100, 'avancado': 100
     }
     
     bonus = training_bonus.get(training_level.lower(), 0)
     
-    return bmr * multiplier + bonus
+    # PASSO 4: TDEE Base
+    tdee_base = bmr * multiplier + bonus
+    
+    # PASSO 5: Adicionar gasto do cardio (NOVO!)
+    if include_cardio and goal:
+        cardio_weekly = get_cardio_weekly_burn(goal)
+        cardio_daily = cardio_weekly / 7
+        tdee_real = tdee_base + cardio_daily
+        print(f"[TDEE] BMR={bmr:.0f} × {multiplier} + bonus={bonus} = TDEE_base={tdee_base:.0f}")
+        print(f"[TDEE] Cardio semanal={cardio_weekly}kcal -> diário={cardio_daily:.0f}kcal")
+        print(f"[TDEE] TDEE_real = {tdee_base:.0f} + {cardio_daily:.0f} = {tdee_real:.0f}kcal")
+        return tdee_real
+    
+    return tdee_base
 
 
 def calculate_target_macros(weight: float, tdee: float, goal: str, gender: str = 'masculino') -> Dict:
     """
     🎯 CALCULA MACROS EM 3 PASSOS
     
-    1. Calcular TDEE (já vem calculado)
-    2. Somar superávit/déficit baseado no objetivo
+    1. Calcular TDEE (já vem calculado com cardio incluído)
+    2. Aplicar multiplicador baseado no objetivo
     3. Distribuir macros a partir das calorias ajustadas
     
-    CUTTING: TDEE - 15%
+    CUTTING: TDEE × 0.80 (-20% déficit)
        - Proteína: peso × 2.2
        - Gordura: peso × 0.8
        - Carboidrato: calorias restantes
     
-    MANUTENÇÃO: TDEE
+    MANUTENÇÃO: TDEE × 1.00
        - Proteína: peso × 2.0
        - Gordura: peso × 0.85
        - Carboidrato: calorias restantes
     
-    BULKING: TDEE + 15%
+    BULKING: TDEE × 1.12 (+12% superávit)
        - Proteína: peso × 2.0
        - Gordura: peso × 0.9
        - Carboidrato: calorias restantes
+    
+    NOTA: O TDEE já inclui o gasto do cardio planejado!
     """
     
     # PASSO 2: Ajusta TDEE baseado no objetivo
     if goal.lower() == 'cutting':
-        target_calories = tdee * 0.85  # -15% déficit
+        target_calories = tdee * 0.80  # -20% déficit (alterado de 15% para 20%)
     elif goal.lower() == 'bulking':
-        target_calories = tdee * 1.15  # +15% superávit
+        target_calories = tdee * 1.12  # +12% superávit (alterado de 15% para 12%)
     else:  # manutenção
         target_calories = tdee
     
@@ -1117,7 +1178,7 @@ def calculate_target_macros(weight: float, tdee: float, goal: str, gender: str =
     # Fibra mínima
     fiber_target = 30 if gender.lower() in ['masculino', 'male', 'm'] else 25
     
-    print(f"[MACROS] Peso={weight}kg, TDEE={tdee}, Goal={goal} -> Target={target_calories}kcal | P={protein}g C={carbs}g F={fat}g")
+    print(f"[MACROS] Peso={weight}kg, TDEE={tdee:.0f}, Goal={goal} -> Target={target_calories:.0f}kcal | P={protein:.0f}g C={carbs:.0f}g F={fat:.0f}g")
     
     return {
         'calories': round(target_calories),
