@@ -423,6 +423,15 @@ export default function WorkoutScreen() {
         if (response.ok) {
           const data = await response.json();
           setWorkoutPlan(data);
+          
+          // Carrega o índice do treino salvo (se existir)
+          const savedIndex = await AsyncStorage.getItem('next_workout_index');
+          if (savedIndex) {
+            const index = parseInt(savedIndex, 10);
+            if (!isNaN(index) && index >= 0 && index < (data.workout_days?.length || 4)) {
+              setCurrentWorkoutIndex(index);
+            }
+          }
         }
       }
     } catch (error) {
