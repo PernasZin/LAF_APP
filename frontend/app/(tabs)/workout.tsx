@@ -1104,7 +1104,8 @@ export default function WorkoutScreen() {
                   onExercisePress={handleExercisePress}
                   language={language}
                   t={t}
-                  isToday={index === todayWorkoutIndex && dayType === 'train'}
+                  isToday={index === currentWorkoutIndex}
+                  hasTrainedToday={hasTrainedToday}
                 />
               ))}
             </>
