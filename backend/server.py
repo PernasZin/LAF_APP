@@ -2433,6 +2433,7 @@ async def finish_training_session(user_id: str, request: TrainingSessionFinish):
     return {
         "success": True,
         "message": f"Treino concluído! Duração: {duration_formatted}",
+        "next_workout": next_workout,
         "session": {
             "date": today,
             "started_at": existing_session.get("started_at"),
