@@ -1417,16 +1417,17 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
         "diet_adjusted": diet_adjusted,
         "adjustment_percent": adjustment_percent,
         "message": adjustment_message or "Peso registrado com sucesso",
-        "suggest_cutting": suggest_cutting,
-        "suggest_cutting_reason": suggest_cutting_reason
+        "suggest_goal_change": suggest_goal_change,
+        "suggested_goal": suggested_goal,
+        "suggest_reason": suggest_reason
     }
 
 
-@api_router.post("/user/{user_id}/switch-to-cutting")
-async def switch_to_cutting(user_id: str):
+@api_router.post("/user/{user_id}/switch-goal/{new_goal}")
+async def switch_goal(user_id: str, new_goal: str):
     """
-    Muda o objetivo do usuário de bulking para cutting e regenera a dieta.
-    Usado quando a dieta de bulking atinge valores muito altos.
+    Muda o objetivo do usuário e regenera a dieta.
+    new_goal pode ser: 'cutting', 'bulking', 'manutencao'
     """
     from diet_service import generate_diet_v14
     
