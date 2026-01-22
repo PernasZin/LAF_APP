@@ -483,7 +483,7 @@ class LAFTester:
             response = self.make_request("POST", f"/workout/generate?user_id={self.user_id}")
             if response.status_code == 200:
                 result = response.json()
-                workouts = result.get("workouts", [])
+                workouts = result.get("workout_days", [])  # Fixed: use workout_days
                 workout_count = len(workouts)
                 
                 # Validate workout count matches frequency
