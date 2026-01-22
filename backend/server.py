@@ -1488,14 +1488,15 @@ async def switch_goal(user_id: str, new_goal: str):
         carbs = max(100, int(remaining_cals / 4))
         
         # Gera dieta
+        user_foods_set = set(user.get("food_preferences", []))
         new_diet = generate_diet(
             target_p=protein,
             target_c=carbs,
             target_f=fat,
-            meals_count=user.get("meal_count", 4),
-            goal=new_goal,
+            preferred=user_foods_set,
             restrictions=user.get("dietary_restrictions", []),
-            user_foods=user.get("food_preferences", [])
+            meal_count=user.get("meal_count", 4),
+            goal=new_goal
         )
         
         # Salva nova dieta
