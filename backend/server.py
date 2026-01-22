@@ -1410,6 +1410,75 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     }
 
 
+@api_router.post("/user/{user_id}/switch-to-cutting")
+async def switch_to_cutting(user_id: str):
+    """
+    Muda o objetivo do usuário de bulking para cutting e regenera a dieta.
+    Usado quando a dieta de bulking atinge valores muito altos.
+    """
+    from diet_service import generate_diet_v14
+    
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    current_goal = user.get("goal", "manutencao")
+    
+    # Só permite trocar se estiver em bulking
+    if current_goal != "bulking":
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Só é possível trocar para cutting quando estiver em bulking. Objetivo atual: {current_goal}"
+        )
+    
+    # Atualiza o objetivo para cutting
+    await db.user_profiles.update_one(
+        {"_id": user_id},
+        {"$set": {"goal": "cutting", "updated_at": datetime.utcnow()}}
+    )
+    
+    # Busca dados necessários para regenerar dieta
+    user["goal"] = "cutting"  # Atualiza localmente para gerar dieta correta
+    
+    # Regenera a dieta para cutting
+    try:
+        new_diet = generate_diet_v14(
+            goal="cutting",
+            weight=user.get("weight", 70),
+            height=user.get("height", 170),
+            age=user.get("age", 25),
+            sex=user.get("sex", "male"),
+            activity_level=user.get("activity_level", "moderado"),
+            meals_per_day=user.get("meal_count", 4),
+            restrictions=user.get("dietary_restrictions", []),
+            food_preferences=user.get("food_preferences", []),
+            training_days_per_week=user.get("weekly_training_frequency", 4)
+        )
+        
+        # Salva nova dieta
+        new_diet["user_id"] = user_id
+        new_diet["goal_changed_at"] = datetime.utcnow()
+        new_diet["previous_goal"] = "bulking"
+        
+        # Remove dieta antiga e insere nova
+        await db.diet_plans.delete_many({"user_id": user_id})
+        await db.diet_plans.insert_one(new_diet)
+        
+        logger.info(f"User {user_id} switched from bulking to cutting. New diet generated.")
+        
+        return {
+            "success": True,
+            "message": "Objetivo alterado para cutting! Nova dieta gerada.",
+            "new_goal": "cutting",
+            "new_calories": new_diet.get("computed_calories"),
+            "new_macros": new_diet.get("computed_macros")
+        }
+    except Exception as e:
+        logger.error(f"Error generating cutting diet for {user_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar nova dieta: {str(e)}")
+
+
 # Modelo para o check-in completo
 class CheckInQuestionnaire(BaseModel):
     diet: int = Field(ge=0, le=10)
