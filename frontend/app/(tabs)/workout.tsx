@@ -941,6 +941,11 @@ export default function WorkoutScreen() {
     return currentWorkoutIndex;
   };
 
+  // Debug log no render
+  console.log('=== RENDER DEBUG ===');
+  console.log('currentWorkoutIndex:', currentWorkoutIndex);
+  console.log('hasTrainedToday:', hasTrainedToday);
+
   // ==================== RENDER ====================
 
   if (initialLoading) {
