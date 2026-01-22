@@ -3784,11 +3784,11 @@ class DietAIService:
                             # Aumenta o existente (max 250g total por refeição)
                             f_idx, food = existing_carb
                             current_grams = food.get("grams", 0)
-                            new_grams = min(current_grams + extra_grams, 250)
+                            new_grams = round_to_10(min(current_grams + extra_grams, 250))
                             meals[idx]["foods"][f_idx] = calc_food(safe_carb, new_grams)
                         else:
                             # Adiciona novo
-                            meals[idx]["foods"].append(calc_food(safe_carb, extra_grams))
+                            meals[idx]["foods"].append(calc_food(safe_carb, round_to_10(extra_grams)))
                         
                         mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
                         meals[idx]["total_calories"] = mcal
