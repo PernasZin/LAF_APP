@@ -3957,10 +3957,10 @@ class DietAIService:
                         if arroz_idx is not None:
                             current = meals[idx]["foods"][arroz_idx].get("grams", 0)
                             # Limite máximo de 600g de arroz por refeição
-                            new_grams = min(current + arroz_extra_por_refeicao, 600)
+                            new_grams = round_to_10(min(current + arroz_extra_por_refeicao, 600))
                             meals[idx]["foods"][arroz_idx] = calc_food(safe_carb, new_grams)
                         else:
-                            meals[idx]["foods"].append(calc_food(safe_carb, arroz_extra_por_refeicao))
+                            meals[idx]["foods"].append(calc_food(safe_carb, round_to_10(arroz_extra_por_refeicao)))
                         
                         # Recalcula totais da refeição
                         mp, mc, mf, mcal = sum_foods(meals[idx]["foods"])
