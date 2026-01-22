@@ -45,13 +45,15 @@ class LAFTester:
             # Try signup (might fail if user exists)
             signup_response = self.session.post(f"{self.base_url}/auth/signup", json=auth_data)
             if signup_response.status_code == 200:
-                user_id = signup_response.json()["user"]["id"]
+                signup_data = signup_response.json()
+                user_id = signup_data.get("user", {}).get("id") or signup_data.get("id")
                 self.log(f"✅ Created auth user: {user_id}")
             else:
                 # Try login instead
                 login_response = self.session.post(f"{self.base_url}/auth/login", json=auth_data)
                 if login_response.status_code == 200:
-                    user_id = login_response.json()["user"]["id"]
+                    login_data = login_response.json()
+                    user_id = login_data.get("user", {}).get("id") or login_data.get("id")
                     self.log(f"✅ Logged in existing user: {user_id}")
                 else:
                     self.log(f"❌ Failed to create/login user: {login_response.text}", "ERROR")
