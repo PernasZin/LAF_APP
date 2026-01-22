@@ -723,7 +723,7 @@ export default function WorkoutScreen() {
   };
 
   // Simple finish workout (sem timer)
-  const finishWorkoutSimple = async () => {
+  const finishWorkoutSimple = () => {
     if (!userId || !BACKEND_URL) {
       Alert.alert('Erro', 'Usuário não identificado');
       return;
@@ -736,68 +736,67 @@ export default function WorkoutScreen() {
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Confirmar',
-          onPress: async () => {
-            try {
-              // Primeiro inicia a sessão (necessário para o backend)
-              await safeFetch(
-                `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
-                { method: 'POST', headers: { 'Content-Type': 'application/json' } }
-              );
-              
-              // Depois finaliza
-              const response = await safeFetch(
-                `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
-                {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    duration_seconds: 0, // Sem timer
-                    exercises_completed: workoutPlan?.workout_days?.[0]?.exercises?.length || 0
-                  })
-                }
-              );
+          onPress: () => {
+            // Executa a lógica de finalização
+            doFinishWorkout();
+          }
+        }
+      ]
+    );
+  };
+  
+  const doFinishWorkout = async () => {
+    try {
+      // Primeiro inicia a sessão (necessário para o backend)
+      await safeFetch(
+        `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+      );
+      
+      // Depois finaliza
+      const response = await safeFetch(
+        `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            duration_seconds: 0,
+            exercises_completed: workoutPlan?.workout_days?.[currentWorkoutIndex]?.exercises?.length || 0
+          })
+        }
+      );
 
-              if (response.ok) {
-                const data = await response.json();
-                
-                console.log('=== FINISH WORKOUT DEBUG ===');
-                console.log('Current index BEFORE:', currentWorkoutIndex);
-                
-                // Limpa estados
-                setHasTrainedToday(true);
-                setWorkoutStatus('completed');
-                
-                // Avança o índice do treino (A→B→C→D→A)
-                const totalWorkouts = workoutPlan?.workout_days?.length || 4;
-                const nextIndex = (currentWorkoutIndex + 1) % totalWorkouts;
-                
-                console.log('Total workouts:', totalWorkouts);
-                console.log('Next index calculated:', nextIndex);
-                
-                // Salva o próximo índice no AsyncStorage para persistir
-                await AsyncStorage.setItem('next_workout_index', nextIndex.toString());
-                console.log('Saved to AsyncStorage:', nextIndex);
-                
-                // Atualiza o estado DEPOIS de salvar no storage
-                setCurrentWorkoutIndex(nextIndex);
-                console.log('Called setCurrentWorkoutIndex with:', nextIndex);
-                
-                const workoutLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
-                const nextWorkoutLetter = workoutLetters[nextIndex] || `${nextIndex + 1}`;
-                
-                Alert.alert(
-                  '🎉 Treino Concluído!',
-                  `Parabéns pelo treino de hoje!\n\nPróximo treino: Treino ${nextWorkoutLetter}`
-                );
-                
-                // NÃO recarrega loadCycleStatus para não sobrescrever o índice
-                // Os estados já foram atualizados manualmente acima
-              } else {
-                const errorData = await response.json().catch(() => ({}));
-                Alert.alert('Erro', errorData.detail || 'Não foi possível finalizar o treino');
-              }
-            } catch (error) {
-              console.error('Error finishing workout:', error);
+      if (response.ok) {
+        // Marca como treinado hoje
+        setHasTrainedToday(true);
+        setWorkoutStatus('completed');
+        
+        // Avança o índice do treino (A→B→C→D→A)
+        const totalWorkouts = workoutPlan?.workout_days?.length || 4;
+        const nextIndex = (currentWorkoutIndex + 1) % totalWorkouts;
+        
+        // Salva o próximo índice no AsyncStorage
+        await AsyncStorage.setItem('next_workout_index', nextIndex.toString());
+        
+        // Atualiza o estado
+        setCurrentWorkoutIndex(nextIndex);
+        
+        const workoutLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const nextWorkoutLetter = workoutLetters[nextIndex] || `${nextIndex + 1}`;
+        
+        Alert.alert(
+          '🎉 Treino Concluído!',
+          `Parabéns pelo treino de hoje!\n\nPróximo treino: Treino ${nextWorkoutLetter}`
+        );
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        Alert.alert('Erro', errorData.detail || 'Não foi possível finalizar o treino');
+      }
+    } catch (error) {
+      console.error('Error finishing workout:', error);
+      Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
+    }
+  };
               Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
             }
           }
