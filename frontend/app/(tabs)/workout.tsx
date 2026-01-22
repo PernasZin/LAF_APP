@@ -401,28 +401,30 @@ export default function WorkoutScreen() {
         setHasTrainedToday(data.has_trained_today);
         setIsTrainingBlocked(data.is_training_blocked || false);
         
-        // Se treino em andamento, verifica se há tempo pausado localmente
+        // Se treino em andamento no backend
         if (data.is_training_in_progress && data.training_session?.started_at) {
           setSessionStartedAt(data.training_session.started_at);
           
-          // Prioriza tempo pausado local sobre o tempo do servidor
-          const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
-          if (pausedSeconds) {
-            const seconds = parseInt(pausedSeconds, 10);
-            if (!isNaN(seconds) && seconds > 0) {
-              setTrainingSeconds(seconds);
-              // Treino está pausado - não inicia automaticamente
-              setIsTraining(false);
+          // Verifica se tem timestamp local salvo
+          const savedTimestamp = await AsyncStorage.getItem('training_start_timestamp');
+          if (savedTimestamp) {
+            const timestamp = parseInt(savedTimestamp, 10);
+            if (!isNaN(timestamp) && timestamp > 0) {
+              startTimestampRef.current = timestamp;
+              setIsTraining(true);
               return;
             }
           }
           
-          // Se não tem tempo pausado, calcula do servidor
+          // Se não tem timestamp local, usa o do servidor
           const startTime = new Date(data.training_session.started_at).getTime();
-          const now = Date.now();
-          const elapsedSeconds = Math.floor((now - startTime) / 1000);
-          setTrainingSeconds(elapsedSeconds);
+          startTimestampRef.current = startTime;
+          await AsyncStorage.setItem('training_start_timestamp', startTime.toString());
           setIsTraining(true);
+        } else {
+          // Não há treino em andamento - limpa timestamp
+          startTimestampRef.current = null;
+          await AsyncStorage.removeItem('training_start_timestamp');
         }
       }
     } catch (error) {
