@@ -414,6 +414,18 @@ export default function WorkoutScreen() {
         setHasTrainedToday(data.has_trained_today);
         setIsTrainingBlocked(data.is_training_blocked || false);
         
+        // Calcula se amanhã é dia de descanso
+        const trainingDays = data.training_days || [];
+        if (trainingDays.length > 0) {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          const tomorrowWeekday = (tomorrow.getDay()) ; // 0=Domingo, 1=Segunda, etc
+          setTomorrowIsRest(!trainingDays.includes(tomorrowWeekday));
+        } else {
+          // Se não tem training_days, assume que amanhã é treino
+          setTomorrowIsRest(false);
+        }
+        
         // Se treino em andamento no backend
         if (data.is_training_in_progress && data.training_session?.started_at) {
           setSessionStartedAt(data.training_session.started_at);
