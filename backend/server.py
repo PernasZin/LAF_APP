@@ -1467,10 +1467,11 @@ async def switch_goal(user_id: str, new_goal: str):
         weight = user.get("weight", 70)
         height = user.get("height", 170)
         age = user.get("age", 25)
-        sex = user.get("sex", "male")
+        sex = user.get("sex", "masculino")
         activity_level = user.get("activity_level", "moderado")
+        training_level = user.get("training_level", "intermediario")
         
-        tdee = calculate_tdee(weight, height, age, sex, activity_level)
+        tdee = calculate_tdee(weight, height, age, sex, activity_level, training_level, new_goal)
         
         # Ajusta calorias baseado no objetivo
         if new_goal == "cutting":
