@@ -283,11 +283,47 @@ export default function WorkoutScreen() {
   const [historyStats, setHistoryStats] = useState<any>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
 
+  // Frases motivacionais - fixas até sair da tela
+  const [trainingPhrase, setTrainingPhrase] = useState('');
+  const [tomorrowPhrase, setTomorrowPhrase] = useState('');
+  
+  // Índice do treino atual (A=0, B=1, C=2, D=3)
+  const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
+
   // ==================== EFFECTS ====================
 
+  // Gera frases aleatórias ao entrar na tela
   useFocusEffect(
     useCallback(() => {
-      // Ao focar na tela, carrega dados e restaura timer se existir
+      // Frases motivacionais
+      const trainingPhrases = [
+        "💪 Bora treinar! Cada repetição conta.",
+        "🔥 Hoje é dia de evoluir!",
+        "⚡ Seu futuro eu agradece o treino de hoje.",
+        "🎯 Foco no objetivo, bora!"
+      ];
+      
+      const restPhrases = [
+        "😴 Amanhã é descanso! Aproveite para recuperar.",
+        "🛌 Descanse bem, músculos crescem no repouso!",
+        "✨ Amanhã relaxe, você merece!",
+        "🌙 Recuperação é parte do treino!"
+      ];
+      
+      const nextTrainingPhrases = [
+        "💥 Amanhã tem mais! Prepare-se.",
+        "🚀 Descanse hoje, amanhã você volta ainda mais forte!",
+        "⭐ Boa recuperação para o treino de amanhã!"
+      ];
+      
+      // Escolhe frases aleatórias
+      setTrainingPhrase(trainingPhrases[Math.floor(Math.random() * trainingPhrases.length)]);
+      
+      // A frase de amanhã será atualizada quando tomorrowIsRest mudar
+      // Por enquanto, define uma padrão
+      setTomorrowPhrase(nextTrainingPhrases[Math.floor(Math.random() * nextTrainingPhrases.length)]);
+      
+      // Carrega dados
       loadData();
       
       return () => {
