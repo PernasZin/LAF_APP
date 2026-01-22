@@ -4409,6 +4409,8 @@ def adjust_diet_quantities(diet_plan: Dict, adjustment_type: str, adjustment_per
         
         for food in foods:
             current_grams = food.get("grams", 100)
+            # ✅ Primeiro garante que current_grams é múltiplo de 10
+            current_grams = round_to_10(current_grams)
             new_grams = round_to_10(current_grams * multiplier)
             
             # ✅ Garante que aumento sempre aconteça (mínimo +10g se for aumento)
