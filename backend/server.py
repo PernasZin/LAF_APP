@@ -1748,8 +1748,12 @@ async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
         "weight": checkin.weight,
         "questionnaire_average": questionnaire_avg,
         "diet_kept": diet_kept,
+        "diet_adjusted": not diet_kept,
         "calories_change": calories_change,
         "foods_replaced": foods_replaced,
+        "suggest_goal_change": suggest_goal_change,
+        "suggested_goal": suggested_goal,
+        "suggest_reason": suggest_reason,
         "message": "Check-in realizado com sucesso!"
     }
 
