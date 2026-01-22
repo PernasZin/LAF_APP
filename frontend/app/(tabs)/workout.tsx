@@ -751,10 +751,12 @@ export default function WorkoutScreen() {
                 // Avança o índice do treino (A→B→C→D→A)
                 const totalWorkouts = workoutPlan?.workout_days?.length || 4;
                 const nextIndex = (currentWorkoutIndex + 1) % totalWorkouts;
-                setCurrentWorkoutIndex(nextIndex);
                 
                 // Salva o próximo índice no AsyncStorage para persistir
                 await AsyncStorage.setItem('next_workout_index', nextIndex.toString());
+                
+                // Atualiza o estado DEPOIS de salvar no storage
+                setCurrentWorkoutIndex(nextIndex);
                 
                 const workoutLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
                 const nextWorkoutLetter = workoutLetters[nextIndex] || `${nextIndex + 1}`;
@@ -764,9 +766,8 @@ export default function WorkoutScreen() {
                   `Parabéns pelo treino de hoje!\n\nPróximo treino: Treino ${nextWorkoutLetter}`
                 );
                 
-                // Recarrega status para atualizar qual é o próximo treino
-                await loadCycleStatus(userId);
-                await loadWorkoutPlan(userId);
+                // NÃO recarrega loadCycleStatus para não sobrescrever o índice
+                // Os estados já foram atualizados manualmente acima
               } else {
                 const errorData = await response.json().catch(() => ({}));
                 Alert.alert('Erro', errorData.detail || 'Não foi possível finalizar o treino');
