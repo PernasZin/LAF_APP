@@ -3935,9 +3935,9 @@ class DietAIService:
                 
                 if pao_idx is not None:
                     current = meals[cafe_idx]["foods"][pao_idx].get("grams", 0)
-                    meals[cafe_idx]["foods"][pao_idx] = calc_food(pao_key, current + pao_extra)
+                    meals[cafe_idx]["foods"][pao_idx] = calc_food(pao_key, round_to_10(current + pao_extra))
                 else:
-                    meals[cafe_idx]["foods"].append(calc_food(pao_key, pao_extra))
+                    meals[cafe_idx]["foods"].append(calc_food(pao_key, round_to_10(pao_extra)))
                 
                 # Recalcula totais do café
                 mp, mc, mf, mcal = sum_foods(meals[cafe_idx]["foods"])
