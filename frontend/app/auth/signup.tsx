@@ -239,22 +239,23 @@ export default function SignupScreen() {
                   onPress={handleSignup} 
                   disabled={isLoading} 
                   activeOpacity={0.9}
-                  style={styles.signupButton}
                 >
-                  <LinearGradient
-                    colors={isLoading
-                      ? ['#9CA3AF', '#6B7280']
-                      : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
-                    pointerEvents="none"
-                  />
-                  <UserPlus size={20} color="#FFF" />
-                  <Text style={styles.signupButtonText}>
-                    {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
-                  </Text>
+                  <View style={styles.signupButton}>
+                    <LinearGradient
+                      colors={isLoading
+                        ? ['#9CA3AF', '#6B7280']
+                        : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
+                      }
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={StyleSheet.absoluteFill}
+                      pointerEvents="none"
+                    />
+                    <UserPlus size={20} color="#FFF" />
+                    <Text style={styles.signupButtonText}>
+                      {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
+                    </Text>
+                  </View>
                 </TouchableOpacity>
               </Animated.View>
 
