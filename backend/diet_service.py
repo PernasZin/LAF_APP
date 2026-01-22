@@ -2874,8 +2874,8 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
                         continue  # Não adiciona à lista
                     else:
                         # Reduz este whey
-                        new_grams = current_grams - whey_to_remove
-                        if new_grams >= 25:  # Mínimo 25g para 1 scoop parcial
+                        new_grams = round_to_10(current_grams - whey_to_remove)
+                        if new_grams >= 30:  # Mínimo 30g (múltiplo de 10)
                             food = calc_food("whey_protein", new_grams)
                             print(f"[GLOBAL LIMITS] Reduzindo whey_protein para {new_grams}g")
                             whey_to_remove = 0
