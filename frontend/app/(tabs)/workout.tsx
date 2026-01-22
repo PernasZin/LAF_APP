@@ -619,7 +619,7 @@ export default function WorkoutScreen() {
 
   // Format time helper
   const formatTime = (seconds: number) => {
-    const secs = Number(seconds) || 0;
+    const secs = Math.max(0, Math.floor(Number(seconds) || 0));
     const mins = Math.floor(secs / 60);
     const remainingSecs = secs % 60;
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
