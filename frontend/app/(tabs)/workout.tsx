@@ -793,10 +793,13 @@ export default function WorkoutScreen() {
 
   // Get today's workout day index
   const getTodayWorkoutIndex = () => {
+    // Usa o índice retornado pelo backend se disponível
+    if (cycleStatus?.today_workout_index !== undefined) {
+      return cycleStatus.today_workout_index;
+    }
+    // Fallback para cálculo local
     if (!workoutPlan?.workout_days?.length || !cycleStatus) return 0;
     const cycleDay = cycleStatus.cycle_day || 1;
-    const frequency = cycleStatus.frequency || 4;
-    // Mapeia o dia do ciclo para o índice do treino
     return (cycleDay - 1) % workoutPlan.workout_days.length;
   };
 
