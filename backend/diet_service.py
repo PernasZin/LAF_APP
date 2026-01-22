@@ -3031,7 +3031,7 @@ def validate_and_fix_diet(meals: List[Dict], target_p: int, target_c: int, targe
                     for f_idx, food in enumerate(filtered_foods):
                         if food.get("key") in {"arroz_branco", "arroz_integral"}:
                             current_grams = food.get("grams", 100)
-                            new_grams = min(300, current_grams + 80)  # Adiciona até 80g
+                            new_grams = round_to_10(min(300, current_grams + 80))  # Adiciona até 80g
                             filtered_foods[f_idx] = calc_food(food.get("key"), new_grams)
                             break
                 elif not existing_arroz:
