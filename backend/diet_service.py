@@ -2806,7 +2806,7 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
             for f_idx, food in enumerate(meal.get("foods", [])):
                 if food.get("key") == "aveia" and aveia_to_remove > 0:
                     current_grams = food.get("grams", 0)
-                    new_grams = max(0, current_grams - aveia_to_remove)
+                    new_grams = round_to_10(max(0, current_grams - aveia_to_remove))
                     
                     if new_grams < 20:
                         # Remove aveia se ficar muito pouco
