@@ -1594,12 +1594,28 @@ async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
         current_weight = checkin.weight
         goal = user.get("goal", "manutencao")
         
-        # Avalia progresso
+        # Calcula TDEE do usuário
+        user_tdee = calculate_tdee(
+            weight=user.get("weight", current_weight),
+            height=user.get("height", 170),
+            age=user.get("age", 25),
+            sex=user.get("sex", "male"),
+            activity_level=user.get("activity_level", "moderado")
+        )
+        
+        # Avalia progresso com TDEE
         progress_eval = evaluate_progress(
             goal=goal,
             previous_weight=previous_weight,
-            current_weight=current_weight
+            current_weight=current_weight,
+            current_diet_calories=current_diet.get("computed_calories", 0),
+            user_tdee=user_tdee
         )
+        
+        # Guarda sugestão de mudança de objetivo
+        suggest_goal_change = progress_eval.get("suggest_goal_change", False)
+        suggested_goal = progress_eval.get("suggested_goal")
+        suggest_reason = progress_eval.get("suggest_reason")
         
         # Se precisa ajustar calorias
         if progress_eval.get("needs_adjustment"):
