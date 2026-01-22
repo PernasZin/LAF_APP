@@ -4183,9 +4183,9 @@ class DietAIService:
                         
                         # Calcula nova quantidade (pode zerar)
                         grams_to_reduce = (fat_excess / fat_per_100g) * 100
-                        new_grams = max(0, current_grams - grams_to_reduce)
+                        new_grams = round_to_10(max(0, current_grams - grams_to_reduce))
                         
-                        if new_grams < 5:
+                        if new_grams < 10:
                             # Remove completamente
                             meal.foods.pop(f_idx)
                             fat_excess -= (fat_per_100g / 100) * current_grams
