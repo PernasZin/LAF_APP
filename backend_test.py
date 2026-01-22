@@ -664,18 +664,18 @@ class LAFTester:
         """Test water tracking system"""
         print("\n💧 TESTING WATER TRACKING")
         
-        # Test water registration
+        # Test water registration - correct endpoint is /tracker/water-sodium/{user_id}
         water_data = {"water_ml": 500}
-        response = self.make_request("POST", f"/water/{self.user_id}", water_data)
+        response = self.make_request("POST", f"/tracker/water-sodium/{self.user_id}", water_data)
         if response.status_code == 200:
             result = response.json()
-            total_water = result.get("total_water_ml", 0)
+            total_water = result.get("water_ml", 0)
             self.log_test("WATER - Registration", True, f"Water registered: {total_water}ml total")
         else:
             self.log_test("WATER - Registration", False, f"Status: {response.status_code}")
             
         # Test water retrieval
-        response = self.make_request("GET", f"/water/{self.user_id}")
+        response = self.make_request("GET", f"/tracker/water-sodium/{self.user_id}")
         if response.status_code == 200:
             result = response.json()
             self.log_test("WATER - Retrieval", True, "Water data retrieved successfully")
