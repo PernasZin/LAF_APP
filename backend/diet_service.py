@@ -2135,7 +2135,7 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                     
                     # Calcula quanto reduzir (mínimo 120g por refeição)
                     grams_to_reduce = (protein_excess / 2) / (p_per_100 / 100)
-                    new_grams = max(120, current_grams - grams_to_reduce)
+                    new_grams = round_to_10(max(120, current_grams - grams_to_reduce))
                     
                     meals[m_idx]["foods"][f_idx] = calc_food(food.get("key"), new_grams)
                     
