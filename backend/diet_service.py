@@ -3611,7 +3611,7 @@ class DietAIService:
                     for food in cafe_meal.get("foods", []):
                         if food.get("key") == "ovos":
                             excess = ovos_total - 300
-                            new_grams = max(0, food.get("grams", 0) - excess)
+                            new_grams = round_to_10(max(0, food.get("grams", 0) - excess))
                             food["grams"] = new_grams
                             # Recalcula macros do alimento
                             food_info = FOODS.get("ovos", {})
