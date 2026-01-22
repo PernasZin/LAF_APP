@@ -2496,6 +2496,18 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                 if safe_carb:
                     meals[m_idx]["foods"].insert(1, calc_food(safe_carb, 200))
     
+    # 🔒 VALIDAÇÃO FINAL: Garantir que TODAS as quantidades são múltiplos de 10
+    for meal in meals:
+        for food_idx, food in enumerate(meal.get("foods", [])):
+            grams = food.get("grams", 0)
+            if grams % 10 != 0:
+                rounded_grams = round_to_10(grams)
+                if rounded_grams > 0:
+                    meal["foods"][food_idx] = calc_food(food.get("key"), rounded_grams)
+        mp, mc, mf, mcal = sum_foods(meal.get("foods", []))
+        meal["total_calories"] = mcal
+        meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
     return meals
 
 
