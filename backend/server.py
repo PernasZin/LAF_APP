@@ -1499,25 +1499,32 @@ async def switch_goal(user_id: str, new_goal: str):
             goal=new_goal
         )
         
-        # Calcula totais
+        # Calcula totais (soma direta dos alimentos já que generate_diet não retorna total_calories)
         total_cals = 0
         total_p = 0
         total_c = 0
         total_f = 0
+        
         for meal in meals_list:
-            total_cals += meal.get("total_calories", 0)
-            # Se meal tem macros, usa. Senão, soma dos alimentos
-            meal_macros = meal.get("macros")
-            if meal_macros:
-                total_p += meal_macros.get("protein", 0)
-                total_c += meal_macros.get("carbs", 0)
-                total_f += meal_macros.get("fat", 0)
-            else:
-                # Soma dos alimentos
-                for food in meal.get("foods", []):
-                    total_p += food.get("protein", 0)
-                    total_c += food.get("carbs", 0)
-                    total_f += food.get("fat", 0)
+            meal_cals = 0
+            meal_p = 0
+            meal_c = 0
+            meal_f = 0
+            
+            for food in meal.get("foods", []):
+                meal_cals += food.get("calories", 0)
+                meal_p += food.get("protein", 0)
+                meal_c += food.get("carbs", 0)
+                meal_f += food.get("fat", 0)
+            
+            # Adiciona total_calories à refeição
+            meal["total_calories"] = int(meal_cals)
+            meal["macros"] = {"protein": int(meal_p), "carbs": int(meal_c), "fat": int(meal_f)}
+            
+            total_cals += meal_cals
+            total_p += meal_p
+            total_c += meal_c
+            total_f += meal_f
         
         # Monta estrutura da dieta
         new_diet = {
