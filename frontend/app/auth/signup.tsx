@@ -235,7 +235,12 @@ export default function SignupScreen() {
 
               {/* Signup Button */}
               <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
-                <TouchableOpacity onPress={handleSignup} disabled={isLoading} activeOpacity={0.9}>
+                <TouchableOpacity 
+                  onPress={handleSignup} 
+                  disabled={isLoading} 
+                  activeOpacity={0.9}
+                  style={styles.signupButton}
+                >
                   <LinearGradient
                     colors={isLoading
                       ? ['#9CA3AF', '#6B7280']
@@ -243,13 +248,13 @@ export default function SignupScreen() {
                     }
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
-                    style={styles.signupButton}
-                  >
-                    <UserPlus size={20} color="#FFF" />
-                    <Text style={styles.signupButtonText}>
-                      {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
-                    </Text>
-                  </LinearGradient>
+                    style={[StyleSheet.absoluteFill, { borderRadius: 16 }]}
+                    pointerEvents="none"
+                  />
+                  <UserPlus size={20} color="#FFF" />
+                  <Text style={styles.signupButtonText}>
+                    {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
+                  </Text>
                 </TouchableOpacity>
               </Animated.View>
 
