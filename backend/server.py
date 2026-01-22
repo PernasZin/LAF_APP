@@ -2405,6 +2405,29 @@ async def finish_training_session(user_id: str, request: TrainingSessionFinish):
     duration_secs = request.duration_seconds % 60
     duration_formatted = f"{duration_mins}:{duration_secs:02d}"
     
+    # Determina o próximo treino
+    next_workout = "Amanhã"
+    try:
+        # Busca configuração do ciclo para saber a frequência
+        cycle_config = await db.training_cycles.find_one({"user_id": user_id})
+        frequency = cycle_config.get("frequency", 4) if cycle_config else user.get("weekly_training_frequency", 4)
+        
+        # Calcula qual será o próximo dia de treino
+        if workout_plan and workout_plan.get("workout_days"):
+            workout_days = workout_plan.get("workout_days", [])
+            # Encontra o índice do treino de hoje
+            current_day_index = 0
+            if training_days and today_weekday in training_days:
+                current_day_index = training_days.index(today_weekday)
+            
+            # Próximo treino é o próximo na lista (circular)
+            next_day_index = (current_day_index + 1) % len(workout_days)
+            next_workout_day = workout_days[next_day_index]
+            next_workout = next_workout_day.get("name", f"Treino {chr(65 + next_day_index)}")
+    except Exception as e:
+        logger.error(f"Error calculating next workout: {e}")
+        next_workout = "Próximo treino"
+    
     logger.info(f"Training session finished for user {user_id}: {duration_formatted} - Saved to history")
     
     return {
