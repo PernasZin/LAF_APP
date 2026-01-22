@@ -1427,9 +1427,18 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
 async def switch_goal(user_id: str, new_goal: str):
     """
     Muda o objetivo do usuário e regenera a dieta.
-    new_goal pode ser: 'cutting', 'bulking', 'manutencao'
+    new_goal pode ser: 'cutting', 'bulking', 'manutencao', 'manter'
     """
     from diet_service import generate_diet_v14
+    
+    # Normaliza o objetivo
+    valid_goals = ["cutting", "bulking", "manutencao", "manter"]
+    if new_goal not in valid_goals:
+        raise HTTPException(status_code=400, detail=f"Objetivo inválido. Use: {', '.join(valid_goals)}")
+    
+    # Normaliza 'manter' para 'manutencao'
+    if new_goal == "manter":
+        new_goal = "manutencao"
     
     # Verifica se usuário existe
     user = await db.user_profiles.find_one({"_id": user_id})
@@ -1438,26 +1447,24 @@ async def switch_goal(user_id: str, new_goal: str):
     
     current_goal = user.get("goal", "manutencao")
     
-    # Só permite trocar se estiver em bulking
-    if current_goal != "bulking":
-        raise HTTPException(
-            status_code=400, 
-            detail=f"Só é possível trocar para cutting quando estiver em bulking. Objetivo atual: {current_goal}"
-        )
+    # Não precisa mudar se já está no mesmo objetivo
+    if current_goal == new_goal:
+        return {
+            "success": True,
+            "message": f"Você já está em {new_goal}!",
+            "new_goal": new_goal
+        }
     
-    # Atualiza o objetivo para cutting
+    # Atualiza o objetivo
     await db.user_profiles.update_one(
         {"_id": user_id},
-        {"$set": {"goal": "cutting", "updated_at": datetime.utcnow()}}
+        {"$set": {"goal": new_goal, "updated_at": datetime.utcnow()}}
     )
     
-    # Busca dados necessários para regenerar dieta
-    user["goal"] = "cutting"  # Atualiza localmente para gerar dieta correta
-    
-    # Regenera a dieta para cutting
+    # Regenera a dieta para o novo objetivo
     try:
         new_diet = generate_diet_v14(
-            goal="cutting",
+            goal=new_goal,
             weight=user.get("weight", 70),
             height=user.get("height", 170),
             age=user.get("age", 25),
@@ -1472,18 +1479,20 @@ async def switch_goal(user_id: str, new_goal: str):
         # Salva nova dieta
         new_diet["user_id"] = user_id
         new_diet["goal_changed_at"] = datetime.utcnow()
-        new_diet["previous_goal"] = "bulking"
+        new_diet["previous_goal"] = current_goal
         
         # Remove dieta antiga e insere nova
         await db.diet_plans.delete_many({"user_id": user_id})
         await db.diet_plans.insert_one(new_diet)
         
-        logger.info(f"User {user_id} switched from bulking to cutting. New diet generated.")
+        goal_names = {"cutting": "Cutting", "bulking": "Bulking", "manutencao": "Manutenção"}
+        logger.info(f"User {user_id} switched from {current_goal} to {new_goal}. New diet generated.")
         
         return {
             "success": True,
-            "message": "Objetivo alterado para cutting! Nova dieta gerada.",
-            "new_goal": "cutting",
+            "message": f"Objetivo alterado para {goal_names.get(new_goal, new_goal)}! Nova dieta gerada.",
+            "new_goal": new_goal,
+            "previous_goal": current_goal,
             "new_calories": new_diet.get("computed_calories"),
             "new_macros": new_diet.get("computed_macros")
         }
