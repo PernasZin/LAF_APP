@@ -108,79 +108,75 @@ const DayTypeBadge = ({ dayType, dietType, workoutStatus, isDark, theme }: {
   );
 };
 
-// Training Timer Component
-const TrainingTimer = ({ 
-  seconds, 
-  isActive, 
-  onStart, 
-  onPause, 
+// Simple Finish Workout Component
+const FinishWorkoutCard = ({ 
   onFinish,
   isDark,
-  theme 
+  theme,
+  tomorrowIsRest
 }: any) => {
-  // Formata tempo em MM:SS
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remainingSecs = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
+  // Frases motivacionais
+  const trainingMotivation = [
+    "💪 Bora treinar! Cada repetição conta.",
+    "🔥 Hoje é dia de evoluir!",
+    "⚡ Seu futuro eu agradece o treino de hoje.",
+    "🎯 Foco no objetivo, bora!"
+  ];
+  
+  const restMotivation = [
+    "😴 Amanhã é descanso! Aproveite para recuperar.",
+    "🛌 Descanse bem, músculos crescem no repouso!",
+    "✨ Amanhã relaxe, você merece!",
+    "🌙 Recuperação é parte do treino!"
+  ];
+  
+  const nextTrainingMotivation = [
+    "💥 Amanhã tem mais! Prepare-se.",
+    "🚀 Descanse hoje, amanhã você volta ainda mais forte!",
+    "⭐ Boa recuperação para o treino de amanhã!"
+  ];
+  
+  // Escolhe frase aleatória
+  const getRandomPhrase = (phrases: string[]) => {
+    return phrases[Math.floor(Math.random() * phrases.length)];
   };
+  
+  const motivationPhrase = tomorrowIsRest 
+    ? getRandomPhrase(restMotivation)
+    : getRandomPhrase(nextTrainingMotivation);
 
   return (
     <Animated.View entering={FadeInDown.springify()}>
-      <GlassCard isDark={isDark} style={styles.timerCard}>
+      <GlassCard isDark={isDark} style={styles.finishWorkoutCard}>
         <LinearGradient
-          colors={isActive ? [premiumColors.primary + '15', premiumColors.accent + '10'] : ['transparent', 'transparent']}
+          colors={[premiumColors.primary + '15', premiumColors.accent + '10']}
           style={StyleSheet.absoluteFill}
         />
         
-        <View style={styles.timerHeader}>
-          <Timer size={20} color={isActive ? premiumColors.primary : theme.textTertiary} />
-          <Text style={[styles.timerLabel, { color: theme.textSecondary }]}>
-            {isActive ? 'Treinando...' : 'Tempo de Treino'}
+        <View style={styles.finishWorkoutContent}>
+          <View style={[styles.finishIconBg, { backgroundColor: premiumColors.primary + '20' }]}>
+            <Dumbbell size={32} color={premiumColors.primary} strokeWidth={2} />
+          </View>
+          
+          <Text style={[styles.finishWorkoutTitle, { color: theme.text }]}>
+            {getRandomPhrase(trainingMotivation)}
           </Text>
-        </View>
-        
-        <Text style={[styles.timerDisplay, { color: theme.text }]}>
-          {formatTime(seconds)}
-        </Text>
-        
-        <View style={styles.timerButtons}>
-          {!isActive ? (
-            <TouchableOpacity style={styles.startWorkoutBtn} onPress={onStart}>
-              <LinearGradient
-                colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.startWorkoutBtnGradient}
-              >
-                <Play size={24} color="#FFF" fill="#FFF" />
-                <Text style={styles.startWorkoutBtnText}>
-                  {seconds > 0 ? 'Continuar Treino' : 'Iniciar Treino'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.activeTimerButtons}>
-              <TouchableOpacity 
-                style={[styles.pauseBtn, { backgroundColor: '#F59E0B20' }]}
-                onPress={onPause}
-              >
-                <Pause size={24} color="#F59E0B" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.finishBtn} onPress={onFinish}>
-                <LinearGradient
-                  colors={['#10B981', '#059669']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.finishBtnGradient}
-                >
-                  <CheckCircle size={20} color="#FFF" />
-                  <Text style={styles.finishBtnText}>Finalizar Treino</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            </View>
-          )}
+          
+          <TouchableOpacity style={styles.finishTodayBtn} onPress={onFinish}>
+            <LinearGradient
+              colors={['#10B981', '#059669']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.finishTodayBtnGradient}
+            >
+              <CheckCircle size={22} color="#FFF" />
+              <Text style={styles.finishTodayBtnText}>Finalizar Treino de Hoje</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          <Text style={[styles.motivationPhrase, { color: theme.textSecondary }]}>
+            {motivationPhrase}
+          </Text>
         </View>
       </GlassCard>
     </Animated.View>
