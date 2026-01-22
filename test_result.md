@@ -227,9 +227,9 @@ backend:
 
   - task: "Diet Generation - Realistic Portions"
     implemented: true
-    working: true
+    working: false
     file: "/app/backend/diet_service.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
@@ -239,6 +239,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ VALIDADO: Porções realistas funcionando. Todas as quantidades são múltiplos apropriados (5g, 10g, 25g). Azeite limitado a ≤15g por refeição conforme especificado. Corrigido pequeno ajuste na aveia para usar múltiplos de 25g para porções ≥50g."
+      - working: false
+        agent: "testing"
+        comment: "🚨 VIOLAÇÃO CRÍTICA MÚLTIPLOS DE 10 ENCONTRADA - Executei teste extensivo com 8 perfis diferentes conforme solicitação da revisão. RESULTADO: 15.9% dos alimentos violam a regra crítica de múltiplos de 10. VIOLAÇÕES ENCONTRADAS: (1) Maria Santos: Aveia 32g, Arroz Integral 232g (3 violações), (2) Pedro Costa: Feijão 64g (3 violações), (3) Ana Oliveira: Arroz Integral 416g (2 violações), (4) Lucia Mendes: Arroz Integral 144g (2 violações), (5) Roberto Lima: Arroz Branco 328g (2 violações), (6) Fernanda Souza: Pasta de Amendoim 8g/16g, Macarrão 224g (6 violações). TOTAL: 18 violações em 113 alimentos verificados. CRITÉRIO DE APROVAÇÃO FALHOU: Sistema precisa garantir que 100% das quantidades sejam múltiplos de 10 (10g, 20g, 30g, 50g, 100g, 150g, 200g). CORREÇÃO URGENTE NECESSÁRIA."
 
   - task: "Workout Generation - Frequency Match"
     implemented: true
