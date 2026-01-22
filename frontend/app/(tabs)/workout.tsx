@@ -1104,7 +1104,7 @@ export default function WorkoutScreen() {
             <>
               {(workoutPlan.days || workoutPlan.workout_days).map((day: any, index: number) => (
                 <WorkoutDayCard
-                  key={index}
+                  key={`workout-${index}-${currentWorkoutIndex}-${hasTrainedToday}`}
                   day={day}
                   index={index}
                   isDark={isDark}
