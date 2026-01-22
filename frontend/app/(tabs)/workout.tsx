@@ -744,6 +744,9 @@ export default function WorkoutScreen() {
               if (response.ok) {
                 const data = await response.json();
                 
+                console.log('=== FINISH WORKOUT DEBUG ===');
+                console.log('Current index BEFORE:', currentWorkoutIndex);
+                
                 // Limpa estados
                 setHasTrainedToday(true);
                 setWorkoutStatus('completed');
@@ -752,11 +755,16 @@ export default function WorkoutScreen() {
                 const totalWorkouts = workoutPlan?.workout_days?.length || 4;
                 const nextIndex = (currentWorkoutIndex + 1) % totalWorkouts;
                 
+                console.log('Total workouts:', totalWorkouts);
+                console.log('Next index calculated:', nextIndex);
+                
                 // Salva o próximo índice no AsyncStorage para persistir
                 await AsyncStorage.setItem('next_workout_index', nextIndex.toString());
+                console.log('Saved to AsyncStorage:', nextIndex);
                 
                 // Atualiza o estado DEPOIS de salvar no storage
                 setCurrentWorkoutIndex(nextIndex);
+                console.log('Called setCurrentWorkoutIndex with:', nextIndex);
                 
                 const workoutLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
                 const nextWorkoutLetter = workoutLetters[nextIndex] || `${nextIndex + 1}`;
