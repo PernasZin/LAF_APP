@@ -655,6 +655,70 @@ export default function WorkoutScreen() {
     );
   };
 
+  // Simple finish workout (sem timer)
+  const finishWorkoutSimple = async () => {
+    if (!userId || !BACKEND_URL) {
+      Alert.alert('Erro', 'Usuário não identificado');
+      return;
+    }
+
+    Alert.alert(
+      'Finalizar Treino',
+      'Marcar o treino de hoje como concluído?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Confirmar',
+          onPress: async () => {
+            try {
+              // Primeiro inicia a sessão (necessário para o backend)
+              await safeFetch(
+                `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
+                { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+              );
+              
+              // Depois finaliza
+              const response = await safeFetch(
+                `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
+                {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    duration_seconds: 0, // Sem timer
+                    exercises_completed: workoutPlan?.workout_days?.[0]?.exercises?.length || 0
+                  })
+                }
+              );
+
+              if (response.ok) {
+                const data = await response.json();
+                
+                // Limpa estados
+                setHasTrainedToday(true);
+                setWorkoutStatus('completed');
+                
+                Alert.alert(
+                  '🎉 Treino Concluído!',
+                  `Parabéns pelo treino de hoje!\n\nPróximo: ${data.next_workout || 'Amanhã'}`
+                );
+                
+                // Recarrega status para atualizar qual é o próximo treino
+                await loadCycleStatus(userId);
+                await loadWorkoutPlan(userId);
+              } else {
+                const errorData = await response.json().catch(() => ({}));
+                Alert.alert('Erro', errorData.detail || 'Não foi possível finalizar o treino');
+              }
+            } catch (error) {
+              console.error('Error finishing workout:', error);
+              Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   // Format time helper
   const formatTime = (seconds: number) => {
     const secs = Math.max(0, Math.floor(Number(seconds) || 0));
