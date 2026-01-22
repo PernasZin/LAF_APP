@@ -454,6 +454,19 @@ export default function WorkoutScreen() {
     setRefreshing(false);
   };
 
+  // Carrega apenas o plano de treino (usado após finalizar)
+  const loadWorkoutPlan = async (id: string) => {
+    try {
+      const response = await safeFetch(`${BACKEND_URL}/api/workout/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setWorkoutPlan(data);
+      }
+    } catch (error) {
+      console.error('Error loading workout plan:', error);
+    }
+  };
+
   // Start workout
   const startWorkout = async () => {
     if (!userId || !BACKEND_URL) return;
