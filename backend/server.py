@@ -894,7 +894,8 @@ async def get_user_diet(user_id: str):
             
             if is_carb_food:
                 # Carboidratos: ajuste maior
-                adjusted_grams = round(original_grams * carb_mult)
+                # 🔒 IMPORTANTE: Sempre arredondar para múltiplo de 10!
+                adjusted_grams = round(original_grams * carb_mult / 10) * 10
                 
                 # Recalcula macros proporcionalmente
                 ratio = adjusted_grams / original_grams if original_grams > 0 else 1
