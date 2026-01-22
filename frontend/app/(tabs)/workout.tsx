@@ -893,16 +893,13 @@ export default function WorkoutScreen() {
             </Animated.View>
           )}
 
-          {/* Training Timer - Only show on training days */}
+          {/* Finish Workout Card - Only show on training days */}
           {!isTrainingBlocked && dayType === 'train' && !hasTrainedToday && (
-            <TrainingTimer
-              seconds={trainingSeconds}
-              isActive={isTraining}
-              onStart={startWorkout}
-              onPause={pauseWorkout}
-              onFinish={finishWorkout}
+            <FinishWorkoutCard
+              onFinish={finishWorkoutSimple}
               isDark={isDark}
               theme={theme}
+              tomorrowIsRest={tomorrowIsRest}
             />
           )}
 
