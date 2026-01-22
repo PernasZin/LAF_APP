@@ -2216,13 +2216,13 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         current_g = food["grams"]
                         f_per_100 = FOODS[food_key]["f"]
                         reduce_grams = reduce_needed / (f_per_100 / 100)
-                        new_g = max(0, current_g - reduce_grams)
+                        new_g = round_to_10(max(0, current_g - reduce_grams))
                         
-                        if new_g < 5:
+                        if new_g < 10:
                             meals[m_idx]["foods"].pop(f_idx)
                             adjusted = True
                             break
-                        elif current_g - new_g >= 2:
+                        elif current_g - new_g >= 10:
                             meals[m_idx]["foods"][f_idx] = calc_food(food_key, new_g)
                             adjusted = True
                             break
