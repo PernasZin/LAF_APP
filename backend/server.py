@@ -1429,7 +1429,7 @@ async def switch_goal(user_id: str, new_goal: str):
     Muda o objetivo do usuário e regenera a dieta.
     new_goal pode ser: 'cutting', 'bulking', 'manutencao', 'manter'
     """
-    from diet_service import generate_diet_v14
+    from diet_service import generate_diet, calculate_macros
     
     # Normaliza o objetivo
     valid_goals = ["cutting", "bulking", "manutencao", "manter"]
