@@ -107,7 +107,7 @@ class LAFTester:
                 if grams % 10 != 0:
                     violation = f"{profile_name} - {meal_name} - {food_name}: {grams}g (NOT multiple of 10)"
                     violations.append(violation)
-                    self.log(f"❌ MULTIPLE OF 10 VIOLATION: {violation}", "ERROR")
+                    self.log(f"🚨 MULTIPLE OF 10 VIOLATION: {violation}", "ERROR")
         
         return violations
     
