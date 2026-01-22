@@ -582,7 +582,7 @@ class LAFTester:
         print("\n📊 TESTING PROGRESS & WEIGHT TRACKING")
         
         # Test can-update check (should be true for first time)
-        response = self.make_request("GET", f"/progress/can-update/{self.user_id}")
+        response = self.make_request("GET", f"/progress/weight/{self.user_id}/can-update")
         if response.status_code == 200:
             result = response.json()
             can_update = result.get("can_update", False)
