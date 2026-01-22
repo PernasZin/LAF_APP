@@ -157,21 +157,29 @@ export default function ProgressScreen() {
         });
         await loadProgress();
         
-        // Verifica se deve sugerir cutting
-        if (result.suggest_cutting) {
+        // Verifica se deve sugerir mudança de objetivo
+        if (result.suggest_goal_change && result.suggested_goal) {
+          const goalNames: Record<string, string> = {
+            cutting: 'Cutting',
+            bulking: 'Bulking', 
+            manutencao: 'Manutenção'
+          };
+          
+          const suggestedGoalName = goalNames[result.suggested_goal] || result.suggested_goal;
+          
           Alert.alert(
-            '💪 Hora de definir!',
-            result.suggest_cutting_reason || 'Sua dieta de bulking está muito alta. Considere fazer um cutting para definição muscular.',
+            result.suggested_goal === 'cutting' ? '💪 Hora de definir!' : '🎯 Hora de crescer!',
+            result.suggest_reason || `Considere mudar para ${suggestedGoalName}.`,
             [
               { 
                 text: 'Ainda não', 
                 style: 'cancel' 
               },
               { 
-                text: 'Sim, quero cutting!', 
+                text: `Sim, quero ${suggestedGoalName}!`, 
                 onPress: async () => {
                   try {
-                    const switchResponse = await safeFetch(`${BACKEND_URL}/api/user/${userId}/switch-to-cutting`, {
+                    const switchResponse = await safeFetch(`${BACKEND_URL}/api/user/${userId}/switch-goal/${result.suggested_goal}`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
                     });
@@ -180,7 +188,7 @@ export default function ProgressScreen() {
                       const switchResult = await switchResponse.json();
                       Alert.alert(
                         '✅ Objetivo alterado!',
-                        `Agora você está em cutting.\nNovas calorias: ${switchResult.new_calories}kcal`
+                        `${switchResult.message}\nNovas calorias: ${switchResult.new_calories}kcal`
                       );
                       // Recarrega dados
                       await loadProgress();
