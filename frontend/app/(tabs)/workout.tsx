@@ -988,7 +988,6 @@ export default function WorkoutScreen() {
               onFinish={finishWorkoutSimple}
               isDark={isDark}
               theme={theme}
-              tomorrowIsRest={tomorrowIsRest}
               trainingPhrase={trainingPhrase}
               tomorrowPhrase={tomorrowPhrase}
             />
