@@ -318,15 +318,42 @@ export default function WorkoutScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // Ao focar na tela, carrega dados e restaura timer se existir
       loadData();
+      
       return () => {
-        // Não para o timer ao sair - apenas limpa o interval
-        // O tempo real é calculado pelo timestamp
+        // Ao sair, apenas limpa intervals - NÃO para o timer
+        // O tempo real continua sendo calculado pelo timestamp
         if (timerRef.current) clearInterval(timerRef.current);
         if (restTimerRef.current) clearInterval(restTimerRef.current);
       };
     }, [])
   );
+  
+  // Efeito para restaurar timer ao voltar para a tela
+  useEffect(() => {
+    const restoreTimerIfNeeded = async () => {
+      // Se já está treinando, não precisa restaurar
+      if (isTraining && startTimestampRef.current) return;
+      
+      // Verifica se tem timestamp salvo
+      const savedTimestamp = await AsyncStorage.getItem('training_start_timestamp');
+      if (savedTimestamp) {
+        const timestamp = parseInt(savedTimestamp, 10);
+        if (!isNaN(timestamp) && timestamp > 0) {
+          // Verifica se é de hoje
+          const savedDate = new Date(timestamp);
+          const today = new Date();
+          if (savedDate.toDateString() === today.toDateString()) {
+            startTimestampRef.current = timestamp;
+            setIsTraining(true);
+          }
+        }
+      }
+    };
+    
+    restoreTimerIfNeeded();
+  }, []);
 
   // Training timer effect - usa timestamp para calcular tempo real
   useEffect(() => {
