@@ -4142,7 +4142,7 @@ class DietAIService:
                             
                             # Calcula nova quantidade (mínimo 120g de proteína por refeição)
                             grams_to_reduce = (protein_excess / protein_per_100g) * 100
-                            new_grams = max(120, current_grams - grams_to_reduce)
+                            new_grams = round_to_10(max(120, current_grams - grams_to_reduce))
                             
                             # Atualiza o alimento
                             meal.foods[f_idx] = calc_food(food.get("key"), new_grams)
