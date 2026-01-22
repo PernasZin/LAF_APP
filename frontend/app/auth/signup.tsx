@@ -397,6 +397,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    overflow: 'hidden',
   },
   signupButtonText: { color: '#FFF', fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
 
