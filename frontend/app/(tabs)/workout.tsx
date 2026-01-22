@@ -113,38 +113,10 @@ const FinishWorkoutCard = ({
   onFinish,
   isDark,
   theme,
-  tomorrowIsRest
+  tomorrowIsRest,
+  trainingPhrase,
+  tomorrowPhrase
 }: any) => {
-  // Frases motivacionais
-  const trainingMotivation = [
-    "💪 Bora treinar! Cada repetição conta.",
-    "🔥 Hoje é dia de evoluir!",
-    "⚡ Seu futuro eu agradece o treino de hoje.",
-    "🎯 Foco no objetivo, bora!"
-  ];
-  
-  const restMotivation = [
-    "😴 Amanhã é descanso! Aproveite para recuperar.",
-    "🛌 Descanse bem, músculos crescem no repouso!",
-    "✨ Amanhã relaxe, você merece!",
-    "🌙 Recuperação é parte do treino!"
-  ];
-  
-  const nextTrainingMotivation = [
-    "💥 Amanhã tem mais! Prepare-se.",
-    "🚀 Descanse hoje, amanhã você volta ainda mais forte!",
-    "⭐ Boa recuperação para o treino de amanhã!"
-  ];
-  
-  // Escolhe frase aleatória
-  const getRandomPhrase = (phrases: string[]) => {
-    return phrases[Math.floor(Math.random() * phrases.length)];
-  };
-  
-  const motivationPhrase = tomorrowIsRest 
-    ? getRandomPhrase(restMotivation)
-    : getRandomPhrase(nextTrainingMotivation);
-
   return (
     <Animated.View entering={FadeInDown.springify()}>
       <GlassCard isDark={isDark} style={styles.finishWorkoutCard}>
@@ -159,7 +131,7 @@ const FinishWorkoutCard = ({
           </View>
           
           <Text style={[styles.finishWorkoutTitle, { color: theme.text }]}>
-            {getRandomPhrase(trainingMotivation)}
+            {trainingPhrase}
           </Text>
           
           <TouchableOpacity style={styles.finishTodayBtn} onPress={onFinish}>
@@ -175,7 +147,7 @@ const FinishWorkoutCard = ({
           </TouchableOpacity>
           
           <Text style={[styles.motivationPhrase, { color: theme.textSecondary }]}>
-            {motivationPhrase}
+            {tomorrowPhrase}
           </Text>
         </View>
       </GlassCard>
