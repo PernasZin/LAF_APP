@@ -315,18 +315,30 @@ export default function WorkoutScreen() {
 
   // ==================== EFFECTS ====================
 
+  // Ref para armazenar valores atuais sem causar re-render
+  const isTrainingRef = useRef(isTraining);
+  const trainingSecondsRef = useRef(trainingSeconds);
+  
+  useEffect(() => {
+    isTrainingRef.current = isTraining;
+  }, [isTraining]);
+  
+  useEffect(() => {
+    trainingSecondsRef.current = trainingSeconds;
+  }, [trainingSeconds]);
+
   useFocusEffect(
     useCallback(() => {
       loadData();
       return () => {
         // Ao sair da tela, salva o tempo atual se treino estiver em andamento
-        if (isTraining && trainingSeconds > 0) {
-          AsyncStorage.setItem('training_paused_seconds', trainingSeconds.toString());
+        if (isTrainingRef.current && trainingSecondsRef.current > 0) {
+          AsyncStorage.setItem('training_paused_seconds', trainingSecondsRef.current.toString());
         }
         if (timerRef.current) clearInterval(timerRef.current);
         if (restTimerRef.current) clearInterval(restTimerRef.current);
       };
-    }, [isTraining, trainingSeconds])
+    }, [])
   );
 
   // Training timer effect
@@ -335,10 +347,6 @@ export default function WorkoutScreen() {
       timerRef.current = setInterval(() => {
         setTrainingSeconds(prev => {
           const newValue = prev + 1;
-          // Salva a cada 10 segundos para evitar perda
-          if (newValue % 10 === 0) {
-            AsyncStorage.setItem('training_paused_seconds', newValue.toString());
-          }
           return newValue;
         });
       }, 1000);
