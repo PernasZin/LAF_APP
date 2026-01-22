@@ -1004,6 +1004,8 @@ export default function WorkoutScreen() {
               isDark={isDark}
               theme={theme}
               tomorrowIsRest={tomorrowIsRest}
+              trainingPhrase={trainingPhrase}
+              tomorrowPhrase={tomorrowPhrase}
             />
           )}
 
