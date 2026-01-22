@@ -797,13 +797,6 @@ export default function WorkoutScreen() {
       Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
     }
   };
-              Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
-            }
-          }
-        }
-      ]
-    );
-  };
 
   // Format time helper
   const formatTime = (seconds: number) => {
