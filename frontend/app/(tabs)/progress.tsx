@@ -157,19 +157,59 @@ export default function ProgressScreen() {
         });
         await loadProgress();
         
-        // Mostrar resultado do ajuste
-        let message = result.diet_kept ? p.dietKept : p.dietAdjusted;
-        if (result.calories_change) {
-          const changeText = result.calories_change > 0 
-            ? `${p.caloriesIncreased} ${result.calories_change}kcal` 
-            : `${p.caloriesDecreased} ${Math.abs(result.calories_change)}kcal`;
-          message += `\n${changeText}`;
+        // Verifica se deve sugerir cutting
+        if (result.suggest_cutting) {
+          Alert.alert(
+            '💪 Hora de definir!',
+            result.suggest_cutting_reason || 'Sua dieta de bulking está muito alta. Considere fazer um cutting para definição muscular.',
+            [
+              { 
+                text: 'Ainda não', 
+                style: 'cancel' 
+              },
+              { 
+                text: 'Sim, quero cutting!', 
+                onPress: async () => {
+                  try {
+                    const switchResponse = await safeFetch(`${BACKEND_URL}/api/user/${userId}/switch-to-cutting`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                    });
+                    
+                    if (switchResponse.ok) {
+                      const switchResult = await switchResponse.json();
+                      Alert.alert(
+                        '✅ Objetivo alterado!',
+                        `Agora você está em cutting.\nNovas calorias: ${switchResult.new_calories}kcal`
+                      );
+                      // Recarrega dados
+                      await loadProgress();
+                    } else {
+                      const error = await switchResponse.json();
+                      Alert.alert('Erro', error.detail || 'Não foi possível alterar objetivo');
+                    }
+                  } catch (error) {
+                    Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
+                  }
+                }
+              }
+            ]
+          );
+        } else {
+          // Mostrar resultado do ajuste normal
+          let message = result.diet_kept ? p.dietKept : p.dietAdjusted;
+          if (result.calories_change) {
+            const changeText = result.calories_change > 0 
+              ? `${p.caloriesIncreased} ${result.calories_change}kcal` 
+              : `${p.caloriesDecreased} ${Math.abs(result.calories_change)}kcal`;
+            message += `\n${changeText}`;
+          }
+          if (result.foods_replaced > 0) {
+            message += `\n${result.foods_replaced} ${p.foodsReplaced}`;
+          }
+          
+          Alert.alert(t.common.success, message);
         }
-        if (result.foods_replaced > 0) {
-          message += `\n${result.foods_replaced} ${p.foodsReplaced}`;
-        }
-        
-        Alert.alert(t.common.success, message);
       } else {
         const data = await response.json();
         Alert.alert(t.common.warning || 'Warning', data.detail || t.common.error);
