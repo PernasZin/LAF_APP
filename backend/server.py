@@ -1429,7 +1429,7 @@ async def switch_goal(user_id: str, new_goal: str):
     Muda o objetivo do usuário e regenera a dieta.
     new_goal pode ser: 'cutting', 'bulking', 'manutencao', 'manter'
     """
-    from diet_service import generate_diet, calculate_macros
+    from diet_service import generate_diet, calculate_tdee, calculate_bmr
     
     # Normaliza o objetivo
     valid_goals = ["cutting", "bulking", "manutencao", "manter"]
@@ -1463,17 +1463,38 @@ async def switch_goal(user_id: str, new_goal: str):
     
     # Regenera a dieta para o novo objetivo
     try:
-        new_diet = generate_diet_v14(
+        # Calcula TDEE e macros para o novo objetivo
+        weight = user.get("weight", 70)
+        height = user.get("height", 170)
+        age = user.get("age", 25)
+        sex = user.get("sex", "male")
+        activity_level = user.get("activity_level", "moderado")
+        
+        tdee = calculate_tdee(weight, height, age, sex, activity_level)
+        
+        # Ajusta calorias baseado no objetivo
+        if new_goal == "cutting":
+            target_calories = tdee - 500
+        elif new_goal == "bulking":
+            target_calories = tdee + 400
+        else:  # manutenção
+            target_calories = tdee
+        
+        # Calcula macros
+        protein = int(weight * 2.0)  # 2g/kg
+        fat = int(weight * 1.0)  # 1g/kg
+        remaining_cals = target_calories - (protein * 4) - (fat * 9)
+        carbs = max(100, int(remaining_cals / 4))
+        
+        # Gera dieta
+        new_diet = generate_diet(
+            target_p=protein,
+            target_c=carbs,
+            target_f=fat,
+            meals_count=user.get("meal_count", 4),
             goal=new_goal,
-            weight=user.get("weight", 70),
-            height=user.get("height", 170),
-            age=user.get("age", 25),
-            sex=user.get("sex", "male"),
-            activity_level=user.get("activity_level", "moderado"),
-            meals_per_day=user.get("meal_count", 4),
             restrictions=user.get("dietary_restrictions", []),
-            food_preferences=user.get("food_preferences", []),
-            training_days_per_week=user.get("weekly_training_frequency", 4)
+            user_foods=user.get("food_preferences", [])
         )
         
         # Salva nova dieta
@@ -1497,7 +1518,7 @@ async def switch_goal(user_id: str, new_goal: str):
             "new_macros": new_diet.get("computed_macros")
         }
     except Exception as e:
-        logger.error(f"Error generating cutting diet for {user_id}: {e}")
+        logger.error(f"Error generating diet for {user_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Erro ao gerar nova dieta: {str(e)}")
 
 
