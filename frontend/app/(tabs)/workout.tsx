@@ -473,8 +473,16 @@ export default function WorkoutScreen() {
           setTomorrowIsRest(false);
         }
         
-        // Define o índice do treino atual baseado no backend
-        if (data.today_workout_index !== undefined) {
+        // Define o índice do treino atual
+        // Prioridade: AsyncStorage (persiste entre sessões) > Backend
+        const savedIndex = await AsyncStorage.getItem('next_workout_index');
+        if (savedIndex) {
+          const index = parseInt(savedIndex, 10);
+          if (!isNaN(index) && index >= 0) {
+            setCurrentWorkoutIndex(index);
+          }
+        } else if (data.today_workout_index !== undefined) {
+          // Só usa o backend se não tiver valor salvo
           setCurrentWorkoutIndex(data.today_workout_index);
         }
         
