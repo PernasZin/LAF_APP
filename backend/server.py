@@ -1506,10 +1506,18 @@ async def switch_goal(user_id: str, new_goal: str):
         total_f = 0
         for meal in meals_list:
             total_cals += meal.get("total_calories", 0)
-            macros = meal.get("macros", {})
-            total_p += macros.get("protein", 0)
-            total_c += macros.get("carbs", 0)
-            total_f += macros.get("fat", 0)
+            # Se meal tem macros, usa. Senão, soma dos alimentos
+            meal_macros = meal.get("macros")
+            if meal_macros:
+                total_p += meal_macros.get("protein", 0)
+                total_c += meal_macros.get("carbs", 0)
+                total_f += meal_macros.get("fat", 0)
+            else:
+                # Soma dos alimentos
+                for food in meal.get("foods", []):
+                    total_p += food.get("protein", 0)
+                    total_c += food.get("carbs", 0)
+                    total_f += food.get("fat", 0)
         
         # Monta estrutura da dieta
         new_diet = {
