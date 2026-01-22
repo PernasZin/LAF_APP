@@ -284,6 +284,7 @@ export default function WorkoutScreen() {
   const [dietType, setDietType] = useState<'training' | 'rest'>('rest');
   const [workoutStatus, setWorkoutStatus] = useState<string>('rest');
   const [isTrainingBlocked, setIsTrainingBlocked] = useState(false);
+  const [tomorrowIsRest, setTomorrowIsRest] = useState(false);
 
   // Training session state
   const [isTraining, setIsTraining] = useState(false);
