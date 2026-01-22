@@ -1038,8 +1038,8 @@ export default function WorkoutScreen() {
             </Animated.View>
           )}
 
-          {/* Finish Workout Card - Only show on training days */}
-          {!isTrainingBlocked && dayType === 'train' && !hasTrainedToday && (
+          {/* Finish Workout Card - Show when there's a workout plan and not trained today */}
+          {!isTrainingBlocked && !hasTrainedToday && workoutPlan?.workout_days?.length > 0 && (
             <FinishWorkoutCard
               onFinish={finishWorkoutSimple}
               isDark={isDark}
