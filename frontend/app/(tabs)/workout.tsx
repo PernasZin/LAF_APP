@@ -118,41 +118,48 @@ const FinishWorkoutCard = ({
   tomorrowPhrase
 }: any) => {
   return (
-    <Animated.View entering={FadeInDown.springify()}>
-      <GlassCard isDark={isDark} style={styles.finishWorkoutCard}>
-        <LinearGradient
-          colors={[premiumColors.primary + '15', premiumColors.accent + '10']}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-        
-        <View style={styles.finishWorkoutContent}>
-          <View style={[styles.finishIconBg, { backgroundColor: premiumColors.primary + '20' }]}>
-            <Dumbbell size={32} color={premiumColors.primary} strokeWidth={2} />
-          </View>
-          
-          <Text style={[styles.finishWorkoutTitle, { color: theme.text }]}>
-            {trainingPhrase}
-          </Text>
-          
-          <TouchableOpacity style={styles.finishTodayBtn} onPress={onFinish} activeOpacity={0.7}>
-            <LinearGradient
-              colors={['#10B981', '#059669']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.finishTodayBtnGradient}
-            >
-              <CheckCircle size={22} color="#FFF" />
-              <Text style={styles.finishTodayBtnText}>Finalizar Treino de Hoje</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          
-          <Text style={[styles.motivationPhrase, { color: theme.textSecondary }]}>
-            {tomorrowPhrase}
-          </Text>
+    <View style={[styles.finishWorkoutCard, { 
+      backgroundColor: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.9)',
+      borderRadius: 20,
+      padding: 24,
+      marginBottom: 16,
+    }]}>
+      <View style={styles.finishWorkoutContent}>
+        <View style={[styles.finishIconBg, { backgroundColor: premiumColors.primary + '20' }]}>
+          <Dumbbell size={32} color={premiumColors.primary} strokeWidth={2} />
         </View>
-      </GlassCard>
-    </Animated.View>
+        
+        <Text style={[styles.finishWorkoutTitle, { color: theme.text }]}>
+          {trainingPhrase || "💪 Bora treinar!"}
+        </Text>
+        
+        <TouchableOpacity 
+          onPress={onFinish} 
+          activeOpacity={0.7}
+          style={{
+            backgroundColor: '#10B981',
+            borderRadius: 12,
+            paddingVertical: 16,
+            paddingHorizontal: 24,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+            width: '100%',
+            marginBottom: 12,
+          }}
+        >
+          <CheckCircle size={22} color="#FFF" />
+          <Text style={{ color: '#FFF', fontSize: 17, fontWeight: '700' }}>
+            Finalizar Treino de Hoje
+          </Text>
+        </TouchableOpacity>
+        
+        <Text style={[styles.motivationPhrase, { color: theme.textSecondary }]}>
+          {tomorrowPhrase || "Descanse bem para o próximo treino!"}
+        </Text>
+      </View>
+    </View>
   );
 };
 
