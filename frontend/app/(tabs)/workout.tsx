@@ -123,6 +123,7 @@ const FinishWorkoutCard = ({
         <LinearGradient
           colors={[premiumColors.primary + '15', premiumColors.accent + '10']}
           style={StyleSheet.absoluteFill}
+          pointerEvents="none"
         />
         
         <View style={styles.finishWorkoutContent}>
@@ -134,7 +135,7 @@ const FinishWorkoutCard = ({
             {trainingPhrase}
           </Text>
           
-          <TouchableOpacity style={styles.finishTodayBtn} onPress={onFinish}>
+          <TouchableOpacity style={styles.finishTodayBtn} onPress={onFinish} activeOpacity={0.7}>
             <LinearGradient
               colors={['#10B981', '#059669']}
               start={{ x: 0, y: 0 }}
