@@ -2401,8 +2401,8 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                         current_g = food["grams"]
                         f_per_100 = FOODS["azeite"]["f"]
                         increase_grams = increase_needed / (f_per_100 / 100)
-                        new_g = min(30, current_g + increase_grams)
-                        if new_g - current_g >= 2:
+                        new_g = round_to_10(min(30, current_g + increase_grams))
+                        if new_g - current_g >= 10:
                             meals[m_idx]["foods"][f_idx] = calc_food("azeite", new_g)
                             adjusted = True
                             break
@@ -2415,8 +2415,8 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                     has_azeite = any(f.get("key") == "azeite" for f in meals[m_idx]["foods"])
                     if not has_azeite:
                         f_per_100 = FOODS["azeite"]["f"]
-                        new_grams = min(20, increase_needed / (f_per_100 / 100))
-                        if new_grams >= 5:
+                        new_grams = round_to_10(min(20, increase_needed / (f_per_100 / 100)))
+                        if new_grams >= 10:
                             meals[m_idx]["foods"].append(calc_food("azeite", new_grams))
                             adjusted = True
                             break
