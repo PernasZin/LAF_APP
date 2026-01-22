@@ -4248,6 +4248,25 @@ class DietAIService:
         # 📊 LOG FINAL DE VALIDAÇÃO
         print(f"[DIET DEBUG] FINAL: P={total_p:.0f}g ({total_p/weight:.2f}g/kg) | C={total_c:.0f}g | F={total_f:.0f}g ({total_f/weight:.2f}g/kg)")
         
+        # 🔒 VALIDAÇÃO ABSOLUTA FINAL: Garantir que TODAS as quantidades são múltiplos de 10
+        # Esta é a última linha de defesa - nenhum alimento pode ter quantidade que não seja múltiplo de 10
+        for meal in final_meals:
+            for food_idx, food in enumerate(meal.foods):
+                grams = food.get("grams", 0)
+                if grams % 10 != 0:
+                    rounded_grams = round_to_10(grams)
+                    if rounded_grams > 0:
+                        meal.foods[food_idx] = calc_food(food.get("key"), rounded_grams)
+                        print(f"[FINAL VALIDATION] Arredondado {food.get('name')}: {grams}g -> {rounded_grams}g")
+            # Recalcula totais após correções
+            mp, mc, mf, mcal = sum_foods(meal.foods)
+            meal.total_calories = mcal
+            meal.macros = {"protein": mp, "carbs": mc, "fat": mf}
+        
+        # Recalcula totais globais
+        all_foods = [f for m in final_meals for f in m.foods]
+        total_p, total_c, total_f, total_cal = sum_foods(all_foods)
+        
         # Gera nota com info de auto-complete se aplicável
         notes = f"Dieta V15: {total_cal}kcal | P:{total_p}g C:{total_c}g G:{total_f}g | ✅ Validada"
         if auto_completed:
