@@ -556,7 +556,7 @@ class LAFTester:
             self.log_test("TRAINING CYCLE - Start Session", True, "Session started successfully")
             
             # Test finish session
-            finish_data = {"duration": "60:00", "exercises_completed": 8}
+            finish_data = {"duration_seconds": 3600, "exercises_completed": 8}  # Fixed: use duration_seconds
             response = self.make_request("POST", f"/training-cycle/finish-session/{self.user_id}", finish_data)
             if response.status_code == 200:
                 self.log_test("TRAINING CYCLE - Finish Session", True, "Session finished successfully")
