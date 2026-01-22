@@ -525,7 +525,7 @@ class LAFTester:
         print("\n🔄 TESTING TRAINING CYCLE SYSTEM")
         
         # Test setup training cycle
-        setup_data = {"weekly_training_frequency": 4}
+        setup_data = {"frequency": 4}  # Fixed: use frequency instead of weekly_training_frequency
         response = self.make_request("POST", f"/training-cycle/setup/{self.user_id}", setup_data)
         if response.status_code == 200:
             result = response.json()
