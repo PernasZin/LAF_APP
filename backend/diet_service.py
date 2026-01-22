@@ -2243,8 +2243,8 @@ def fine_tune_diet(meals: List[Dict], target_p: int, target_c: int, target_f: in
                     # Reduz em AMBOS igualmente
                     reduce_each = (reduce_needed / 2) / (FOODS["azeite"]["f"] / 100)
                     for m_idx, (f_idx, current_g) in azeite_indices.items():
-                        new_g = max(0, current_g - reduce_each)
-                        if new_g < 5:
+                        new_g = round_to_10(max(0, current_g - reduce_each))
+                        if new_g < 10:
                             meals[m_idx]["foods"].pop(f_idx)
                         else:
                             meals[m_idx]["foods"][f_idx] = calc_food("azeite", new_g)
