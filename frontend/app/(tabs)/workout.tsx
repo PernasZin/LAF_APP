@@ -456,6 +456,11 @@ export default function WorkoutScreen() {
           setTomorrowIsRest(false);
         }
         
+        // Define o índice do treino atual baseado no backend
+        if (data.today_workout_index !== undefined) {
+          setCurrentWorkoutIndex(data.today_workout_index);
+        }
+        
         // Se treino em andamento no backend
         if (data.is_training_in_progress && data.training_session?.started_at) {
           setSessionStartedAt(data.training_session.started_at);
