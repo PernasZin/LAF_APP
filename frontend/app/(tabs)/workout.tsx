@@ -360,6 +360,28 @@ export default function WorkoutScreen() {
     restoreTimerIfNeeded();
   }, []);
 
+  // Atualiza a frase de amanhã quando tomorrowIsRest muda
+  useEffect(() => {
+    const restPhrases = [
+      "😴 Amanhã é descanso! Aproveite para recuperar.",
+      "🛌 Descanse bem, músculos crescem no repouso!",
+      "✨ Amanhã relaxe, você merece!",
+      "🌙 Recuperação é parte do treino!"
+    ];
+    
+    const nextTrainingPhrases = [
+      "💥 Amanhã tem mais! Prepare-se.",
+      "🚀 Descanse hoje, amanhã você volta ainda mais forte!",
+      "⭐ Boa recuperação para o treino de amanhã!"
+    ];
+    
+    if (tomorrowIsRest) {
+      setTomorrowPhrase(restPhrases[Math.floor(Math.random() * restPhrases.length)]);
+    } else {
+      setTomorrowPhrase(nextTrainingPhrases[Math.floor(Math.random() * nextTrainingPhrases.length)]);
+    }
+  }, [tomorrowIsRest]);
+
   // Training timer effect - usa timestamp para calcular tempo real
   useEffect(() => {
     if (isTraining && startTimestampRef.current) {
