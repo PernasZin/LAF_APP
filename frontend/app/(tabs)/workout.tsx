@@ -319,17 +319,28 @@ export default function WorkoutScreen() {
     useCallback(() => {
       loadData();
       return () => {
+        // Ao sair da tela, salva o tempo atual se treino estiver em andamento
+        if (isTraining && trainingSeconds > 0) {
+          AsyncStorage.setItem('training_paused_seconds', trainingSeconds.toString());
+        }
         if (timerRef.current) clearInterval(timerRef.current);
         if (restTimerRef.current) clearInterval(restTimerRef.current);
       };
-    }, [])
+    }, [isTraining, trainingSeconds])
   );
 
   // Training timer effect
   useEffect(() => {
     if (isTraining) {
       timerRef.current = setInterval(() => {
-        setTrainingSeconds(prev => prev + 1);
+        setTrainingSeconds(prev => {
+          const newValue = prev + 1;
+          // Salva a cada 10 segundos para evitar perda
+          if (newValue % 10 === 0) {
+            AsyncStorage.setItem('training_paused_seconds', newValue.toString());
+          }
+          return newValue;
+        });
       }, 1000);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
