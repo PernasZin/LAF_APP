@@ -4271,48 +4271,102 @@ class DietAIService:
 # ==================== AJUSTE PARA MODO ATLETA ====================
 
 def evaluate_progress(goal: str, previous_weight: float, current_weight: float, 
-                      tolerance_kg: float = 0.3) -> Dict:
-    """Avalia progresso e determina se precisa ajustar dieta"""
+                      tolerance_kg: float = 0.3, current_diet_calories: float = 0) -> Dict:
+    """
+    Avalia progresso e determina se precisa ajustar dieta.
+    
+    LÓGICA CORRIGIDA:
+    - BULKING: Ganhou peso? AUMENTA dieta (para continuar ganhando)
+              Não ganhou? AUMENTA ainda mais
+    - CUTTING: Perdeu peso? CONTINUA diminuindo (para continuar perdendo)
+              Não perdeu? DIMINUI mais ainda
+    - MANUTENÇÃO: Ajusta para manter estável
+    
+    ALERTA DE CUTTING:
+    - Se bulking e dieta > 4000kcal, sugere fazer cutting
+    """
     weight_diff = current_weight - previous_weight
     
     result = {
         "needs_adjustment": False,
         "adjustment_type": None,
         "adjustment_percent": 0.0,
-        "reason": "Progresso adequado"
+        "reason": "Progresso adequado",
+        "suggest_cutting": False,
+        "suggest_cutting_reason": None
     }
     
     if goal == "cutting":
-        if weight_diff >= -tolerance_kg:
+        # CUTTING: Sempre diminui enquanto está perdendo peso
+        if weight_diff < -tolerance_kg:
+            # Perdeu peso - CONTINUA diminuindo (gradualmente)
             result["needs_adjustment"] = True
             result["adjustment_type"] = "decrease"
-            result["adjustment_percent"] = 6.0 if weight_diff >= 0 else 5.0
+            result["adjustment_percent"] = 3.0  # Redução menor para manter o ritmo
+            result["reason"] = f"Perda de peso ({weight_diff:.1f}kg). Ajustando para continuar."
+        elif weight_diff >= 0:
+            # Não perdeu ou ganhou - DIMINUI mais
+            result["needs_adjustment"] = True
+            result["adjustment_type"] = "decrease"
+            result["adjustment_percent"] = 6.0
             result["reason"] = f"Peso não reduziu ({weight_diff:+.1f}kg). Reduzindo calorias."
         else:
-            result["reason"] = f"Perda de peso adequada ({weight_diff:.1f}kg)."
+            # Perdeu pouco - ajuste leve
+            result["needs_adjustment"] = True
+            result["adjustment_type"] = "decrease"
+            result["adjustment_percent"] = 4.0
+            result["reason"] = f"Perda leve ({weight_diff:.1f}kg). Ajustando."
     
     elif goal == "bulking":
-        if weight_diff <= tolerance_kg:
+        # BULKING: Sempre aumenta enquanto está ganhando peso
+        if weight_diff > tolerance_kg:
+            # Ganhou peso - CONTINUA aumentando (gradualmente)
             result["needs_adjustment"] = True
             result["adjustment_type"] = "increase"
-            result["adjustment_percent"] = 6.0 if weight_diff <= 0 else 5.0
+            result["adjustment_percent"] = 3.0  # Aumento menor para manter o ritmo
+            result["reason"] = f"Ganho de peso ({weight_diff:+.1f}kg). Ajustando para continuar."
+        elif weight_diff <= 0:
+            # Não ganhou ou perdeu - AUMENTA mais
+            result["needs_adjustment"] = True
+            result["adjustment_type"] = "increase"
+            result["adjustment_percent"] = 6.0
             result["reason"] = f"Peso não aumentou ({weight_diff:+.1f}kg). Aumentando calorias."
         else:
-            result["reason"] = f"Ganho de peso adequado ({weight_diff:+.1f}kg)."
+            # Ganhou pouco - ajuste leve
+            result["needs_adjustment"] = True
+            result["adjustment_type"] = "increase"
+            result["adjustment_percent"] = 4.0
+            result["reason"] = f"Ganho leve ({weight_diff:+.1f}kg). Ajustando."
+        
+        # Verifica se dieta está muito alta (hora de fazer cutting)
+        if current_diet_calories >= 4000:
+            result["suggest_cutting"] = True
+            result["suggest_cutting_reason"] = f"Sua dieta está em {int(current_diet_calories)}kcal. Considere fazer um cutting para definição muscular."
     
-    elif goal == "manutencao":
+    elif goal in ["manutencao", "manter"]:
         if abs(weight_diff) > 1.0:
             result["needs_adjustment"] = True
             if weight_diff > 0:
                 result["adjustment_type"] = "decrease"
                 result["adjustment_percent"] = 5.0
-                result["reason"] = f"Peso aumentou demais ({weight_diff:+.1f}kg)."
+                result["reason"] = f"Peso aumentou demais ({weight_diff:+.1f}kg). Reduzindo."
             else:
                 result["adjustment_type"] = "increase"
                 result["adjustment_percent"] = 5.0
-                result["reason"] = f"Peso diminuiu demais ({weight_diff:.1f}kg)."
+                result["reason"] = f"Peso diminuiu demais ({weight_diff:.1f}kg). Aumentando."
+        elif abs(weight_diff) > 0.5:
+            # Ajuste leve para variações menores
+            result["needs_adjustment"] = True
+            if weight_diff > 0:
+                result["adjustment_type"] = "decrease"
+                result["adjustment_percent"] = 3.0
+                result["reason"] = f"Leve aumento ({weight_diff:+.1f}kg). Ajustando."
+            else:
+                result["adjustment_type"] = "increase"
+                result["adjustment_percent"] = 3.0
+                result["reason"] = f"Leve redução ({weight_diff:.1f}kg). Ajustando."
         else:
-            result["reason"] = f"Peso estável ({weight_diff:+.1f}kg)."
+            result["reason"] = f"Peso estável ({weight_diff:+.1f}kg). Mantendo dieta."
     
     return result
 
