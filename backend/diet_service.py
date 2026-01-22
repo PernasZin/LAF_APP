@@ -2776,7 +2776,7 @@ def apply_global_limits(meals: List[Dict], preferred: Set[str] = None) -> List[D
                         continue  # Não adiciona à lista
                     else:
                         # Reduz este cottage
-                        new_grams = current_grams - cottage_to_remove
+                        new_grams = round_to_10(current_grams - cottage_to_remove)
                         if new_grams >= 10:  # Mínimo 10g para fazer sentido
                             food = calc_food("cottage", new_grams)
                             cottage_to_remove = 0
