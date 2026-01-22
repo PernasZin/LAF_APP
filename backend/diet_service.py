@@ -2073,6 +2073,20 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             "foods": foods
         })
     
+    # 🔒 VALIDAÇÃO FINAL: Garantir que TODAS as quantidades são múltiplos de 10
+    for meal in meals:
+        for food_idx, food in enumerate(meal.get("foods", [])):
+            grams = food.get("grams", 0)
+            if grams % 10 != 0:
+                # Arredonda para múltiplo de 10 mais próximo
+                rounded_grams = round_to_10(grams)
+                if rounded_grams > 0:
+                    meal["foods"][food_idx] = calc_food(food.get("key"), rounded_grams)
+        # Recalcula totais da refeição após correções
+        mp, mc, mf, mcal = sum_foods(meal.get("foods", []))
+        meal["total_calories"] = mcal
+        meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+    
     return meals
 
 
