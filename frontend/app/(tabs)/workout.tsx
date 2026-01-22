@@ -732,9 +732,20 @@ export default function WorkoutScreen() {
                 setHasTrainedToday(true);
                 setWorkoutStatus('completed');
                 
+                // Avança o índice do treino (A→B→C→D→A)
+                const totalWorkouts = workoutPlan?.workout_days?.length || 4;
+                const nextIndex = (currentWorkoutIndex + 1) % totalWorkouts;
+                setCurrentWorkoutIndex(nextIndex);
+                
+                // Salva o próximo índice no AsyncStorage para persistir
+                await AsyncStorage.setItem('next_workout_index', nextIndex.toString());
+                
+                const workoutLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+                const nextWorkoutLetter = workoutLetters[nextIndex] || `${nextIndex + 1}`;
+                
                 Alert.alert(
                   '🎉 Treino Concluído!',
-                  `Parabéns pelo treino de hoje!\n\nPróximo: ${data.next_workout || 'Amanhã'}`
+                  `Parabéns pelo treino de hoje!\n\nPróximo treino: Treino ${nextWorkoutLetter}`
                 );
                 
                 // Recarrega status para atualizar qual é o próximo treino
