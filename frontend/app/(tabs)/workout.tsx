@@ -316,41 +316,33 @@ export default function WorkoutScreen() {
 
   // ==================== EFFECTS ====================
 
-  // Ref para armazenar valores atuais sem causar re-render
-  const isTrainingRef = useRef(isTraining);
-  const trainingSecondsRef = useRef(trainingSeconds);
-  
-  useEffect(() => {
-    isTrainingRef.current = isTraining;
-  }, [isTraining]);
-  
-  useEffect(() => {
-    trainingSecondsRef.current = trainingSeconds;
-  }, [trainingSeconds]);
-
   useFocusEffect(
     useCallback(() => {
       loadData();
       return () => {
-        // Ao sair da tela, salva o tempo atual se treino estiver em andamento
-        if (isTrainingRef.current && trainingSecondsRef.current > 0) {
-          AsyncStorage.setItem('training_paused_seconds', trainingSecondsRef.current.toString());
-        }
+        // Não para o timer ao sair - apenas limpa o interval
+        // O tempo real é calculado pelo timestamp
         if (timerRef.current) clearInterval(timerRef.current);
         if (restTimerRef.current) clearInterval(restTimerRef.current);
       };
     }, [])
   );
 
-  // Training timer effect
+  // Training timer effect - usa timestamp para calcular tempo real
   useEffect(() => {
-    if (isTraining) {
-      timerRef.current = setInterval(() => {
-        setTrainingSeconds(prev => {
-          const newValue = prev + 1;
-          return newValue;
-        });
-      }, 1000);
+    if (isTraining && startTimestampRef.current) {
+      // Calcula tempo decorrido baseado no timestamp de início
+      const updateTimer = () => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - startTimestampRef.current!) / 1000);
+        setTrainingSeconds(elapsed);
+      };
+      
+      // Atualiza imediatamente
+      updateTimer();
+      
+      // Atualiza a cada segundo
+      timerRef.current = setInterval(updateTimer, 1000);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
