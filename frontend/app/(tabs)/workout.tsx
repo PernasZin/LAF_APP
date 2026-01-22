@@ -156,24 +156,32 @@ const FinishWorkoutCard = ({
 };
 
 // Workout Day Card
-const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, t, isToday }: any) => {
+const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, t, isToday, hasTrainedToday }: any) => {
   const totalExercises = day.exercises?.length || 0;
+  
+  // Labels baseados no idioma
   const todayLabel = language === 'en-US' ? 'TODAY' : language === 'es-ES' ? 'HOY' : 'HOJE';
+  const nextLabel = language === 'en-US' ? 'NEXT' : language === 'es-ES' ? 'PRÓXIMO' : 'PRÓXIMO';
+  const doneLabel = language === 'en-US' ? 'DONE' : language === 'es-ES' ? 'HECHO' : 'FEITO';
+  
+  // Se já treinou hoje, mostra "PRÓXIMO" ao invés de "HOJE"
+  const badgeLabel = hasTrainedToday ? nextLabel : todayLabel;
+  const badgeColor = hasTrainedToday ? '#F59E0B' : premiumColors.primary; // Amarelo para próximo, verde para hoje
   
   return (
     <Animated.View entering={FadeInDown.delay(index * 100).springify()}>
       <GlassCard isDark={isDark} style={[styles.dayCard, isToday && styles.todayCard]}>
         {isToday && (
           <LinearGradient
-            colors={[premiumColors.primary + '10', 'transparent']}
+            colors={[badgeColor + '10', 'transparent']}
             style={StyleSheet.absoluteFill}
           />
         )}
         
         {/* Day Header */}
         <View style={styles.dayHeader}>
-          <View style={[styles.dayIconBg, { backgroundColor: isToday ? premiumColors.primary + '20' : 'rgba(107, 114, 128, 0.15)' }]}>
-            <Dumbbell size={22} color={isToday ? premiumColors.primary : '#6B7280'} strokeWidth={2.5} />
+          <View style={[styles.dayIconBg, { backgroundColor: isToday ? badgeColor + '20' : 'rgba(107, 114, 128, 0.15)' }]}>
+            <Dumbbell size={22} color={isToday ? badgeColor : '#6B7280'} strokeWidth={2.5} />
           </View>
           <View style={styles.dayHeaderContent}>
             <View style={styles.dayTitleRow}>
@@ -181,8 +189,8 @@ const WorkoutDayCard = ({ day, index, isDark, theme, onExercisePress, language, 
                 {translateWorkoutDayName(day.name || `Dia ${index + 1}`, language)}
               </Text>
               {isToday && (
-                <View style={[styles.todayBadge, { backgroundColor: premiumColors.primary }]}>
-                  <Text style={styles.todayBadgeText}>{todayLabel}</Text>
+                <View style={[styles.todayBadge, { backgroundColor: badgeColor }]}>
+                  <Text style={styles.todayBadgeText}>{badgeLabel}</Text>
                 </View>
               )}
             </View>
