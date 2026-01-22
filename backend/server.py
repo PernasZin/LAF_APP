@@ -1347,31 +1347,43 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     adjustment_percent = None
     
     # Só avalia se tiver registro anterior para comparar
-    suggest_cutting = False
-    suggest_cutting_reason = None
+    suggest_goal_change = False
+    suggested_goal = None
+    suggest_reason = None
     
     if last_record:
         previous_weight = last_record.get("weight", record.weight)
         current_weight = record.weight
         goal = user.get("goal", "manutencao")
         
-        # Busca calorias atuais da dieta para verificar se precisa sugerir cutting
+        # Busca calorias atuais da dieta
         current_diet = await db.diet_plans.find_one({"user_id": user_id})
         current_diet_calories = current_diet.get("computed_calories", 0) if current_diet else 0
         
-        # Avalia progresso
+        # Calcula o TDEE do usuário
+        user_tdee = calculate_tdee(
+            weight=user.get("weight", current_weight),
+            height=user.get("height", 170),
+            age=user.get("age", 25),
+            sex=user.get("sex", "male"),
+            activity_level=user.get("activity_level", "moderado")
+        )
+        
+        # Avalia progresso com TDEE
         progress_eval = evaluate_progress(
             goal=goal,
             previous_weight=previous_weight,
             current_weight=current_weight,
-            current_diet_calories=current_diet_calories
+            current_diet_calories=current_diet_calories,
+            user_tdee=user_tdee
         )
         
         logger.info(f"Progress evaluation for {user_id}: {progress_eval}")
         
-        # Verifica sugestão de cutting
-        suggest_cutting = progress_eval.get("suggest_cutting", False)
-        suggest_cutting_reason = progress_eval.get("suggest_cutting_reason")
+        # Verifica sugestão de mudança de objetivo
+        suggest_goal_change = progress_eval.get("suggest_goal_change", False)
+        suggested_goal = progress_eval.get("suggested_goal")
+        suggest_reason = progress_eval.get("suggest_reason")
         
         # Se precisa ajustar, atualiza a dieta
         if progress_eval.get("needs_adjustment"):
