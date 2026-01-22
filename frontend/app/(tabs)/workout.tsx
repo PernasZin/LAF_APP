@@ -730,80 +730,26 @@ export default function WorkoutScreen() {
     );
   };
 
-  // Simple finish workout (sem timer)
+  // Simple finish workout - apenas avança o treino localmente
   const finishWorkoutSimple = () => {
-    if (!userId || !BACKEND_URL) {
-      Alert.alert('Erro', 'Usuário não identificado');
-      return;
-    }
-
+    // Avança o índice do treino (A→B→C→D→A)
+    const totalWorkouts = workoutPlan?.workout_days?.length || 4;
+    const nextIndex = (currentWorkoutIndex + 1) % totalWorkouts;
+    
+    // Atualiza o estado
+    setCurrentWorkoutIndex(nextIndex);
+    setHasTrainedToday(true);
+    
+    // Salva no AsyncStorage
+    AsyncStorage.setItem('next_workout_index', nextIndex.toString());
+    
+    const workoutLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
+    const nextWorkoutLetter = workoutLetters[nextIndex] || `${nextIndex + 1}`;
+    
     Alert.alert(
-      'Finalizar Treino',
-      'Marcar o treino de hoje como concluído?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Confirmar',
-          onPress: () => {
-            // Executa a lógica de finalização
-            doFinishWorkout();
-          }
-        }
-      ]
+      '🎉 Treino Concluído!',
+      `Próximo treino: Treino ${nextWorkoutLetter}`
     );
-  };
-  
-  const doFinishWorkout = async () => {
-    try {
-      // Primeiro inicia a sessão (necessário para o backend)
-      await safeFetch(
-        `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
-        { method: 'POST', headers: { 'Content-Type': 'application/json' } }
-      );
-      
-      // Depois finaliza
-      const response = await safeFetch(
-        `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            duration_seconds: 0,
-            exercises_completed: workoutPlan?.workout_days?.[currentWorkoutIndex]?.exercises?.length || 0
-          })
-        }
-      );
-
-      if (response.ok) {
-        // Marca como treinado hoje
-        setHasTrainedToday(true);
-        setWorkoutStatus('completed');
-        
-        // Avança o índice do treino (A→B→C→D→A)
-        const totalWorkouts = workoutPlan?.workout_days?.length || 4;
-        const nextIndex = (currentWorkoutIndex + 1) % totalWorkouts;
-        
-        // Salva o próximo índice no AsyncStorage
-        await AsyncStorage.setItem('next_workout_index', nextIndex.toString());
-        
-        // Atualiza o estado
-        setCurrentWorkoutIndex(nextIndex);
-        
-        const workoutLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
-        const nextWorkoutLetter = workoutLetters[nextIndex] || `${nextIndex + 1}`;
-        
-        Alert.alert(
-          '🎉 Treino Concluído!',
-          `Parabéns pelo treino de hoje!\n\nPróximo treino: Treino ${nextWorkoutLetter}`
-        );
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        Alert.alert('Erro', errorData.detail || 'Não foi possível finalizar o treino');
-      }
-    } catch (error) {
-      console.error('Error finishing workout:', error);
-      Alert.alert('Erro', 'Falha na conexão. Tente novamente.');
-    }
   };
 
   // Format time helper
