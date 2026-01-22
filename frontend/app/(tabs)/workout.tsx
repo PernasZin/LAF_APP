@@ -446,29 +446,40 @@ export default function WorkoutScreen() {
     }
 
     try {
-      // Verifica se há tempo pausado - se sim, verifica se sessão existe no backend
-      const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
-      if (pausedSeconds) {
-        const seconds = parseInt(pausedSeconds, 10);
-        if (!isNaN(seconds) && seconds > 0) {
-          // Verifica se a sessão ainda existe no backend
-          const statusResponse = await safeFetch(`${BACKEND_URL}/api/training-cycle/status/${userId}`);
-          if (statusResponse.ok) {
-            const statusData = await statusResponse.json();
-            if (statusData.is_training_in_progress) {
-              // Sessão existe no backend - pode retomar
-              setTrainingSeconds(seconds);
-              setIsTraining(true);
-              await AsyncStorage.removeItem('training_paused_seconds');
-              return;
-            }
-          }
-          // Sessão não existe no backend - limpa o tempo pausado e inicia novo treino
-          await AsyncStorage.removeItem('training_paused_seconds');
+      // Verifica se já existe uma sessão em andamento no backend
+      const statusResponse = await safeFetch(`${BACKEND_URL}/api/training-cycle/status/${userId}`);
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json();
+        if (statusData.is_training_in_progress && statusData.training_session?.started_at) {
+          // Sessão já existe - restaura o timestamp
+          const startTime = new Date(statusData.training_session.started_at).getTime();
+          startTimestampRef.current = startTime;
+          await AsyncStorage.setItem('training_start_timestamp', startTime.toString());
+          setIsTraining(true);
+          return;
         }
       }
 
-      // Novo treino ou sessão expirou - chama backend para iniciar
+      // Verifica se há timestamp salvo localmente
+      const savedTimestamp = await AsyncStorage.getItem('training_start_timestamp');
+      if (savedTimestamp) {
+        const timestamp = parseInt(savedTimestamp, 10);
+        if (!isNaN(timestamp) && timestamp > 0) {
+          // Verifica se o timestamp é de hoje
+          const savedDate = new Date(timestamp);
+          const today = new Date();
+          if (savedDate.toDateString() === today.toDateString()) {
+            startTimestampRef.current = timestamp;
+            setIsTraining(true);
+            return;
+          } else {
+            // Timestamp de outro dia - limpa
+            await AsyncStorage.removeItem('training_start_timestamp');
+          }
+        }
+      }
+
+      // Novo treino - chama backend
       const response = await safeFetch(
         `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' } }
@@ -476,14 +487,14 @@ export default function WorkoutScreen() {
 
       if (response.ok) {
         const data = await response.json();
+        const startTime = Date.now();
+        startTimestampRef.current = startTime;
         setSessionStartedAt(data.session.started_at);
         setIsTraining(true);
         setTrainingSeconds(0);
         
-        // Salva estado localmente também
-        await AsyncStorage.setItem('training_in_progress', 'true');
-        await AsyncStorage.setItem('training_start_time', data.session.started_at);
-        await AsyncStorage.removeItem('training_paused_seconds');
+        // Salva timestamp localmente
+        await AsyncStorage.setItem('training_start_timestamp', startTime.toString());
       } else {
         const errorData = await response.json().catch(() => ({}));
         Alert.alert('Erro', errorData.detail || 'Não foi possível iniciar o treino');
