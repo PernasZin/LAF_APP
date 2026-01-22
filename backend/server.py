@@ -1489,7 +1489,7 @@ async def switch_goal(user_id: str, new_goal: str):
         
         # Gera dieta
         user_foods_set = set(user.get("food_preferences", []))
-        new_diet = generate_diet(
+        meals_list = generate_diet(
             target_p=protein,
             target_c=carbs,
             target_f=fat,
@@ -1499,10 +1499,32 @@ async def switch_goal(user_id: str, new_goal: str):
             goal=new_goal
         )
         
-        # Salva nova dieta
-        new_diet["user_id"] = user_id
-        new_diet["goal_changed_at"] = datetime.utcnow()
-        new_diet["previous_goal"] = current_goal
+        # Calcula totais
+        total_cals = 0
+        total_p = 0
+        total_c = 0
+        total_f = 0
+        for meal in meals_list:
+            total_cals += meal.get("total_calories", 0)
+            macros = meal.get("macros", {})
+            total_p += macros.get("protein", 0)
+            total_c += macros.get("carbs", 0)
+            total_f += macros.get("fat", 0)
+        
+        # Monta estrutura da dieta
+        new_diet = {
+            "id": str(uuid.uuid4()),
+            "user_id": user_id,
+            "meals": meals_list,
+            "target_calories": target_calories,
+            "target_macros": {"protein": protein, "carbs": carbs, "fat": fat},
+            "computed_calories": total_cals,
+            "computed_macros": {"protein": int(total_p), "carbs": int(total_c), "fat": int(total_f)},
+            "goal_changed_at": datetime.utcnow(),
+            "previous_goal": current_goal,
+            "created_at": datetime.utcnow()
+        }
+        new_diet["_id"] = new_diet["id"]
         
         # Remove dieta antiga e insere nova
         await db.diet_plans.delete_many({"user_id": user_id})
