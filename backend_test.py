@@ -57,9 +57,13 @@ class LAFBackendTester:
             
             if response.status_code == 200:
                 data = response.json()
-                if "token" in data and "user_id" in data:
-                    self.user_token = data["token"]
-                    self.user_id = data["user_id"]
+                # Handle both token formats: "token" or "access_token"
+                token = data.get("token") or data.get("access_token")
+                user_id = data.get("user_id")
+                
+                if token and user_id:
+                    self.user_token = token
+                    self.user_id = user_id
                     self.session.headers.update({"Authorization": f"Bearer {self.user_token}"})
                     self.log_test("AUTH_SIGNUP", True, f"User created: {test_email}")
                     return True
