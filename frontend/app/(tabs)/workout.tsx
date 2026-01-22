@@ -295,6 +295,7 @@ export default function WorkoutScreen() {
   const [sessionStartedAt, setSessionStartedAt] = useState<string | null>(null);
   const [hasTrainedToday, setHasTrainedToday] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimestampRef = useRef<number | null>(null); // Timestamp de início para calcular tempo real
 
   // Rest timer state - com persistência para pausar/continuar
   const [restTimerActive, setRestTimerActive] = useState(false);
