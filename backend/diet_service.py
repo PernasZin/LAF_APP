@@ -4271,7 +4271,8 @@ class DietAIService:
 # ==================== AJUSTE PARA MODO ATLETA ====================
 
 def evaluate_progress(goal: str, previous_weight: float, current_weight: float, 
-                      tolerance_kg: float = 0.3, current_diet_calories: float = 0) -> Dict:
+                      tolerance_kg: float = 0.3, current_diet_calories: float = 0,
+                      user_tdee: float = 0) -> Dict:
     """
     Avalia progresso e determina se precisa ajustar dieta.
     
@@ -4282,8 +4283,9 @@ def evaluate_progress(goal: str, previous_weight: float, current_weight: float,
               Não perdeu? DIMINUI mais ainda
     - MANUTENÇÃO: Ajusta para manter estável
     
-    ALERTA DE CUTTING:
-    - Se bulking e dieta > 4000kcal, sugere fazer cutting
+    ALERTA DE MUDANÇA DE OBJETIVO:
+    - Se BULKING e dieta > TDEE + 700kcal, sugere fazer cutting
+    - Se CUTTING e dieta < TDEE - 1000kcal, sugere fazer bulking/manutenção
     """
     weight_diff = current_weight - previous_weight
     
@@ -4292,8 +4294,9 @@ def evaluate_progress(goal: str, previous_weight: float, current_weight: float,
         "adjustment_type": None,
         "adjustment_percent": 0.0,
         "reason": "Progresso adequado",
-        "suggest_cutting": False,
-        "suggest_cutting_reason": None
+        "suggest_goal_change": False,
+        "suggested_goal": None,
+        "suggest_reason": None
     }
     
     if goal == "cutting":
@@ -4316,6 +4319,14 @@ def evaluate_progress(goal: str, previous_weight: float, current_weight: float,
             result["adjustment_type"] = "decrease"
             result["adjustment_percent"] = 4.0
             result["reason"] = f"Perda leve ({weight_diff:.1f}kg). Ajustando."
+        
+        # Verifica se dieta está muito baixa (hora de fazer bulking/manutenção)
+        if user_tdee > 0 and current_diet_calories > 0:
+            deficit = user_tdee - current_diet_calories
+            if deficit >= 1000:
+                result["suggest_goal_change"] = True
+                result["suggested_goal"] = "manutencao"
+                result["suggest_reason"] = f"Sua dieta está {int(deficit)}kcal abaixo do seu TDEE ({int(user_tdee)}kcal). Considere fazer manutenção ou bulking para ganhar massa muscular."
     
     elif goal == "bulking":
         # BULKING: Sempre aumenta enquanto está ganhando peso
@@ -4339,9 +4350,12 @@ def evaluate_progress(goal: str, previous_weight: float, current_weight: float,
             result["reason"] = f"Ganho leve ({weight_diff:+.1f}kg). Ajustando."
         
         # Verifica se dieta está muito alta (hora de fazer cutting)
-        if current_diet_calories >= 4000:
-            result["suggest_cutting"] = True
-            result["suggest_cutting_reason"] = f"Sua dieta está em {int(current_diet_calories)}kcal. Considere fazer um cutting para definição muscular."
+        if user_tdee > 0 and current_diet_calories > 0:
+            surplus = current_diet_calories - user_tdee
+            if surplus >= 700:
+                result["suggest_goal_change"] = True
+                result["suggested_goal"] = "cutting"
+                result["suggest_reason"] = f"Sua dieta está {int(surplus)}kcal acima do seu TDEE ({int(user_tdee)}kcal). Tá na hora de fazer um cutting para definição muscular!"
     
     elif goal in ["manutencao", "manter"]:
         if abs(weight_diff) > 1.0:
