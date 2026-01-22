@@ -4102,6 +4102,24 @@ class DietAIService:
         meals = apply_global_limits(meals, raw_preferred)
         
         # Formata resultado
+        # 🔒 VALIDAÇÃO ABSOLUTA FINAL: Garantir que TODAS as quantidades são múltiplos de 10
+        # Esta é a última linha de defesa - nenhum alimento pode ter quantidade que não seja múltiplo de 10
+        # DEVE acontecer ANTES de criar os objetos Meal!
+        for m in meals:
+            foods = m.get("foods", [])
+            for food_idx, food in enumerate(foods):
+                grams = food.get("grams", 0)
+                if grams % 10 != 0:
+                    rounded_grams = round_to_10(grams)
+                    if rounded_grams > 0:
+                        foods[food_idx] = calc_food(food.get("key"), rounded_grams)
+                        print(f"[FINAL VALIDATION] Arredondado {food.get('name')}: {grams}g -> {rounded_grams}g")
+            m["foods"] = foods
+            # Recalcula totais após correções
+            mp, mc, mf, mcal = sum_foods(foods)
+            m["total_calories"] = mcal
+            m["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
+        
         final_meals = []
         for m in meals:
             # Recalcula totais da refeição (garantia extra)
