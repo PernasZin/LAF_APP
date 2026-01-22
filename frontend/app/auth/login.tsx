@@ -229,20 +229,22 @@ export default function LoginScreen() {
               {/* Login Button */}
               <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
                 <TouchableOpacity onPress={handleLogin} disabled={isLoading} activeOpacity={0.9}>
-                  <LinearGradient
-                    colors={isLoading 
-                      ? ['#9CA3AF', '#6B7280']
-                      : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.loginButton}
-                  >
+                  <View style={styles.loginButton}>
+                    <LinearGradient
+                      colors={isLoading 
+                        ? ['#9CA3AF', '#6B7280']
+                        : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
+                      }
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={StyleSheet.absoluteFill}
+                      pointerEvents="none"
+                    />
                     <LogIn size={20} color="#FFF" />
                     <Text style={styles.loginButtonText}>
                       {isLoading ? (language === 'en-US' ? 'Entering...' : language === 'es-ES' ? 'Entrando...' : 'Entrando...') : t.enterAccount}
                     </Text>
-                  </LinearGradient>
+                  </View>
                 </TouchableOpacity>
               </Animated.View>
             </Animated.View>
