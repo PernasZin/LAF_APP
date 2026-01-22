@@ -14,7 +14,7 @@ index 00000000..5c1bdd79
 +from datetime import datetime
 +import time
 +
-+BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
++BASE_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 +HEADERS = {"Content-Type": "application/json"}
 +
 +def debug_original_vegetarian():
@@ -173,7 +173,7 @@ index 00000000..3c808dec
 +import json
 +from datetime import datetime
 +
-+BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
++BASE_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 +HEADERS = {"Content-Type": "application/json"}
 +
 +def create_vegetarian_user():
@@ -348,7 +348,7 @@ index 468bdd8c..09979b9c 100644
 --+from typing import Dict, List, Any
 --+
 --+# Configuração
---+BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
+--+BASE_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 --+HEADERS = {"Content-Type": "application/json"}
 --+
 --+def get_diet_details(user_id: str) -> Dict:
@@ -1295,7 +1295,7 @@ index 468bdd8c..09979b9c 100644
 -------------+from datetime import datetime
 -------------+
 -------------+# URL base do backend
--------------+BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
+-------------+BASE_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 -------------+
 -------------+def make_request(method, endpoint, data=None):
 -------------+    """Helper para fazer requisições HTTP"""
@@ -1647,7 +1647,7 @@ index 468bdd8c..09979b9c 100644
 ----------+import sys
 ----------+
 ----------+# Get backend URL from environment
-----------+BACKEND_URL = "https://fitfood-debug.preview.emergentagent.com/api"
+----------+BACKEND_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 ----------+
 ----------+class WorkoutTrackingTester:
 ----------+    def __init__(self):
@@ -2010,7 +2010,7 @@ index 468bdd8c..09979b9c 100644
 ----------+import sys
 ----------+
 ----------+# Get backend URL from environment
-----------+BACKEND_URL = "https://fitfood-debug.preview.emergentagent.com/api"
+----------+BACKEND_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 ----------+
 ----------+class WorkoutTrackingTester:
 ----------+    def __init__(self):
@@ -2582,7 +2582,7 @@ index 00000000..a27d27a3
 +import json
 +from datetime import datetime
 +
-+BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
++BASE_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 +HEADERS = {"Content-Type": "application/json"}
 +
 +def test_tofu_issue():

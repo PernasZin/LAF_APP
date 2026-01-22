@@ -11,7 +11,7 @@ from datetime import datetime
 import time
 
 # Configuração
-BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
+BASE_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 class DietTestRunner:

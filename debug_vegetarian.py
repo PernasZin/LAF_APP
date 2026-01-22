@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://fitfood-debug.preview.emergentagent.com/api"
+BASE_URL = "https://fitness-timer-pro.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def create_vegetarian_user():

@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
   }
   
   // Default fallback
-  return 'https://fitfood-debug.preview.emergentagent.com';
+  return 'https://fitness-timer-pro.preview.emergentagent.com';
 };
 
 export const config = {

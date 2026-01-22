@@ -45,7 +45,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "BACKEND_URL": "https://fitfood-debug.preview.emergentagent.com",
+      "BACKEND_URL": "https://fitness-timer-pro.preview.emergentagent.com",
       "eas": {
         "projectId": "9563b068-dd8d-43aa-9b36-d6a380b15fa6"
       }
