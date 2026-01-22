@@ -1347,25 +1347,34 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
     adjustment_percent = None
     
     # Só avalia se tiver registro anterior para comparar
+    suggest_cutting = False
+    suggest_cutting_reason = None
+    
     if last_record:
         previous_weight = last_record.get("weight", record.weight)
         current_weight = record.weight
         goal = user.get("goal", "manutencao")
         
+        # Busca calorias atuais da dieta para verificar se precisa sugerir cutting
+        current_diet = await db.diet_plans.find_one({"user_id": user_id})
+        current_diet_calories = current_diet.get("computed_calories", 0) if current_diet else 0
+        
         # Avalia progresso
         progress_eval = evaluate_progress(
             goal=goal,
             previous_weight=previous_weight,
-            current_weight=current_weight
+            current_weight=current_weight,
+            current_diet_calories=current_diet_calories
         )
         
         logger.info(f"Progress evaluation for {user_id}: {progress_eval}")
         
+        # Verifica sugestão de cutting
+        suggest_cutting = progress_eval.get("suggest_cutting", False)
+        suggest_cutting_reason = progress_eval.get("suggest_cutting_reason")
+        
         # Se precisa ajustar, atualiza a dieta
         if progress_eval.get("needs_adjustment"):
-            # Busca dieta atual
-            current_diet = await db.diet_plans.find_one({"user_id": user_id})
-            
             if current_diet:
                 # Ajusta APENAS quantidades (NUNCA troca alimentos)
                 adjusted_diet = adjust_diet_quantities(
@@ -1395,7 +1404,9 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
         "record": weight_record,
         "diet_adjusted": diet_adjusted,
         "adjustment_percent": adjustment_percent,
-        "message": adjustment_message or "Peso registrado com sucesso"
+        "message": adjustment_message or "Peso registrado com sucesso",
+        "suggest_cutting": suggest_cutting,
+        "suggest_cutting_reason": suggest_cutting_reason
     }
 
 
