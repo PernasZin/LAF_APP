@@ -505,11 +505,11 @@ export default function WorkoutScreen() {
     }
   };
 
-  // Pause workout - salva estado localmente
+  // Pause workout - agora apenas para a UI, o timer continua baseado no timestamp
   const pauseWorkout = async () => {
+    // Como usamos timestamp, o timer continua "funcionando" mesmo pausado
+    // Aqui apenas paramos a atualização visual
     setIsTraining(false);
-    // Salva o tempo pausado localmente
-    await AsyncStorage.setItem('training_paused_seconds', trainingSeconds.toString());
   };
 
   // Finish workout
@@ -519,7 +519,10 @@ export default function WorkoutScreen() {
       return;
     }
 
-    const currentTime = trainingSeconds;
+    // Calcula tempo real baseado no timestamp
+    const currentTime = startTimestampRef.current 
+      ? Math.floor((Date.now() - startTimestampRef.current) / 1000)
+      : trainingSeconds;
     
     Alert.alert(
       'Finalizar Treino',
@@ -534,7 +537,8 @@ export default function WorkoutScreen() {
               setIsTraining(false);
               if (timerRef.current) clearInterval(timerRef.current);
               
-              const response = await safeFetch(
+              // Primeiro tenta finalizar diretamente
+              let response = await safeFetch(
                 `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
                 {
                   method: 'POST',
@@ -546,14 +550,44 @@ export default function WorkoutScreen() {
                 }
               );
 
+              // Se falhou porque não tem sessão, cria uma e finaliza
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                
+                if (errorData.detail?.includes('Nenhuma sessão') || errorData.detail?.includes('No active')) {
+                  // Cria sessão
+                  await safeFetch(
+                    `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
+                    { method: 'POST', headers: { 'Content-Type': 'application/json' } }
+                  );
+                  
+                  // Tenta finalizar novamente
+                  response = await safeFetch(
+                    `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
+                    {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        duration_seconds: currentTime,
+                        exercises_completed: workoutPlan?.workout_days?.[0]?.exercises?.length || 0
+                      })
+                    }
+                  );
+                }
+              }
+
               if (response.ok) {
                 const data = await response.json();
+                
+                // Limpa estados
                 setTrainingSeconds(0);
                 setHasTrainedToday(true);
                 setWorkoutStatus('completed');
+                startTimestampRef.current = null;
                 
-                // Limpa TODOS os estados locais
+                // Limpa AsyncStorage
                 await AsyncStorage.multiRemove([
+                  'training_start_timestamp',
                   'training_in_progress',
                   'training_start_time',
                   'training_paused_seconds'
@@ -561,54 +595,14 @@ export default function WorkoutScreen() {
                 
                 Alert.alert(
                   '🎉 Treino Concluído!',
-                  `Parabéns! Você treinou por ${data.session?.duration_formatted || formatTime(currentTime)}.\n\nDescanse hoje e volte amanhã!`
+                  `Parabéns! Você treinou por ${data.session?.duration_formatted || formatTime(currentTime)}.\n\nPróximo treino: ${data.next_workout || 'Amanhã'}`
                 );
                 
-                // Recarrega status
+                // Recarrega status para atualizar qual é o próximo treino
                 await loadCycleStatus(userId);
+                await loadWorkoutPlan(userId);
               } else {
-                // Se falhou, tenta iniciar uma nova sessão e finalizar
                 const errorData = await response.json().catch(() => ({}));
-                console.log('Finish error:', errorData);
-                
-                if (errorData.detail?.includes('Nenhuma sessão')) {
-                  // Tenta criar sessão e finalizar
-                  const startResponse = await safeFetch(
-                    `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
-                    { method: 'POST', headers: { 'Content-Type': 'application/json' } }
-                  );
-                  
-                  if (startResponse.ok) {
-                    // Tenta finalizar novamente
-                    const retryResponse = await safeFetch(
-                      `${BACKEND_URL}/api/training-cycle/finish-session/${userId}`,
-                      {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          duration_seconds: currentTime,
-                          exercises_completed: workoutPlan?.workout_days?.[0]?.exercises?.length || 0
-                        })
-                      }
-                    );
-                    
-                    if (retryResponse.ok) {
-                      const data = await retryResponse.json();
-                      setTrainingSeconds(0);
-                      setHasTrainedToday(true);
-                      setWorkoutStatus('completed');
-                      await AsyncStorage.multiRemove([
-                        'training_in_progress',
-                        'training_start_time',
-                        'training_paused_seconds'
-                      ]);
-                      Alert.alert('🎉 Treino Concluído!', `Você treinou por ${formatTime(currentTime)}!`);
-                      await loadCycleStatus(userId);
-                      return;
-                    }
-                  }
-                }
-                
                 Alert.alert('Erro', errorData.detail || 'Não foi possível finalizar o treino');
               }
             } catch (error) {
