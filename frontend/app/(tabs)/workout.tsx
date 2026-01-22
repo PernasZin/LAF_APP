@@ -297,8 +297,34 @@ export default function WorkoutScreen() {
   
   // Índice do treino atual (A=0, B=1, C=2, D=3)
   const [currentWorkoutIndex, setCurrentWorkoutIndex] = useState(0);
+  const [workoutIndexLoaded, setWorkoutIndexLoaded] = useState(false);
 
   // ==================== EFFECTS ====================
+
+  // Carrega o índice do treino apenas UMA VEZ na montagem do componente
+  useEffect(() => {
+    const loadWorkoutIndex = async () => {
+      try {
+        const savedIndex = await AsyncStorage.getItem('next_workout_index');
+        console.log('=== LOAD WORKOUT INDEX ===');
+        console.log('Saved index from AsyncStorage:', savedIndex);
+        
+        if (savedIndex) {
+          const index = parseInt(savedIndex, 10);
+          if (!isNaN(index) && index >= 0) {
+            setCurrentWorkoutIndex(index);
+            console.log('Set currentWorkoutIndex to:', index);
+          }
+        }
+        setWorkoutIndexLoaded(true);
+      } catch (error) {
+        console.error('Error loading workout index:', error);
+        setWorkoutIndexLoaded(true);
+      }
+    };
+    
+    loadWorkoutIndex();
+  }, []); // Executa apenas uma vez
 
   // Gera frases aleatórias ao entrar na tela
   useFocusEffect(
