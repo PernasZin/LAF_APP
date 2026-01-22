@@ -50,7 +50,7 @@ def check_multiple_of_10_violations():
             for meal_idx, meal in enumerate(diet.get("meals", [])):
                 meal_name = meal.get("name", f"Meal {meal_idx + 1}")
                 
-                for food in meal.get("foods", [])):
+                for food in meal.get("foods", []):
                     grams = food.get("grams", 0)
                     food_name = food.get("name", "Unknown")
                     profile_foods += 1
