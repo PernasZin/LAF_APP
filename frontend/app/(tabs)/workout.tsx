@@ -434,20 +434,29 @@ export default function WorkoutScreen() {
     }
 
     try {
-      // Verifica se há tempo pausado - se sim, apenas retoma
+      // Verifica se há tempo pausado - se sim, verifica se sessão existe no backend
       const pausedSeconds = await AsyncStorage.getItem('training_paused_seconds');
       if (pausedSeconds) {
         const seconds = parseInt(pausedSeconds, 10);
         if (!isNaN(seconds) && seconds > 0) {
-          // Retoma do tempo pausado
-          setTrainingSeconds(seconds);
-          setIsTraining(true);
-          await AsyncStorage.removeItem('training_paused_seconds'); // Limpa após retomar
-          return;
+          // Verifica se a sessão ainda existe no backend
+          const statusResponse = await safeFetch(`${BACKEND_URL}/api/training-cycle/status/${userId}`);
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json();
+            if (statusData.is_training_in_progress) {
+              // Sessão existe no backend - pode retomar
+              setTrainingSeconds(seconds);
+              setIsTraining(true);
+              await AsyncStorage.removeItem('training_paused_seconds');
+              return;
+            }
+          }
+          // Sessão não existe no backend - limpa o tempo pausado e inicia novo treino
+          await AsyncStorage.removeItem('training_paused_seconds');
         }
       }
 
-      // Novo treino - chama backend
+      // Novo treino ou sessão expirou - chama backend para iniciar
       const response = await safeFetch(
         `${BACKEND_URL}/api/training-cycle/start-session/${userId}`,
         { method: 'POST', headers: { 'Content-Type': 'application/json' } }
@@ -462,7 +471,7 @@ export default function WorkoutScreen() {
         // Salva estado localmente também
         await AsyncStorage.setItem('training_in_progress', 'true');
         await AsyncStorage.setItem('training_start_time', data.session.started_at);
-        await AsyncStorage.removeItem('training_paused_seconds'); // Limpa tempo pausado
+        await AsyncStorage.removeItem('training_paused_seconds');
       } else {
         const errorData = await response.json().catch(() => ({}));
         Alert.alert('Erro', errorData.detail || 'Não foi possível iniciar o treino');
