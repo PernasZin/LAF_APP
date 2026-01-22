@@ -1359,6 +1359,23 @@ const styles = StyleSheet.create({
   trainedBannerTitle: { fontSize: 16, fontWeight: '700' },
   trainedBannerText: { fontSize: 13, marginTop: 2 },
 
+  // Finish Workout Card Styles
+  finishWorkoutCard: { padding: spacing.xl, overflow: 'hidden' },
+  finishWorkoutContent: { alignItems: 'center' },
+  finishIconBg: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.md },
+  finishWorkoutTitle: { fontSize: 18, fontWeight: '700', textAlign: 'center', marginBottom: spacing.lg },
+  finishTodayBtn: { borderRadius: radius.lg, overflow: 'hidden', width: '100%', marginBottom: spacing.md },
+  finishTodayBtnGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  finishTodayBtnText: { color: '#FFF', fontSize: 17, fontWeight: '700' },
+  motivationPhrase: { fontSize: 14, textAlign: 'center', fontStyle: 'italic', paddingHorizontal: spacing.md },
+
   // Rest Day Card Styles
   restDayCard: { padding: spacing.xl, overflow: 'hidden' },
   restDayContent: { alignItems: 'center' },
