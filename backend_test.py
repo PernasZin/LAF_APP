@@ -67,7 +67,7 @@ class LAFTester:
         response = self.make_request("POST", "/auth/signup", signup_data)
         if response.status_code == 200:
             result = response.json()
-            self.auth_token = result.get("token")
+            self.auth_token = result.get("access_token")  # Fixed: use access_token
             self.user_id = result.get("user_id")
             self.log_test("AUTH - Signup", True, f"User created: {self.user_id}", result)
         else:
@@ -83,7 +83,7 @@ class LAFTester:
         response = self.make_request("POST", "/auth/login", login_data)
         if response.status_code == 200:
             result = response.json()
-            self.auth_token = result.get("token")  # Update token
+            self.auth_token = result.get("access_token")  # Fixed: use access_token
             self.log_test("AUTH - Login", True, "Login successful", result)
         else:
             self.log_test("AUTH - Login", False, f"Status: {response.status_code}, Response: {response.text}")
