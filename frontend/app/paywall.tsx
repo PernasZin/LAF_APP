@@ -525,29 +525,36 @@ export default function PaywallScreen() {
             entering={FadeInUp.delay(700).springify()}
             style={styles.ctaContainer}
           >
-            <TouchableOpacity
-              onPress={() => {
-                console.log('🟢 Button pressed!');
-                handleSubscribe();
-              }}
-              disabled={isLoading}
-              activeOpacity={0.7}
-              style={[
-                styles.ctaButton,
-                { backgroundColor: isLoading ? '#9CA3AF' : '#EAB308' }
-              ]}
+            <LinearGradient
+              colors={isLoading
+                ? ['#9CA3AF', '#6B7280']
+                : ['#F59E0B', '#EAB308', '#CA8A04']
+              }
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.ctaButton}
             >
-              {isLoading ? (
-                <ActivityIndicator color="#FFF" />
-              ) : (
-                <View style={styles.ctaButtonContent}>
-                  <Crown size={22} color="#FFF" />
-                  <Text style={styles.ctaButtonText}>
-                    {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  console.log('🟢 Button pressed!');
+                  handleSubscribe();
+                }}
+                disabled={isLoading}
+                activeOpacity={0.8}
+                style={styles.ctaButtonInner}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <>
+                    <Crown size={22} color="#FFF" />
+                    <Text style={styles.ctaButtonText}>
+                      {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </LinearGradient>
 
             <Text style={[styles.cancelText, { color: theme.textTertiary }]}>
               {t.cancelAnytime}
