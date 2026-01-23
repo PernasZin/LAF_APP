@@ -196,22 +196,24 @@ export default function PaywallScreen() {
           // Para web, abrir em nova aba
           window.open(data.checkout_url, '_blank');
         } else {
-          // Para mobile, tentar abrir diretamente sem verificar canOpenURL
-          // pois canOpenURL pode retornar false para https em alguns casos
+          // Para mobile, usar expo-web-browser que abre um browser in-app
           try {
-            await Linking.openURL(data.checkout_url);
-          } catch (linkError) {
-            console.error('❌ Linking.openURL error:', linkError);
-            Alert.alert(
-              'Abrir no Navegador',
-              'Copie o link abaixo e cole no navegador:\n\n' + data.checkout_url,
-              [
-                { text: 'OK', onPress: () => {} }
-              ]
-            );
+            const result = await WebBrowser.openBrowserAsync(data.checkout_url, {
+              dismissButtonStyle: 'close',
+              presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
+            });
+            console.log('🔵 WebBrowser result:', result);
+          } catch (browserError) {
+            console.error('❌ WebBrowser error:', browserError);
+            // Fallback para Linking
+            try {
+              await Linking.openURL(data.checkout_url);
+            } catch (linkError) {
+              console.error('❌ Linking.openURL error:', linkError);
+              Alert.alert('Erro', 'Não foi possível abrir o link de pagamento.');
+            }
           }
         }
-        // NÃO marcar hasSeenPaywall aqui - deixar o webhook ou a tela de sucesso fazer isso
       } else {
         Alert.alert('Erro', data.detail || 'Erro ao criar sessão de pagamento.');
       }
