@@ -55,6 +55,72 @@ export default function PrivacyScreen() {
   const effectiveTheme = useSettingsStore((state) => state.effectiveTheme);
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
+  
+  const userId = useAuthStore((state) => state.userId);
+  const logout = useAuthStore((state) => state.logout);
+  
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleDeleteAccount = async () => {
+    if (!password.trim()) {
+      setError(t.privacy.passwordRequired || 'Digite sua senha para confirmar');
+      return;
+    }
+
+    setIsDeleting(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/auth/delete-account`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          password: password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Limpar dados locais
+        await AsyncStorage.clear();
+        
+        // Fazer logout
+        logout();
+        
+        // Mostrar mensagem de sucesso
+        Alert.alert(
+          t.privacy.accountDeleted || 'Conta Excluída',
+          t.privacy.accountDeletedDesc || 'Sua conta e todos os dados foram excluídos permanentemente.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/auth/login'),
+            },
+          ]
+        );
+      } else {
+        setError(data.detail || t.privacy.deleteError || 'Erro ao excluir conta. Verifique sua senha.');
+      }
+    } catch (err) {
+      console.error('Erro ao excluir conta:', err);
+      setError(t.privacy.deleteError || 'Erro ao excluir conta. Tente novamente.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const openDeleteModal = () => {
+    setPassword('');
+    setError('');
+    setShowDeleteModal(true);
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -116,13 +182,113 @@ export default function PrivacyScreen() {
 
           {/* Delete Account */}
           <Animated.View entering={FadeInDown.delay(200).springify()}>
-            <TouchableOpacity style={[styles.deleteButton, { borderColor: '#EF4444' }]}>
+            <TouchableOpacity 
+              style={[styles.deleteButton, { borderColor: '#EF4444' }]}
+              onPress={openDeleteModal}
+            >
               <Trash2 size={18} color="#EF4444" />
               <Text style={styles.deleteButtonText}>{t.privacy.requestDeletion}</Text>
             </TouchableOpacity>
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <Modal
+        visible={showDeleteModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF' }]}>
+            {/* Header do Modal */}
+            <View style={styles.modalHeader}>
+              <View style={styles.warningIconContainer}>
+                <AlertTriangle size={32} color="#EF4444" />
+              </View>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setShowDeleteModal(false)}
+              >
+                <X size={24} color={theme.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalTitle, { color: theme.text }]}>
+              {t.privacy.deleteAccountTitle || 'Excluir Conta'}
+            </Text>
+            
+            <Text style={[styles.modalDescription, { color: theme.textSecondary }]}>
+              {t.privacy.deleteAccountWarning || 'Esta ação é irreversível. Todos os seus dados serão permanentemente excluídos, incluindo:'}
+            </Text>
+
+            <View style={styles.deleteList}>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Perfil e configurações</Text>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Histórico de dietas</Text>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Histórico de treinos</Text>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Progresso e medições</Text>
+            </View>
+
+            <Text style={[styles.passwordLabel, { color: theme.text }]}>
+              {t.privacy.confirmPassword || 'Digite sua senha para confirmar:'}
+            </Text>
+
+            <TextInput
+              style={[
+                styles.passwordInput,
+                { 
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                  color: theme.text,
+                  borderColor: error ? '#EF4444' : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'),
+                }
+              ]}
+              placeholder={t.privacy.passwordPlaceholder || 'Sua senha'}
+              placeholderTextColor={theme.textTertiary}
+              secureTextEntry
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setError('');
+              }}
+              editable={!isDeleting}
+            />
+
+            {error ? (
+              <Text style={styles.errorText}>{error}</Text>
+            ) : null}
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.cancelButton, { borderColor: theme.border }]}
+                onPress={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+              >
+                <Text style={[styles.cancelButtonText, { color: theme.text }]}>
+                  {t.common.cancel || 'Cancelar'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.confirmDeleteButton, isDeleting && styles.buttonDisabled]}
+                onPress={handleDeleteAccount}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <Trash2 size={16} color="#FFFFFF" />
+                    <Text style={styles.confirmDeleteText}>
+                      {t.privacy.confirmDelete || 'Excluir Conta'}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
