@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
 # BASE URL from frontend .env
-BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
+BASE_URL = "https://nutriflow-38.preview.emergentagent.com/api"
 
 # Test credentials from review request
 TEST_EMAIL = "apple-reviewer@laf.com"

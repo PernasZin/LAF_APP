@@ -9,7 +9,7 @@ import json
 from typing import Dict, List, Any
 
 # Configuração
-BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
+BASE_URL = "https://nutriflow-38.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def get_diet_details(user_id: str) -> Dict:

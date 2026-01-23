@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
+BASE_URL = "https://nutriflow-38.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def test_tofu_issue():

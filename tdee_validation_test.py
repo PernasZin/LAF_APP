@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 # URL base do backend
-BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
+BASE_URL = "https://nutriflow-38.preview.emergentagent.com/api"
 
 def make_request(method, endpoint, data=None):
     """Helper para fazer requisições HTTP"""

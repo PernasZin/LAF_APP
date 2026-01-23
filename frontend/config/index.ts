@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
   }
   
   // Default fallback
-  return 'https://appdeployer.preview.emergentagent.com';
+  return 'https://nutriflow-38.preview.emergentagent.com';
 };
 
 export const config = {
