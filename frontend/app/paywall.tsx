@@ -301,15 +301,66 @@ export default function PaywallScreen() {
             })}
           </Animated.View>
 
+          {/* Plan Selection */}
+          <Animated.View entering={FadeInUp.delay(650).springify()} style={styles.planContainer}>
+            <Pressable
+              onPress={() => setSelectedPlan('monthly')}
+              style={[
+                styles.planOption,
+                {
+                  backgroundColor: selectedPlan === 'monthly' 
+                    ? (isDark ? 'rgba(234, 179, 8, 0.2)' : 'rgba(234, 179, 8, 0.15)')
+                    : (isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(255, 255, 255, 0.8)'),
+                  borderColor: selectedPlan === 'monthly' ? '#EAB308' : (isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(0, 0, 0, 0.1)'),
+                  borderWidth: selectedPlan === 'monthly' ? 2 : 1,
+                }
+              ]}
+            >
+              <View style={styles.planHeader}>
+                <Text style={[styles.planTitle, { color: theme.text }]}>Mensal</Text>
+                {selectedPlan === 'monthly' && <Check size={20} color="#EAB308" />}
+              </View>
+              <Text style={[styles.planPrice, { color: theme.text }]}>R$ 29,90</Text>
+              <Text style={[styles.planPeriod, { color: theme.textSecondary }]}>por mês</Text>
+            </Pressable>
+            
+            <Pressable
+              onPress={() => setSelectedPlan('annual')}
+              style={[
+                styles.planOption,
+                {
+                  backgroundColor: selectedPlan === 'annual' 
+                    ? (isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)')
+                    : (isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(255, 255, 255, 0.8)'),
+                  borderColor: selectedPlan === 'annual' ? '#10B981' : (isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(0, 0, 0, 0.1)'),
+                  borderWidth: selectedPlan === 'annual' ? 2 : 1,
+                }
+              ]}
+            >
+              <View style={styles.saveBadge}>
+                <Text style={styles.saveBadgeText}>-44%</Text>
+              </View>
+              <View style={styles.planHeader}>
+                <Text style={[styles.planTitle, { color: theme.text }]}>Anual</Text>
+                {selectedPlan === 'annual' && <Check size={20} color="#10B981" />}
+              </View>
+              <Text style={[styles.planPrice, { color: theme.text }]}>R$ 199,90</Text>
+              <Text style={[styles.planPeriod, { color: theme.textSecondary }]}>por ano (R$ 16,66/mês)</Text>
+            </Pressable>
+          </Animated.View>
+
           {/* CTA Button */}
           <Animated.View
             entering={FadeInUp.delay(700).springify()}
             style={[styles.ctaContainer, animatedButtonStyle]}
           >
-            <TouchableOpacity
-              onPress={handleStartTrial}
+            <Pressable
+              onPress={handleSubscribe}
               disabled={isLoading}
-              activeOpacity={0.9}
+              style={({ pressed }) => [
+                styles.ctaButton,
+                pressed && { opacity: 0.9 }
+              ]}
             >
               <LinearGradient
                 colors={isLoading
@@ -318,22 +369,21 @@ export default function PaywallScreen() {
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={styles.ctaButton}
-              >
-                {isLoading ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <>
-                    <Crown size={22} color="#FFF" />
-                    <Text style={styles.ctaButtonText}>{t.startTrial}</Text>
-                  </>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
+                style={StyleSheet.absoluteFill}
+                pointerEvents="none"
+              />
+              {isLoading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <>
+                  <Crown size={22} color="#FFF" />
+                  <Text style={styles.ctaButtonText}>
+                    {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
+                  </Text>
+                </>
+              )}
+            </Pressable>
 
-            <Text style={[styles.priceText, { color: theme.textSecondary }]}>
-              {t.thenPrice}
-            </Text>
             <Text style={[styles.cancelText, { color: theme.textTertiary }]}>
               {t.cancelAnytime}
             </Text>
