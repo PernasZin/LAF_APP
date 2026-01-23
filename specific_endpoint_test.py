@@ -84,7 +84,7 @@ class LAFSpecificTester:
             response = self.make_request("POST", "/auth/signup", signup_data)
             if response.status_code == 200:
                 signup_result = response.json()
-                self.auth_token = signup_result.get("token")
+                self.auth_token = signup_result.get("access_token")
                 self.user_id = signup_result.get("user_id")
                 self.log_test("POST /api/auth/signup", True, 
                             f"Conta criada com email único: {test_email}")
