@@ -631,9 +631,17 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
             updated_profile_data = await db.user_profiles.find_one({"_id": user_id})
             if updated_profile_data:
                 # Importa a função de geração de dieta do diet_service
-                from diet_service import generate_diet as gen_diet_func, calculate_tdee as calc_tdee
+                from diet_service import generate_diet as gen_diet_func
                 
                 profile_obj = UserProfile(**{**updated_profile_data, "id": updated_profile_data["_id"]})
+                
+                # Busca meal_count das settings ou usa o do perfil
+                user_settings = await db.user_settings.find_one({"user_id": user_id})
+                meal_count = 6  # Padrão
+                if user_settings and user_settings.get('meal_count') in [4, 5, 6]:
+                    meal_count = user_settings.get('meal_count')
+                elif updated_profile_data.get('meal_count') and updated_profile_data.get('meal_count') in [4, 5, 6]:
+                    meal_count = updated_profile_data.get('meal_count')
                 
                 # Gera nova dieta usando a função do diet_service
                 is_training_day = True  # Dia de treino por padrão
@@ -642,7 +650,7 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                     target_protein=profile_obj.macros.get("protein", 150),
                     target_carbs=profile_obj.macros.get("carbs", 300),
                     target_fat=profile_obj.macros.get("fat", 70),
-                    meal_count=profile_obj.meal_count,
+                    meal_count=meal_count,
                     dietary_restrictions=profile_obj.dietary_restrictions or [],
                     food_preferences=profile_obj.food_preferences or [],
                     is_training_day=is_training_day,
