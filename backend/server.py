@@ -4301,9 +4301,17 @@ async def create_checkout_session(request: CreateCheckoutRequest):
 async def get_user_subscription(user_id: str):
     """Retorna o status da assinatura do usuário"""
     try:
-        user = await db.users.find_one({"id": user_id})
-        if not user:
+        # Buscar em users_auth e user_profiles
+        user_auth = await db.users_auth.find_one({"id": user_id})
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        
+        if not user_auth and not user_profile:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        # Combinar dados de assinatura
+        user = user_auth if user_auth else {}
+        if user_profile:
+            user.update({k: v for k, v in user_profile.items() if k not in user or not user.get(k)})
         
         subscription_status = user.get("subscription_status", "inactive")
         current_plan = user.get("current_plan")
@@ -4338,11 +4346,20 @@ async def get_user_subscription(user_id: str):
 async def cancel_subscription(user_id: str):
     """Cancela a assinatura do usuário (no final do período)"""
     try:
-        user = await db.users.find_one({"id": user_id})
-        if not user:
+        # Buscar em users_auth e user_profiles
+        user_auth = await db.users_auth.find_one({"id": user_id})
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        
+        if not user_auth and not user_profile:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
         
-        subscription_id = user.get("subscription_id")
+        # Buscar subscription_id
+        subscription_id = None
+        if user_auth:
+            subscription_id = user_auth.get("subscription_id")
+        if not subscription_id and user_profile:
+            subscription_id = user_profile.get("subscription_id")
+        
         if not subscription_id:
             raise HTTPException(status_code=400, detail="Nenhuma assinatura ativa")
         
@@ -4364,11 +4381,20 @@ async def cancel_subscription(user_id: str):
 async def reactivate_subscription(user_id: str):
     """Reativa uma assinatura que estava marcada para cancelar"""
     try:
-        user = await db.users.find_one({"id": user_id})
-        if not user:
+        # Buscar em users_auth e user_profiles
+        user_auth = await db.users_auth.find_one({"id": user_id})
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        
+        if not user_auth and not user_profile:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
         
-        subscription_id = user.get("subscription_id")
+        # Buscar subscription_id
+        subscription_id = None
+        if user_auth:
+            subscription_id = user_auth.get("subscription_id")
+        if not subscription_id and user_profile:
+            subscription_id = user_profile.get("subscription_id")
+        
         if not subscription_id:
             raise HTTPException(status_code=400, detail="Nenhuma assinatura encontrada")
         
