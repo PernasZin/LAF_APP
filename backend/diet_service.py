@@ -611,7 +611,8 @@ FOODS = {
     "proteina_ervilha": {"name": "Proteína de Ervilha", "p": 80.0, "c": 4.0, "f": 2.0, "category": "protein", "subcategory": "supplement_vegetal", "unit": "scoop", "unit_g": 30},
     
     # === CARBOIDRATOS ===
-    "arroz_branco": {"name": "Arroz Branco", "p": 2.6, "c": 28.0, "f": 0.3, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
+    # Arroz Branco: 129kcal, 3g proteína, 29g carbs, 0g gordura por 100g (TACO)
+    "arroz_branco": {"name": "Arroz Branco", "p": 3.0, "c": 29.0, "f": 0.0, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
     "arroz_integral": {"name": "Arroz Integral", "p": 2.6, "c": 23.0, "f": 0.9, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
     "batata_doce": {"name": "Batata Doce", "p": 1.6, "c": 20.0, "f": 0.1, "category": "carb", "unit": "unidade média", "unit_g": 150},
     "aveia": {"name": "Aveia", "p": 13.5, "c": 66.0, "f": 7.0, "category": "carb", "unit": "colher sopa", "unit_g": 15},
