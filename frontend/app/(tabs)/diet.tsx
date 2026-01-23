@@ -171,13 +171,24 @@ export default function DietScreen() {
   const [selectedFoodIndex, setSelectedFoodIndex] = useState(-1);
   const [substitutes, setSubstitutes] = useState<any[]>([]);
   const [loadingSubstitutes, setLoadingSubstitutes] = useState(false);
+  
+  // Hook para detectar quando a tela recebe foco
+  const isFocused = useIsFocused();
+  const lastFocusTime = useRef<number>(0);
 
-  useFocusEffect(
-    useCallback(() => {
-      console.log('🍽️ Diet screen focused - reloading data...');
-      loadUserData();
-    }, [])
-  );
+  // Recarregar dados sempre que a tela receber foco
+  useEffect(() => {
+    if (isFocused) {
+      const now = Date.now();
+      // Só recarrega se passaram mais de 500ms desde o último reload
+      // Isso evita reloads duplicados
+      if (now - lastFocusTime.current > 500) {
+        console.log('🍽️ Diet screen focused - reloading data...');
+        lastFocusTime.current = now;
+        loadUserData();
+      }
+    }
+  }, [isFocused]);
 
   const loadUserData = async () => {
     try {
