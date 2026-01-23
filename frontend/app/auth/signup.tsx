@@ -235,29 +235,23 @@ export default function SignupScreen() {
 
               {/* Signup Button */}
               <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
-                <Pressable 
-                  onPress={handleSignup} 
+                <TouchableOpacity 
+                  onPress={() => {
+                    console.log('🟢 Signup button pressed');
+                    handleSignup();
+                  }} 
                   disabled={isLoading}
-                  style={({ pressed }) => [
+                  activeOpacity={0.7}
+                  style={[
                     styles.signupButton,
-                    pressed && { opacity: 0.9 }
+                    { backgroundColor: isLoading ? '#9CA3AF' : premiumColors.primary }
                   ]}
                 >
-                  <LinearGradient
-                    colors={isLoading
-                      ? ['#9CA3AF', '#6B7280']
-                      : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={StyleSheet.absoluteFill}
-                    pointerEvents="none"
-                  />
                   <UserPlus size={20} color="#FFF" />
                   <Text style={styles.signupButtonText}>
                     {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               </Animated.View>
 
               {/* Terms and Privacy */}
