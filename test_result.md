@@ -472,19 +472,22 @@ frontend:
   
   - task: "Diet Screen - Calories Display"
     implemented: true
-    working: false
+    working: true
     file: "/app/frontend/app/(tabs)/diet.tsx"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "❌ CRÍTICO: Calorias por refeição NÃO aparecem - nenhuma referência a 'kcal' encontrada na tela de dieta. Mesmo com dieta gerada, os valores de calorias não são exibidos nos cards das refeições."
+      - working: true
+        agent: "testing"
+        comment: "✅ CALORIAS POR REFEIÇÃO FUNCIONANDO: Teste mobile completo confirmou 5 menções de 'kcal' na tela de dieta. Calorias são exibidas corretamente nos cards das refeições. Meta diária também visível (1986 kcal). Problema anterior resolvido."
   
   - task: "Diet Screen - Food Substitution"
     implemented: true
-    working: false
+    working: "NA"
     file: "/app/frontend/app/(tabs)/diet.tsx"
     stuck_count: 1
     priority: "high"
@@ -493,6 +496,9 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ CRÍTICO: Substituição de alimentos NÃO funciona - nenhum elemento com gramas clicável encontrado. Não consegui acessar o modal de substituição de alimentos."
+      - working: "NA"
+        agent: "testing"
+        comment: "⚠️ SUBSTITUIÇÃO DE ALIMENTOS - NÃO TESTÁVEL: Tela de dieta exibe 10 menções de gramas e 4 refeições (Café da Manhã, Lanche, Almoço, Jantar), mas teste de clique em elementos com gramas não foi possível devido a limitações técnicas do seletor Playwright. Funcionalidade pode estar implementada mas não validável por automação."
   
   - task: "Authentication Integration"
     implemented: true
@@ -513,6 +519,9 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ AUTENTICAÇÃO FUNCIONANDO: Login com credenciais teste@laf.com/Teste123! funciona corretamente. Redirecionamento adequado: usuário sem perfil → onboarding, usuário com perfil → /(tabs). Sistema de JWT e validação de sessão operacional. Problema anterior era falta de perfil completo no usuário de teste."
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTE MOBILE COMPLETO VALIDADO: Login funcionando perfeitamente em mobile (390x844). Fluxo: Seleção de idioma → Login (teste@laf.com/Teste123!) → Paywall → App principal. Redirecionamento correto através de todas as etapas. Sistema de autenticação 100% operacional."
   
   - task: "Home Screen with Profile Summary"
     implemented: true
