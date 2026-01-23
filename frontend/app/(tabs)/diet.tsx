@@ -173,6 +173,7 @@ export default function DietScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      console.log('🍽️ Diet screen focused - reloading data...');
       loadUserData();
     }, [])
   );
