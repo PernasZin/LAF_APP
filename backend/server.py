@@ -630,41 +630,48 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
             # Busca perfil atualizado para gerar nova dieta
             updated_profile_data = await db.user_profiles.find_one({"_id": user_id})
             if updated_profile_data:
-                # Importa a função de geração de dieta do diet_service
-                from diet_service import generate_diet as gen_diet_func
-                
-                profile_obj = UserProfile(**{**updated_profile_data, "id": updated_profile_data["_id"]})
+                # Usar DietAIService (mesmo que o endpoint oficial)
+                from diet_service import DietAIService
                 
                 # Busca meal_count das settings ou usa o do perfil
                 user_settings = await db.user_settings.find_one({"user_id": user_id})
                 meal_count = 6  # Padrão
+                meal_times = None
+                
                 if user_settings and user_settings.get('meal_count') in [4, 5, 6]:
                     meal_count = user_settings.get('meal_count')
+                    meal_times = user_settings.get('meal_times', None)
                 elif updated_profile_data.get('meal_count') and updated_profile_data.get('meal_count') in [4, 5, 6]:
                     meal_count = updated_profile_data.get('meal_count')
                 
-                # Prepara preferências e restrições
-                food_preferences = set(profile_obj.food_preferences or [])
-                dietary_restrictions = profile_obj.dietary_restrictions or []
-                
-                # Gera nova dieta usando a função do diet_service
-                # Assinatura: generate_diet(target_p, target_c, target_f, preferred, restrictions, meal_count, original_preferred, goal)
-                meals_list = gen_diet_func(
-                    target_p=int(profile_obj.macros.get("protein", 150)),
-                    target_c=int(profile_obj.macros.get("carbs", 300)),
-                    target_f=int(profile_obj.macros.get("fat", 70)),
-                    preferred=food_preferences,
-                    restrictions=dietary_restrictions,
+                # Gera nova dieta usando DietAIService (mesmo fluxo do endpoint /api/diet/generate)
+                diet_service = DietAIService()
+                diet_plan = diet_service.generate_diet_plan(
+                    user_profile=dict(updated_profile_data),
+                    target_calories=updated_profile_data.get('target_calories', 2000),
+                    target_macros=updated_profile_data.get('macros', {"protein": 150, "carbs": 200, "fat": 60}),
                     meal_count=meal_count,
-                    original_preferred=food_preferences,
-                    goal=profile_obj.goal
+                    meal_times=meal_times
                 )
                 
-                # Calcula totais - A estrutura de cada meal é: name, foods, total_calories, macros
-                computed_protein = sum(m.get("macros", {}).get("protein", 0) for m in meals_list)
-                computed_carbs = sum(m.get("macros", {}).get("carbs", 0) for m in meals_list)
-                computed_fat = sum(m.get("macros", {}).get("fat", 0) for m in meals_list)
-                computed_calories = sum(m.get("total_calories", 0) for m in meals_list)
+                # Calcula totais reais dos alimentos
+                computed_protein = sum(sum(f["protein"] for f in m.foods) for m in diet_plan.meals)
+                computed_carbs = sum(sum(f["carbs"] for f in m.foods) for m in diet_plan.meals)
+                computed_fat = sum(sum(f["fat"] for f in m.foods) for m in diet_plan.meals)
+                computed_calories = sum(sum(f["calories"] for f in m.foods) for m in diet_plan.meals)
+                
+                # Converte para formato de dicionário para salvar no MongoDB
+                meals_data = []
+                for meal in diet_plan.meals:
+                    meal_dict = {
+                        "id": str(uuid.uuid4()),
+                        "name": meal.name,
+                        "time": meal.time,
+                        "foods": [dict(f) if hasattr(f, '__dict__') else f for f in meal.foods],
+                        "total_calories": meal.total_calories,
+                        "macros": meal.macros
+                    }
+                    meals_data.append(meal_dict)
                 
                 # Salva nova dieta
                 diet_id = str(uuid.uuid4())
@@ -673,15 +680,13 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                     "id": diet_id,
                     "user_id": user_id,
                     "diet_type": "training",
-                    "target_calories": profile_obj.target_calories,
-                    "target_protein": profile_obj.macros.get("protein", 150),
-                    "target_carbs": profile_obj.macros.get("carbs", 300),
-                    "target_fat": profile_obj.macros.get("fat", 70),
+                    "target_calories": updated_profile_data.get('target_calories', 2000),
+                    "target_macros": updated_profile_data.get('macros', {"protein": 150, "carbs": 200, "fat": 60}),
                     "computed_calories": computed_calories,
                     "computed_protein": computed_protein,
                     "computed_carbs": computed_carbs,
                     "computed_fat": computed_fat,
-                    "meals": meals_list,
+                    "meals": meals_data,
                     "version": 14,
                     "created_at": datetime.utcnow(),
                     "updated_at": datetime.utcnow()
@@ -691,7 +696,8 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                 await db.diet_plans.delete_many({"user_id": user_id})
                 await db.diet_plans.insert_one(diet_doc)
                 
-                logger.info(f"DIETA REGENERADA - User: {user_id} | Goal: {profile_obj.goal} | Calorias: {computed_calories}")
+                target_cal = updated_profile_data.get('target_calories', 2000)
+                logger.info(f"DIETA REGENERADA - User: {user_id} | Goal: {updated_profile_data.get('goal')} | Target: {target_cal} | Computed: {computed_calories}")
         except Exception as e:
             logger.error(f"Error regenerating diet for user {user_id}: {e}")
             import traceback
