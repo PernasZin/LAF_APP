@@ -4133,6 +4133,324 @@ async def update_user_settings_put(user_id: str, update_data: UserSettingsUpdate
     """
     return await update_user_settings(user_id, update_data)
 
+
+# ==================== STRIPE SUBSCRIPTION ENDPOINTS ====================
+
+# Initialize Stripe
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY")
+STRIPE_PRICE_MONTHLY = os.getenv("STRIPE_PRICE_MONTHLY", "price_1SsY8nJnbIltYEtzUvMf9vd9")
+STRIPE_PRICE_ANNUAL = os.getenv("STRIPE_PRICE_ANNUAL", "price_1SsY8oJnbIltYEtzJdaA8WxV")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+
+class CreateCheckoutRequest(BaseModel):
+    user_id: str
+    plan_type: str  # "monthly" ou "annual"
+    success_url: Optional[str] = None
+    cancel_url: Optional[str] = None
+
+class SubscriptionResponse(BaseModel):
+    subscription_status: str
+    current_plan: Optional[str] = None
+    subscription_id: Optional[str] = None
+    stripe_customer_id: Optional[str] = None
+    current_period_end: Optional[datetime] = None
+    cancel_at_period_end: bool = False
+
+@api_router.get("/stripe/config")
+async def get_stripe_config():
+    """Retorna a chave pública do Stripe para o frontend"""
+    return {
+        "publishable_key": STRIPE_PUBLISHABLE_KEY,
+        "prices": {
+            "monthly": {
+                "id": STRIPE_PRICE_MONTHLY,
+                "amount": 2990,
+                "currency": "brl",
+                "interval": "month"
+            },
+            "annual": {
+                "id": STRIPE_PRICE_ANNUAL,
+                "amount": 19990,
+                "currency": "brl",
+                "interval": "year"
+            }
+        }
+    }
+
+@api_router.post("/stripe/create-customer/{user_id}")
+async def create_stripe_customer(user_id: str):
+    """Cria um cliente no Stripe para o usuário"""
+    try:
+        # Buscar usuário
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        # Verificar se já tem stripe_customer_id
+        if user.get("stripe_customer_id"):
+            return {"stripe_customer_id": user["stripe_customer_id"]}
+        
+        # Criar cliente no Stripe
+        customer = stripe.Customer.create(
+            email=user.get("email"),
+            name=user.get("name", ""),
+            metadata={"user_id": user_id}
+        )
+        
+        # Salvar no banco
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {
+                "stripe_customer_id": customer.id,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        
+        return {"stripe_customer_id": customer.id}
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/stripe/create-checkout-session")
+async def create_checkout_session(request: CreateCheckoutRequest):
+    """Cria uma sessão de checkout do Stripe"""
+    try:
+        # Buscar usuário
+        user = await db.users.find_one({"id": request.user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        # Criar cliente Stripe se não existir
+        stripe_customer_id = user.get("stripe_customer_id")
+        if not stripe_customer_id:
+            customer = stripe.Customer.create(
+                email=user.get("email"),
+                name=user.get("name", ""),
+                metadata={"user_id": request.user_id}
+            )
+            stripe_customer_id = customer.id
+            await db.users.update_one(
+                {"id": request.user_id},
+                {"$set": {"stripe_customer_id": stripe_customer_id}}
+            )
+        
+        # Definir preço baseado no plano
+        price_id = STRIPE_PRICE_MONTHLY if request.plan_type == "monthly" else STRIPE_PRICE_ANNUAL
+        
+        # URLs de sucesso e cancelamento
+        base_url = os.getenv("FRONTEND_URL", "https://fit-final.preview.emergentagent.com")
+        success_url = request.success_url or f"{base_url}/subscription/success?session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = request.cancel_url or f"{base_url}/subscription/cancel"
+        
+        # Criar sessão de checkout
+        session = stripe.checkout.Session.create(
+            customer=stripe_customer_id,
+            payment_method_types=["card"],
+            line_items=[{
+                "price": price_id,
+                "quantity": 1,
+            }],
+            mode="subscription",
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": request.user_id,
+                "plan_type": request.plan_type
+            },
+            allow_promotion_codes=True,
+            billing_address_collection="auto",
+            locale="pt-BR"
+        )
+        
+        return {
+            "checkout_url": session.url,
+            "session_id": session.id
+        }
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.get("/stripe/subscription/{user_id}")
+async def get_user_subscription(user_id: str):
+    """Retorna o status da assinatura do usuário"""
+    try:
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        subscription_status = user.get("subscription_status", "inactive")
+        current_plan = user.get("current_plan")
+        subscription_id = user.get("subscription_id")
+        
+        # Se tem assinatura ativa, buscar detalhes no Stripe
+        current_period_end = None
+        cancel_at_period_end = False
+        
+        if subscription_id:
+            try:
+                subscription = stripe.Subscription.retrieve(subscription_id)
+                subscription_status = subscription.status
+                current_period_end = datetime.fromtimestamp(subscription.current_period_end)
+                cancel_at_period_end = subscription.cancel_at_period_end
+            except:
+                pass
+        
+        return {
+            "subscription_status": subscription_status,
+            "current_plan": current_plan,
+            "subscription_id": subscription_id,
+            "stripe_customer_id": user.get("stripe_customer_id"),
+            "current_period_end": current_period_end,
+            "cancel_at_period_end": cancel_at_period_end,
+            "is_premium": subscription_status == "active"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/stripe/cancel-subscription/{user_id}")
+async def cancel_subscription(user_id: str):
+    """Cancela a assinatura do usuário (no final do período)"""
+    try:
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        subscription_id = user.get("subscription_id")
+        if not subscription_id:
+            raise HTTPException(status_code=400, detail="Nenhuma assinatura ativa")
+        
+        # Cancelar no final do período (não imediatamente)
+        subscription = stripe.Subscription.modify(
+            subscription_id,
+            cancel_at_period_end=True
+        )
+        
+        return {
+            "success": True,
+            "message": "Assinatura será cancelada no final do período",
+            "cancel_at": datetime.fromtimestamp(subscription.current_period_end)
+        }
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/stripe/reactivate-subscription/{user_id}")
+async def reactivate_subscription(user_id: str):
+    """Reativa uma assinatura que estava marcada para cancelar"""
+    try:
+        user = await db.users.find_one({"id": user_id})
+        if not user:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        subscription_id = user.get("subscription_id")
+        if not subscription_id:
+            raise HTTPException(status_code=400, detail="Nenhuma assinatura encontrada")
+        
+        # Remover cancelamento pendente
+        subscription = stripe.Subscription.modify(
+            subscription_id,
+            cancel_at_period_end=False
+        )
+        
+        return {
+            "success": True,
+            "message": "Assinatura reativada com sucesso"
+        }
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.post("/stripe/webhook")
+async def stripe_webhook(request: Request):
+    """Webhook para receber eventos do Stripe"""
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    
+    try:
+        # Verificar assinatura do webhook
+        if STRIPE_WEBHOOK_SECRET:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, STRIPE_WEBHOOK_SECRET
+            )
+        else:
+            # Em desenvolvimento, aceitar sem verificação
+            import json
+            event = json.loads(payload)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid payload")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+    
+    event_type = event.get("type", "")
+    data = event.get("data", {}).get("object", {})
+    
+    logger.info(f"Stripe webhook received: {event_type}")
+    
+    # Processar eventos de assinatura
+    if event_type == "checkout.session.completed":
+        # Pagamento concluído
+        customer_id = data.get("customer")
+        subscription_id = data.get("subscription")
+        metadata = data.get("metadata", {})
+        user_id = metadata.get("user_id")
+        plan_type = metadata.get("plan_type")
+        
+        if user_id:
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {
+                    "subscription_status": "active",
+                    "subscription_id": subscription_id,
+                    "current_plan": plan_type,
+                    "stripe_customer_id": customer_id,
+                    "subscription_started_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }}
+            )
+            logger.info(f"User {user_id} subscription activated: {plan_type}")
+    
+    elif event_type == "customer.subscription.updated":
+        subscription_id = data.get("id")
+        status = data.get("status")
+        customer_id = data.get("customer")
+        
+        # Atualizar usuário pelo customer_id
+        await db.users.update_one(
+            {"stripe_customer_id": customer_id},
+            {"$set": {
+                "subscription_status": status,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        logger.info(f"Subscription {subscription_id} updated to status: {status}")
+    
+    elif event_type == "customer.subscription.deleted":
+        subscription_id = data.get("id")
+        customer_id = data.get("customer")
+        
+        await db.users.update_one(
+            {"stripe_customer_id": customer_id},
+            {"$set": {
+                "subscription_status": "canceled",
+                "subscription_id": None,
+                "current_plan": None,
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        logger.info(f"Subscription {subscription_id} canceled")
+    
+    elif event_type == "invoice.payment_failed":
+        customer_id = data.get("customer")
+        
+        await db.users.update_one(
+            {"stripe_customer_id": customer_id},
+            {"$set": {
+                "subscription_status": "past_due",
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        logger.info(f"Payment failed for customer {customer_id}")
+    
+    return {"received": True}
+
+
 # Include router
 app.include_router(api_router)
 
