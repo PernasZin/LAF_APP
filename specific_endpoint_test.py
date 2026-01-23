@@ -151,6 +151,11 @@ class LAFSpecificTester:
             if response.status_code != 200:
                 self.log_test("Profile Creation", False, f"Failed to create profile: {response.text}")
                 return False
+            else:
+                profile_result = response.json()
+                tdee = profile_result.get("tdee")
+                target_calories = profile_result.get("target_calories")
+                self.log_test("Profile Creation", True, f"Profile created - TDEE: {tdee}kcal, Target: {target_calories}kcal")
         except Exception as e:
             self.log_test("Profile Creation", False, f"Exception: {str(e)}")
             return False
