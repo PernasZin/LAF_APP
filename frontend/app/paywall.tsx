@@ -14,6 +14,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -31,11 +32,15 @@ import {
   X,
   Zap,
 } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useSettingsStore } from '../stores/settingsStore';
 import { useSubscriptionStore, SUBSCRIPTION_CONFIG } from '../stores/subscriptionStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../theme/premium';
 import { SupportedLanguage, translations } from '../i18n/translations';
+import { config } from '../config';
+
+const BACKEND_URL = config.BACKEND_URL;
 
 const FEATURES = [
   { icon: Utensils, key: 'personalizedDiet' },
