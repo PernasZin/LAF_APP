@@ -396,6 +396,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
   signupButtonText: { color: '#FFF', fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
 
