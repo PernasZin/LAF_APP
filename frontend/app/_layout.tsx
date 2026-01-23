@@ -5,6 +5,9 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { ThemeProvider, useTheme } from '../theme/ThemeContext';
 import { useAuthStore } from '../stores/authStore';
 import { useSubscriptionStore } from '../stores/subscriptionStore';
+import { config } from '../config';
+
+const BACKEND_URL = config.BACKEND_URL;
 
 /**
  * ROOT AUTH GUARD
@@ -14,9 +17,10 @@ import { useSubscriptionStore } from '../stores/subscriptionStore';
  * 1. If on index (root) → allow (language selection)
  * 2. if (!isAuthenticated) → /auth/login
  * 3. else if (!profileCompleted) → /onboarding
- * 4. else if (subscriptionExpired) → /paywall (assinatura expirou após período de graça)
- * 5. else if (!hasSeenPaywall && !isPremium) → /paywall
- * 6. else → /(tabs)
+ * 4. else → Verifica status premium no backend
+ * 5. else if (subscriptionExpired) → /paywall (assinatura expirou após período de graça)
+ * 6. else if (!hasSeenPaywall && !isPremium) → /paywall
+ * 7. else → /(tabs) - usuário premium vai direto para o app
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -24,6 +28,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const navigationState = useRootNavigationState();
   
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const userId = useAuthStore((s) => s.userId);
   const profileCompleted = useAuthStore((s) => s.profileCompleted);
   const isInitialized = useAuthStore((s) => s.isInitialized);
   const initialize = useAuthStore((s) => s.initialize);
@@ -33,12 +38,43 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const checkSubscriptionStatus = useSubscriptionStore((s) => s.checkSubscriptionStatus);
   const setHasSeenPaywall = useSubscriptionStore((s) => s.setHasSeenPaywall);
   const initializeSubscription = useSubscriptionStore((s) => s.initialize);
+  const syncWithBackend = useSubscriptionStore((s) => s.syncWithBackend);
+  const activateSubscription = useSubscriptionStore((s) => s.activateSubscription);
 
   // Initialize once
   useEffect(() => {
     initialize();
     initializeSubscription();
   }, []);
+
+  // Sincronizar com backend quando o usuário está autenticado
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      if (isAuthenticated && userId && profileCompleted) {
+        try {
+          console.log('🔄 Verificando status premium no backend para:', userId);
+          const response = await fetch(`${BACKEND_URL}/api/user/premium/${userId}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📦 Status premium do backend:', data);
+            
+            if (data.is_premium) {
+              // Usuário já tem assinatura ativa - ativar localmente
+              const planType = data.current_plan || 'monthly';
+              activateSubscription(planType);
+              setHasSeenPaywall(true);
+              console.log('✅ Usuário é premium! Ativando assinatura local.');
+            }
+          }
+        } catch (error) {
+          console.error('❌ Erro ao verificar status premium:', error);
+        }
+      }
+    };
+
+    checkPremiumStatus();
+  }, [isAuthenticated, userId, profileCompleted]);
 
   // Redirect based on auth state
   useEffect(() => {
@@ -104,6 +140,15 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       if (!inPaywall) {
         console.log('🛡️ → /paywall (subscription expired)');
         router.replace('/paywall');
+      }
+      return;
+    }
+
+    // Se usuário é premium, vai direto para o app (pula paywall)
+    if (isPremium()) {
+      if (!inTabs) {
+        console.log('🛡️ → /(tabs) - usuário premium');
+        router.replace('/(tabs)');
       }
       return;
     }
