@@ -325,6 +325,7 @@ class LAFSpecificTester:
         # 1. POST /api/stripe/create-checkout-session - Criar sessão de checkout
         checkout_data = {
             "user_id": self.user_id,
+            "plan_type": "monthly",  # Required field
             "price_id": "price_1SsY8nJnbIltYEtzUvMf9vd9",  # Monthly price from .env
             "success_url": "https://prelaunch-diet.preview.emergentagent.com/success",
             "cancel_url": "https://prelaunch-diet.preview.emergentagent.com/cancel"
