@@ -228,29 +228,23 @@ export default function LoginScreen() {
 
               {/* Login Button */}
               <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
-                <Pressable 
-                  onPress={handleLogin} 
+                <TouchableOpacity 
+                  onPress={() => {
+                    console.log('🟢 Login button pressed');
+                    handleLogin();
+                  }} 
                   disabled={isLoading}
-                  style={({ pressed }) => [
+                  activeOpacity={0.7}
+                  style={[
                     styles.loginButton,
-                    pressed && { opacity: 0.9 }
+                    { backgroundColor: isLoading ? '#9CA3AF' : premiumColors.primary }
                   ]}
                 >
-                  <LinearGradient
-                    colors={isLoading 
-                      ? ['#9CA3AF', '#6B7280']
-                      : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
-                    }
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={StyleSheet.absoluteFill}
-                    pointerEvents="none"
-                  />
                   <LogIn size={20} color="#FFF" />
                   <Text style={styles.loginButtonText}>
                     {isLoading ? (language === 'en-US' ? 'Entering...' : language === 'es-ES' ? 'Entrando...' : 'Entrando...') : t.enterAccount}
                   </Text>
-                </Pressable>
+                </TouchableOpacity>
               </Animated.View>
             </Animated.View>
 
