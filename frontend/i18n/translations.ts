@@ -480,6 +480,18 @@ export const translations: Record<SupportedLanguage, Translations> = {
       no: 'Não',
       saving: 'Salvando...',
     },
+    // Language Selection Screen
+    languageSelect: {
+      title: 'Escolha seu idioma',
+      subtitle: 'Select your language / Selecciona tu idioma',
+      continue: 'Continuar',
+      yourAssistant: 'Seu assistente de nutrição',
+    },
+    // Paywall
+    paywall: {
+      subscribeMonthly: 'Assinar por R$ 29,90/mês',
+      subscribeAnnual: 'Assinar por R$ 199,90/ano',
+    },
     tabs: {
       home: 'Início',
       diet: 'Dieta',
