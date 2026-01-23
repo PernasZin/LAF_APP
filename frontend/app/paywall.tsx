@@ -481,11 +481,12 @@ export default function PaywallScreen() {
               ]}
             >
               <View style={styles.planHeader}>
-                <Text style={[styles.planTitle, { color: theme.text }]}>Mensal</Text>
+                <Text style={[styles.planTitle, { color: theme.text }]}>{t.monthly}</Text>
                 {selectedPlan === 'monthly' && <Check size={20} color="#EAB308" />}
               </View>
-              <Text style={[styles.planPrice, { color: theme.text }]}>R$ 29,90</Text>
-              <Text style={[styles.planPeriod, { color: theme.textSecondary }]}>por mês</Text>
+              <Text style={[styles.planPrice, { color: theme.text }]}>R$ {SUBSCRIPTION_CONFIG.MONTHLY_PRICE.toFixed(2).replace('.', ',')}</Text>
+              <Text style={[styles.planPeriod, { color: theme.textSecondary }]}>{t.perMonth}</Text>
+              <Text style={[styles.trialText, { color: '#10B981' }]}>{t.trialThenRecurring}</Text>
             </Pressable>
             
             <Pressable
@@ -502,14 +503,15 @@ export default function PaywallScreen() {
               ]}
             >
               <View style={styles.saveBadge}>
-                <Text style={styles.saveBadgeText}>-44%</Text>
+                <Text style={styles.saveBadgeText}>-{SUBSCRIPTION_CONFIG.ANNUAL_DISCOUNT}%</Text>
               </View>
               <View style={styles.planHeader}>
-                <Text style={[styles.planTitle, { color: theme.text }]}>Anual</Text>
+                <Text style={[styles.planTitle, { color: theme.text }]}>{t.annual}</Text>
                 {selectedPlan === 'annual' && <Check size={20} color="#10B981" />}
               </View>
-              <Text style={[styles.planPrice, { color: theme.text }]}>R$ 199,90</Text>
-              <Text style={[styles.planPeriod, { color: theme.textSecondary }]}>por ano (R$ 16,66/mês)</Text>
+              <Text style={[styles.planPrice, { color: theme.text }]}>R$ {SUBSCRIPTION_CONFIG.ANNUAL_PRICE.toFixed(2).replace('.', ',')}</Text>
+              <Text style={[styles.planPeriod, { color: theme.textSecondary }]}>{t.perYear} (R$ {SUBSCRIPTION_CONFIG.ANNUAL_MONTHLY_PRICE.toFixed(2).replace('.', ',')}/mês)</Text>
+              <Text style={[styles.trialText, { color: '#10B981' }]}>{t.trialThenRecurring}</Text>
             </Pressable>
           </Animated.View>
 
