@@ -176,7 +176,9 @@ export default function OnboardingScreen() {
         await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
         await AsyncStorage.setItem('profileCompleted', 'true');
         await setProfileCompleted(true);
-        router.replace('/(tabs)');
+        
+        // Redirecionar para a tela de assinatura após criar perfil
+        router.replace('/paywall');
       } else {
         const error = await response.json();
         showAlert(t.error, error.detail || t.couldNotSaveProfile);
