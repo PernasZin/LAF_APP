@@ -32,12 +32,12 @@ export default function IndexScreen() {
   const isDark = effectiveTheme === 'dark';
   const theme = isDark ? darkTheme : lightTheme;
   
-  // Get translations for selected language
-  const t = translations[selectedLang as SupportedLanguage] || translations['pt-BR'];
-  
   const [screenState, setScreenState] = useState<ScreenState>('loading');
   const [destination, setDestination] = useState<'login' | 'tabs' | 'onboarding' | null>(null);
   const [selectedLang, setSelectedLang] = useState<LanguagePreference>(language);
+  
+  // Get translations for selected language
+  const t = translations[selectedLang as SupportedLanguage] || translations['pt-BR'];
 
   // Initial check on mount
   useEffect(() => {
