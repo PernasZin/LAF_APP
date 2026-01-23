@@ -3,17 +3,22 @@
  * ===========================
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { ArrowLeft, Shield, Lock, Eye, Database, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Shield, Lock, Eye, Database, Trash2, AlertTriangle, X } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useAuthStore } from '../../stores/authStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
 import { useTranslation } from '../../i18n';
+import { config } from '../../config';
+
+const BACKEND_URL = config.BACKEND_URL;
 
 const GlassCard = ({ children, style, isDark }: any) => {
   const cardStyle = {
