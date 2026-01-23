@@ -235,28 +235,29 @@ export default function SignupScreen() {
 
               {/* Signup Button */}
               <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
-                <TouchableOpacity 
+                <Pressable 
                   onPress={handleSignup} 
-                  disabled={isLoading} 
-                  activeOpacity={0.9}
+                  disabled={isLoading}
+                  style={({ pressed }) => [
+                    styles.signupButton,
+                    pressed && { opacity: 0.9 }
+                  ]}
                 >
-                  <View style={styles.signupButton}>
-                    <LinearGradient
-                      colors={isLoading
-                        ? ['#9CA3AF', '#6B7280']
-                        : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
-                      }
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 1, y: 0 }}
-                      style={StyleSheet.absoluteFill}
-                      pointerEvents="none"
-                    />
-                    <UserPlus size={20} color="#FFF" />
-                    <Text style={styles.signupButtonText}>
-                      {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+                  <LinearGradient
+                    colors={isLoading
+                      ? ['#9CA3AF', '#6B7280']
+                      : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
+                    }
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={StyleSheet.absoluteFill}
+                    pointerEvents="none"
+                  />
+                  <UserPlus size={20} color="#FFF" />
+                  <Text style={styles.signupButtonText}>
+                    {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
+                  </Text>
+                </Pressable>
               </Animated.View>
 
               {/* Terms and Privacy */}
