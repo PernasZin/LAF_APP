@@ -630,12 +630,62 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
             # Busca perfil atualizado para gerar nova dieta
             updated_profile_data = await db.user_profiles.find_one({"_id": user_id})
             if updated_profile_data:
+                # Importa a função de geração de dieta do diet_service
+                from diet_service import generate_diet as gen_diet_func, calculate_tdee as calc_tdee
+                
                 profile_obj = UserProfile(**{**updated_profile_data, "id": updated_profile_data["_id"]})
-                new_diet = await diet_service.generate_diet(profile_obj)
-                if new_diet:
-                    logger.info(f"Diet regenerated successfully for user {user_id}")
+                
+                # Gera nova dieta usando a função do diet_service
+                is_training_day = True  # Dia de treino por padrão
+                meals_list = gen_diet_func(
+                    target_calories=profile_obj.target_calories,
+                    target_protein=profile_obj.macros.get("protein", 150),
+                    target_carbs=profile_obj.macros.get("carbs", 300),
+                    target_fat=profile_obj.macros.get("fat", 70),
+                    meal_count=profile_obj.meal_count,
+                    dietary_restrictions=profile_obj.dietary_restrictions or [],
+                    food_preferences=profile_obj.food_preferences or [],
+                    is_training_day=is_training_day,
+                    weight=profile_obj.weight,
+                    goal=profile_obj.goal
+                )
+                
+                # Calcula totais
+                computed_protein = sum(m.get("protein", 0) for m in meals_list)
+                computed_carbs = sum(m.get("carbs", 0) for m in meals_list)
+                computed_fat = sum(m.get("fat", 0) for m in meals_list)
+                computed_calories = sum(m.get("calories", 0) for m in meals_list)
+                
+                # Salva nova dieta
+                diet_id = str(uuid.uuid4())
+                diet_doc = {
+                    "_id": diet_id,
+                    "id": diet_id,
+                    "user_id": user_id,
+                    "diet_type": "training" if is_training_day else "rest",
+                    "target_calories": profile_obj.target_calories,
+                    "target_protein": profile_obj.macros.get("protein", 150),
+                    "target_carbs": profile_obj.macros.get("carbs", 300),
+                    "target_fat": profile_obj.macros.get("fat", 70),
+                    "computed_calories": computed_calories,
+                    "computed_protein": computed_protein,
+                    "computed_carbs": computed_carbs,
+                    "computed_fat": computed_fat,
+                    "meals": meals_list,
+                    "version": 14,
+                    "created_at": datetime.utcnow(),
+                    "updated_at": datetime.utcnow()
+                }
+                
+                # Remove dieta antiga e salva nova
+                await db.diets.delete_many({"user_id": user_id})
+                await db.diets.insert_one(diet_doc)
+                
+                logger.info(f"DIETA REGENERADA - User: {user_id} | Goal: {profile_obj.goal} | Calorias: {computed_calories}")
         except Exception as e:
             logger.error(f"Error regenerating diet for user {user_id}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             # Não falha o endpoint, apenas loga o erro
     
     # Retorna perfil atualizado
