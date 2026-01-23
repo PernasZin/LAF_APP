@@ -759,6 +759,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
   },
+  trialText: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 4,
+  },
   saveBadge: {
     position: 'absolute',
     top: -2,
