@@ -284,29 +284,23 @@ export default function OnboardingScreen() {
             <TouchableOpacity
               onPress={handleNext}
               disabled={loading}
-              activeOpacity={0.9}
+              activeOpacity={0.7}
+              style={[styles.nextButton, { backgroundColor: loading ? '#9CA3AF' : premiumColors.primary }]}
             >
-              <LinearGradient
-                colors={[premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.nextButton}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <>
-                    <Text style={styles.nextButtonText}>
-                      {currentStep === steps.length - 1 ? (t.finish || 'Finalizar') : (t.continue || 'Continuar')}
-                    </Text>
-                    {currentStep === steps.length - 1 ? (
-                      <Check size={20} color="#FFF" strokeWidth={3} />
-                    ) : (
-                      <ArrowRight size={20} color="#FFF" strokeWidth={2.5} />
-                    )}
-                  </>
-                )}
-              </LinearGradient>
+              {loading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <>
+                  <Text style={styles.nextButtonText}>
+                    {currentStep === steps.length - 1 ? (t.finish || 'Finalizar') : (t.continue || 'Continuar')}
+                  </Text>
+                  {currentStep === steps.length - 1 ? (
+                    <Check size={20} color="#FFF" strokeWidth={3} />
+                  ) : (
+                    <ArrowRight size={20} color="#FFF" strokeWidth={2.5} />
+                  )}
+                </>
+              )}
             </TouchableOpacity>
           </Animated.View>
         </KeyboardAvoidingView>
