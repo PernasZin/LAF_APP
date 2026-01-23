@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 """
-🧪 TESTE EXTENSIVO LAF - MÚLTIPLOS PERFIS E VALIDAÇÕES
-Executa testes EXAUSTIVOS criando MÚLTIPLOS perfis diferentes e validando TUDO.
+🧪 LAF BACKEND TESTING SUITE - COMPREHENSIVE PROGRESS SYSTEM TEST
+Focus: PROGRESS SYSTEM (Critical for recurring revenue)
+
+Test Account:
+- Email: apple-reviewer@laf.com
+- Password: AppleReview2025!
+- User ID: 14017240-2fff-4123-9d26-fa240255ea21
 """
 
 import requests
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
 # BASE URL from frontend .env
 BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
+
+# Test credentials from review request
+TEST_EMAIL = "apple-reviewer@laf.com"
+TEST_PASSWORD = "AppleReview2025!"
+TEST_USER_ID = "14017240-2fff-4123-9d26-fa240255ea21"
 
 class LAFTester:
     def __init__(self):
