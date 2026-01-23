@@ -4182,30 +4182,44 @@ async def get_stripe_config():
 async def create_stripe_customer(user_id: str):
     """Cria um cliente no Stripe para o usuário"""
     try:
-        # Buscar usuário
-        user = await db.users.find_one({"id": user_id})
-        if not user:
+        # Buscar usuário em users_auth e user_profiles
+        user_auth = await db.users_auth.find_one({"id": user_id})
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        
+        if not user_auth and not user_profile:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
         
+        # Combinar dados
+        email = user_auth.get("email") if user_auth else None
+        name = user_profile.get("name") if user_profile else (user_auth.get("name") if user_auth else "")
+        
         # Verificar se já tem stripe_customer_id
-        if user.get("stripe_customer_id"):
-            return {"stripe_customer_id": user["stripe_customer_id"]}
+        stripe_customer_id = None
+        if user_auth:
+            stripe_customer_id = user_auth.get("stripe_customer_id")
+        if not stripe_customer_id and user_profile:
+            stripe_customer_id = user_profile.get("stripe_customer_id")
+        
+        if stripe_customer_id:
+            return {"stripe_customer_id": stripe_customer_id}
         
         # Criar cliente no Stripe
         customer = stripe.Customer.create(
-            email=user.get("email"),
-            name=user.get("name", ""),
+            email=email,
+            name=name,
             metadata={"user_id": user_id}
         )
         
-        # Salvar no banco
-        await db.users.update_one(
-            {"id": user_id},
-            {"$set": {
-                "stripe_customer_id": customer.id,
-                "updated_at": datetime.utcnow()
-            }}
-        )
+        # Salvar em ambas as coleções
+        update_data = {
+            "stripe_customer_id": customer.id,
+            "updated_at": datetime.utcnow()
+        }
+        
+        if user_auth:
+            await db.users_auth.update_one({"id": user_id}, {"$set": update_data})
+        if user_profile:
+            await db.user_profiles.update_one({"id": user_id}, {"$set": update_data})
         
         return {"stripe_customer_id": customer.id}
     except stripe.error.StripeError as e:
