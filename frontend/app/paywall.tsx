@@ -373,33 +373,26 @@ export default function PaywallScreen() {
           >
             <TouchableOpacity
               onPress={() => {
-                console.log('Button pressed!');
+                console.log('🟢 Button pressed!');
                 handleSubscribe();
               }}
               disabled={isLoading}
               activeOpacity={0.7}
+              style={[
+                styles.ctaButton,
+                { backgroundColor: isLoading ? '#9CA3AF' : '#EAB308' }
+              ]}
             >
-              <View style={styles.ctaButton}>
-                <LinearGradient
-                  colors={isLoading
-                    ? ['#9CA3AF', '#6B7280']
-                    : ['#F59E0B', '#EAB308', '#CA8A04']
-                  }
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={StyleSheet.absoluteFill}
-                />
-                {isLoading ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <View style={styles.ctaButtonContent}>
-                    <Crown size={22} color="#FFF" />
-                    <Text style={styles.ctaButtonText}>
-                      {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
-                    </Text>
-                  </View>
-                )}
-              </View>
+              {isLoading ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <View style={styles.ctaButtonContent}>
+                  <Crown size={22} color="#FFF" />
+                  <Text style={styles.ctaButtonText}>
+                    {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
+                  </Text>
+                </View>
+              )}
             </TouchableOpacity>
 
             <Text style={[styles.cancelText, { color: theme.textTertiary }]}>
