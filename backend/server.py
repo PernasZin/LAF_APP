@@ -2237,8 +2237,10 @@ async def get_training_cycle_status(user_id: str, date: str = None):
     - Status da sessão de treino do dia
     - Multiplicadores de dieta
     """
-    # Verifica se usuário existe
-    user = await db.user_profiles.find_one({"_id": user_id})
+    # Verifica se usuário existe (busca por id ou _id)
+    user = await db.user_profiles.find_one({"id": user_id})
+    if not user:
+        user = await db.user_profiles.find_one({"_id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     
