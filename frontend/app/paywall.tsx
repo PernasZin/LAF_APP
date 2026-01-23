@@ -131,13 +131,74 @@ export default function PaywallScreen() {
   const theme = isDark ? darkTheme : lightTheme;
   const t = getTranslations(language);
 
-  const { startTrial, setHasSeenPaywall, isPremium } = useSubscriptionStore();
+  const { startTrial, setHasSeenPaywall, isPremium, setPremiumStatus } = useSubscriptionStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [iapInitialized, setIapInitialized] = useState(false);
 
   const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
 
   const buttonScale = useSharedValue(1);
   const crownRotation = useSharedValue(0);
+
+  // Inicializar IAP no mobile
+  useEffect(() => {
+    const initIAP = async () => {
+      if (Platform.OS !== 'web') {
+        try {
+          const initialized = await iapService.initialize();
+          setIapInitialized(initialized);
+          
+          if (initialized) {
+            // Buscar produtos
+            await iapService.getProducts();
+            
+            // Configurar listener de compras bem-sucedidas
+            iapService.onPurchase(async (purchase) => {
+              console.log('🎉 Purchase completed:', purchase.productId);
+              
+              // Atualizar status premium
+              setPremiumStatus(true);
+              setHasSeenPaywall(true);
+              
+              // Salvar no backend (opcional - para sincronizar)
+              try {
+                const userId = await AsyncStorage.getItem('userId');
+                if (userId) {
+                  await fetch(`${BACKEND_URL}/api/user/premium`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      user_id: userId,
+                      product_id: purchase.productId,
+                      transaction_id: purchase.transactionId,
+                      receipt: purchase.transactionReceipt,
+                      platform: Platform.OS,
+                    }),
+                  });
+                }
+              } catch (error) {
+                console.error('Failed to sync purchase with backend:', error);
+              }
+              
+              // Redirecionar para o app
+              router.replace('/(tabs)');
+            });
+          }
+        } catch (error) {
+          console.error('Failed to initialize IAP:', error);
+        }
+      }
+    };
+
+    initIAP();
+
+    // Cleanup
+    return () => {
+      if (Platform.OS !== 'web') {
+        iapService.disconnect();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Animação da coroa
@@ -156,15 +217,19 @@ export default function PaywallScreen() {
     transform: [{ rotate: `${crownRotation.value}deg` }],
   }));
 
+  /**
+   * Handler para assinatura
+   * - Mobile (iOS/Android): Usa In-App Purchase
+   * - Web: Usa Stripe
+   */
   const handleSubscribe = async () => {
     console.log('🔵 handleSubscribe called! selectedPlan:', selectedPlan);
+    console.log('🔵 Platform:', Platform.OS);
     
-    // Prevenir comportamento padrão
     setIsLoading(true);
     buttonScale.value = withSpring(0.95);
 
     try {
-      // Obter user_id do AsyncStorage
       const userId = await AsyncStorage.getItem('userId');
       console.log('🔵 userId from AsyncStorage:', userId);
       
