@@ -3,9 +3,7 @@
  * ============================================
  * Mostra benefícios e opção de iniciar trial/assinar
  * 
- * Usa:
- * - In-App Purchase (IAP) para iOS e Android (App Store / Google Play)
- * - Stripe para Web
+ * Usa APENAS In-App Purchase (IAP) para iOS e Android (App Store / Google Play)
  */
 
 import React, { useState, useEffect } from 'react';
@@ -19,12 +17,10 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import Animated, { FadeInDown, FadeInUp, useSharedValue, useAnimatedStyle, withSpring, withSequence } from 'react-native-reanimated';
 import {
   Crown,
