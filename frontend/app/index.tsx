@@ -124,7 +124,7 @@ export default function IndexScreen() {
             </View>
             <Text style={[styles.brandTitle, { color: theme.text }]}>LAF</Text>
             <Text style={[styles.brandSubtitle, { color: theme.textSecondary }]}>
-              Seu assistente de nutrição
+              {t.languageSelect?.yourAssistant || 'Seu assistente de nutrição'}
             </Text>
           </Animated.View>
 
