@@ -146,9 +146,15 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // ALLOW settings and subscription pages for authenticated users with profile
+    if (inSettings || inSubscription) {
+      console.log('🛡️ → Allowing settings/subscription page');
+      return;
+    }
+
     // Se usuário é premium, vai direto para o app (pula paywall)
     if (isPremium()) {
-      if (!inTabs) {
+      if (!inTabs && !inSettings && !inSubscription) {
         console.log('🛡️ → /(tabs) - usuário premium');
         router.replace('/(tabs)');
       }
