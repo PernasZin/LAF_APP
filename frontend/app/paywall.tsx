@@ -159,7 +159,7 @@ export default function PaywallScreen() {
 
     try {
       // Obter user_id do AsyncStorage
-      const userId = await AsyncStorage.getItem('user_id');
+      const userId = await AsyncStorage.getItem('userId');
       console.log('🔵 userId from AsyncStorage:', userId);
       
       if (!userId) {
