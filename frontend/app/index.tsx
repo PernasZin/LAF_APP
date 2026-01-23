@@ -186,7 +186,7 @@ export default function IndexScreen() {
                 activeOpacity={0.7}
                 style={[styles.continueButton, { backgroundColor: premiumColors.primary }]}
               >
-                <Text style={styles.continueButtonText}>Continuar</Text>
+                <Text style={styles.continueButtonText}>{t.languageSelect?.continue || 'Continuar'}</Text>
               </TouchableOpacity>
             </Animated.View>
           </Animated.View>
