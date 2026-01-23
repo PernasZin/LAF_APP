@@ -24,6 +24,16 @@ from auth_service import AuthService, SignUpRequest, LoginRequest, decode_token
 
 # Create the main app
 app = FastAPI()
+
+# CORS Middleware - Must be added early for preflight requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 api_router = APIRouter(prefix="/api")
 
 # ROOT LEVEL HEALTH CHECK - Required for Kubernetes deployment
