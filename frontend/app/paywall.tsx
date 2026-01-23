@@ -188,20 +188,29 @@ export default function PaywallScreen() {
 
       if (data.checkout_url) {
         console.log('🔵 Opening checkout URL:', data.checkout_url);
-        // Abrir URL de checkout do Stripe no navegador
+        console.log('🔵 Platform.OS:', Platform.OS);
+        
+        // Abrir URL de checkout do Stripe
         if (Platform.OS === 'web') {
           // Para web, abrir em nova aba
           window.open(data.checkout_url, '_blank');
-          setHasSeenPaywall(true);
         } else {
-          const supported = await Linking.canOpenURL(data.checkout_url);
-          if (supported) {
+          // Para mobile, tentar abrir diretamente sem verificar canOpenURL
+          // pois canOpenURL pode retornar false para https em alguns casos
+          try {
             await Linking.openURL(data.checkout_url);
-            setHasSeenPaywall(true);
-          } else {
-            Alert.alert('Erro', 'Não foi possível abrir o link de pagamento.');
+          } catch (linkError) {
+            console.error('❌ Linking.openURL error:', linkError);
+            Alert.alert(
+              'Abrir no Navegador',
+              'Copie o link abaixo e cole no navegador:\n\n' + data.checkout_url,
+              [
+                { text: 'OK', onPress: () => {} }
+              ]
+            );
           }
         }
+        // NÃO marcar hasSeenPaywall aqui - deixar o webhook ou a tela de sucesso fazer isso
       } else {
         Alert.alert('Erro', data.detail || 'Erro ao criar sessão de pagamento.');
       }
