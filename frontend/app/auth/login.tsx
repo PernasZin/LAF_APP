@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet, 
+  View, Text, TextInput, TouchableOpacity, Pressable, StyleSheet, 
   KeyboardAvoidingView, Platform, ScrollView, Alert, Keyboard, Modal
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
