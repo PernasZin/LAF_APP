@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Base URL from frontend .env
-BASE_URL = "https://prelaunch-diet.preview.emergentagent.com/api"
+BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
 
 class LAFSpecificTester:
     def __init__(self):
@@ -327,8 +327,8 @@ class LAFSpecificTester:
             "user_id": self.user_id,
             "plan_type": "monthly",  # Required field
             "price_id": "price_1SsY8nJnbIltYEtzUvMf9vd9",  # Monthly price from .env
-            "success_url": "https://prelaunch-diet.preview.emergentagent.com/success",
-            "cancel_url": "https://prelaunch-diet.preview.emergentagent.com/cancel"
+            "success_url": "https://appdeployer.preview.emergentagent.com/success",
+            "cancel_url": "https://appdeployer.preview.emergentagent.com/cancel"
         }
         
         try:

@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
   }
   
   // Default fallback
-  return 'https://prelaunch-diet.preview.emergentagent.com';
+  return 'https://appdeployer.preview.emergentagent.com';
 };
 
 export const config = {

@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
 # Configuration
-BASE_URL = "https://prelaunch-diet.preview.emergentagent.com/api"
+BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
 TIMEOUT = 30
 
 class ComprehensiveLAFTester:

@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional
 
 # BASE URL from frontend .env
-BASE_URL = "https://prelaunch-diet.preview.emergentagent.com/api"
+BASE_URL = "https://appdeployer.preview.emergentagent.com/api"
 
 class LAFTester:
     def __init__(self):
