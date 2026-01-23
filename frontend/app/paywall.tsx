@@ -218,9 +218,7 @@ export default function PaywallScreen() {
   }));
 
   /**
-   * Handler para assinatura
-   * - Mobile (iOS/Android): Usa In-App Purchase
-   * - Web: Usa Stripe
+   * Handler para assinatura - APENAS Apple/Google In-App Purchase
    */
   const handleSubscribe = async () => {
     console.log('🔵 handleSubscribe called! selectedPlan:', selectedPlan);
@@ -240,79 +238,55 @@ export default function PaywallScreen() {
         return;
       }
 
-      // ============================================
-      // MOBILE: Usar In-App Purchase (IAP)
-      // ============================================
-      if (Platform.OS !== 'web' && iapInitialized) {
-        console.log('🛒 Using In-App Purchase (IAP)');
-        
-        const productId = selectedPlan === 'monthly' 
-          ? IAP_PRODUCTS.MONTHLY 
-          : IAP_PRODUCTS.ANNUAL;
-        
-        console.log('🛒 Purchasing product:', productId);
-        
-        const success = await iapService.purchaseProduct(productId!);
-        
-        if (!success) {
-          Alert.alert(
-            'Erro',
-            'Não foi possível iniciar a compra. Tente novamente.'
-          );
-        }
-        // O listener de compras vai cuidar do resto
+      // Verificar se estamos em ambiente de produção (não Expo Go)
+      if (Platform.OS === 'web') {
+        // Na web, mostrar mensagem informando que assinatura é apenas via app
+        Alert.alert(
+          'Assinatura via App',
+          'As assinaturas estão disponíveis apenas através do aplicativo iOS ou Android. Por favor, baixe o app na App Store ou Google Play para assinar.',
+          [{ text: 'OK' }]
+        );
+        setIsLoading(false);
         return;
       }
 
-      // ============================================
-      // WEB: Usar Stripe
-      // ============================================
-      console.log('💳 Using Stripe Checkout');
-      console.log('🔵 BACKEND_URL:', BACKEND_URL);
-      
-      // Criar sessão de checkout no Stripe
-      const response = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          user_id: userId,
-          plan_type: selectedPlan,
-        }),
-      });
-
-      console.log('🔵 Response status:', response.status);
-      const data = await response.json();
-      console.log('🔵 Response data:', data);
-
-      if (data.checkout_url) {
-        console.log('🔵 Opening checkout URL:', data.checkout_url);
-        
-        if (Platform.OS === 'web') {
-          // Para web, redirecionar na mesma aba (evita bloqueio de popup)
-          window.location.href = data.checkout_url;
-        } else {
-          // Mobile sem IAP - usar browser (fallback)
-          try {
-            const result = await WebBrowser.openBrowserAsync(data.checkout_url, {
-              dismissButtonStyle: 'close',
-              presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
-            });
-            console.log('🔵 WebBrowser result:', result);
-          } catch (browserError) {
-            console.error('❌ WebBrowser error:', browserError);
-            try {
-              await Linking.openURL(data.checkout_url);
-            } catch (linkError) {
-              console.error('❌ Linking.openURL error:', linkError);
-              Alert.alert('Erro', 'Não foi possível abrir o link de pagamento.');
-            }
-          }
+      // Inicializar IAP se necessário
+      if (!iapInitialized) {
+        console.log('🛒 Initializing IAP...');
+        const initialized = await iapService.initialize();
+        if (!initialized) {
+          Alert.alert(
+            'Erro',
+            'Não foi possível conectar à loja. Verifique sua conexão e tente novamente.',
+            [{ text: 'OK' }]
+          );
+          setIsLoading(false);
+          return;
         }
-      } else {
-        Alert.alert('Erro', data.detail || 'Erro ao criar sessão de pagamento.');
+        setIapInitialized(true);
       }
+
+      // Usar In-App Purchase
+      console.log('🛒 Using In-App Purchase (IAP)');
+      
+      const productId = selectedPlan === 'monthly' 
+        ? IAP_PRODUCTS.MONTHLY 
+        : IAP_PRODUCTS.ANNUAL;
+      
+      console.log('🛒 Purchasing product:', productId);
+      
+      const success = await iapService.purchaseProduct(productId!);
+      
+      if (!success) {
+        Alert.alert(
+          'Erro',
+          'Não foi possível iniciar a compra. Tente novamente.'
+        );
+      }
+      // O listener de compras vai cuidar do resto (atualizar premium e redirecionar)
+      
     } catch (error) {
-      console.error('❌ Error creating checkout:', error);
+      console.error('❌ Error in purchase:', error);
       Alert.alert(
         'Erro',
         'Não foi possível iniciar o pagamento. Tente novamente.'
