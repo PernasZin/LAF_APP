@@ -27,244 +27,416 @@ class LAFTester:
     def __init__(self):
         self.base_url = BASE_URL
         self.session = requests.Session()
-        self.test_results = {
-            "profiles_tested": 0,
-            "diets_generated": 0,
-            "foods_verified": 0,
-            "multiple_10_violations": [],
-            "restriction_violations": [],
-            "meal_count_violations": [],
-            "success_rate": 0.0,
-            "detailed_results": []
-        }
+        self.token = None
+        self.user_id = TEST_USER_ID
+        self.test_results = []
         
     def log(self, message: str, level: str = "INFO"):
         """Log with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         print(f"[{timestamp}] {level}: {message}")
         
-    def create_profile(self, profile_data: Dict) -> Optional[str]:
-        """Create user profile and return user_id"""
+    def log_test(self, test_name: str, success: bool, details: str = "", response_data: Any = None):
+        """Log test result"""
+        status = "✅ PASS" if success else "❌ FAIL"
+        self.log(f"{status} {test_name}")
+        if details:
+            self.log(f"   {details}")
+        if response_data and not success:
+            self.log(f"   Response: {response_data}")
+        
+        self.test_results.append({
+            "test": test_name,
+            "success": success,
+            "details": details,
+            "response": response_data
+        })
+    
+    def make_request(self, method: str, endpoint: str, data: Dict = None, params: Dict = None) -> tuple:
+        """Make HTTP request with proper headers"""
+        url = f"{self.base_url}{endpoint}"
+        headers = {"Content-Type": "application/json"}
+        
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}"
+        
         try:
-            # First create auth user
-            auth_data = {
-                "email": f"{profile_data['name'].lower().replace(' ', '.')}@laf.com",
-                "password": "Teste123!"
-            }
-            
-            # Try signup (might fail if user exists)
-            signup_response = self.session.post(f"{self.base_url}/auth/signup", json=auth_data)
-            if signup_response.status_code == 200:
-                signup_data = signup_response.json()
-                user_id = signup_data.get("user_id")
-                self.log(f"✅ Created auth user: {user_id}")
+            if method.upper() == "GET":
+                response = self.session.get(url, headers=headers, params=params)
+            elif method.upper() == "POST":
+                response = self.session.post(url, headers=headers, json=data, params=params)
+            elif method.upper() == "PUT":
+                response = self.session.put(url, headers=headers, json=data)
+            elif method.upper() == "DELETE":
+                response = self.session.delete(url, headers=headers, json=data)
             else:
-                # Try login instead
-                login_response = self.session.post(f"{self.base_url}/auth/login", json=auth_data)
-                if login_response.status_code == 200:
-                    login_data = login_response.json()
-                    user_id = login_data.get("user_id")
-                    self.log(f"✅ Logged in existing user: {user_id}")
-                else:
-                    self.log(f"❌ Failed to create/login user: {login_response.text}", "ERROR")
-                    return None
+                return False, f"Unsupported method: {method}"
             
-            # Create profile with the user_id
-            profile_data["id"] = user_id
-            
-            response = self.session.post(f"{self.base_url}/user/profile", json=profile_data)
-            
-            if response.status_code == 200:
-                profile = response.json()
-                self.log(f"✅ Profile created: {profile['name']} (TDEE: {profile.get('tdee', 'N/A')}kcal)")
-                return user_id
-            else:
-                self.log(f"❌ Failed to create profile: {response.text}", "ERROR")
-                return None
-                
+            return True, response
         except Exception as e:
-            self.log(f"❌ Exception creating profile: {e}", "ERROR")
-            return None
+            return False, str(e)
     
-    def generate_diet(self, user_id: str, profile_name: str) -> Optional[Dict]:
-        """Generate diet for user"""
-        try:
-            response = self.session.post(f"{self.base_url}/diet/generate?user_id={user_id}")
-            
-            if response.status_code == 200:
-                diet = response.json()
-                self.log(f"✅ Diet generated for {profile_name}: {len(diet.get('meals', []))} meals")
-                return diet
-            else:
-                self.log(f"❌ Failed to generate diet for {profile_name}: {response.text}", "ERROR")
-                return None
-                
-        except Exception as e:
-            self.log(f"❌ Exception generating diet: {e}", "ERROR")
-            return None
-    
-    def validate_multiple_of_10(self, diet: Dict, profile_name: str) -> List[str]:
-        """Validate that ALL quantities are multiples of 10"""
-        violations = []
+    def test_authentication(self):
+        """Test authentication with provided credentials"""
+        self.log("🔐 TESTING AUTHENTICATION")
         
-        for meal_idx, meal in enumerate(diet.get("meals", [])):
-            meal_name = meal.get("name", f"Meal {meal_idx + 1}")
-            
-            for food_idx, food in enumerate(meal.get("foods", [])):
-                grams = food.get("grams", 0)
-                food_name = food.get("name", f"Food {food_idx + 1}")
-                
-                if grams % 10 != 0:
-                    violation = f"{profile_name} - {meal_name} - {food_name}: {grams}g (NOT multiple of 10)"
-                    violations.append(violation)
-                    self.log(f"🚨 MULTIPLE OF 10 VIOLATION: {violation}", "ERROR")
-        
-        return violations
-    
-    def validate_dietary_restrictions(self, diet: Dict, restrictions: List[str], profile_name: str) -> List[str]:
-        """Validate dietary restrictions compliance"""
-        violations = []
-        
-        # Define forbidden foods for each restriction
-        forbidden_foods = {
-            "vegetariano": ["frango", "chicken", "carne", "beef", "peixe", "fish", "atum", "tuna", "salmao", "salmon", "patinho", "peru", "turkey"],
-            "diabetico": ["mel", "honey", "banana", "tapioca", "pao", "bread", "acucar", "sugar"],
-            "sem_gluten": ["pao", "bread", "aveia", "oat", "macarrao", "pasta", "trigo", "wheat", "pao_integral"],
-            "sem_lactose": ["cottage", "queijo", "cheese", "iogurte", "yogurt", "whey", "leite", "milk"]
+        # Test login with provided credentials
+        login_data = {
+            "email": TEST_EMAIL,
+            "password": TEST_PASSWORD
         }
         
-        for restriction in restrictions:
-            if restriction in forbidden_foods:
-                forbidden = forbidden_foods[restriction]
-                
-                for meal_idx, meal in enumerate(diet.get("meals", [])):
-                    meal_name = meal.get("name", f"Meal {meal_idx + 1}")
-                    
-                    for food in meal.get("foods", []):
-                        food_key = food.get("key", "").lower()
-                        food_name = food.get("name", "").lower()
-                        
-                        for forbidden_item in forbidden:
-                            if forbidden_item in food_key or forbidden_item in food_name:
-                                violation = f"{profile_name} ({restriction}) - {meal_name} - {food.get('name', 'Unknown')}: FORBIDDEN FOOD"
-                                violations.append(violation)
-                                self.log(f"🚨 DIETARY RESTRICTION VIOLATION: {violation}", "ERROR")
+        success, response = self.make_request("POST", "/auth/login", login_data)
         
-        return violations
-    
-    def validate_meal_count(self, diet: Dict, expected_count: int, profile_name: str) -> List[str]:
-        """Validate meal count"""
-        violations = []
-        actual_count = len(diet.get("meals", []))
+        if success and response.status_code == 200:
+            data = response.json()
+            if "token" in data:
+                self.token = data["token"]
+                self.user_id = data.get("user_id", TEST_USER_ID)
+                self.log_test("Authentication Login", True, f"Token received, User ID: {self.user_id}")
+            else:
+                self.log_test("Authentication Login", False, "No token in response", data)
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Authentication Login", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
         
-        if actual_count != expected_count:
-            violation = f"{profile_name}: Expected {expected_count} meals, got {actual_count}"
-            violations.append(violation)
-            self.log(f"❌ MEAL COUNT VIOLATION: {violation}", "ERROR")
+        # Test token validation
+        if self.token:
+            success, response = self.make_request("GET", "/auth/validate")
+            if success and response.status_code == 200:
+                self.log_test("Token Validation", True, "Token is valid")
+            else:
+                error_msg = response.text if success else str(response)
+                self.log_test("Token Validation", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+    
+    def test_progress_system_comprehensive(self):
+        """Test the CRITICAL PROGRESS system extensively"""
+        self.log("📊 TESTING PROGRESS SYSTEM (CRITICAL FOR RECURRING REVENUE)")
         
-        return violations
-    
-    def validate_calorie_coherence(self, diet: Dict, profile_data: Dict, profile_name: str) -> bool:
-        """Validate calorie coherence with goal"""
-        try:
-            computed_calories = diet.get("computed_calories", 0)
-            goal = profile_data.get("goal", "")
+        if not self.user_id:
+            self.log_test("Progress System - No User ID", False, "Cannot test without user ID")
+            return
+        
+        # 1. Test weight registration - POST /api/progress/weight
+        self.log("1️⃣ Testing Weight Registration")
+        
+        # First check if can update
+        success, response = self.make_request("GET", f"/progress/weight/{self.user_id}/can-update")
+        
+        if success and response.status_code == 200:
+            can_update_data = response.json()
+            can_update = can_update_data.get("can_update", False)
+            reason = can_update_data.get("reason", "Unknown")
+            self.log_test("Weight Update Check", True, f"Can update: {can_update}, Reason: {reason}")
             
-            # Get user profile to check TDEE
-            user_id = profile_data.get("id")
-            if user_id:
-                profile_response = self.session.get(f"{self.base_url}/user/profile/{user_id}")
-                if profile_response.status_code == 200:
-                    profile = profile_response.json()
-                    tdee = profile.get("tdee", 0)
-                    target_calories = profile.get("target_calories", 0)
-                    
-                    self.log(f"📊 {profile_name} - Goal: {goal}, TDEE: {tdee}kcal, Target: {target_calories}kcal, Diet: {computed_calories}kcal")
-                    
-                    # Validate goal coherence
-                    if goal == "cutting" and computed_calories >= tdee:
-                        self.log(f"❌ CALORIE INCOHERENCE: {profile_name} cutting should have calories < TDEE", "ERROR")
-                        return False
-                    elif goal == "bulking" and computed_calories <= tdee:
-                        self.log(f"❌ CALORIE INCOHERENCE: {profile_name} bulking should have calories > TDEE", "ERROR")
-                        return False
-                    elif goal == "manutencao" and abs(computed_calories - tdee) > tdee * 0.1:
-                        self.log(f"❌ CALORIE INCOHERENCE: {profile_name} maintenance should have calories ≈ TDEE", "ERROR")
-                        return False
-                    
-                    self.log(f"✅ Calorie coherence validated for {profile_name}")
-                    return True
-            
-            return False
-            
-        except Exception as e:
-            self.log(f"❌ Exception validating calories: {e}", "ERROR")
-            return False
-    
-    def test_switch_goal(self, user_id: str, profile_name: str, current_goal: str) -> bool:
-        """Test goal switching functionality"""
-        try:
-            # Define goal transitions
-            transitions = {
-                "cutting": "bulking",
-                "bulking": "manutencao", 
-                "manutencao": "cutting"
+            # Try to register weight (even if blocked, to test the blocking mechanism)
+            weight_data = {
+                "weight": 75.5,
+                "notes": "Teste LAF - Sistema de Progresso",
+                "questionnaire": {
+                    "diet": 8,
+                    "training": 7,
+                    "cardio": 6,
+                    "sleep": 8,
+                    "hydration": 9
+                }
             }
             
-            new_goal = transitions.get(current_goal, "bulking")
+            success, response = self.make_request("POST", f"/progress/weight/{self.user_id}", weight_data)
             
-            response = self.session.post(f"{self.base_url}/user/{user_id}/switch-goal/{new_goal}")
-            
-            if response.status_code == 200:
-                result = response.json()
-                self.log(f"✅ Goal switch successful for {profile_name}: {current_goal} → {new_goal}")
-                return True
+            if success:
+                if response.status_code == 200:
+                    weight_response = response.json()
+                    recorded_weight = weight_response.get('record', {}).get('weight')
+                    self.log_test("Weight Registration", True, f"Weight registered: {recorded_weight}kg")
+                elif response.status_code == 400 and "Aguarde" in response.text:
+                    self.log_test("Weight Registration Blocking", True, "14-day blocking working correctly")
+                else:
+                    self.log_test("Weight Registration", False, f"Unexpected status: {response.status_code}", response.text)
             else:
-                self.log(f"❌ Goal switch failed for {profile_name}: {response.text}", "ERROR")
-                return False
-                
-        except Exception as e:
-            self.log(f"❌ Exception switching goal: {e}", "ERROR")
-            return False
+                self.log_test("Weight Registration", False, "Request failed", str(response))
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Weight Update Check", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+        
+        # 2. Test weight history - GET /api/progress/weight/{user_id}
+        self.log("2️⃣ Testing Weight History")
+        
+        success, response = self.make_request("GET", f"/progress/weight/{self.user_id}")
+        
+        if success and response.status_code == 200:
+            history_data = response.json()
+            records_count = len(history_data) if isinstance(history_data, list) else 0
+            self.log_test("Weight History", True, f"Retrieved {records_count} weight records")
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Weight History", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+        
+        # 3. Test progress evaluation - GET /api/progress/evaluation/{user_id}
+        self.log("3️⃣ Testing Progress Evaluation")
+        
+        success, response = self.make_request("GET", f"/progress/evaluation/{self.user_id}")
+        
+        if success and response.status_code == 200:
+            evaluation_data = response.json()
+            self.log_test("Progress Evaluation", True, f"Evaluation retrieved successfully")
+        else:
+            # This endpoint might not exist in current implementation
+            self.log_test("Progress Evaluation", False, f"Endpoint not implemented or failed - Status: {response.status_code if success else 'Request failed'}")
+        
+        # 4. Test evaluate and adjust - POST /api/progress/evaluate (simulate 2 weeks scenario)
+        self.log("4️⃣ Testing Evaluate and Adjust (2 weeks simulation)")
+        
+        # Test different scenarios
+        scenarios = [
+            {"goal": "cutting", "weight_change": -1.2, "description": "CUTTING - Lost 1.2kg in 2 weeks"},
+            {"goal": "bulking", "weight_change": 0.8, "description": "BULKING - Gained 0.8kg in 2 weeks"},
+            {"goal": "manutencao", "weight_change": 0.1, "description": "MAINTENANCE - Maintained weight"}
+        ]
+        
+        for scenario in scenarios:
+            evaluate_data = {
+                "user_id": self.user_id,
+                "simulate_weeks": 2,
+                "goal": scenario["goal"],
+                "weight_change": scenario["weight_change"]
+            }
+            
+            success, response = self.make_request("POST", "/progress/evaluate", evaluate_data)
+            
+            if success and response.status_code == 200:
+                adjust_data = response.json()
+                adjustment = adjust_data.get('adjustment', 'None')
+                self.log_test(f"Progress Evaluate & Adjust - {scenario['goal'].upper()}", True, 
+                            f"{scenario['description']} -> Adjustment: {adjustment}")
+            else:
+                # This endpoint might not exist in current implementation
+                self.log_test(f"Progress Evaluate & Adjust - {scenario['goal'].upper()}", False, 
+                            f"Endpoint not implemented - Status: {response.status_code if success else 'Request failed'}")
     
-    def test_food_substitution(self, user_id: str, profile_name: str) -> bool:
-        """Test food substitution functionality"""
-        try:
-            # Get current diet
-            diet_response = self.session.get(f"{self.base_url}/diet/{user_id}")
-            if diet_response.status_code != 200:
-                self.log(f"❌ Failed to get diet for substitution test: {diet_response.text}", "ERROR")
-                return False
+    def test_diet_system_comprehensive(self):
+        """Test diet generation with TACO table validation"""
+        self.log("🍽️ TESTING DIET SYSTEM WITH TACO VALIDATION")
+        
+        if not self.user_id:
+            self.log_test("Diet System - No User ID", False, "Cannot test without user ID")
+            return
+        
+        # 5. Test diet generation - POST /api/diet/generate?user_id={user_id}
+        self.log("5️⃣ Testing Diet Generation")
+        
+        success, response = self.make_request("POST", f"/diet/generate?user_id={self.user_id}")
+        
+        if success and response.status_code == 200:
+            diet_data = response.json()
+            meals_count = len(diet_data.get("meals", []))
+            total_calories = diet_data.get("computed_calories", 0)
+            target_calories = diet_data.get("target_calories", 0)
             
-            diet = diet_response.json()
+            self.log_test("Diet Generation", True, f"Generated {meals_count} meals, {total_calories} kcal (target: {target_calories})")
             
-            # Find first food to substitute
-            if not diet.get("meals") or not diet["meals"][0].get("foods"):
-                self.log(f"❌ No foods found for substitution test", "ERROR")
-                return False
+            # Validate TACO table values (Brazilian food composition)
+            self.validate_taco_values(diet_data)
             
-            first_food = diet["meals"][0]["foods"][0]
-            food_key = first_food.get("key")
-            
-            if not food_key:
-                self.log(f"❌ No food key found for substitution test", "ERROR")
-                return False
-            
-            # Get substitutes
-            substitutes_response = self.session.get(f"{self.base_url}/diet/{user_id}/substitutes/{food_key}")
-            
-            if substitutes_response.status_code == 200:
-                substitutes = substitutes_response.json()
-                substitute_count = len(substitutes.get("substitutes", []))
-                self.log(f"✅ Food substitution working for {profile_name}: {substitute_count} substitutes found")
-                return True
-            else:
-                self.log(f"❌ Food substitution failed for {profile_name}: {substitutes_response.text}", "ERROR")
-                return False
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Diet Generation", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+        
+        # 6. Test diet retrieval - GET /api/diet/{user_id}
+        self.log("6️⃣ Testing Diet Retrieval")
+        
+        success, response = self.make_request("GET", f"/diet/{self.user_id}")
+        
+        if success and response.status_code == 200:
+            retrieved_diet = response.json()
+            retrieved_calories = retrieved_diet.get("computed_calories", 0)
+            diet_type = retrieved_diet.get("diet_type", "unknown")
+            self.log_test("Diet Retrieval", True, f"Retrieved diet: {retrieved_calories} kcal, type: {diet_type}")
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Diet Retrieval", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+    
+    def validate_taco_values(self, diet_data: Dict):
+        """Validate TACO table nutritional values"""
+        self.log("🔍 Validating TACO Table Values")
+        
+        meals = diet_data.get("meals", [])
+        total_foods = 0
+        valid_foods = 0
+        
+        for meal in meals:
+            for food in meal.get("foods", []):
+                total_foods += 1
+                food_name = food.get("name", "")
+                calories = food.get("calories", 0)
+                protein = food.get("protein", 0)
+                carbs = food.get("carbs", 0)
+                fat = food.get("fat", 0)
+                grams = food.get("grams", 0)
                 
-        except Exception as e:
-            self.log(f"❌ Exception testing food substitution: {e}", "ERROR")
-            return False
+                # Basic validation - values should be reasonable
+                if (calories > 0 and protein >= 0 and carbs >= 0 and fat >= 0 and grams > 0):
+                    # Check if calorie calculation is approximately correct
+                    calculated_calories = (protein * 4) + (carbs * 4) + (fat * 9)
+                    calorie_diff = abs(calories - calculated_calories)
+                    
+                    if calorie_diff <= calories * 0.1:  # Allow 10% difference
+                        valid_foods += 1
+                    else:
+                        self.log(f"⚠️ Calorie mismatch in {food_name}: {calories} vs calculated {calculated_calories:.1f}")
+                else:
+                    self.log(f"❌ Invalid values in {food_name}: cal={calories}, p={protein}, c={carbs}, f={fat}, g={grams}")
+        
+        validation_rate = (valid_foods / total_foods * 100) if total_foods > 0 else 0
+        self.log_test("TACO Table Values Validation", validation_rate >= 90, 
+                     f"Validated {valid_foods}/{total_foods} foods ({validation_rate:.1f}%)")
+    
+    def test_workout_system(self):
+        """Test workout generation"""
+        self.log("💪 TESTING WORKOUT SYSTEM")
+        
+        if not self.user_id:
+            self.log_test("Workout System - No User ID", False, "Cannot test without user ID")
+            return
+        
+        # 7. Test workout generation - POST /api/workout/generate?user_id={user_id}
+        success, response = self.make_request("POST", f"/workout/generate?user_id={self.user_id}")
+        
+        if success and response.status_code == 200:
+            workout_data = response.json()
+            workouts = workout_data.get("workouts", [])
+            workouts_count = len(workouts)
+            self.log_test("Workout Generation", True, f"Generated {workouts_count} workouts")
+            
+            # 8. Test workout retrieval - GET /api/workout/{user_id}
+            success, response = self.make_request("GET", f"/workout/{self.user_id}")
+            
+            if success and response.status_code == 200:
+                retrieved_workout = response.json()
+                self.log_test("Workout Retrieval", True, "Workout retrieved successfully")
+            else:
+                error_msg = response.text if success else str(response)
+                self.log_test("Workout Retrieval", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Workout Generation", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+    
+    def test_training_cycle(self):
+        """Test training cycle system"""
+        self.log("🔄 TESTING TRAINING CYCLE")
+        
+        if not self.user_id:
+            self.log_test("Training Cycle - No User ID", False, "Cannot test without user ID")
+            return
+        
+        # 9. Test training cycle status - GET /api/training-cycle/status/{user_id}
+        success, response = self.make_request("GET", f"/training-cycle/status/{self.user_id}")
+        
+        if success and response.status_code == 200:
+            cycle_data = response.json()
+            day_type = cycle_data.get("day_type", "unknown")
+            calorie_multiplier = cycle_data.get("calorie_multiplier", 1.0)
+            self.log_test("Training Cycle Status", True, f"Day type: {day_type}, calorie multiplier: {calorie_multiplier}")
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Training Cycle Status", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+    
+    def test_profile_diet_regeneration(self):
+        """Test profile update with automatic diet regeneration"""
+        self.log("👤 TESTING PROFILE WITH DIET REGENERATION")
+        
+        if not self.user_id:
+            self.log_test("Profile Diet Regeneration - No User ID", False, "Cannot test without user ID")
+            return
+        
+        # 10. Test profile update with goal change - PUT /api/user/profile/{user_id}
+        goals_to_test = ["cutting", "bulking", "manutencao"]
+        
+        for goal in goals_to_test:
+            update_data = {"goal": goal}
+            success, response = self.make_request("PUT", f"/user/profile/{self.user_id}", update_data)
+            
+            if success and response.status_code == 200:
+                updated_profile = response.json()
+                new_goal = updated_profile.get("goal")
+                new_calories = updated_profile.get("target_calories")
+                self.log_test(f"Profile Update - Goal to {goal.upper()}", True, 
+                            f"Goal updated to: {new_goal}, calories: {new_calories}")
+                
+                # Verify diet was regenerated by checking if it exists
+                time.sleep(1)  # Give time for diet regeneration
+                success, response = self.make_request("GET", f"/diet/{self.user_id}")
+                if success and response.status_code == 200:
+                    diet = response.json()
+                    diet_calories = diet.get("computed_calories", 0)
+                    self.log_test(f"Diet Regeneration - {goal.upper()}", True, 
+                                f"Diet regenerated with {diet_calories} kcal")
+                else:
+                    self.log_test(f"Diet Regeneration - {goal.upper()}", False, "Diet not found after profile update")
+            else:
+                error_msg = response.text if success else str(response)
+                self.log_test(f"Profile Update - Goal to {goal.upper()}", False, 
+                            f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+    
+    def test_premium_system(self):
+        """Test premium system"""
+        self.log("💎 TESTING PREMIUM SYSTEM")
+        
+        if not self.user_id:
+            self.log_test("Premium System - No User ID", False, "Cannot test without user ID")
+            return
+        
+        # 11. Test premium status - GET /api/user/premium/{user_id}
+        success, response = self.make_request("GET", f"/user/premium/{self.user_id}")
+        
+        if success and response.status_code == 200:
+            premium_data = response.json()
+            is_premium = premium_data.get("is_premium", False)
+            self.log_test("Premium Status", True, f"Premium status: {is_premium}")
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Premium Status", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+    
+    def test_account_deletion(self):
+        """Test account deletion (create test account first)"""
+        self.log("🗑️ TESTING ACCOUNT DELETION")
+        
+        # Create a test account for deletion
+        test_email = f"delete-test-{int(time.time())}@laf.com"
+        test_password = "DeleteTest123!"
+        
+        # 1. Create account
+        signup_data = {
+            "email": test_email,
+            "password": test_password
+        }
+        
+        success, response = self.make_request("POST", "/auth/signup", signup_data)
+        
+        if success and response.status_code == 200:
+            signup_response = response.json()
+            test_user_id = signup_response.get("user_id")
+            self.log_test("Create Test Account for Deletion", True, f"Test account created: {test_user_id}")
+            
+            # 2. Delete the account
+            if test_user_id:
+                delete_data = {
+                    "user_id": test_user_id,
+                    "password": test_password
+                }
+                
+                success, response = self.make_request("DELETE", "/auth/delete-account", delete_data)
+                
+                if success and response.status_code == 200:
+                    delete_response = response.json()
+                    deleted_data = delete_response.get("deleted_data", {})
+                    self.log_test("Account Deletion", True, f"Account deleted successfully: {deleted_data}")
+                else:
+                    error_msg = response.text if success else str(response)
+                    self.log_test("Account Deletion", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
+        else:
+            error_msg = response.text if success else str(response)
+            self.log_test("Create Test Account for Deletion", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
     
     def run_comprehensive_test(self):
         """Run comprehensive test with all 8 profiles"""
