@@ -551,4 +551,51 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
   },
+  // Plan Selection Styles
+  planContainer: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  planOption: {
+    flex: 1,
+    padding: spacing.md,
+    borderRadius: radius.lg,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  planHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  planTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  planPrice: {
+    fontSize: 24,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  planPeriod: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  saveBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#10B981',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderBottomLeftRadius: radius.md,
+    borderTopRightRadius: radius.lg,
+  },
+  saveBadgeText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
 });
