@@ -14,8 +14,9 @@ import { useSubscriptionStore } from '../stores/subscriptionStore';
  * 1. If on index (root) → allow (language selection)
  * 2. if (!isAuthenticated) → /auth/login
  * 3. else if (!profileCompleted) → /onboarding
- * 4. else if (!hasSeenPaywall && !isPremium) → /paywall
- * 5. else → /(tabs)
+ * 4. else if (subscriptionExpired) → /paywall (assinatura expirou após período de graça)
+ * 5. else if (!hasSeenPaywall && !isPremium) → /paywall
+ * 6. else → /(tabs)
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -29,6 +30,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   const hasSeenPaywall = useSubscriptionStore((s) => s.hasSeenPaywall);
   const isPremium = useSubscriptionStore((s) => s.isPremium);
+  const checkSubscriptionStatus = useSubscriptionStore((s) => s.checkSubscriptionStatus);
+  const setHasSeenPaywall = useSubscriptionStore((s) => s.setHasSeenPaywall);
   const initializeSubscription = useSubscriptionStore((s) => s.initialize);
 
   // Initialize once
@@ -49,7 +52,20 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inLegal = currentSegment === 'legal';
     const isRootIndex = segments.length === 0 || currentSegment === 'index';
 
-    console.log('🛡️ GUARD:', { isAuthenticated, profileCompleted, hasSeenPaywall, isPremium: isPremium(), segments: currentSegment, isRootIndex });
+    // Verificar status da assinatura
+    const subscriptionStatus = checkSubscriptionStatus();
+    const subscriptionExpired = subscriptionStatus === 'expired';
+    
+    console.log('🛡️ GUARD:', { 
+      isAuthenticated, 
+      profileCompleted, 
+      hasSeenPaywall, 
+      isPremium: isPremium(), 
+      subscriptionStatus,
+      subscriptionExpired,
+      segments: currentSegment, 
+      isRootIndex 
+    });
 
     // ALLOW index screen to handle language selection first
     if (isRootIndex) {
