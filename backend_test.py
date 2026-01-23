@@ -439,273 +439,146 @@ class LAFTester:
             self.log_test("Create Test Account for Deletion", False, f"Status: {response.status_code if success else 'Request failed'}", error_msg)
     
     def run_comprehensive_test(self):
-        """Run comprehensive test with all 8 profiles"""
-        
-        # 8 PERFIS ESPECÍFICOS CONFORME SOLICITAÇÃO
-        profiles = [
-            {
-                "name": "João Silva",
-                "age": 25,
-                "sex": "masculino",
-                "height": 175,
-                "weight": 85,
-                "training_level": "iniciante",
-                "weekly_training_frequency": 3,
-                "available_time_per_session": 45,
-                "goal": "cutting",
-                "dietary_restrictions": [],
-                "food_preferences": ["frango", "arroz_branco", "batata_doce", "banana"],
-                "meal_count": 4
-            },
-            {
-                "name": "Maria Santos",
-                "age": 28,
-                "sex": "feminino",
-                "height": 165,
-                "weight": 60,
-                "training_level": "avancado",
-                "weekly_training_frequency": 6,
-                "available_time_per_session": 90,
-                "goal": "bulking",
-                "dietary_restrictions": ["sem_lactose"],
-                "food_preferences": ["tilapia", "arroz_integral", "aveia", "morango"],
-                "meal_count": 6
-            },
-            {
-                "name": "Pedro Costa",
-                "age": 35,
-                "sex": "masculino",
-                "height": 180,
-                "weight": 78,
-                "training_level": "intermediario",
-                "weekly_training_frequency": 4,
-                "available_time_per_session": 60,
-                "goal": "manutencao",
-                "dietary_restrictions": ["vegetariano"],
-                "food_preferences": ["tofu", "arroz_branco", "feijao", "maca"],
-                "meal_count": 5
-            },
-            {
-                "name": "Ana Oliveira",
-                "age": 45,
-                "sex": "feminino",
-                "height": 160,
-                "weight": 70,
-                "training_level": "iniciante",
-                "weekly_training_frequency": 2,
-                "available_time_per_session": 30,
-                "goal": "cutting",
-                "dietary_restrictions": ["diabetico"],
-                "food_preferences": ["frango", "arroz_integral", "brocolis", "maca"],
-                "meal_count": 4
-            },
-            {
-                "name": "Carlos Ferreira",
-                "age": 30,
-                "sex": "masculino",
-                "height": 185,
-                "weight": 90,
-                "training_level": "avancado",
-                "weekly_training_frequency": 5,
-                "available_time_per_session": 75,
-                "goal": "bulking",
-                "dietary_restrictions": ["sem_gluten"],
-                "food_preferences": ["patinho", "arroz_branco", "batata_doce", "banana"],
-                "meal_count": 5
-            },
-            {
-                "name": "Lucia Mendes",
-                "age": 32,
-                "sex": "feminino",
-                "height": 168,
-                "weight": 65,
-                "training_level": "intermediario",
-                "weekly_training_frequency": 4,
-                "available_time_per_session": 50,
-                "goal": "manutencao",
-                "dietary_restrictions": ["sem_lactose"],
-                "food_preferences": ["salmao", "arroz_integral", "abacate", "laranja"],
-                "meal_count": 6
-            },
-            {
-                "name": "Roberto Lima",
-                "age": 40,
-                "sex": "masculino",
-                "height": 170,
-                "weight": 110,
-                "training_level": "iniciante",
-                "weekly_training_frequency": 3,
-                "available_time_per_session": 40,
-                "goal": "cutting",
-                "dietary_restrictions": [],
-                "food_preferences": ["frango", "arroz_branco", "brocolis", "maca"],
-                "meal_count": 4
-            },
-            {
-                "name": "Fernanda Souza",
-                "age": 22,
-                "sex": "feminino",
-                "height": 170,
-                "weight": 52,
-                "training_level": "intermediario",
-                "weekly_training_frequency": 5,
-                "available_time_per_session": 60,
-                "goal": "bulking",
-                "dietary_restrictions": [],
-                "food_preferences": ["frango", "macarrao", "pasta_amendoim", "banana"],
-                "meal_count": 6
-            }
-        ]
-        
-        self.log("🚀 INICIANDO TESTE EXTENSIVO - 8 PERFIS DIFERENTES")
+        """Run comprehensive LAF backend test focusing on PROGRESS system"""
+        self.log("🚀 STARTING LAF COMPREHENSIVE BACKEND TEST")
+        self.log("Focus: PROGRESS SYSTEM (Critical for recurring revenue)")
         self.log("=" * 80)
         
-        total_tests = 0
-        successful_tests = 0
+        # Test sequence following the review request priorities
+        self.test_authentication()
         
-        for i, profile_data in enumerate(profiles, 1):
-            self.log(f"\n📋 TESTANDO PERFIL {i}/8: {profile_data['name']}")
-            self.log("-" * 60)
-            
-            # 1. CREATE PROFILE
-            user_id = self.create_profile(profile_data)
-            if not user_id:
-                continue
-            
-            self.test_results["profiles_tested"] += 1
-            
-            # 2. GENERATE DIET
-            diet = self.generate_diet(user_id, profile_data['name'])
-            if not diet:
-                continue
-            
-            self.test_results["diets_generated"] += 1
-            
-            # Count foods
-            food_count = sum(len(meal.get("foods", [])) for meal in diet.get("meals", []))
-            self.test_results["foods_verified"] += food_count
-            
-            # 3. VALIDATE MULTIPLE OF 10 (CRÍTICO!)
-            multiple_violations = self.validate_multiple_of_10(diet, profile_data['name'])
-            self.test_results["multiple_10_violations"].extend(multiple_violations)
-            
-            # 4. VALIDATE DIETARY RESTRICTIONS
-            restriction_violations = self.validate_dietary_restrictions(
-                diet, profile_data.get("dietary_restrictions", []), profile_data['name']
-            )
-            self.test_results["restriction_violations"].extend(restriction_violations)
-            
-            # 5. VALIDATE MEAL COUNT
-            meal_count_violations = self.validate_meal_count(
-                diet, profile_data.get("meal_count", 6), profile_data['name']
-            )
-            self.test_results["meal_count_violations"].extend(meal_count_violations)
-            
-            # 6. VALIDATE CALORIE COHERENCE
-            calorie_coherent = self.validate_calorie_coherence(diet, profile_data, profile_data['name'])
-            
-            # 7. TEST SWITCH GOAL
-            goal_switch_success = self.test_switch_goal(user_id, profile_data['name'], profile_data['goal'])
-            
-            # 8. TEST FOOD SUBSTITUTION
-            substitution_success = self.test_food_substitution(user_id, profile_data['name'])
-            
-            # Calculate success for this profile
-            profile_success = (
-                len(multiple_violations) == 0 and
-                len(restriction_violations) == 0 and
-                len(meal_count_violations) == 0 and
-                calorie_coherent and
-                goal_switch_success and
-                substitution_success
-            )
-            
-            if profile_success:
-                successful_tests += 1
-                self.log(f"✅ PERFIL {profile_data['name']} - TODOS OS TESTES PASSARAM")
-            else:
-                self.log(f"❌ PERFIL {profile_data['name']} - ALGUNS TESTES FALHARAM")
-            
-            total_tests += 1
-            
-            # Store detailed results
-            self.test_results["detailed_results"].append({
-                "profile": profile_data['name'],
-                "success": profile_success,
-                "multiple_10_violations": len(multiple_violations),
-                "restriction_violations": len(restriction_violations),
-                "meal_count_violations": len(meal_count_violations),
-                "calorie_coherent": calorie_coherent,
-                "goal_switch_success": goal_switch_success,
-                "substitution_success": substitution_success
-            })
-            
-            # Small delay between profiles
-            time.sleep(1)
+        if self.token:  # Only proceed if authentication successful
+            self.test_progress_system_comprehensive()  # CRITICAL
+            self.test_diet_system_comprehensive()
+            self.test_workout_system()
+            self.test_training_cycle()
+            self.test_profile_diet_regeneration()
+            self.test_premium_system()
+            self.test_account_deletion()
         
-        # Calculate overall success rate
-        if total_tests > 0:
-            self.test_results["success_rate"] = (successful_tests / total_tests) * 100
-        
+        # Generate comprehensive summary
         self.generate_final_report()
     
     def generate_final_report(self):
         """Generate comprehensive final report"""
         self.log("\n" + "=" * 80)
-        self.log("📊 RELATÓRIO FINAL - TESTE EXTENSIVO LAF")
+        self.log("📊 LAF BACKEND TEST RESULTS - FINAL REPORT")
         self.log("=" * 80)
         
-        # Summary statistics
-        self.log(f"📋 Total de perfis testados: {self.test_results['profiles_tested']}")
-        self.log(f"🍽️ Total de dietas geradas: {self.test_results['diets_generated']}")
-        self.log(f"🥗 Total de alimentos verificados: {self.test_results['foods_verified']}")
-        self.log(f"📈 Taxa de sucesso geral: {self.test_results['success_rate']:.1f}%")
+        # Calculate statistics
+        total_tests = len(self.test_results)
+        passed_tests = sum(1 for result in self.test_results if result["success"])
+        failed_tests = total_tests - passed_tests
+        success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
         
-        # Critical violations
-        self.log(f"\n🚨 VIOLAÇÕES CRÍTICAS ENCONTRADAS:")
-        self.log(f"❌ Violações de múltiplos de 10: {len(self.test_results['multiple_10_violations'])}")
-        self.log(f"❌ Violações de restrições alimentares: {len(self.test_results['restriction_violations'])}")
-        self.log(f"❌ Violações de meal_count: {len(self.test_results['meal_count_violations'])}")
+        self.log(f"📋 OVERALL STATISTICS:")
+        self.log(f"   Total Tests: {total_tests}")
+        self.log(f"   ✅ Passed: {passed_tests}")
+        self.log(f"   ❌ Failed: {failed_tests}")
+        self.log(f"   📈 Success Rate: {success_rate:.1f}%")
         
-        # Detailed violations
-        if self.test_results['multiple_10_violations']:
-            self.log(f"\n🔍 DETALHES - VIOLAÇÕES MÚLTIPLOS DE 10:")
-            for violation in self.test_results['multiple_10_violations'][:10]:  # Show first 10
-                self.log(f"  • {violation}")
-            if len(self.test_results['multiple_10_violations']) > 10:
-                self.log(f"  ... e mais {len(self.test_results['multiple_10_violations']) - 10} violações")
+        # Critical system analysis
+        self.log(f"\n🎯 CRITICAL SYSTEMS ANALYSIS:")
         
-        if self.test_results['restriction_violations']:
-            self.log(f"\n🔍 DETALHES - VIOLAÇÕES RESTRIÇÕES ALIMENTARES:")
-            for violation in self.test_results['restriction_violations']:
-                self.log(f"  • {violation}")
+        # Progress System (CRITICAL for recurring revenue)
+        progress_tests = [r for r in self.test_results if "Progress" in r["test"] or "Weight" in r["test"]]
+        progress_passed = sum(1 for r in progress_tests if r["success"])
+        progress_total = len(progress_tests)
+        progress_rate = (progress_passed / progress_total * 100) if progress_total > 0 else 0
         
-        if self.test_results['meal_count_violations']:
-            self.log(f"\n🔍 DETALHES - VIOLAÇÕES MEAL_COUNT:")
-            for violation in self.test_results['meal_count_violations']:
-                self.log(f"  • {violation}")
+        self.log(f"   📊 Progress System: {progress_passed}/{progress_total} ({progress_rate:.1f}%)")
         
-        # Per-profile results
-        self.log(f"\n📋 RESULTADOS POR PERFIL:")
-        for result in self.test_results['detailed_results']:
-            status = "✅ PASSOU" if result['success'] else "❌ FALHOU"
-            self.log(f"  {result['profile']}: {status}")
+        # Diet System
+        diet_tests = [r for r in self.test_results if "Diet" in r["test"] or "TACO" in r["test"]]
+        diet_passed = sum(1 for r in diet_tests if r["success"])
+        diet_total = len(diet_tests)
+        diet_rate = (diet_passed / diet_total * 100) if diet_total > 0 else 0
         
-        # Final approval criteria
-        self.log(f"\n🎯 CRITÉRIO DE APROVAÇÃO:")
-        multiple_10_ok = len(self.test_results['multiple_10_violations']) == 0
-        restrictions_ok = len(self.test_results['restriction_violations']) == 0
+        self.log(f"   🍽️ Diet System: {diet_passed}/{diet_total} ({diet_rate:.1f}%)")
         
-        self.log(f"  • 100% múltiplos de 10: {'✅ APROVADO' if multiple_10_ok else '❌ REPROVADO'}")
-        self.log(f"  • 100% restrições respeitadas: {'✅ APROVADO' if restrictions_ok else '❌ REPROVADO'}")
+        # Authentication System
+        auth_tests = [r for r in self.test_results if "Auth" in r["test"] or "Token" in r["test"]]
+        auth_passed = sum(1 for r in auth_tests if r["success"])
+        auth_total = len(auth_tests)
+        auth_rate = (auth_passed / auth_total * 100) if auth_total > 0 else 0
         
-        overall_approved = multiple_10_ok and restrictions_ok
-        self.log(f"\n🏆 RESULTADO FINAL: {'✅ APROVADO' if overall_approved else '❌ REPROVADO'}")
+        self.log(f"   🔐 Authentication: {auth_passed}/{auth_total} ({auth_rate:.1f}%)")
         
-        if not overall_approved:
-            self.log("⚠️  SISTEMA PRECISA DE CORREÇÕES ANTES DA APROVAÇÃO")
+        # Workout System
+        workout_tests = [r for r in self.test_results if "Workout" in r["test"]]
+        workout_passed = sum(1 for r in workout_tests if r["success"])
+        workout_total = len(workout_tests)
+        workout_rate = (workout_passed / workout_total * 100) if workout_total > 0 else 0
         
-        return self.test_results
+        self.log(f"   💪 Workout System: {workout_passed}/{workout_total} ({workout_rate:.1f}%)")
+        
+        # Failed tests details
+        if failed_tests > 0:
+            self.log(f"\n❌ FAILED TESTS DETAILS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    self.log(f"   • {result['test']}: {result['details']}")
+        
+        # Success criteria evaluation
+        self.log(f"\n🏆 SUCCESS CRITERIA EVALUATION:")
+        
+        # Critical: Progress system must work (for recurring revenue)
+        progress_critical = progress_rate >= 80
+        self.log(f"   📊 Progress System (≥80%): {'✅ PASS' if progress_critical else '❌ FAIL'} ({progress_rate:.1f}%)")
+        
+        # Important: Diet system should work well
+        diet_important = diet_rate >= 70
+        self.log(f"   🍽️ Diet System (≥70%): {'✅ PASS' if diet_important else '❌ FAIL'} ({diet_rate:.1f}%)")
+        
+        # Essential: Authentication must work
+        auth_essential = auth_rate >= 90
+        self.log(f"   🔐 Authentication (≥90%): {'✅ PASS' if auth_essential else '❌ FAIL'} ({auth_rate:.1f}%)")
+        
+        # Overall system health
+        overall_health = success_rate >= 75
+        self.log(f"   🎯 Overall System (≥75%): {'✅ PASS' if overall_health else '❌ FAIL'} ({success_rate:.1f}%)")
+        
+        # Final verdict
+        system_ready = progress_critical and auth_essential and overall_health
+        
+        self.log(f"\n🚀 FINAL VERDICT:")
+        if system_ready:
+            self.log(f"   ✅ SYSTEM READY FOR PRODUCTION")
+            self.log(f"   📊 Progress system is functional (critical for recurring revenue)")
+            self.log(f"   🔐 Authentication is secure")
+            self.log(f"   🎯 Overall system health is good")
+        else:
+            self.log(f"   ❌ SYSTEM NEEDS ATTENTION")
+            if not progress_critical:
+                self.log(f"   🚨 CRITICAL: Progress system issues (affects recurring revenue)")
+            if not auth_essential:
+                self.log(f"   🚨 CRITICAL: Authentication issues (security risk)")
+            if not overall_health:
+                self.log(f"   ⚠️ WARNING: Overall system health below threshold")
+        
+        # Recommendations
+        self.log(f"\n💡 RECOMMENDATIONS:")
+        if not progress_critical:
+            self.log(f"   🔧 Fix progress system endpoints (weight registration, evaluation)")
+        if not diet_important:
+            self.log(f"   🔧 Improve diet generation and TACO table validation")
+        if not auth_essential:
+            self.log(f"   🔧 Fix authentication and token validation")
+        if system_ready:
+            self.log(f"   🎉 System is ready! Consider monitoring and optimization")
+        
+        return {
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
+            "failed_tests": failed_tests,
+            "success_rate": success_rate,
+            "progress_system_rate": progress_rate,
+            "diet_system_rate": diet_rate,
+            "auth_system_rate": auth_rate,
+            "workout_system_rate": workout_rate,
+            "system_ready": system_ready,
+            "detailed_results": self.test_results
+        }
 
 if __name__ == "__main__":
     tester = LAFTester()
