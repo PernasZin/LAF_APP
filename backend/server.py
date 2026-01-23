@@ -568,6 +568,7 @@ async def get_user_profile(user_id: str):
 async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
     """
     Atualiza perfil do usuário e recalcula métricas.
+    Se o objetivo mudar, regenera a dieta automaticamente.
     """
     # Busca perfil existente
     existing_profile = await db.user_profiles.find_one({"_id": user_id})
@@ -581,12 +582,20 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
     if "training_duration" in update_dict:
         update_dict["available_time_per_session"] = update_dict.pop("training_duration")
     
+    goal_changed = False
+    old_goal = existing_profile.get("goal")
+    
     if update_dict:
         current_profile = UserProfile(**existing_profile)
         new_goal = update_dict.get("goal", current_profile.goal)
         new_level = update_dict.get("training_level", current_profile.training_level)
         new_frequency = update_dict.get("weekly_training_frequency", current_profile.weekly_training_frequency)
         new_weight = update_dict.get("weight", current_profile.weight)
+        
+        # Detectar se o objetivo mudou
+        if "goal" in update_dict and old_goal != new_goal:
+            goal_changed = True
+            logger.info(f"Goal changed for user {user_id}: {old_goal} -> {new_goal}")
         
         # Se peso, goal, level ou frequência mudou, recalcula macros
         if any(key in update_dict for key in ["weight", "goal", "training_level", "weekly_training_frequency"]):
@@ -613,6 +622,21 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
         )
         
         logger.info(f"Profile updated for user {user_id}: {list(update_dict.keys())}")
+    
+    # Se objetivo mudou, regenera a dieta automaticamente
+    if goal_changed:
+        try:
+            logger.info(f"Regenerating diet for user {user_id} due to goal change")
+            # Busca perfil atualizado para gerar nova dieta
+            updated_profile_data = await db.user_profiles.find_one({"_id": user_id})
+            if updated_profile_data:
+                profile_obj = UserProfile(**{**updated_profile_data, "id": updated_profile_data["_id"]})
+                new_diet = await diet_service.generate_diet(profile_obj)
+                if new_diet:
+                    logger.info(f"Diet regenerated successfully for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error regenerating diet for user {user_id}: {e}")
+            # Não falha o endpoint, apenas loga o erro
     
     # Retorna perfil atualizado
     updated_profile = await db.user_profiles.find_one({"_id": user_id})
