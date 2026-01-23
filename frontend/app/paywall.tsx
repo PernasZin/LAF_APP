@@ -329,13 +329,61 @@ export default function PaywallScreen() {
   };
 
   const handleRestorePurchase = async () => {
-    // TODO: Implementar restauração de compra com IAP
-    Alert.alert(
-      language === 'en-US' ? 'Restore Purchase' : 'Restaurar Compra',
-      language === 'en-US'
-        ? 'Purchase restoration will be available when the app is published to the stores.'
-        : 'A restauração de compra estará disponível quando o app for publicado nas lojas.'
-    );
+    if (Platform.OS === 'web') {
+      Alert.alert(
+        language === 'en-US' ? 'Restore Purchase' : 'Restaurar Compra',
+        language === 'en-US'
+          ? 'Purchase restoration is only available on mobile devices.'
+          : 'A restauração de compra está disponível apenas em dispositivos móveis.'
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      if (!iapInitialized) {
+        await iapService.initialize();
+      }
+
+      const purchases = await iapService.restorePurchases();
+      
+      if (purchases.length > 0) {
+        // Usuário tem compras anteriores
+        setPremiumStatus(true);
+        setHasSeenPaywall(true);
+        
+        Alert.alert(
+          language === 'en-US' ? 'Success!' : 'Sucesso!',
+          language === 'en-US'
+            ? 'Your purchase has been restored.'
+            : 'Sua compra foi restaurada.',
+          [
+            {
+              text: 'OK',
+              onPress: () => router.replace('/(tabs)'),
+            },
+          ]
+        );
+      } else {
+        Alert.alert(
+          language === 'en-US' ? 'No Purchases Found' : 'Nenhuma Compra Encontrada',
+          language === 'en-US'
+            ? 'We could not find any previous purchases associated with your account.'
+            : 'Não encontramos nenhuma compra anterior associada à sua conta.'
+        );
+      }
+    } catch (error) {
+      console.error('❌ Error restoring purchases:', error);
+      Alert.alert(
+        'Erro',
+        language === 'en-US'
+          ? 'Failed to restore purchases. Please try again.'
+          : 'Falha ao restaurar compras. Tente novamente.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSkip = () => {
