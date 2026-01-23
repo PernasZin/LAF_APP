@@ -173,6 +173,24 @@ export default function OnboardingScreen() {
       });
 
       if (response.ok) {
+        // Gerar dieta automaticamente
+        try {
+          await fetch(`${BACKEND_URL}/api/diet/generate?user_id=${userId}`, {
+            method: 'POST',
+          });
+        } catch (e) {
+          console.log('Diet generation started');
+        }
+        
+        // Gerar treino automaticamente
+        try {
+          await fetch(`${BACKEND_URL}/api/workout/generate?user_id=${userId}`, {
+            method: 'POST',
+          });
+        } catch (e) {
+          console.log('Workout generation started');
+        }
+        
         await AsyncStorage.setItem('hasCompletedOnboarding', 'true');
         await AsyncStorage.setItem('profileCompleted', 'true');
         await setProfileCompleted(true);
