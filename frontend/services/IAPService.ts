@@ -10,7 +10,6 @@
  */
 
 import { Platform } from 'react-native';
-import * as InAppPurchases from 'expo-in-app-purchases';
 
 // Product IDs - Devem corresponder aos configurados nas lojas
 export const IAP_PRODUCTS = {
@@ -46,6 +45,22 @@ interface IAPPurchase {
   transactionReceipt: string;
 }
 
+// Lazy load do módulo IAP apenas em plataformas nativas
+let InAppPurchases: any = null;
+
+const loadIAPModule = async () => {
+  if (Platform.OS !== 'web' && !InAppPurchases) {
+    try {
+      InAppPurchases = await import('expo-in-app-purchases');
+      return true;
+    } catch (error) {
+      console.log('IAP module not available:', error);
+      return false;
+    }
+  }
+  return Platform.OS !== 'web';
+};
+
 class IAPService {
   private isConnected: boolean = false;
   private products: IAPProduct[] = [];
@@ -61,15 +76,21 @@ class IAPService {
         return false;
       }
 
+      const moduleLoaded = await loadIAPModule();
+      if (!moduleLoaded || !InAppPurchases) {
+        console.log('IAP module could not be loaded');
+        return false;
+      }
+
       // Conectar à loja
       await InAppPurchases.connectAsync();
       this.isConnected = true;
       console.log('✅ IAP connected successfully');
 
       // Configurar listener de compras
-      InAppPurchases.setPurchaseListener(({ responseCode, results, errorCode }) => {
+      InAppPurchases.setPurchaseListener(({ responseCode, results, errorCode }: any) => {
         if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-          results?.forEach((purchase) => {
+          results?.forEach((purchase: any) => {
             if (!purchase.acknowledged) {
               console.log('🛒 Purchase received:', purchase.productId);
               
@@ -106,6 +127,10 @@ class IAPService {
    */
   async getProducts(): Promise<IAPProduct[]> {
     try {
+      if (Platform.OS === 'web' || !InAppPurchases) {
+        return [];
+      }
+
       if (!this.isConnected) {
         await this.initialize();
       }
@@ -113,7 +138,7 @@ class IAPService {
       const { responseCode, results } = await InAppPurchases.getProductsAsync(IAP_SKUS);
 
       if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
-        this.products = results.map((product) => ({
+        this.products = results.map((product: any) => ({
           productId: product.productId,
           title: product.title,
           description: product.description,
@@ -138,6 +163,11 @@ class IAPService {
    */
   async purchaseProduct(productId: string): Promise<boolean> {
     try {
+      if (Platform.OS === 'web' || !InAppPurchases) {
+        console.log('IAP not available');
+        return false;
+      }
+
       if (!this.isConnected) {
         await this.initialize();
       }
@@ -156,6 +186,10 @@ class IAPService {
    */
   async checkActiveSubscription(): Promise<boolean> {
     try {
+      if (Platform.OS === 'web' || !InAppPurchases) {
+        return false;
+      }
+
       if (!this.isConnected) {
         await this.initialize();
       }
@@ -164,7 +198,7 @@ class IAPService {
 
       if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
         // Verificar se há alguma assinatura ativa
-        const activeSubscription = results.find((purchase) => {
+        const activeSubscription = results.find((purchase: any) => {
           // Para assinaturas, verificar se não expirou
           // Nota: A verificação completa deve ser feita no servidor
           return IAP_SKUS.includes(purchase.productId);
@@ -185,6 +219,10 @@ class IAPService {
    */
   async restorePurchases(): Promise<IAPPurchase[]> {
     try {
+      if (Platform.OS === 'web' || !InAppPurchases) {
+        return [];
+      }
+
       if (!this.isConnected) {
         await this.initialize();
       }
@@ -193,7 +231,7 @@ class IAPService {
 
       if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
         console.log('✅ Restored purchases:', results.length);
-        return results.map((purchase) => ({
+        return results.map((purchase: any) => ({
           productId: purchase.productId,
           transactionId: purchase.orderId || purchase.transactionId || '',
           transactionDate: purchase.purchaseTime || Date.now(),
@@ -220,6 +258,10 @@ class IAPService {
    */
   async disconnect(): Promise<void> {
     try {
+      if (Platform.OS === 'web' || !InAppPurchases) {
+        return;
+      }
+
       if (this.isConnected) {
         await InAppPurchases.disconnectAsync();
         this.isConnected = false;
