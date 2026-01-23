@@ -106,7 +106,7 @@ class LAFSpecificTester:
             response = self.make_request("POST", "/auth/login", login_data)
             if response.status_code == 200:
                 login_result = response.json()
-                self.auth_token = login_result.get("token")  # Update token
+                self.auth_token = login_result.get("access_token")  # Update token
                 self.log_test("POST /api/auth/login", True, 
                             f"Login realizado com credenciais válidas")
             else:
