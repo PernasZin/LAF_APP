@@ -134,10 +134,10 @@ export default function IndexScreen() {
               <Globe size={28} color={premiumColors.primary} />
             </View>
             <Text style={[styles.languageTitle, { color: theme.text }]}>
-              Escolha seu idioma
+              {t.languageSelect?.title || 'Escolha seu idioma'}
             </Text>
             <Text style={[styles.languageSubtitle, { color: theme.textSecondary }]}>
-              Select your language / Selecciona tu idioma
+              {t.languageSelect?.subtitle || 'Select your language / Selecciona tu idioma'}
             </Text>
 
             {/* Language Options */}
