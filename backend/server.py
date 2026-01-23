@@ -4233,6 +4233,71 @@ async def get_all_cardio_exercises():
         }
     }
 
+
+@api_router.get("/cardio/history/{user_id}")
+async def get_cardio_history(user_id: str):
+    """
+    Retorna o histórico de sessões de cardio do usuário.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Busca histórico de sessões
+    sessions = await db.cardio_sessions.find(
+        {"user_id": user_id}
+    ).sort("completed_at", -1).to_list(100)
+    
+    # Calcula estatísticas
+    total_sessions = len(sessions)
+    total_duration = sum(s.get("duration_minutes", 0) for s in sessions)
+    total_calories = sum(s.get("calories_burned", 0) for s in sessions)
+    
+    return {
+        "user_id": user_id,
+        "sessions": sessions,
+        "stats": {
+            "total_sessions": total_sessions,
+            "total_duration_minutes": total_duration,
+            "total_calories_burned": total_calories,
+            "avg_duration_per_session": round(total_duration / total_sessions, 1) if total_sessions > 0 else 0,
+            "avg_calories_per_session": round(total_calories / total_sessions, 1) if total_sessions > 0 else 0
+        }
+    }
+
+
+@api_router.post("/cardio/history/{user_id}")
+async def log_cardio_session(user_id: str, session: dict):
+    """
+    Registra uma sessão de cardio completada.
+    """
+    # Verifica se usuário existe
+    user = await db.user_profiles.find_one({"_id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    # Cria registro da sessão
+    session_record = {
+        "_id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "exercise_id": session.get("exercise_id"),
+        "exercise_name": session.get("exercise_name"),
+        "duration_minutes": session.get("duration_minutes", 0),
+        "calories_burned": session.get("calories_burned", 0),
+        "intensity": session.get("intensity", "moderate"),
+        "notes": session.get("notes", ""),
+        "completed_at": datetime.utcnow()
+    }
+    
+    await db.cardio_sessions.insert_one(session_record)
+    
+    return {
+        "success": True,
+        "session": session_record
+    }
+
+
 # ==================== SETTINGS ENDPOINTS ====================
 
 @api_router.get("/user/settings/{user_id}", response_model=UserSettings)
