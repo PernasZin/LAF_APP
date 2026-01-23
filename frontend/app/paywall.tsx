@@ -127,7 +127,7 @@ export default function PaywallScreen() {
   const theme = isDark ? darkTheme : lightTheme;
   const t = getTranslations(language);
 
-  const { startTrial, setHasSeenPaywall, isPremium, setPremiumStatus } = useSubscriptionStore();
+  const { startTrial, setHasSeenPaywall, isPremium, setPremiumStatus, activateSubscription } = useSubscriptionStore();
   const [isLoading, setIsLoading] = useState(false);
   const [iapInitialized, setIapInitialized] = useState(false);
 
