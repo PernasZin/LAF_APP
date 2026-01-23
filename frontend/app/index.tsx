@@ -10,6 +10,7 @@ import { Globe, Check, Sparkles } from 'lucide-react-native';
 import { useAuthStore } from '../stores/authStore';
 import { useSettingsStore, LanguagePreference } from '../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../theme/premium';
+import { translations, SupportedLanguage } from '../i18n/translations';
 
 const LANGUAGES = [
   { code: 'pt-BR' as LanguagePreference, label: 'Português (Brasil)', flag: '🇧🇷' },
