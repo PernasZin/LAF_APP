@@ -243,7 +243,7 @@ export default function SignupScreen() {
               </View>
 
               {/* Signup Button */}
-              <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
+              <View style={styles.buttonContainer}>
                 <TouchableOpacity 
                   onPress={() => {
                     console.log('🟢 Signup button pressed');
@@ -261,7 +261,7 @@ export default function SignupScreen() {
                     {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
                   </Text>
                 </TouchableOpacity>
-              </Animated.View>
+              </View>
 
               {/* Terms and Privacy */}
               <View style={styles.termsContainer}>
