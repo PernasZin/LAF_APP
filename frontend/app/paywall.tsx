@@ -151,12 +151,14 @@ export default function PaywallScreen() {
   }));
 
   const handleSubscribe = async () => {
+    console.log('🔵 handleSubscribe called! selectedPlan:', selectedPlan);
     setIsLoading(true);
     buttonScale.value = withSpring(0.95);
 
     try {
       // Obter user_id do AsyncStorage
       const userId = await AsyncStorage.getItem('user_id');
+      console.log('🔵 userId from AsyncStorage:', userId);
       
       if (!userId) {
         Alert.alert('Erro', 'Faça login primeiro para assinar.');
