@@ -11,11 +11,24 @@ import { Platform } from 'react-native';
 // Get backend URL from app.json extra field (for production builds)
 // or from environment variable (for development)
 const getBackendUrl = (): string => {
-  // For web running on localhost, use relative path (Kubernetes proxy handles routing)
+  // For web, we need to determine if we're on the preview domain or localhost
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const hostname = window.location?.hostname;
+    
+    // If on localhost, need to use the full preview URL for API calls
+    // because there's no local proxy configured
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return ''; // Use relative paths like /api/auth/login
+      // Use environment variable or default to preview domain
+      const envBackendUrl = process.env.EXPO_PUBLIC_BACKEND_URL;
+      if (envBackendUrl) {
+        return envBackendUrl;
+      }
+      return 'https://nutriflow-38.preview.emergentagent.com';
+    }
+    
+    // If on preview domain, use relative path (proxy handles routing)
+    if (hostname.includes('preview.emergentagent.com')) {
+      return '';
     }
   }
   
