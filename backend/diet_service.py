@@ -751,16 +751,24 @@ FOODS = {
     # Legumes variados
     # Cenoura, crua: 34kcal, 1.3g P, 7.7g C, 0.2g F (TACO)
     "cenoura": {"name": "Cenoura", "p": 1.3, "c": 7.7, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 80},
-    "abobrinha": {"name": "Abobrinha", "p": 1.2, "c": 3.0, "f": 0.3, "category": "vegetable", "unit": "unidade média", "unit_g": 150},
-    "pepino": {"name": "Pepino", "p": 0.7, "c": 4.0, "f": 0.1, "category": "vegetable", "unit": "unidade", "unit_g": 150},
-    "tomate": {"name": "Tomate", "p": 0.9, "c": 3.9, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 120},
-    "beterraba": {"name": "Beterraba", "p": 1.6, "c": 10.0, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 100},
-    "vagem": {"name": "Vagem", "p": 1.8, "c": 7.0, "f": 0.2, "category": "vegetable", "unit": "xícara cozida", "unit_g": 100},
-    "pimentao": {"name": "Pimentão", "p": 1.0, "c": 6.0, "f": 0.3, "category": "vegetable", "unit": "unidade média", "unit_g": 120},
+    # Abobrinha, cozida: 15kcal, 0.6g P, 3.3g C, 0.1g F (TACO)
+    "abobrinha": {"name": "Abobrinha", "p": 0.6, "c": 3.3, "f": 0.1, "category": "vegetable", "unit": "unidade média", "unit_g": 150},
+    # Pepino, cru: 10kcal, 0.9g P, 2.0g C, 0.1g F (TACO)
+    "pepino": {"name": "Pepino", "p": 0.9, "c": 2.0, "f": 0.1, "category": "vegetable", "unit": "unidade", "unit_g": 150},
+    # Tomate: 15kcal, 1.1g P, 3.1g C, 0.2g F (TACO)
+    "tomate": {"name": "Tomate", "p": 1.1, "c": 3.1, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 120},
+    # Beterraba, cozida: 32kcal, 1.2g P, 7.2g C, 0.1g F (TACO)
+    "beterraba": {"name": "Beterraba", "p": 1.2, "c": 7.2, "f": 0.1, "category": "vegetable", "unit": "unidade média", "unit_g": 100},
+    # Vagem, cozida: 25kcal, 1.5g P, 5.1g C, 0.2g F (TACO)
+    "vagem": {"name": "Vagem", "p": 1.5, "c": 5.1, "f": 0.2, "category": "vegetable", "unit": "xícara cozida", "unit_g": 100},
+    # Pimentão, vermelho, cru: 31kcal, 1.3g P, 6.8g C, 0.2g F (TACO)
+    "pimentao": {"name": "Pimentão", "p": 1.3, "c": 6.8, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 120},
     
     # === EXTRAS/DOCES (APENAS para café da manhã e lanches - MÁXIMO 30g) ===
-    "leite_condensado": {"name": "Leite Condensado", "p": 8.0, "c": 55.0, "f": 8.0, "category": "extra", "unit": "colher sopa", "unit_g": 20},
-    "mel": {"name": "Mel", "p": 0.3, "c": 82.0, "f": 0.0, "category": "extra", "unit": "colher sopa", "unit_g": 21},
+    # Leite condensado: 320kcal, 7.9g P, 55.4g C, 8.3g F (TACO)
+    "leite_condensado": {"name": "Leite Condensado", "p": 7.9, "c": 55.4, "f": 8.3, "category": "extra", "unit": "colher sopa", "unit_g": 20},
+    # Mel: 309kcal, 0.3g P, 84.0g C, 0.0g F (TACO)
+    "mel": {"name": "Mel", "p": 0.3, "c": 84.0, "f": 0.0, "category": "extra", "unit": "colher sopa", "unit_g": 21},
     # whey_protein já está definido como proteína acima - não duplicar aqui
 }
 
