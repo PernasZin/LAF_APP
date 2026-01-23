@@ -4229,6 +4229,133 @@ async def get_user_premium_status(user_id: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@api_router.post("/admin/create-test-account")
+async def create_apple_reviewer_account():
+    """
+    Cria uma conta de teste para os revisores da Apple.
+    
+    CREDENCIAIS:
+    - Email: apple-reviewer@laf.com
+    - Senha: AppleReview2025!
+    
+    Esta conta já terá:
+    - Assinatura ativa (premium)
+    - Perfil completo
+    - Dieta e treino gerados
+    """
+    import hashlib
+    import secrets
+    
+    test_email = "apple-reviewer@laf.com"
+    test_password = "AppleReview2025!"
+    
+    # Verificar se já existe
+    existing = await db.users_auth.find_one({"email": test_email})
+    if existing:
+        # Atualizar para garantir que está premium
+        await db.users_auth.update_one(
+            {"email": test_email},
+            {"$set": {
+                "subscription_status": "active",
+                "current_plan": "annual",
+                "premium_activated_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        return {
+            "success": True,
+            "message": "Conta de teste atualizada",
+            "email": test_email,
+            "password": test_password,
+            "user_id": existing.get("id")
+        }
+    
+    # Criar nova conta
+    user_id = str(uuid.uuid4())
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.sha256((test_password + salt).encode()).hexdigest()
+    
+    # Criar usuário auth
+    user_auth = {
+        "_id": user_id,
+        "id": user_id,
+        "email": test_email,
+        "password_hash": password_hash,
+        "salt": salt,
+        "subscription_status": "active",
+        "current_plan": "annual",
+        "premium_activated_at": datetime.utcnow(),
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    await db.users_auth.insert_one(user_auth)
+    
+    # Criar perfil completo
+    profile = {
+        "_id": user_id,
+        "id": user_id,
+        "name": "Apple Reviewer",
+        "email": test_email,
+        "age": 30,
+        "sex": "masculino",
+        "height": 175,
+        "weight": 75,
+        "target_weight": 72,
+        "training_level": "intermediario",
+        "weekly_training_frequency": 4,
+        "available_time_per_session": 60,
+        "goal": "manutencao",
+        "dietary_restrictions": [],
+        "food_preferences": [],
+        "injury_history": [],
+        "language": "pt-BR",
+        "meal_count": 5,
+        "training_days": [1, 2, 4, 5],  # Segunda, Terça, Quinta, Sexta
+        "subscription_status": "active",
+        "current_plan": "annual",
+        "premium_activated_at": datetime.utcnow(),
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Calcular TDEE e macros
+    bmr = calculate_bmr(profile["weight"], profile["height"], profile["age"], profile["sex"])
+    tdee = calculate_tdee(bmr, profile["weekly_training_frequency"], profile["training_level"], profile["goal"])
+    target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"])
+    macros = calculate_macros(target_calories, profile["weight"], profile["goal"])
+    
+    profile["tdee"] = round(tdee, 0)
+    profile["target_calories"] = round(target_calories, 0)
+    profile["macros"] = macros
+    
+    await db.user_profiles.insert_one(profile)
+    
+    # Criar settings
+    settings = {
+        "_id": user_id,
+        "user_id": user_id,
+        "theme_preference": "system",
+        "language": "pt-BR",
+        "meal_count": 5,
+        "notifications_enabled": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    await db.user_settings.insert_one(settings)
+    
+    logger.info(f"✅ Conta de teste para Apple criada: {test_email}")
+    
+    return {
+        "success": True,
+        "message": "Conta de teste criada com sucesso",
+        "email": test_email,
+        "password": test_password,
+        "user_id": user_id,
+        "status": "premium",
+        "plan": "annual"
+    }
+
+
 # Include router
 app.include_router(api_router)
 
