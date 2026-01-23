@@ -688,8 +688,8 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                 }
                 
                 # Remove dieta antiga e salva nova
-                await db.diets.delete_many({"user_id": user_id})
-                await db.diets.insert_one(diet_doc)
+                await db.diet_plans.delete_many({"user_id": user_id})
+                await db.diet_plans.insert_one(diet_doc)
                 
                 logger.info(f"DIETA REGENERADA - User: {user_id} | Goal: {profile_obj.goal} | Calorias: {computed_calories}")
         except Exception as e:
