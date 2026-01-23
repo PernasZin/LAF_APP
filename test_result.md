@@ -758,3 +758,98 @@ agent_communication:
 
   - agent: "testing"
     message: "🚨 TESTE COMPLETO DAS CORREÇÕES DE DIETA - BUGS CRÍTICOS IDENTIFICADOS - Executei teste abrangente dos 3 cenários solicitados (Vegetariano, Normal, Vegano) com taxa de sucesso 87.5% (14/16 testes). ✅ SUCESSOS: (1) CENÁRIO NORMAL: 100% aprovado - feijão ≤300g, arroz>feijão, proteína adequada com frango, (2) CENÁRIO VEGANO: 100% aprovado - sem produtos animais, tofu presente como proteína, proteína adequada (123g), (3) RESTRIÇÕES BÁSICAS: Vegetarianos não recebem carnes, ovos apenas no café da manhã. ❌ BUGS CRÍTICOS VEGETARIANOS: (1) TOFU AUSENTE: Sistema de Protein Guarantee funciona corretamente (logs mostram 'Principal: [tofu]' e 'Total após ajustes: 178g'), mas tofu desaparece no processo final (resultado final: 98g proteína), (2) PROTEÍNA INSUFICIENTE: 98g vs mínimo 100g para 70kg. DIAGNÓSTICO: Bug no algoritmo principal de geração de dieta que não preserva as adições do Protein Guarantee. Sistema adiciona tofu corretamente mas perde na fase de compensação/ajuste final."
+# =====================================
+# TESTE GERAL COMPLETO - 23/01/2026
+# =====================================
+
+agent_communication:
+  - agent: "main"
+    message: |
+      TESTE GERAL COMPLETO DO APP SOLICITADO PELO USUÁRIO.
+      
+      FOCO CRÍTICO: Sistema de Progresso e Atualização Automática de Dieta
+      
+      CONTEXTO:
+      1. Valores nutricionais atualizados para Tabela TACO
+      2. Pão adicionado automaticamente no café da manhã
+      3. Sistema de exclusão de conta implementado
+      4. Link de ajuda configurado para Instagram
+      5. Navegação de configurações corrigida
+      6. Regeneração automática de dieta ao mudar objetivo implementada
+      
+      ENDPOINTS CRÍTICOS A TESTAR:
+      
+      1. PROGRESSO (CRÍTICO - RECEITA RECORRENTE):
+         - GET /api/progress/weight/{user_id} - Histórico de peso
+         - POST /api/progress/weight - Registrar novo peso
+         - GET /api/progress/evaluation/{user_id} - Avaliação de progresso
+         - POST /api/progress/evaluate - Avaliar e ajustar dieta
+         
+      2. ATUALIZAÇÃO AUTOMÁTICA DE DIETA (cada 2 semanas):
+         - Verificar se o sistema detecta quando passaram 2 semanas
+         - Verificar se ajusta automaticamente as calorias baseado no progresso
+         - Testar cenários: perdeu peso, ganhou peso, manteve peso
+         
+      3. DIETA:
+         - POST /api/diet/generate - Gerar dieta (com TACO)
+         - GET /api/diet/{user_id} - Buscar dieta
+         - PUT /api/diet/substitute - Substituir alimento
+         
+      4. TREINO:
+         - POST /api/workout/generate - Gerar treino
+         - GET /api/workout/{user_id} - Buscar treino
+         - PUT /api/workout/progress - Atualizar progresso
+         
+      5. CICLO DE TREINO:
+         - GET /api/training-cycle/status/{user_id} - Status do ciclo
+         - POST /api/training-cycle/deload - Iniciar deload
+         
+      6. AUTENTICAÇÃO:
+         - POST /api/auth/signup - Cadastro
+         - POST /api/auth/login - Login
+         - DELETE /api/auth/delete-account - Excluir conta (NOVO)
+         
+      7. PERFIL:
+         - PUT /api/user/profile/{user_id} - Atualizar perfil
+         - Verificar se muda objetivo regenera dieta automaticamente
+         
+      8. PREMIUM:
+         - GET /api/user/premium/{user_id} - Status premium
+         
+      CENÁRIOS DE TESTE PROGRESSO:
+      
+      Cenário 1 - CUTTING (perda de peso):
+      - Registrar peso inicial
+      - Simular 2 semanas
+      - Registrar peso menor
+      - Verificar se sistema recomenda manter/ajustar déficit
+      
+      Cenário 2 - BULKING (ganho de peso):
+      - Registrar peso inicial
+      - Simular 2 semanas
+      - Registrar peso maior
+      - Verificar se sistema recomenda manter/ajustar superávit
+      
+      Cenário 3 - MANUTENÇÃO:
+      - Registrar peso inicial
+      - Simular 2 semanas
+      - Registrar peso similar
+      - Verificar se sistema mantém calorias
+      
+      CONTA DE TESTE:
+      - Email: apple-reviewer@laf.com
+      - Senha: AppleReview2025!
+      - User ID: 14017240-2fff-4123-9d26-fa240255ea21
+      
+      TESTE BACKEND PRIMEIRO, DEPOIS FRONTEND SE NECESSÁRIO.
+
+test_plan:
+  current_focus:
+    - "Sistema de Progresso - Registro de Peso"
+    - "Sistema de Progresso - Avaliação Automática"
+    - "Atualização de Dieta a cada 2 semanas"
+    - "Regeneração de Dieta ao Mudar Objetivo"
+    - "Exclusão de Conta"
+  test_all: true
+  test_priority: "high_first"
+
