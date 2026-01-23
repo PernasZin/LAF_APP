@@ -15,10 +15,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configurações da assinatura
 export const SUBSCRIPTION_CONFIG = {
-  TRIAL_DAYS: 7,
+  TRIAL_DAYS: 7, // 7 dias de free trial
   GRACE_PERIOD_DAYS: 3, // Dias de graça após expiração
-  MONTHLY_PRICE: 29.90,
-  ANNUAL_PRICE: 199.90,
+  MONTHLY_PRICE: 29.90, // R$ 29,90/mês
+  ANNUAL_PRICE: 199.90, // R$ 199,90/ano
+  ANNUAL_MONTHLY_PRICE: 16.66, // R$ 199,90/12 = ~R$ 16,66/mês
+  ANNUAL_DISCOUNT: 44, // 44% de desconto no plano anual
   CURRENCY: 'BRL',
   PRODUCT_IDS: {
     MONTHLY: 'com.laf.subscription.monthly',
