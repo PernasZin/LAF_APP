@@ -236,6 +236,9 @@ export default function SignupScreen() {
                     secureTextEntry={!showPassword}
                     autoCorrect={false}
                   />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff size={20} color={theme.textTertiary} /> : <Eye size={20} color={theme.textTertiary} />}
+                  </TouchableOpacity>
                 </View>
               </View>
 
