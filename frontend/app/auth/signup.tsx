@@ -52,6 +52,7 @@ export default function SignupScreen() {
   }));
 
   const handleSignup = async () => {
+    console.log('🟢 handleSignup function called');
     Keyboard.dismiss();
 
     if (!email || !password || !confirmPassword) {
@@ -74,6 +75,7 @@ export default function SignupScreen() {
 
     buttonScale.value = withSpring(0.95, animations.spring.snappy);
     setIsLoading(true);
+    console.log('🟢 Sending signup request to:', `${BACKEND_URL}/api/auth/signup`);
 
     try {
       const response = await fetch(`${BACKEND_URL}/api/auth/signup`, {
@@ -85,7 +87,9 @@ export default function SignupScreen() {
         }),
       });
 
+      console.log('🟢 Signup response status:', response.status);
       const data = await response.json();
+      console.log('🟢 Signup response data:', data);
 
       if (response.ok && data.user_id) {
         await AsyncStorage.setItem('userId', data.user_id);
@@ -93,6 +97,7 @@ export default function SignupScreen() {
         await AsyncStorage.setItem('token', data.access_token || '');
         await AsyncStorage.setItem('profileCompleted', 'false');
         
+        console.log('🟢 Signup successful, calling login...');
         // ✅ Atualiza AuthStore - o AuthGuard vai redirecionar automaticamente para /onboarding
         // NÃO fazer router.replace() aqui para evitar duplicação de tela!
         await useAuthStore.getState().login(
@@ -106,6 +111,7 @@ export default function SignupScreen() {
         Alert.alert('Erro', data.detail || data.message || (language === 'en-US' ? 'Could not create account' : 'Não foi possível criar a conta'));
       }
     } catch (error) {
+      console.error('❌ Signup error:', error);
       Alert.alert('Erro', language === 'en-US' ? 'Could not connect to server' : 'Não foi possível conectar ao servidor');
     } finally {
       setIsLoading(false);
