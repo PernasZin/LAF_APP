@@ -578,106 +578,179 @@ FOOD_NORMALIZATION = {
 
 
 # ==================== BANCO DE ALIMENTOS ====================
-# Valores por 100g: p=proteína, c=carboidrato, f=gordura
+# Valores por 100g baseados na Tabela TACO (Tabela Brasileira de Composição de Alimentos)
+# p=proteína, c=carboidrato, f=gordura (lipídios)
 # unit = medida caseira equivalente a X gramas
+# Fonte: TACO 4ª edição revisada (UNICAMP/NEPA)
 
 FOODS = {
-    # === PROTEÍNAS ===
-    "frango": {"name": "Peito de Frango", "p": 31.0, "c": 0.0, "f": 3.6, "category": "protein", "unit": "filé médio", "unit_g": 150},
-    "coxa_frango": {"name": "Coxa de Frango", "p": 26.0, "c": 0.0, "f": 8.0, "category": "protein", "unit": "coxa média", "unit_g": 100},
-    "patinho": {"name": "Patinho (Carne Magra)", "p": 28.0, "c": 0.0, "f": 6.0, "category": "protein", "unit": "bife médio", "unit_g": 120},
-    "carne_moida": {"name": "Carne Moída", "p": 26.0, "c": 0.0, "f": 10.0, "category": "protein", "unit": "colher sopa cheia", "unit_g": 30},
-    "suino": {"name": "Carne Suína", "p": 27.0, "c": 0.0, "f": 14.0, "category": "protein", "unit": "bife médio", "unit_g": 120},
-    "ovos": {"name": "Ovos Inteiros", "p": 13.0, "c": 1.1, "f": 11.0, "category": "protein", "unit": "unidade grande", "unit_g": 50},
-    "claras": {"name": "Claras de Ovo", "p": 11.0, "c": 0.7, "f": 0.2, "category": "protein", "unit": "clara", "unit_g": 33},
-    "tilapia": {"name": "Tilápia", "p": 26.0, "c": 0.0, "f": 2.5, "category": "protein", "unit": "filé médio", "unit_g": 120},
-    "atum": {"name": "Atum", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "lata drenada", "unit_g": 120},
-    "salmao": {"name": "Salmão", "p": 25.0, "c": 0.0, "f": 13.0, "category": "protein", "unit": "filé médio", "unit_g": 150},
-    "camarao": {"name": "Camarão", "p": 24.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "porção média", "unit_g": 100},
-    "sardinha": {"name": "Sardinha", "p": 25.0, "c": 0.0, "f": 11.0, "category": "protein", "unit": "lata drenada", "unit_g": 90},
-    "peru": {"name": "Peru", "p": 29.0, "c": 0.0, "f": 1.0, "category": "protein", "unit": "fatias finas", "unit_g": 50},
-    "cottage": {"name": "Queijo Cottage", "p": 11.0, "c": 3.4, "f": 4.3, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
-    "iogurte_zero": {"name": "Iogurte Zero", "p": 10.0, "c": 4.0, "f": 0.5, "category": "protein", "subcategory": "light", "unit": "garrafa", "unit_g": 1150, "max_g": 500},
-    # REMOVIDO: iogurte_natural - usar apenas iogurte_zero
-    "whey_protein": {"name": "Whey Protein", "p": 80.0, "c": 8.0, "f": 3.0, "category": "protein", "subcategory": "supplement", "unit": "scoop", "unit_g": 30},
-    "requeijao_light": {"name": "Requeijão Light", "p": 8.0, "c": 3.0, "f": 10.0, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
-    "tofu": {"name": "Tofu", "p": 8.0, "c": 2.0, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
+    # === PROTEÍNAS === (TACO - Carnes e derivados)
+    # Frango, peito, sem pele, grelhado: 159kcal, 31.5g P, 0g C, 3.2g F
+    "frango": {"name": "Peito de Frango", "p": 31.5, "c": 0.0, "f": 3.2, "category": "protein", "unit": "filé médio", "unit_g": 150},
+    # Frango, coxa, sem pele, cozida: 215kcal, 26.6g P, 0g C, 11.9g F
+    "coxa_frango": {"name": "Coxa de Frango", "p": 26.6, "c": 0.0, "f": 11.9, "category": "protein", "unit": "coxa média", "unit_g": 100},
+    # Carne, patinho, sem gordura, grelhado: 219kcal, 35.9g P, 0g C, 7.3g F
+    "patinho": {"name": "Patinho (Carne Magra)", "p": 35.9, "c": 0.0, "f": 7.3, "category": "protein", "unit": "bife médio", "unit_g": 120},
+    # Carne, moída, refogada: 212kcal, 26.7g P, 0g C, 11.2g F
+    "carne_moida": {"name": "Carne Moída", "p": 26.7, "c": 0.0, "f": 11.2, "category": "protein", "unit": "colher sopa cheia", "unit_g": 30},
+    # Carne, suína, lombo, assado: 210kcal, 32.1g P, 0g C, 8.1g F
+    "suino": {"name": "Carne Suína", "p": 32.1, "c": 0.0, "f": 8.1, "category": "protein", "unit": "bife médio", "unit_g": 120},
+    # Ovo, de galinha, inteiro, cozido: 146kcal, 13.3g P, 0.6g C, 9.5g F
+    "ovos": {"name": "Ovos Inteiros", "p": 13.3, "c": 0.6, "f": 9.5, "category": "protein", "unit": "unidade grande", "unit_g": 50},
+    # Ovo, de galinha, clara, cozida: 53kcal, 10.9g P, 0.8g C, 0.0g F
+    "claras": {"name": "Claras de Ovo", "p": 10.9, "c": 0.8, "f": 0.0, "category": "protein", "unit": "clara", "unit_g": 33},
+    # Peixe, tilápia, filé, grelhado: 129kcal, 26.5g P, 0g C, 2.7g F
+    "tilapia": {"name": "Tilápia", "p": 26.5, "c": 0.0, "f": 2.7, "category": "protein", "unit": "filé médio", "unit_g": 120},
+    # Atum, conserva em óleo, drenado: 166kcal, 26.2g P, 0g C, 6.4g F
+    "atum": {"name": "Atum", "p": 26.2, "c": 0.0, "f": 6.4, "category": "protein", "unit": "lata drenada", "unit_g": 120},
+    # Salmão, filé, grelhado: 243kcal, 26.3g P, 0g C, 14.7g F
+    "salmao": {"name": "Salmão", "p": 26.3, "c": 0.0, "f": 14.7, "category": "protein", "unit": "filé médio", "unit_g": 150},
+    # Camarão, cozido: 90kcal, 18.4g P, 0g C, 1.5g F
+    "camarao": {"name": "Camarão", "p": 18.4, "c": 0.0, "f": 1.5, "category": "protein", "unit": "porção média", "unit_g": 100},
+    # Sardinha, conserva em óleo, drenada: 285kcal, 25.9g P, 0g C, 19.7g F
+    "sardinha": {"name": "Sardinha", "p": 25.9, "c": 0.0, "f": 19.7, "category": "protein", "unit": "lata drenada", "unit_g": 90},
+    # Peru, peito, sem pele, assado: 155kcal, 29.8g P, 0g C, 3.2g F
+    "peru": {"name": "Peru", "p": 29.8, "c": 0.0, "f": 3.2, "category": "protein", "unit": "fatias finas", "unit_g": 50},
+    # Queijo, cottage: 98kcal, 11.1g P, 3.4g C, 4.3g F
+    "cottage": {"name": "Queijo Cottage", "p": 11.1, "c": 3.4, "f": 4.3, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
+    # Iogurte, desnatado: 41kcal, 4.1g P, 5.5g C, 0.3g F
+    "iogurte_zero": {"name": "Iogurte Zero", "p": 4.1, "c": 5.5, "f": 0.3, "category": "protein", "subcategory": "light", "unit": "garrafa", "unit_g": 1150, "max_g": 500},
+    # Whey Protein (média mercado): 370kcal, 80g P, 5g C, 3g F
+    "whey_protein": {"name": "Whey Protein", "p": 80.0, "c": 5.0, "f": 3.0, "category": "protein", "subcategory": "supplement", "unit": "scoop", "unit_g": 30},
+    # Requeijão, light: 135kcal, 8.5g P, 3.0g C, 10g F
+    "requeijao_light": {"name": "Requeijão Light", "p": 8.5, "c": 3.0, "f": 10.0, "category": "protein", "subcategory": "light", "unit": "colher sopa", "unit_g": 30},
+    # Tofu: 70kcal, 6.6g P, 2.2g C, 4.0g F
+    "tofu": {"name": "Tofu", "p": 6.6, "c": 2.2, "f": 4.0, "category": "protein", "unit": "fatia média", "unit_g": 80},
     
     # === PROTEÍNAS VEGETAIS (para vegetarianos/veganos) ===
-    "tempeh": {"name": "Tempeh", "p": 19.0, "c": 9.0, "f": 11.0, "category": "protein", "subcategory": "vegetal", "unit": "fatia média", "unit_g": 100},
-    "seitan": {"name": "Seitan", "p": 25.0, "c": 4.0, "f": 2.0, "category": "protein", "subcategory": "vegetal", "unit": "porção", "unit_g": 100},
-    "edamame": {"name": "Edamame", "p": 11.0, "c": 10.0, "f": 5.0, "category": "protein", "subcategory": "vegetal", "unit": "xícara", "unit_g": 100},
-    "grao_de_bico": {"name": "Grão de Bico", "p": 9.0, "c": 27.0, "f": 3.0, "category": "protein", "subcategory": "vegetal", "unit": "concha média", "unit_g": 100},
+    # Tempeh: 193kcal, 19.0g P, 9.4g C, 10.8g F (USDA)
+    "tempeh": {"name": "Tempeh", "p": 19.0, "c": 9.4, "f": 10.8, "category": "protein", "subcategory": "vegetal", "unit": "fatia média", "unit_g": 100},
+    # Seitan: 118kcal, 21.2g P, 5.4g C, 1.4g F (USDA)
+    "seitan": {"name": "Seitan", "p": 21.2, "c": 5.4, "f": 1.4, "category": "protein", "subcategory": "vegetal", "unit": "porção", "unit_g": 100},
+    # Edamame, cozido: 121kcal, 11.9g P, 8.9g C, 5.2g F (USDA)
+    "edamame": {"name": "Edamame", "p": 11.9, "c": 8.9, "f": 5.2, "category": "protein", "subcategory": "vegetal", "unit": "xícara", "unit_g": 100},
+    # Grão de bico, cozido: 164kcal, 8.9g P, 27.4g C, 2.6g F (TACO)
+    "grao_de_bico": {"name": "Grão de Bico", "p": 8.9, "c": 27.4, "f": 2.6, "category": "protein", "subcategory": "vegetal", "unit": "concha média", "unit_g": 100},
+    # Proteína de ervilha (média mercado): 370kcal, 80g P, 4g C, 2g F
     "proteina_ervilha": {"name": "Proteína de Ervilha", "p": 80.0, "c": 4.0, "f": 2.0, "category": "protein", "subcategory": "supplement_vegetal", "unit": "scoop", "unit_g": 30},
     
-    # === CARBOIDRATOS ===
-    # Arroz Branco: 129kcal, 3g proteína, 29g carbs, 0g gordura por 100g (TACO)
-    "arroz_branco": {"name": "Arroz Branco", "p": 3.0, "c": 29.0, "f": 0.0, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
-    "arroz_integral": {"name": "Arroz Integral", "p": 2.6, "c": 23.0, "f": 0.9, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
-    "batata_doce": {"name": "Batata Doce", "p": 1.6, "c": 20.0, "f": 0.1, "category": "carb", "unit": "unidade média", "unit_g": 150},
-    "aveia": {"name": "Aveia", "p": 13.5, "c": 66.0, "f": 7.0, "category": "carb", "unit": "colher sopa", "unit_g": 15},
-    "macarrao": {"name": "Macarrão", "p": 5.0, "c": 25.0, "f": 1.0, "category": "carb", "unit": "xícara cozido", "unit_g": 140},
-    "macarrao_integral": {"name": "Macarrão Integral", "p": 6.0, "c": 26.0, "f": 1.5, "category": "carb", "unit": "xícara cozido", "unit_g": 140},
-    "pao": {"name": "Pão Francês", "p": 9.0, "c": 49.0, "f": 3.0, "category": "carb", "unit": "unidade", "unit_g": 50},
-    "pao_integral": {"name": "Pão Integral", "p": 10.0, "c": 42.0, "f": 4.0, "category": "carb", "unit": "fatia", "unit_g": 30},
-    "pao_forma": {"name": "Pão de Forma", "p": 8.0, "c": 46.0, "f": 3.5, "category": "carb", "unit": "fatia", "unit_g": 25},
-    "tapioca": {"name": "Tapioca", "p": 0.5, "c": 22.0, "f": 0.0, "category": "carb", "unit": "goma hidratada", "unit_g": 50},
-    "cuscuz": {"name": "Cuscuz", "p": 3.5, "c": 25.0, "f": 0.2, "category": "carb", "unit": "porção", "unit_g": 100},
-    "feijao": {"name": "Feijão", "p": 6.0, "c": 14.0, "f": 0.5, "category": "carb", "unit": "concha média", "unit_g": 100},
-    "lentilha": {"name": "Lentilha", "p": 9.0, "c": 20.0, "f": 0.4, "category": "carb", "unit": "concha média", "unit_g": 100},
+    # === CARBOIDRATOS === (TACO - Cereais e derivados)
+    # Arroz, integral, cozido: 124kcal, 2.6g P, 25.8g C, 1.0g F (TACO)
+    "arroz_integral": {"name": "Arroz Integral", "p": 2.6, "c": 25.8, "f": 1.0, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
+    # Arroz, tipo 1, cozido: 128kcal, 2.5g P, 28.1g C, 0.2g F (TACO)
+    "arroz_branco": {"name": "Arroz Branco", "p": 2.5, "c": 28.1, "f": 0.2, "category": "carb", "unit": "xícara cozida", "unit_g": 120},
+    # Batata doce, cozida: 77kcal, 0.6g P, 18.4g C, 0.1g F (TACO)
+    "batata_doce": {"name": "Batata Doce", "p": 0.6, "c": 18.4, "f": 0.1, "category": "carb", "unit": "unidade média", "unit_g": 150},
+    # Aveia, flocos, crua: 394kcal, 13.9g P, 66.6g C, 8.5g F (TACO)
+    "aveia": {"name": "Aveia", "p": 13.9, "c": 66.6, "f": 8.5, "category": "carb", "unit": "colher sopa", "unit_g": 15},
+    # Macarrão, trigo, cozido: 102kcal, 3.4g P, 19.9g C, 0.5g F (TACO)
+    "macarrao": {"name": "Macarrão", "p": 3.4, "c": 19.9, "f": 0.5, "category": "carb", "unit": "xícara cozido", "unit_g": 140},
+    # Macarrão integral cozido: 120kcal, 5.0g P, 23.5g C, 0.8g F (estimado)
+    "macarrao_integral": {"name": "Macarrão Integral", "p": 5.0, "c": 23.5, "f": 0.8, "category": "carb", "unit": "xícara cozido", "unit_g": 140},
+    # Pão, francês: 300kcal, 8.0g P, 58.6g C, 3.1g F (TACO)
+    "pao": {"name": "Pão Francês", "p": 8.0, "c": 58.6, "f": 3.1, "category": "carb", "unit": "unidade", "unit_g": 50},
+    # Pão, forma, integral: 253kcal, 9.4g P, 49.9g C, 2.9g F (TACO)
+    "pao_integral": {"name": "Pão Integral", "p": 9.4, "c": 49.9, "f": 2.9, "category": "carb", "unit": "fatia", "unit_g": 30},
+    # Pão de forma tradicional: 271kcal, 9.4g P, 50.7g C, 3.7g F (TACO)
+    "pao_forma": {"name": "Pão de Forma", "p": 9.4, "c": 50.7, "f": 3.7, "category": "carb", "unit": "fatia", "unit_g": 25},
+    # Tapioca: 345kcal, 0.0g P, 87.8g C, 0.0g F (TACO - fécula seca) / hidratada ~100kcal/100g
+    "tapioca": {"name": "Tapioca", "p": 0.0, "c": 24.5, "f": 0.0, "category": "carb", "unit": "goma hidratada", "unit_g": 50},
+    # Cuscuz de milho, cozido: 112kcal, 2.5g P, 25.0g C, 0.3g F (TACO)
+    "cuscuz": {"name": "Cuscuz", "p": 2.5, "c": 25.0, "f": 0.3, "category": "carb", "unit": "porção", "unit_g": 100},
+    # Feijão, carioca, cozido: 76kcal, 4.8g P, 13.6g C, 0.5g F (TACO)
+    "feijao": {"name": "Feijão", "p": 4.8, "c": 13.6, "f": 0.5, "category": "carb", "unit": "concha média", "unit_g": 100},
+    # Lentilha, cozida: 93kcal, 6.3g P, 16.3g C, 0.5g F (TACO)
+    "lentilha": {"name": "Lentilha", "p": 6.3, "c": 16.3, "f": 0.5, "category": "carb", "unit": "concha média", "unit_g": 100},
+    # Quinoa, cozida: 120kcal, 4.4g P, 21.3g C, 1.9g F (USDA)
     "quinoa": {"name": "Quinoa", "p": 4.4, "c": 21.3, "f": 1.9, "category": "carb", "unit": "porção", "unit_g": 100},
-    "gema": {"name": "Gema de Ovo", "p": 16.0, "c": 1.0, "f": 31.0, "category": "fat", "unit": "unidade", "unit_g": 17},
-    "farofa": {"name": "Farofa", "p": 1.5, "c": 46.0, "f": 2.0, "category": "carb", "unit": "colher sopa", "unit_g": 20},
-    "granola": {"name": "Granola", "p": 10.0, "c": 64.0, "f": 15.0, "category": "carb", "unit": "xícara", "unit_g": 40},
+    # Gema de ovo: 352kcal, 16.1g P, 1.6g C, 30.9g F (TACO)
+    "gema": {"name": "Gema de Ovo", "p": 16.1, "c": 1.6, "f": 30.9, "category": "fat", "unit": "unidade", "unit_g": 17},
+    # Farinha de mandioca, crua (farofa): 361kcal, 1.2g P, 87.9g C, 0.3g F (TACO)
+    "farofa": {"name": "Farofa", "p": 1.2, "c": 87.9, "f": 0.3, "category": "carb", "unit": "colher sopa", "unit_g": 20},
+    # Granola: 421kcal, 10.1g P, 63.7g C, 14.8g F (média mercado)
+    "granola": {"name": "Granola", "p": 10.1, "c": 63.7, "f": 14.8, "category": "carb", "unit": "xícara", "unit_g": 40},
     
-    # === GORDURAS ===
+    # === GORDURAS === (TACO - Óleos e gorduras)
+    # Azeite de oliva: 884kcal, 0g P, 0g C, 100g F (TACO)
     "azeite": {"name": "Azeite de Oliva", "p": 0.0, "c": 0.0, "f": 100.0, "category": "fat", "unit": "colher sopa", "unit_g": 13},
-    "pasta_amendoim": {"name": "Pasta de Amendoim", "p": 25.0, "c": 20.0, "f": 50.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
+    # Pasta de amendoim: 593kcal, 28.5g P, 18.6g C, 46.1g F (USDA)
+    "pasta_amendoim": {"name": "Pasta de Amendoim", "p": 28.5, "c": 18.6, "f": 46.1, "category": "fat", "unit": "colher sopa", "unit_g": 15},
+    # Pasta de amêndoa: 614kcal, 21.0g P, 19.0g C, 56.0g F (USDA)
     "pasta_amendoa": {"name": "Pasta de Amêndoa", "p": 21.0, "c": 19.0, "f": 56.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
+    # Óleo de coco: 862kcal, 0g P, 0g C, 100g F (TACO)
     "oleo_coco": {"name": "Óleo de Coco", "p": 0.0, "c": 0.0, "f": 100.0, "category": "fat", "unit": "colher sopa", "unit_g": 13},
-    "castanhas": {"name": "Castanhas", "p": 14.0, "c": 30.0, "f": 44.0, "category": "fat", "unit": "unidades", "unit_g": 10},
-    "amendoas": {"name": "Amêndoas", "p": 21.0, "c": 22.0, "f": 49.0, "category": "fat", "unit": "unidades", "unit_g": 5},
-    "nozes": {"name": "Nozes", "p": 15.0, "c": 14.0, "f": 65.0, "category": "fat", "unit": "unidade", "unit_g": 8},
-    "chia": {"name": "Chia", "p": 17.0, "c": 42.0, "f": 31.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
-    "linhaca": {"name": "Linhaça", "p": 18.0, "c": 29.0, "f": 42.0, "category": "fat", "unit": "colher sopa", "unit_g": 15},
-    "queijo": {"name": "Queijo", "p": 23.0, "c": 1.3, "f": 33.0, "category": "fat", "unit": "fatia média", "unit_g": 30},
-    "amendoim": {"name": "Amendoim", "p": 26.0, "c": 16.0, "f": 49.0, "category": "fat", "unit": "punhado", "unit_g": 30},
+    # Castanha do Pará: 643kcal, 14.5g P, 12.3g C, 63.5g F (TACO)
+    "castanhas": {"name": "Castanhas", "p": 14.5, "c": 12.3, "f": 63.5, "category": "fat", "unit": "unidades", "unit_g": 10},
+    # Amêndoa, torrada, salgada: 581kcal, 18.6g P, 29.5g C, 47.3g F (TACO)
+    "amendoas": {"name": "Amêndoas", "p": 18.6, "c": 29.5, "f": 47.3, "category": "fat", "unit": "unidades", "unit_g": 5},
+    # Noz: 620kcal, 14.0g P, 18.4g C, 59.4g F (TACO)
+    "nozes": {"name": "Nozes", "p": 14.0, "c": 18.4, "f": 59.4, "category": "fat", "unit": "unidade", "unit_g": 8},
+    # Chia: 486kcal, 16.5g P, 42.1g C, 30.7g F (USDA)
+    "chia": {"name": "Chia", "p": 16.5, "c": 42.1, "f": 30.7, "category": "fat", "unit": "colher sopa", "unit_g": 15},
+    # Linhaça: 495kcal, 14.1g P, 43.3g C, 32.3g F (TACO)
+    "linhaca": {"name": "Linhaça", "p": 14.1, "c": 43.3, "f": 32.3, "category": "fat", "unit": "colher sopa", "unit_g": 15},
+    # Queijo, minas, frescal: 264kcal, 17.4g P, 3.2g C, 20.2g F (TACO)
+    "queijo": {"name": "Queijo", "p": 17.4, "c": 3.2, "f": 20.2, "category": "fat", "unit": "fatia média", "unit_g": 30},
+    # Amendoim, torrado, salgado: 606kcal, 22.5g P, 20.3g C, 50.0g F (TACO)
+    "amendoim": {"name": "Amendoim", "p": 22.5, "c": 20.3, "f": 50.0, "category": "fat", "unit": "punhado", "unit_g": 30},
     
-    # === FRUTAS ===
-    "banana": {"name": "Banana", "p": 1.1, "c": 23.0, "f": 0.3, "category": "fruit", "unit": "unidade média", "unit_g": 120},
-    "maca": {"name": "Maçã", "p": 0.3, "c": 14.0, "f": 0.2, "category": "fruit", "unit": "unidade média", "unit_g": 150},
-    "laranja": {"name": "Laranja", "p": 0.9, "c": 12.0, "f": 0.1, "category": "fruit", "unit": "unidade média", "unit_g": 180},
-    "morango": {"name": "Morango", "p": 0.7, "c": 8.0, "f": 0.3, "category": "fruit", "unit": "xícara", "unit_g": 150},
-    "mamao": {"name": "Mamão", "p": 0.5, "c": 11.0, "f": 0.1, "category": "fruit", "unit": "fatia média", "unit_g": 150},
-    "manga": {"name": "Manga", "p": 0.8, "c": 15.0, "f": 0.4, "category": "fruit", "unit": "unidade pequena", "unit_g": 200},
-    "melancia": {"name": "Melancia", "p": 0.6, "c": 8.0, "f": 0.2, "category": "fruit", "unit": "fatia média", "unit_g": 200},
-    "abacate": {"name": "Abacate", "p": 2.0, "c": 9.0, "f": 15.0, "category": "fat", "unit": "metade", "unit_g": 100},
-    "uva": {"name": "Uva", "p": 0.7, "c": 18.0, "f": 0.2, "category": "fruit", "unit": "cacho pequeno", "unit_g": 100},
-    "abacaxi": {"name": "Abacaxi", "p": 0.5, "c": 13.0, "f": 0.1, "category": "fruit", "unit": "fatia média", "unit_g": 100},
-    "melao": {"name": "Melão", "p": 0.8, "c": 8.0, "f": 0.2, "category": "fruit", "unit": "fatia média", "unit_g": 150},
-    "kiwi": {"name": "Kiwi", "p": 1.1, "c": 15.0, "f": 0.5, "category": "fruit", "unit": "unidade", "unit_g": 75},
-    "pera": {"name": "Pera", "p": 0.4, "c": 15.0, "f": 0.1, "category": "fruit", "unit": "unidade média", "unit_g": 180},
-    "pessego": {"name": "Pêssego", "p": 0.9, "c": 10.0, "f": 0.3, "category": "fruit", "unit": "unidade média", "unit_g": 150},
-    "mirtilo": {"name": "Mirtilo", "p": 0.7, "c": 14.0, "f": 0.3, "category": "fruit", "unit": "xícara", "unit_g": 150},
-    "acai": {"name": "Açaí", "p": 1.0, "c": 6.0, "f": 5.0, "category": "fruit", "unit": "polpa 100g", "unit_g": 100},
+    # === FRUTAS === (TACO - Frutas e derivados)
+    # Banana, prata: 98kcal, 1.3g P, 26.0g C, 0.1g F (TACO)
+    "banana": {"name": "Banana", "p": 1.3, "c": 26.0, "f": 0.1, "category": "fruit", "unit": "unidade média", "unit_g": 120},
+    # Maçã, fuji: 56kcal, 0.3g P, 15.2g C, 0.0g F (TACO)
+    "maca": {"name": "Maçã", "p": 0.3, "c": 15.2, "f": 0.0, "category": "fruit", "unit": "unidade média", "unit_g": 150},
+    # Laranja, pera: 37kcal, 1.0g P, 8.9g C, 0.1g F (TACO)
+    "laranja": {"name": "Laranja", "p": 1.0, "c": 8.9, "f": 0.1, "category": "fruit", "unit": "unidade média", "unit_g": 180},
+    # Morango: 30kcal, 0.9g P, 6.8g C, 0.3g F (TACO)
+    "morango": {"name": "Morango", "p": 0.9, "c": 6.8, "f": 0.3, "category": "fruit", "unit": "xícara", "unit_g": 150},
+    # Mamão, papaia: 40kcal, 0.5g P, 10.4g C, 0.1g F (TACO)
+    "mamao": {"name": "Mamão", "p": 0.5, "c": 10.4, "f": 0.1, "category": "fruit", "unit": "fatia média", "unit_g": 150},
+    # Manga, haden: 64kcal, 0.4g P, 16.7g C, 0.3g F (TACO)
+    "manga": {"name": "Manga", "p": 0.4, "c": 16.7, "f": 0.3, "category": "fruit", "unit": "unidade pequena", "unit_g": 200},
+    # Melancia: 33kcal, 0.9g P, 8.1g C, 0.0g F (TACO)
+    "melancia": {"name": "Melancia", "p": 0.9, "c": 8.1, "f": 0.0, "category": "fruit", "unit": "fatia média", "unit_g": 200},
+    # Abacate: 96kcal, 1.2g P, 6.0g C, 8.4g F (TACO)
+    "abacate": {"name": "Abacate", "p": 1.2, "c": 6.0, "f": 8.4, "category": "fat", "unit": "metade", "unit_g": 100},
+    # Uva, itália: 53kcal, 0.7g P, 13.6g C, 0.2g F (TACO)
+    "uva": {"name": "Uva", "p": 0.7, "c": 13.6, "f": 0.2, "category": "fruit", "unit": "cacho pequeno", "unit_g": 100},
+    # Abacaxi: 48kcal, 0.9g P, 12.3g C, 0.1g F (TACO)
+    "abacaxi": {"name": "Abacaxi", "p": 0.9, "c": 12.3, "f": 0.1, "category": "fruit", "unit": "fatia média", "unit_g": 100},
+    # Melão: 29kcal, 0.7g P, 7.5g C, 0.0g F (TACO)
+    "melao": {"name": "Melão", "p": 0.7, "c": 7.5, "f": 0.0, "category": "fruit", "unit": "fatia média", "unit_g": 150},
+    # Kiwi: 51kcal, 1.3g P, 11.5g C, 0.6g F (TACO)
+    "kiwi": {"name": "Kiwi", "p": 1.3, "c": 11.5, "f": 0.6, "category": "fruit", "unit": "unidade", "unit_g": 75},
+    # Pera: 53kcal, 0.6g P, 14.0g C, 0.1g F (TACO)
+    "pera": {"name": "Pera", "p": 0.6, "c": 14.0, "f": 0.1, "category": "fruit", "unit": "unidade média", "unit_g": 180},
+    # Pêssego: 36kcal, 0.8g P, 9.3g C, 0.1g F (TACO)
+    "pessego": {"name": "Pêssego", "p": 0.8, "c": 9.3, "f": 0.1, "category": "fruit", "unit": "unidade média", "unit_g": 150},
+    # Mirtilo: 32kcal, 0.6g P, 6.9g C, 0.0g F (USDA)
+    "mirtilo": {"name": "Mirtilo", "p": 0.6, "c": 6.9, "f": 0.0, "category": "fruit", "unit": "xícara", "unit_g": 150},
+    # Açaí, polpa: 58kcal, 0.8g P, 6.2g C, 3.9g F (TACO)
+    "acai": {"name": "Açaí", "p": 0.8, "c": 6.2, "f": 3.9, "category": "fruit", "unit": "polpa 100g", "unit_g": 100},
     
-    # === VEGETAIS E LEGUMES ===
+    # === VEGETAIS E LEGUMES === (TACO)
     # Fonte de fibras, vitaminas, minerais - NÃO substituem macros principais
-    # Prioridade: saúde intestinal, micronutrientes, recuperação muscular
     
     # Folhas verdes (saladas)
-    "salada": {"name": "Salada Verde", "p": 1.5, "c": 3.0, "f": 0.2, "category": "vegetable", "unit": "prato cheio", "unit_g": 100},
-    "alface": {"name": "Alface", "p": 1.2, "c": 2.0, "f": 0.2, "category": "vegetable", "unit": "folhas", "unit_g": 50},
-    "rucola": {"name": "Rúcula", "p": 2.6, "c": 3.7, "f": 0.7, "category": "vegetable", "unit": "maço", "unit_g": 50},
-    "espinafre": {"name": "Espinafre", "p": 2.9, "c": 3.6, "f": 0.4, "category": "vegetable", "unit": "xícara", "unit_g": 100},
-    "couve": {"name": "Couve", "p": 2.9, "c": 4.4, "f": 0.6, "category": "vegetable", "unit": "folhas refogadas", "unit_g": 100},
+    # Alface, crespa: 11kcal, 1.3g P, 1.7g C, 0.2g F (TACO)
+    "salada": {"name": "Salada Verde", "p": 1.3, "c": 1.7, "f": 0.2, "category": "vegetable", "unit": "prato cheio", "unit_g": 100},
+    "alface": {"name": "Alface", "p": 1.3, "c": 1.7, "f": 0.2, "category": "vegetable", "unit": "folhas", "unit_g": 50},
+    # Rúcula: 18kcal, 2.2g P, 2.2g C, 0.3g F (TACO)
+    "rucola": {"name": "Rúcula", "p": 2.2, "c": 2.2, "f": 0.3, "category": "vegetable", "unit": "maço", "unit_g": 50},
+    # Espinafre, refogado: 42kcal, 2.6g P, 6.4g C, 0.5g F (TACO)
+    "espinafre": {"name": "Espinafre", "p": 2.6, "c": 6.4, "f": 0.5, "category": "vegetable", "unit": "xícara", "unit_g": 100},
+    # Couve, manteiga, refogada: 90kcal, 3.1g P, 12.7g C, 3.0g F (TACO)
+    "couve": {"name": "Couve", "p": 3.1, "c": 12.7, "f": 3.0, "category": "vegetable", "unit": "folhas refogadas", "unit_g": 100},
     
     # Crucíferas (alto valor nutricional)
-    "brocolis": {"name": "Brócolis", "p": 2.8, "c": 7.0, "f": 0.4, "category": "vegetable", "unit": "xícara cozido", "unit_g": 100},
-    "couve_flor": {"name": "Couve-flor", "p": 1.9, "c": 5.0, "f": 0.3, "category": "vegetable", "unit": "xícara cozida", "unit_g": 100},
+    # Brócolis, cozido: 24kcal, 2.1g P, 4.4g C, 0.2g F (TACO)
+    "brocolis": {"name": "Brócolis", "p": 2.1, "c": 4.4, "f": 0.2, "category": "vegetable", "unit": "xícara cozido", "unit_g": 100},
+    # Couve-flor, cozida: 19kcal, 1.2g P, 4.0g C, 0.2g F (TACO)
+    "couve_flor": {"name": "Couve-flor", "p": 1.2, "c": 4.0, "f": 0.2, "category": "vegetable", "unit": "xícara cozida", "unit_g": 100},
     
     # Legumes variados
-    "cenoura": {"name": "Cenoura", "p": 0.9, "c": 10.0, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 80},
+    # Cenoura, crua: 34kcal, 1.3g P, 7.7g C, 0.2g F (TACO)
+    "cenoura": {"name": "Cenoura", "p": 1.3, "c": 7.7, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 80},
     "abobrinha": {"name": "Abobrinha", "p": 1.2, "c": 3.0, "f": 0.3, "category": "vegetable", "unit": "unidade média", "unit_g": 150},
     "pepino": {"name": "Pepino", "p": 0.7, "c": 4.0, "f": 0.1, "category": "vegetable", "unit": "unidade", "unit_g": 150},
     "tomate": {"name": "Tomate", "p": 0.9, "c": 3.9, "f": 0.2, "category": "vegetable", "unit": "unidade média", "unit_g": 120},
