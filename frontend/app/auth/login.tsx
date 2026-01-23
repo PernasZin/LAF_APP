@@ -227,25 +227,32 @@ export default function LoginScreen() {
               </View>
 
               {/* Login Button */}
-              <Animated.View style={[styles.buttonContainer, animatedButtonStyle]}>
-                <TouchableOpacity 
-                  onPress={() => {
-                    console.log('🟢 Login button pressed');
-                    handleLogin();
-                  }} 
-                  disabled={isLoading}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.loginButton,
-                    { backgroundColor: isLoading ? '#9CA3AF' : premiumColors.primary }
-                  ]}
+              <View style={styles.buttonContainer}>
+                <LinearGradient
+                  colors={isLoading
+                    ? ['#9CA3AF', '#6B7280']
+                    : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.loginButton}
                 >
-                  <LogIn size={20} color="#FFF" />
-                  <Text style={styles.loginButtonText}>
-                    {isLoading ? (language === 'en-US' ? 'Entering...' : language === 'es-ES' ? 'Entrando...' : 'Entrando...') : t.enterAccount}
-                  </Text>
-                </TouchableOpacity>
-              </Animated.View>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      console.log('🟢 Login button pressed');
+                      handleLogin();
+                    }} 
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                    style={styles.loginButtonInner}
+                  >
+                    <LogIn size={20} color="#FFF" />
+                    <Text style={styles.loginButtonText}>
+                      {isLoading ? (language === 'en-US' ? 'Entering...' : language === 'es-ES' ? 'Entrando...' : 'Entrando...') : t.enterAccount}
+                    </Text>
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
             </Animated.View>
 
             {/* Signup Link */}
