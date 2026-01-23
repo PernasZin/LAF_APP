@@ -402,7 +402,7 @@ frontend:
   
   - task: "Basic Info Step"
     implemented: true
-    working: false
+    working: "NA"
     file: "/app/frontend/app/onboarding/steps/BasicInfoStep.tsx"
     stuck_count: 1
     priority: "high"
@@ -414,10 +414,13 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login. Não foi possível testar os passos do onboarding."
+      - working: "NA"
+        agent: "testing"
+        comment: "⚠️ ONBOARDING NÃO ACESSÍVEL: Tentativa de acesso direto a /onboarding redireciona para login. Fluxo normal seria: Signup → Onboarding, mas signup também redireciona para login. Onboarding só acessível para usuários sem perfil completo."
   
   - task: "Physical Data Step"
     implemented: true
-    working: false
+    working: "NA"
     file: "/app/frontend/app/onboarding/steps/PhysicalDataStep.tsx"
     stuck_count: 1
     priority: "high"
@@ -429,10 +432,13 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
+      - working: "NA"
+        agent: "testing"
+        comment: "⚠️ ONBOARDING NÃO ACESSÍVEL: Mesmo status do passo anterior - não acessível para usuários com perfil completo."
   
   - task: "Training Level Step"
     implemented: true
-    working: false
+    working: "NA"
     file: "/app/frontend/app/onboarding/steps/TrainingLevelStep.tsx"
     stuck_count: 1
     priority: "high"
@@ -444,10 +450,13 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
+      - working: "NA"
+        agent: "testing"
+        comment: "⚠️ ONBOARDING NÃO ACESSÍVEL: Mesmo status dos passos anteriores."
   
   - task: "Goal Step"
     implemented: true
-    working: false
+    working: "NA"
     file: "/app/frontend/app/onboarding/steps/GoalStep.tsx"
     stuck_count: 1
     priority: "high"
@@ -459,16 +468,24 @@ frontend:
       - working: false
         agent: "testing"
         comment: "❌ Não consegui acessar o onboarding - bloqueado na tela de login."
+      - working: "NA"
+        agent: "testing"
+        comment: "⚠️ ONBOARDING NÃO ACESSÍVEL: Mesmo status dos passos anteriores."
   
   - task: "Restrictions Step"
     implemented: true
-    working: false
+    working: "NA"
     file: "/app/frontend/app/onboarding/steps/RestrictionsStep.tsx"
     stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: "NA"
+        agent: "main"
+        comment: "Step 5: Dietary restrictions and food preferences selection implemented. Needs UI testing."
+      - working: "NA"
+        agent: "testing"
+        comment: "⚠️ ONBOARDING NÃO ACESSÍVEL: Mesmo status dos passos anteriores."
   
   - task: "Diet Screen - Calories Display"
     implemented: true
