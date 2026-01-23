@@ -224,10 +224,10 @@ export default function PrivacyScreen() {
             </Text>
 
             <View style={styles.deleteList}>
-              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Perfil e configurações</Text>
-              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Histórico de dietas</Text>
-              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Histórico de treinos</Text>
-              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• Progresso e medições</Text>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• {t.privacy.deleteListProfile}</Text>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• {t.privacy.deleteListDiet}</Text>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• {t.privacy.deleteListWorkout}</Text>
+              <Text style={[styles.deleteListItem, { color: theme.textSecondary }]}>• {t.privacy.deleteListProgress}</Text>
             </View>
 
             <Text style={[styles.passwordLabel, { color: theme.text }]}>
