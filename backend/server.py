@@ -4266,7 +4266,7 @@ async def create_checkout_session(request: CreateCheckoutRequest):
         price_id = STRIPE_PRICE_MONTHLY if request.plan_type == "monthly" else STRIPE_PRICE_ANNUAL
         
         # URLs de sucesso e cancelamento
-        base_url = os.getenv("FRONTEND_URL", "https://fit-final.preview.emergentagent.com")
+        base_url = os.getenv("FRONTEND_URL", "https://prelaunch-diet.preview.emergentagent.com")
         success_url = request.success_url or f"{base_url}/subscription/success?session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = request.cancel_url or f"{base_url}/subscription/cancel"
         
