@@ -97,6 +97,17 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // SUBSCRIPTION EXPIRED (após período de graça de 3 dias) → forçar paywall
+    if (subscriptionExpired) {
+      // Reset hasSeenPaywall para forçar ver o paywall novamente
+      setHasSeenPaywall(false);
+      if (!inPaywall) {
+        console.log('🛡️ → /paywall (subscription expired)');
+        router.replace('/paywall');
+      }
+      return;
+    }
+
     // Authenticated with profile but hasn't seen paywall and not premium → show paywall
     if (!hasSeenPaywall && !isPremium()) {
       if (!inPaywall) {
