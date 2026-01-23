@@ -4496,6 +4496,100 @@ async def stripe_webhook(request: Request):
     return {"received": True}
 
 
+# =====================================
+# IN-APP PURCHASE (IAP) Endpoints
+# =====================================
+
+class IAPPurchaseRequest(BaseModel):
+    user_id: str
+    product_id: str
+    transaction_id: str
+    receipt: str
+    platform: str  # 'ios' or 'android'
+
+@api_router.post("/user/premium")
+async def update_user_premium(request: IAPPurchaseRequest):
+    """
+    Atualiza o status premium do usuário após compra IAP.
+    
+    IMPORTANTE: Em produção, você deve validar o recibo com:
+    - iOS: Apple App Store Server API
+    - Android: Google Play Developer API
+    """
+    try:
+        user_id = request.user_id
+        
+        # Verificar se o usuário existe
+        user_auth = await db.users_auth.find_one({"id": user_id})
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        
+        if not user_auth and not user_profile:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        # Determinar tipo de plano baseado no product_id
+        plan_type = "monthly"
+        if "annual" in request.product_id.lower():
+            plan_type = "annual"
+        
+        # Atualizar status premium
+        update_data = {
+            "subscription_status": "active",
+            "current_plan": plan_type,
+            "iap_transaction_id": request.transaction_id,
+            "iap_product_id": request.product_id,
+            "iap_platform": request.platform,
+            "iap_receipt": request.receipt[:500] if request.receipt else None,  # Guardar parte do recibo para referência
+            "premium_activated_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow()
+        }
+        
+        # Atualizar em ambas as coleções
+        if user_auth:
+            await db.users_auth.update_one({"id": user_id}, {"$set": update_data})
+        if user_profile:
+            await db.user_profiles.update_one({"id": user_id}, {"$set": update_data})
+        
+        logger.info(f"User {user_id} premium activated via IAP: {request.product_id} on {request.platform}")
+        
+        return {
+            "success": True,
+            "message": "Premium ativado com sucesso",
+            "plan_type": plan_type
+        }
+        
+    except Exception as e:
+        logger.error(f"Error updating premium status: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.get("/user/premium/{user_id}")
+async def get_user_premium_status(user_id: str):
+    """Retorna o status premium do usuário"""
+    try:
+        user_auth = await db.users_auth.find_one({"id": user_id})
+        user_profile = await db.user_profiles.find_one({"id": user_id})
+        
+        if not user_auth and not user_profile:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        # Combinar dados
+        user = user_auth if user_auth else {}
+        if user_profile:
+            user.update({k: v for k, v in user_profile.items() if k not in user or not user.get(k)})
+        
+        subscription_status = user.get("subscription_status", "inactive")
+        
+        return {
+            "is_premium": subscription_status == "active",
+            "subscription_status": subscription_status,
+            "current_plan": user.get("current_plan"),
+            "iap_platform": user.get("iap_platform"),
+            "premium_activated_at": user.get("premium_activated_at")
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # Include router
 app.include_router(api_router)
 
