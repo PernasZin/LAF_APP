@@ -544,7 +544,7 @@ export default function PaywallScreen() {
                   <>
                     <Crown size={22} color="#FFF" />
                     <Text style={styles.ctaButtonText}>
-                      {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
+                      {selectedPlan === 'monthly' ? t.startTrial : t.startTrial}
                     </Text>
                   </>
                 )}
