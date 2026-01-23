@@ -244,23 +244,30 @@ export default function SignupScreen() {
 
               {/* Signup Button */}
               <View style={styles.buttonContainer}>
-                <TouchableOpacity 
-                  onPress={() => {
-                    console.log('🟢 Signup button pressed');
-                    handleSignup();
-                  }} 
-                  disabled={isLoading}
-                  activeOpacity={0.7}
-                  style={[
-                    styles.signupButton,
-                    { backgroundColor: isLoading ? '#9CA3AF' : premiumColors.primary }
-                  ]}
+                <LinearGradient
+                  colors={isLoading
+                    ? ['#9CA3AF', '#6B7280']
+                    : [premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.signupButton}
                 >
-                  <UserPlus size={20} color="#FFF" />
-                  <Text style={styles.signupButtonText}>
-                    {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
-                  </Text>
-                </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      console.log('🟢 Signup button pressed');
+                      handleSignup();
+                    }} 
+                    disabled={isLoading}
+                    activeOpacity={0.8}
+                    style={styles.signupButtonInner}
+                  >
+                    <UserPlus size={20} color="#FFF" />
+                    <Text style={styles.signupButtonText}>
+                      {isLoading ? (language === 'en-US' ? 'Creating...' : 'Criando...') : t.createAccount}
+                    </Text>
+                  </TouchableOpacity>
+                </LinearGradient>
               </View>
 
               {/* Terms and Privacy */}
