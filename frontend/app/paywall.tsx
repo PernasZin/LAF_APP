@@ -232,15 +232,6 @@ export default function PaywallScreen() {
       />
 
       <SafeAreaView style={styles.safeArea}>
-        {/* Skip Button */}
-        <TouchableOpacity
-          style={styles.skipButton}
-          onPress={handleSkip}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <X size={24} color={theme.textTertiary} />
-        </TouchableOpacity>
-
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
