@@ -86,6 +86,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inPaywall = currentSegment === 'paywall';
     const inTabs = currentSegment === '(tabs)';
     const inLegal = currentSegment === 'legal';
+    const inSettings = currentSegment === 'settings';
+    const inSubscription = currentSegment === 'subscription';
     const isRootIndex = segments.length === 0 || currentSegment === 'index';
 
     // Verificar status da assinatura
