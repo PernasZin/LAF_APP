@@ -2,6 +2,7 @@
  * In-App Purchase Service
  * ========================
  * Gerencia compras dentro do app para iOS (App Store) e Android (Google Play)
+ * Usa expo-in-app-purchases (compatível com Expo managed workflow)
  * 
  * IMPORTANTE: Para funcionar em produção, você precisa:
  * 1. Configurar produtos no App Store Connect (iOS)
@@ -46,10 +47,15 @@ interface IAPPurchase {
 }
 
 // Lazy load do módulo IAP apenas em plataformas nativas
-let InAppPurchases: any = null;
+let InAppPurchases: typeof import('expo-in-app-purchases') | null = null;
 
-const loadIAPModule = async () => {
-  if (Platform.OS !== 'web' && !InAppPurchases) {
+const loadIAPModule = async (): Promise<boolean> => {
+  if (Platform.OS === 'web') {
+    console.log('IAP not available on web');
+    return false;
+  }
+  
+  if (!InAppPurchases) {
     try {
       InAppPurchases = await import('expo-in-app-purchases');
       return true;
@@ -58,7 +64,7 @@ const loadIAPModule = async () => {
       return false;
     }
   }
-  return Platform.OS !== 'web';
+  return true;
 };
 
 class IAPService {
@@ -88,14 +94,14 @@ class IAPService {
       console.log('✅ IAP connected successfully');
 
       // Configurar listener de compras
-      InAppPurchases.setPurchaseListener(({ responseCode, results, errorCode }: any) => {
-        if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-          results?.forEach((purchase: any) => {
+      InAppPurchases.setPurchaseListener(({ responseCode, results, errorCode }) => {
+        if (responseCode === InAppPurchases!.IAPResponseCode.OK) {
+          results?.forEach((purchase) => {
             if (!purchase.acknowledged) {
               console.log('🛒 Purchase received:', purchase.productId);
               
               // Finalizar a transação
-              InAppPurchases.finishTransactionAsync(purchase, true);
+              InAppPurchases!.finishTransactionAsync(purchase, true);
               
               // Notificar o listener
               if (this.purchaseListener) {
@@ -108,7 +114,7 @@ class IAPService {
               }
             }
           });
-        } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+        } else if (responseCode === InAppPurchases!.IAPResponseCode.USER_CANCELED) {
           console.log('❌ User canceled the purchase');
         } else {
           console.error('❌ Purchase error:', errorCode);
@@ -135,10 +141,10 @@ class IAPService {
         await this.initialize();
       }
 
-      const { responseCode, results } = await InAppPurchases.getProductsAsync(IAP_SKUS);
+      const { responseCode, results } = await InAppPurchases.getProductsAsync(IAP_SKUS as string[]);
 
       if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
-        this.products = results.map((product: any) => ({
+        this.products = results.map((product) => ({
           productId: product.productId,
           title: product.title,
           description: product.description,
@@ -197,10 +203,7 @@ class IAPService {
       const { responseCode, results } = await InAppPurchases.getPurchaseHistoryAsync();
 
       if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
-        // Verificar se há alguma assinatura ativa
-        const activeSubscription = results.find((purchase: any) => {
-          // Para assinaturas, verificar se não expirou
-          // Nota: A verificação completa deve ser feita no servidor
+        const activeSubscription = results.find((purchase) => {
           return IAP_SKUS.includes(purchase.productId);
         });
 
@@ -231,7 +234,7 @@ class IAPService {
 
       if (responseCode === InAppPurchases.IAPResponseCode.OK && results) {
         console.log('✅ Restored purchases:', results.length);
-        return results.map((purchase: any) => ({
+        return results.map((purchase) => ({
           productId: purchase.productId,
           transactionId: purchase.orderId || purchase.transactionId || '',
           transactionDate: purchase.purchaseTime || Date.now(),
