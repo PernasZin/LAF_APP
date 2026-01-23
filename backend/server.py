@@ -643,18 +643,20 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                 elif updated_profile_data.get('meal_count') and updated_profile_data.get('meal_count') in [4, 5, 6]:
                     meal_count = updated_profile_data.get('meal_count')
                 
+                # Prepara preferências e restrições
+                food_preferences = set(profile_obj.food_preferences or [])
+                dietary_restrictions = profile_obj.dietary_restrictions or []
+                
                 # Gera nova dieta usando a função do diet_service
-                is_training_day = True  # Dia de treino por padrão
+                # Assinatura: generate_diet(target_p, target_c, target_f, preferred, restrictions, meal_count, original_preferred, goal)
                 meals_list = gen_diet_func(
-                    target_calories=profile_obj.target_calories,
-                    target_protein=profile_obj.macros.get("protein", 150),
-                    target_carbs=profile_obj.macros.get("carbs", 300),
-                    target_fat=profile_obj.macros.get("fat", 70),
+                    target_p=int(profile_obj.macros.get("protein", 150)),
+                    target_c=int(profile_obj.macros.get("carbs", 300)),
+                    target_f=int(profile_obj.macros.get("fat", 70)),
+                    preferred=food_preferences,
+                    restrictions=dietary_restrictions,
                     meal_count=meal_count,
-                    dietary_restrictions=profile_obj.dietary_restrictions or [],
-                    food_preferences=profile_obj.food_preferences or [],
-                    is_training_day=is_training_day,
-                    weight=profile_obj.weight,
+                    original_preferred=food_preferences,
                     goal=profile_obj.goal
                 )
                 
@@ -670,7 +672,7 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                     "_id": diet_id,
                     "id": diet_id,
                     "user_id": user_id,
-                    "diet_type": "training" if is_training_day else "rest",
+                    "diet_type": "training",
                     "target_calories": profile_obj.target_calories,
                     "target_protein": profile_obj.macros.get("protein", 150),
                     "target_carbs": profile_obj.macros.get("carbs", 300),
