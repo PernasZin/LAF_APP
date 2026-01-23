@@ -177,6 +177,7 @@ export default function SettingsScreen() {
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          style={{ flex: 1 }}
         >
           {/* Header */}
           <Animated.View entering={FadeInDown.springify()} style={styles.header}>
