@@ -4447,17 +4447,17 @@ async def stripe_webhook(request: Request):
         plan_type = metadata.get("plan_type")
         
         if user_id:
-            await db.users.update_one(
-                {"id": user_id},
-                {"$set": {
-                    "subscription_status": "active",
-                    "subscription_id": subscription_id,
-                    "current_plan": plan_type,
-                    "stripe_customer_id": customer_id,
-                    "subscription_started_at": datetime.utcnow(),
-                    "updated_at": datetime.utcnow()
-                }}
-            )
+            update_data = {
+                "subscription_status": "active",
+                "subscription_id": subscription_id,
+                "current_plan": plan_type,
+                "stripe_customer_id": customer_id,
+                "subscription_started_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            # Atualizar em ambas as coleções
+            await db.users_auth.update_one({"id": user_id}, {"$set": update_data})
+            await db.user_profiles.update_one({"id": user_id}, {"$set": update_data})
             logger.info(f"User {user_id} subscription activated: {plan_type}")
     
     elif event_type == "customer.subscription.updated":
@@ -4465,41 +4465,32 @@ async def stripe_webhook(request: Request):
         status = data.get("status")
         customer_id = data.get("customer")
         
-        # Atualizar usuário pelo customer_id
-        await db.users.update_one(
-            {"stripe_customer_id": customer_id},
-            {"$set": {
-                "subscription_status": status,
-                "updated_at": datetime.utcnow()
-            }}
-        )
+        # Atualizar usuário pelo customer_id em ambas as coleções
+        update_data = {"subscription_status": status, "updated_at": datetime.utcnow()}
+        await db.users_auth.update_one({"stripe_customer_id": customer_id}, {"$set": update_data})
+        await db.user_profiles.update_one({"stripe_customer_id": customer_id}, {"$set": update_data})
         logger.info(f"Subscription {subscription_id} updated to status: {status}")
     
     elif event_type == "customer.subscription.deleted":
         subscription_id = data.get("id")
         customer_id = data.get("customer")
         
-        await db.users.update_one(
-            {"stripe_customer_id": customer_id},
-            {"$set": {
-                "subscription_status": "canceled",
-                "subscription_id": None,
-                "current_plan": None,
-                "updated_at": datetime.utcnow()
-            }}
-        )
+        update_data = {
+            "subscription_status": "canceled",
+            "subscription_id": None,
+            "current_plan": None,
+            "updated_at": datetime.utcnow()
+        }
+        await db.users_auth.update_one({"stripe_customer_id": customer_id}, {"$set": update_data})
+        await db.user_profiles.update_one({"stripe_customer_id": customer_id}, {"$set": update_data})
         logger.info(f"Subscription {subscription_id} canceled")
     
     elif event_type == "invoice.payment_failed":
         customer_id = data.get("customer")
         
-        await db.users.update_one(
-            {"stripe_customer_id": customer_id},
-            {"$set": {
-                "subscription_status": "past_due",
-                "updated_at": datetime.utcnow()
-            }}
-        )
+        update_data = {"subscription_status": "past_due", "updated_at": datetime.utcnow()}
+        await db.users_auth.update_one({"stripe_customer_id": customer_id}, {"$set": update_data})
+        await db.user_profiles.update_one({"stripe_customer_id": customer_id}, {"$set": update_data})
         logger.info(f"Payment failed for customer {customer_id}")
     
     return {"received": True}
