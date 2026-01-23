@@ -90,8 +90,10 @@ class LAFTester:
         
         if success and response.status_code == 200:
             data = response.json()
-            if "token" in data:
-                self.token = data["token"]
+            # Handle both 'token' and 'access_token' response formats
+            token = data.get("token") or data.get("access_token")
+            if token:
+                self.token = token
                 self.user_id = data.get("user_id", TEST_USER_ID)
                 self.log_test("Authentication Login", True, f"Token received, User ID: {self.user_id}")
             else:
