@@ -177,15 +177,12 @@ export default function IndexScreen() {
 
             {/* Continue Button */}
             <Animated.View entering={FadeInUp.delay(600).springify()} style={styles.continueContainer}>
-              <TouchableOpacity onPress={handleContinue} activeOpacity={0.9}>
-                <LinearGradient
-                  colors={[premiumColors.gradient.start, premiumColors.gradient.middle, premiumColors.gradient.end]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.continueButton}
-                >
-                  <Text style={styles.continueButtonText}>Continuar</Text>
-                </LinearGradient>
+              <TouchableOpacity 
+                onPress={handleContinue} 
+                activeOpacity={0.7}
+                style={[styles.continueButton, { backgroundColor: premiumColors.primary }]}
+              >
+                <Text style={styles.continueButtonText}>Continuar</Text>
               </TouchableOpacity>
             </Animated.View>
           </Animated.View>
