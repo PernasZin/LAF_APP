@@ -1822,15 +1822,17 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # Não adiciona fallback de proteína no café - pode ser só carb+fruta!
             
             # 🍞 PÃO (SEMPRE ADICIONA - AUTOCOMPLETE INTELIGENTE)
-            # MÍNIMO: 2 fatias (50g) | PODE AUMENTAR: 4-5 fatias (100-125g) se precisar de mais carbs
+            # Distribui carboidratos entre pão no café e arroz no almoço/jantar
+            # Isso evita excesso de arroz e deixa a dieta mais equilibrada
             # Para SEM GLÚTEN: usar tapioca
-            pao_grams = 50  # Base: 2 fatias
             
-            # Se o objetivo é bulking ou a meta de carbs é alta, aumenta o pão
-            if goal == "bulking" or target_c > 300:
-                pao_grams = 100  # 4 fatias para bulking
-            elif target_c > 250:
-                pao_grams = 75   # 3 fatias para metas intermediárias
+            # Base de pão ajustada por objetivo (mais pão = menos arroz necessário)
+            if goal == "bulking":
+                pao_grams = 150  # 6 fatias para bulking - distribui melhor os carbs
+            elif goal == "manutencao":
+                pao_grams = 100  # 4 fatias para manutenção
+            else:  # cutting
+                pao_grams = 70   # 3 fatias para cutting
             
             # Verifica se pode usar pão (sem_gluten não pode)
             has_gluten_restriction = "sem_gluten" in restrictions or "Sem Glúten" in restrictions
