@@ -10,7 +10,6 @@ from typing import List, Optional, Dict, Tuple
 import uuid
 from datetime import datetime, timedelta
 from bson import ObjectId
-import stripe
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
