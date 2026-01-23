@@ -152,6 +152,8 @@ export default function PaywallScreen() {
 
   const handleSubscribe = async () => {
     console.log('🔵 handleSubscribe called! selectedPlan:', selectedPlan);
+    
+    // Prevenir comportamento padrão
     setIsLoading(true);
     buttonScale.value = withSpring(0.95);
 
@@ -162,10 +164,14 @@ export default function PaywallScreen() {
       
       if (!userId) {
         Alert.alert('Erro', 'Faça login primeiro para assinar.');
+        setIsLoading(false);
         router.replace('/auth/login');
         return;
       }
 
+      console.log('🔵 Calling Stripe API...');
+      console.log('🔵 BACKEND_URL:', BACKEND_URL);
+      
       // Criar sessão de checkout no Stripe
       const response = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {
         method: 'POST',
@@ -176,22 +182,31 @@ export default function PaywallScreen() {
         }),
       });
 
+      console.log('🔵 Response status:', response.status);
       const data = await response.json();
+      console.log('🔵 Response data:', data);
 
       if (data.checkout_url) {
+        console.log('🔵 Opening checkout URL:', data.checkout_url);
         // Abrir URL de checkout do Stripe no navegador
-        const supported = await Linking.canOpenURL(data.checkout_url);
-        if (supported) {
-          await Linking.openURL(data.checkout_url);
+        if (Platform.OS === 'web') {
+          // Para web, abrir em nova aba
+          window.open(data.checkout_url, '_blank');
           setHasSeenPaywall(true);
         } else {
-          Alert.alert('Erro', 'Não foi possível abrir o link de pagamento.');
+          const supported = await Linking.canOpenURL(data.checkout_url);
+          if (supported) {
+            await Linking.openURL(data.checkout_url);
+            setHasSeenPaywall(true);
+          } else {
+            Alert.alert('Erro', 'Não foi possível abrir o link de pagamento.');
+          }
         }
       } else {
         Alert.alert('Erro', data.detail || 'Erro ao criar sessão de pagamento.');
       }
     } catch (error) {
-      console.error('Error creating checkout:', error);
+      console.error('❌ Error creating checkout:', error);
       Alert.alert(
         'Erro',
         'Não foi possível iniciar o pagamento. Tente novamente.'
