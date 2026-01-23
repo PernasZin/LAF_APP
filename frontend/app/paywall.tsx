@@ -2,6 +2,10 @@
  * Paywall Screen - Tela de Assinatura Premium
  * ============================================
  * Mostra benefícios e opção de iniciar trial/assinar
+ * 
+ * Usa:
+ * - In-App Purchase (IAP) para iOS e Android (App Store / Google Play)
+ * - Stripe para Web
  */
 
 import React, { useState, useEffect } from 'react';
@@ -41,6 +45,7 @@ import { useSubscriptionStore, SUBSCRIPTION_CONFIG } from '../stores/subscriptio
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../theme/premium';
 import { SupportedLanguage, translations } from '../i18n/translations';
 import { config } from '../config';
+import { iapService, IAP_PRODUCTS } from '../services/IAPService';
 
 const BACKEND_URL = config.BACKEND_URL;
 
