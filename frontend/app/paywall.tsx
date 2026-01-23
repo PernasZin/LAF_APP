@@ -240,7 +240,34 @@ export default function PaywallScreen() {
         return;
       }
 
-      console.log('🔵 Calling Stripe API...');
+      // ============================================
+      // MOBILE: Usar In-App Purchase (IAP)
+      // ============================================
+      if (Platform.OS !== 'web' && iapInitialized) {
+        console.log('🛒 Using In-App Purchase (IAP)');
+        
+        const productId = selectedPlan === 'monthly' 
+          ? IAP_PRODUCTS.MONTHLY 
+          : IAP_PRODUCTS.ANNUAL;
+        
+        console.log('🛒 Purchasing product:', productId);
+        
+        const success = await iapService.purchaseProduct(productId!);
+        
+        if (!success) {
+          Alert.alert(
+            'Erro',
+            'Não foi possível iniciar a compra. Tente novamente.'
+          );
+        }
+        // O listener de compras vai cuidar do resto
+        return;
+      }
+
+      // ============================================
+      // WEB: Usar Stripe
+      // ============================================
+      console.log('💳 Using Stripe Checkout');
       console.log('🔵 BACKEND_URL:', BACKEND_URL);
       
       // Criar sessão de checkout no Stripe
@@ -259,14 +286,12 @@ export default function PaywallScreen() {
 
       if (data.checkout_url) {
         console.log('🔵 Opening checkout URL:', data.checkout_url);
-        console.log('🔵 Platform.OS:', Platform.OS);
         
-        // Abrir URL de checkout do Stripe
         if (Platform.OS === 'web') {
           // Para web, abrir em nova aba
           window.open(data.checkout_url, '_blank');
         } else {
-          // Para mobile, usar expo-web-browser que abre um browser in-app
+          // Mobile sem IAP - usar browser (fallback)
           try {
             const result = await WebBrowser.openBrowserAsync(data.checkout_url, {
               dismissButtonStyle: 'close',
@@ -275,7 +300,6 @@ export default function PaywallScreen() {
             console.log('🔵 WebBrowser result:', result);
           } catch (browserError) {
             console.error('❌ WebBrowser error:', browserError);
-            // Fallback para Linking
             try {
               await Linking.openURL(data.checkout_url);
             } catch (linkError) {
