@@ -524,6 +524,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
+  ctaButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+  },
   priceText: {
     fontSize: 14,
     fontWeight: '600',
