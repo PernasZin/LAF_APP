@@ -372,30 +372,34 @@ export default function PaywallScreen() {
             style={styles.ctaContainer}
           >
             <TouchableOpacity
-              onPress={handleSubscribe}
+              onPress={() => {
+                console.log('Button pressed!');
+                handleSubscribe();
+              }}
               disabled={isLoading}
-              activeOpacity={0.85}
-              style={styles.ctaButton}
+              activeOpacity={0.7}
             >
-              <LinearGradient
-                colors={isLoading
-                  ? ['#9CA3AF', '#6B7280']
-                  : ['#F59E0B', '#EAB308', '#CA8A04']
-                }
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={[StyleSheet.absoluteFill, { borderRadius: radius.lg }]}
-              />
-              {isLoading ? (
-                <ActivityIndicator color="#FFF" />
-              ) : (
-                <View style={styles.ctaButtonContent}>
-                  <Crown size={22} color="#FFF" />
-                  <Text style={styles.ctaButtonText}>
-                    {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
-                  </Text>
-                </View>
-              )}
+              <View style={styles.ctaButton}>
+                <LinearGradient
+                  colors={isLoading
+                    ? ['#9CA3AF', '#6B7280']
+                    : ['#F59E0B', '#EAB308', '#CA8A04']
+                  }
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                {isLoading ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <View style={styles.ctaButtonContent}>
+                    <Crown size={22} color="#FFF" />
+                    <Text style={styles.ctaButtonText}>
+                      {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
 
             <Text style={[styles.cancelText, { color: theme.textTertiary }]}>
