@@ -288,8 +288,8 @@ export default function PaywallScreen() {
         console.log('🔵 Opening checkout URL:', data.checkout_url);
         
         if (Platform.OS === 'web') {
-          // Para web, abrir em nova aba
-          window.open(data.checkout_url, '_blank');
+          // Para web, redirecionar na mesma aba (evita bloqueio de popup)
+          window.location.href = data.checkout_url;
         } else {
           // Mobile sem IAP - usar browser (fallback)
           try {
