@@ -302,7 +302,7 @@ export default function SettingsScreen() {
               <SettingsRow
                 icon={<HelpCircle />}
                 label={t.settings.help}
-                onPress={() => {}}
+                onPress={() => Linking.openURL('https://www.instagram.com/laf_app/')}
                 isDark={isDark}
               />
             </GlassCard>
