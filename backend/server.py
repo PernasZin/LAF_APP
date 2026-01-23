@@ -660,11 +660,11 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                     goal=profile_obj.goal
                 )
                 
-                # Calcula totais
-                computed_protein = sum(m.get("protein", 0) for m in meals_list)
-                computed_carbs = sum(m.get("carbs", 0) for m in meals_list)
-                computed_fat = sum(m.get("fat", 0) for m in meals_list)
-                computed_calories = sum(m.get("calories", 0) for m in meals_list)
+                # Calcula totais - A estrutura de cada meal é: name, foods, total_calories, macros
+                computed_protein = sum(m.get("macros", {}).get("protein", 0) for m in meals_list)
+                computed_carbs = sum(m.get("macros", {}).get("carbs", 0) for m in meals_list)
+                computed_fat = sum(m.get("macros", {}).get("fat", 0) for m in meals_list)
+                computed_calories = sum(m.get("total_calories", 0) for m in meals_list)
                 
                 # Salva nova dieta
                 diet_id = str(uuid.uuid4())
