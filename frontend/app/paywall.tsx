@@ -127,6 +127,8 @@ export default function PaywallScreen() {
   const { startTrial, setHasSeenPaywall, isPremium } = useSubscriptionStore();
   const [isLoading, setIsLoading] = useState(false);
 
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'annual'>('monthly');
+
   const buttonScale = useSharedValue(1);
   const crownRotation = useSharedValue(0);
 
@@ -147,31 +149,59 @@ export default function PaywallScreen() {
     transform: [{ rotate: `${crownRotation.value}deg` }],
   }));
 
-  const handleStartTrial = async () => {
+  const handleSubscribe = async () => {
     setIsLoading(true);
     buttonScale.value = withSpring(0.95);
 
     try {
-      // TODO: Integrar com IAP real aqui
-      // Por enquanto, inicia trial simulado
-      await startTrial();
-      setHasSeenPaywall(true);
+      // Obter user_id do AsyncStorage
+      const userId = await AsyncStorage.getItem('user_id');
+      
+      if (!userId) {
+        Alert.alert('Erro', 'Faça login primeiro para assinar.');
+        router.replace('/auth/login');
+        return;
+      }
 
-      // Pequeno delay para UX
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // Criar sessão de checkout no Stripe
+      const response = await fetch(`${BACKEND_URL}/api/stripe/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          plan_type: selectedPlan,
+        }),
+      });
 
-      // Navega para as tabs principais
-      router.replace('/(tabs)');
+      const data = await response.json();
+
+      if (data.checkout_url) {
+        // Abrir URL de checkout do Stripe no navegador
+        const supported = await Linking.canOpenURL(data.checkout_url);
+        if (supported) {
+          await Linking.openURL(data.checkout_url);
+          setHasSeenPaywall(true);
+        } else {
+          Alert.alert('Erro', 'Não foi possível abrir o link de pagamento.');
+        }
+      } else {
+        Alert.alert('Erro', data.detail || 'Erro ao criar sessão de pagamento.');
+      }
     } catch (error) {
-      console.error('Error starting trial:', error);
+      console.error('Error creating checkout:', error);
       Alert.alert(
         'Erro',
-        'Não foi possível iniciar o período grátis. Tente novamente.'
+        'Não foi possível iniciar o pagamento. Tente novamente.'
       );
     } finally {
       setIsLoading(false);
       buttonScale.value = withSpring(1);
     }
+  };
+
+  const handleStartTrial = async () => {
+    // Para manter compatibilidade, o trial agora inicia a assinatura
+    await handleSubscribe();
   };
 
   const handleRestorePurchase = async () => {
