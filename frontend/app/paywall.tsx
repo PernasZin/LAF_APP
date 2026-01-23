@@ -152,11 +152,15 @@ export default function PaywallScreen() {
             iapService.onPurchase(async (purchase) => {
               console.log('🎉 Purchase completed:', purchase.productId);
               
-              // Atualizar status premium
-              setPremiumStatus(true);
+              // Determinar tipo de plano baseado no productId
+              const isAnnual = purchase.productId.includes('annual');
+              const planType = isAnnual ? 'annual' : 'monthly';
+              
+              // Ativar assinatura com data de expiração correta
+              activateSubscription(planType);
               setHasSeenPaywall(true);
               
-              // Salvar no backend (opcional - para sincronizar)
+              // Salvar no backend (para sincronização)
               try {
                 const userId = await AsyncStorage.getItem('userId');
                 if (userId) {
@@ -169,6 +173,7 @@ export default function PaywallScreen() {
                       transaction_id: purchase.transactionId,
                       receipt: purchase.transactionReceipt,
                       platform: Platform.OS,
+                      plan_type: planType,
                     }),
                   });
                 }
