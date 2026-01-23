@@ -354,15 +354,13 @@ export default function PaywallScreen() {
           {/* CTA Button */}
           <Animated.View
             entering={FadeInUp.delay(700).springify()}
-            style={[styles.ctaContainer, animatedButtonStyle]}
+            style={styles.ctaContainer}
           >
-            <Pressable
+            <TouchableOpacity
               onPress={handleSubscribe}
               disabled={isLoading}
-              style={({ pressed }) => [
-                styles.ctaButton,
-                pressed && { opacity: 0.9 }
-              ]}
+              activeOpacity={0.85}
+              style={styles.ctaButton}
             >
               <LinearGradient
                 colors={isLoading
@@ -371,20 +369,19 @@ export default function PaywallScreen() {
                 }
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFill}
-                pointerEvents="none"
+                style={[StyleSheet.absoluteFill, { borderRadius: radius.lg }]}
               />
               {isLoading ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <>
+                <View style={styles.ctaButtonContent}>
                   <Crown size={22} color="#FFF" />
                   <Text style={styles.ctaButtonText}>
                     {selectedPlan === 'monthly' ? 'Assinar por R$ 29,90/mês' : 'Assinar por R$ 199,90/ano'}
                   </Text>
-                </>
+                </View>
               )}
-            </Pressable>
+            </TouchableOpacity>
 
             <Text style={[styles.cancelText, { color: theme.textTertiary }]}>
               {t.cancelAnytime}
