@@ -4229,24 +4229,38 @@ async def create_stripe_customer(user_id: str):
 async def create_checkout_session(request: CreateCheckoutRequest):
     """Cria uma sessão de checkout do Stripe"""
     try:
-        # Buscar usuário
-        user = await db.users.find_one({"id": request.user_id})
-        if not user:
+        # Buscar usuário em users_auth e user_profiles
+        user_auth = await db.users_auth.find_one({"id": request.user_id})
+        user_profile = await db.user_profiles.find_one({"id": request.user_id})
+        
+        if not user_auth and not user_profile:
             raise HTTPException(status_code=404, detail="Usuário não encontrado")
         
+        # Combinar dados
+        email = user_auth.get("email") if user_auth else None
+        name = user_profile.get("name") if user_profile else (user_auth.get("name") if user_auth else "")
+        
         # Criar cliente Stripe se não existir
-        stripe_customer_id = user.get("stripe_customer_id")
+        stripe_customer_id = None
+        if user_auth:
+            stripe_customer_id = user_auth.get("stripe_customer_id")
+        if not stripe_customer_id and user_profile:
+            stripe_customer_id = user_profile.get("stripe_customer_id")
+            
         if not stripe_customer_id:
             customer = stripe.Customer.create(
-                email=user.get("email"),
-                name=user.get("name", ""),
+                email=email,
+                name=name,
                 metadata={"user_id": request.user_id}
             )
             stripe_customer_id = customer.id
-            await db.users.update_one(
-                {"id": request.user_id},
-                {"$set": {"stripe_customer_id": stripe_customer_id}}
-            )
+            
+            # Salvar em ambas as coleções
+            update_data = {"stripe_customer_id": stripe_customer_id, "updated_at": datetime.utcnow()}
+            if user_auth:
+                await db.users_auth.update_one({"id": request.user_id}, {"$set": update_data})
+            if user_profile:
+                await db.user_profiles.update_one({"id": request.user_id}, {"$set": update_data})
         
         # Definir preço baseado no plano
         price_id = STRIPE_PRICE_MONTHLY if request.plan_type == "monthly" else STRIPE_PRICE_ANNUAL
