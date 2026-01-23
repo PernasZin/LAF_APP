@@ -932,6 +932,18 @@ export const translations: Record<SupportedLanguage, Translations> = {
       no: 'No',
       saving: 'Saving...',
     },
+    // Language Selection Screen
+    languageSelect: {
+      title: 'Choose your language',
+      subtitle: 'Escolha seu idioma / Selecciona tu idioma',
+      continue: 'Continue',
+      yourAssistant: 'Your nutrition assistant',
+    },
+    // Paywall
+    paywall: {
+      subscribeMonthly: 'Subscribe for $5.99/month',
+      subscribeAnnual: 'Subscribe for $39.99/year',
+    },
     tabs: {
       home: 'Home',
       diet: 'Diet',
