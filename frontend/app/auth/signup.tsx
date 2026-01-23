@@ -399,15 +399,18 @@ const styles = StyleSheet.create({
   signupButton: {
     height: 56,
     borderRadius: radius.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 4,
+  },
+  signupButtonInner: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
   signupButtonText: { color: '#FFF', fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
 
