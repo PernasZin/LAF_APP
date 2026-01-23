@@ -774,6 +774,98 @@ async def logout(authorization: Optional[str] = Header(None)):
     
     return {"message": "Logout realizado com sucesso"}
 
+
+class DeleteAccountRequest(BaseModel):
+    user_id: str
+    password: str
+
+
+@api_router.delete("/auth/delete-account")
+async def delete_account(request: DeleteAccountRequest):
+    """
+    Exclui permanentemente a conta do usuário e todos os seus dados.
+    Requer confirmação com a senha da conta.
+    
+    Dados excluídos:
+    - users_auth (credenciais)
+    - user_profiles (perfil)
+    - user_settings (configurações)
+    - diet_plans (dietas)
+    - workouts (treinos)
+    - training_cycles (ciclos de treino)
+    - weight_history (histórico de peso)
+    - cardio_sessions (sessões de cardio)
+    """
+    import hashlib
+    
+    user_id = request.user_id
+    password = request.password
+    
+    try:
+        # 1. Buscar usuário auth
+        user_auth = await db.users_auth.find_one({"_id": user_id})
+        if not user_auth:
+            # Tentar buscar por id também
+            user_auth = await db.users_auth.find_one({"id": user_id})
+        
+        if not user_auth:
+            raise HTTPException(status_code=404, detail="Usuário não encontrado")
+        
+        # 2. Verificar senha
+        salt = user_auth.get("salt", "")
+        stored_hash = user_auth.get("password_hash", "")
+        input_hash = hashlib.sha256((password + salt).encode()).hexdigest()
+        
+        if input_hash != stored_hash:
+            raise HTTPException(status_code=401, detail="Senha incorreta")
+        
+        # 3. Excluir todos os dados do usuário
+        logger.info(f"🗑️ Iniciando exclusão de conta: {user_id}")
+        
+        # Excluir dados em todas as coleções
+        collections_to_clean = [
+            "users_auth",
+            "user_profiles", 
+            "user_settings",
+            "diet_plans",
+            "diets",
+            "workouts",
+            "training_cycles",
+            "weight_history",
+            "cardio_sessions",
+            "progress_photos",
+            "meal_logs",
+        ]
+        
+        deleted_counts = {}
+        for collection_name in collections_to_clean:
+            try:
+                collection = db[collection_name]
+                # Tentar deletar por _id e user_id
+                result1 = await collection.delete_many({"_id": user_id})
+                result2 = await collection.delete_many({"user_id": user_id})
+                result3 = await collection.delete_many({"id": user_id})
+                total = result1.deleted_count + result2.deleted_count + result3.deleted_count
+                if total > 0:
+                    deleted_counts[collection_name] = total
+            except Exception as e:
+                logger.warning(f"Erro ao limpar {collection_name}: {e}")
+        
+        logger.info(f"✅ Conta excluída com sucesso: {user_id}")
+        logger.info(f"   Dados removidos: {deleted_counts}")
+        
+        return {
+            "success": True,
+            "message": "Conta excluída com sucesso",
+            "deleted_data": deleted_counts
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao excluir conta {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Erro ao excluir conta")
+
 # ==================== DIET ENDPOINTS ====================
 
 @api_router.post("/diet/generate")
