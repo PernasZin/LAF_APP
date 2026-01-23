@@ -4,7 +4,7 @@
  * Glassmorphism + Gradientes + Animações
  */
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, RefreshControl, Modal, Alert, Dimensions
@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { useIsFocused } from '@react-navigation/native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { 
   Utensils, Sun, Coffee, Moon, Apple, ChefHat, RefreshCw,
