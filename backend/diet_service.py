@@ -1821,9 +1821,9 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
                 foods.append(calc_food(user_protein, p_grams))
             # Não adiciona fallback de proteína no café - pode ser só carb+fruta!
             
-            # 🍞 PÃO (APENAS se não tiver restrição sem_gluten)
+            # 🍞 PÃO (SEMPRE ADICIONA - AUTOCOMPLETE INTELIGENTE)
             # MÍNIMO: 2 fatias (50g) | PODE AUMENTAR: 4-5 fatias (100-125g) se precisar de mais carbs
-            # Para SEM GLÚTEN: usar tapioca ou batata doce
+            # Para SEM GLÚTEN: usar tapioca
             pao_grams = 50  # Base: 2 fatias
             
             # Se o objetivo é bulking ou a meta de carbs é alta, aumenta o pão
@@ -1835,8 +1835,14 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             # Verifica se pode usar pão (sem_gluten não pode)
             has_gluten_restriction = "sem_gluten" in restrictions or "Sem Glúten" in restrictions
             
-            if carb_pao and carb_pao in FOODS and not has_gluten_restriction:
-                foods.append(calc_food(carb_pao, pao_grams))
+            # 🎯 AUTOCOMPLETE: SEMPRE adiciona pão no café, independente das preferências
+            # Isso distribui melhor os carboidratos e evita excesso de arroz no almoço/jantar
+            if not has_gluten_restriction:
+                # Usa pão das preferências se tiver, senão usa pao_integral como padrão
+                pao_key = carb_pao if carb_pao else "pao_integral"
+                if pao_key in FOODS:
+                    foods.append(calc_food(pao_key, pao_grams))
+                    print(f"[AUTOCOMPLETE] Café: adicionado {pao_key} {pao_grams}g (autocomplete)")
             else:
                 # 🎯 PRIORIZA carb do usuário!
                 # Se o usuário escolheu batata_doce, usa batata_doce (não tapioca)
