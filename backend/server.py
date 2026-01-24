@@ -4613,6 +4613,107 @@ async def create_apple_reviewer_account():
     }
 
 
+class TestAccountRequest(BaseModel):
+    email: str
+    password: str
+    name: str = "Usuário Teste"
+
+@api_router.post("/admin/create-premium-account")
+async def create_premium_test_account(request: TestAccountRequest):
+    """
+    Cria uma conta de teste premium com email e senha customizados.
+    """
+    import hashlib
+    import secrets
+    
+    # Verificar se já existe
+    existing = await db.users_auth.find_one({"email": request.email})
+    if existing:
+        # Atualizar para garantir que está premium
+        await db.users_auth.update_one(
+            {"email": request.email},
+            {"$set": {
+                "subscription_status": "active",
+                "current_plan": "annual",
+                "premium_activated_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }}
+        )
+        return {
+            "success": True,
+            "message": "Conta atualizada para premium",
+            "email": request.email,
+            "password": request.password,
+            "user_id": existing.get("id")
+        }
+    
+    # Criar nova conta
+    user_id = str(uuid.uuid4())
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.sha256((request.password + salt).encode()).hexdigest()
+    
+    # Criar usuário auth
+    user_auth = {
+        "_id": user_id,
+        "id": user_id,
+        "email": request.email,
+        "password_hash": password_hash,
+        "salt": salt,
+        "subscription_status": "active",
+        "current_plan": "annual",
+        "premium_activated_at": datetime.utcnow(),
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    await db.users_auth.insert_one(user_auth)
+    
+    # Criar perfil
+    profile = {
+        "_id": user_id,
+        "user_id": user_id,
+        "name": request.name,
+        "email": request.email,
+        "age": 25,
+        "sex": "masculino",
+        "height": 175,
+        "weight": 75,
+        "goal": "manutencao",
+        "activity_level": "moderadamente_ativo",
+        "dietary_restrictions": [],
+        "weekly_training_frequency": 4,
+        "training_type": "musculacao",
+        "training_level": "intermediario",
+        "meal_count": 5,
+        "profile_completed": True,
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow()
+    }
+    
+    # Calcular TDEE e macros
+    bmr = calculate_bmr(profile["weight"], profile["height"], profile["age"], profile["sex"])
+    tdee = calculate_tdee(bmr, profile["weekly_training_frequency"], profile["training_level"], profile["goal"])
+    target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"])
+    macros = calculate_macros(target_calories, profile["weight"], profile["goal"])
+    
+    profile["tdee"] = round(tdee, 0)
+    profile["target_calories"] = round(target_calories, 0)
+    profile["macros"] = macros
+    
+    await db.user_profiles.insert_one(profile)
+    
+    logger.info(f"✅ Conta premium criada: {request.email}")
+    
+    return {
+        "success": True,
+        "message": "Conta premium criada com sucesso",
+        "email": request.email,
+        "password": request.password,
+        "user_id": user_id,
+        "status": "premium",
+        "plan": "annual"
+    }
+
+
 # Include router
 app.include_router(api_router)
 
