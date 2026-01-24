@@ -11,7 +11,7 @@
     "owner": "leoluccand",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.laf.app",
+      "bundleIdentifier": "com.laf.git",
       "buildNumber": "3",
       "config": {
         "usesNonExemptEncryption": false
