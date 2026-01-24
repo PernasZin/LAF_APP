@@ -395,7 +395,8 @@ class WorkoutAIService:
             duration = 60  # Default 60 minutos
         completed_workouts = user_profile.get('completed_workouts', 0)
         
-        return self._generate_workout(user_profile['id'], frequency, level, goal, duration, completed_workouts)
+        user_id = user_profile.get('user_id') or user_profile.get('_id') or user_profile.get('id')
+        return self._generate_workout(user_id, frequency, level, goal, duration, completed_workouts)
     
     def _get_exercises_per_duration(self, duration: int, level: str) -> int:
         """
