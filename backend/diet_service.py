@@ -4381,7 +4381,7 @@ class DietAIService:
             notes += " | 🔄 Auto-completada"
         
         return DietPlan(
-            user_id=user_profile['id'],
+            user_id=user_profile.get('user_id') or user_profile.get('_id') or user_profile.get('id'),
             target_calories=target_cal_int,
             target_macros={"protein": target_p, "carbs": target_c, "fat": target_f},
             meals=final_meals,
