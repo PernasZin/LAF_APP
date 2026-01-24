@@ -13,9 +13,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.laf.app",
       "buildNumber": "1",
-      "infoPlist": {
-        "UIBackgroundModes": []
-      }
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "entitlements": {}
     },
     "android": {
       "adaptiveIcon": {
