@@ -15,13 +15,13 @@ import { Platform } from 'react-native';
 // Product IDs - Devem corresponder aos configurados nas lojas
 export const IAP_PRODUCTS = {
   MONTHLY: Platform.select({
-    ios: 'com.laf.subscription.monthly',
-    android: 'com.laf.subscription.monthly',
+    ios: 'laf_premium_monthly',
+    android: 'laf_premium_monthly',
     default: 'monthly',
   }),
   ANNUAL: Platform.select({
-    ios: 'com.laf.subscription.annual',
-    android: 'com.laf.subscription.annual',
+    ios: 'laf_premium_annual',
+    android: 'laf_premium_annual',
     default: 'annual',
   }),
 };
