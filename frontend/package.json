@@ -35,7 +35,6 @@
     "expo-in-app-purchases": "^14.5.0",
     "expo-linear-gradient": "^15.0.8",
     "expo-linking": "~8.0.11",
-    "expo-notifications": "~0.32.16",
     "expo-print": "~15.0.8",
     "expo-router": "~6.0.21",
     "expo-sharing": "~14.0.8",
