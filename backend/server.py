@@ -36,7 +36,18 @@ app.add_middleware(
 
 api_router = APIRouter(prefix="/api")
 
-# ROOT LEVEL HEALTH CHECK - Required for Kubernetes deployment
+# ROOT LEVEL ROUTES - Required for Kubernetes deployment
+@app.get("/")
+async def root():
+    """Root endpoint - confirms API is running"""
+    return {
+        "status": "online",
+        "service": "LAF API",
+        "version": "2.0",
+        "docs": "/docs",
+        "health": "/health"
+    }
+
 @app.get("/health")
 async def root_health_check():
     """Health check endpoint at root level for Kubernetes probes"""
