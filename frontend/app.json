@@ -49,10 +49,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "BACKEND_URL": "https://nutriflow-38.preview.emergentagent.com",
-      "eas": {
-        "projectId": "9563b068-dd8d-43aa-9b36-d6a380b15fa6"
-      }
+      "BACKEND_URL": "https://laf-app.onrender.com"
     }
   }
 }
