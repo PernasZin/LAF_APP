@@ -195,7 +195,7 @@ EXERCISES = {
     "quadriceps": [
         {
             "name": "Leg Press 45°",
-            "focus": "Quadríceps Geral",
+            "focus": "Quadríceps Completo",
             "notes": "Pés no centro da plataforma na largura dos ombros. Desça até 90° nos joelhos. Empurre sem travar os joelhos no topo."
         },
         {
@@ -205,13 +205,13 @@ EXERCISES = {
         },
         {
             "name": "Agachamento no Smith Machine",
-            "focus": "Quadríceps Geral",
+            "focus": "Quadríceps/Glúteos",
             "notes": "Pés ligeiramente à frente da barra. Desça até coxas paralelas ao chão. Suba empurrando pelos calcanhares. Joelhos alinhados com os pés."
         },
         {
-            "name": "Leg Press Horizontal",
-            "focus": "Quadríceps Geral",
-            "notes": "Costas totalmente apoiadas. Pés na largura dos ombros. Empurre a plataforma sem travar joelhos. Desça controlado até 90°."
+            "name": "Hack Machine",
+            "focus": "Vasto Lateral",
+            "notes": "Costas apoiadas, ombros sob as almofadas. Pés na largura dos ombros. Desça controlado até 90°. Empurre sem travar joelhos."
         },
     ],
     
