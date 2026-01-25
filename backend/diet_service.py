@@ -3838,8 +3838,8 @@ class DietAIService:
                 meal["macros"] = {"protein": mp, "carbs": mc, "fat": mf}
             return meals_list
         
-        # 📉 REDUÇÃO quando está ACIMA do alvo (mais de 5%)
-        if cal_diff < -target_calories * 0.05:  # Negativo significa ACIMA
+        # 📉 REDUÇÃO quando está ACIMA do alvo (mais de 2%)
+        if cal_diff < -target_calories * 0.02:  # Negativo significa ACIMA
             excess_cal = abs(cal_diff)
             print(f"[DIET DEBUG] Diet is ABOVE target by {excess_cal}kcal, reducing portions")
             
@@ -3855,13 +3855,13 @@ class DietAIService:
             
             # Reduz carboidratos (arroz, batata) nas refeições principais
             for idx in main_meal_indices:
-                if idx < len(meals) and excess_cal > 50:
+                if idx < len(meals) and excess_cal > 20:
                     for f_idx, food in enumerate(meals[idx]["foods"]):
                         if food.get("category") == "carb" or food.get("key") in ["arroz_branco", "arroz_integral", "batata_doce", "macarrao"]:
                             current_grams = food.get("grams", 100)
-                            # Reduz até 30% da porção
-                            reduce_grams = min(current_grams * 0.3, excess_cal / 1.3)  # ~1.3 cal/g para arroz
-                            new_grams = round_to_10(max(50, current_grams - reduce_grams))  # Mínimo 50g
+                            # Reduz até 40% da porção para compensar melhor
+                            reduce_grams = min(current_grams * 0.4, excess_cal / 1.3)  # ~1.3 cal/g para arroz
+                            new_grams = round_to_10(max(40, current_grams - reduce_grams))  # Mínimo 40g
                             
                             if new_grams < current_grams:
                                 meals[idx]["foods"][f_idx] = calc_food(food.get("key"), new_grams)
