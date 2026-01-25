@@ -23,7 +23,7 @@ const getBackendUrl = (): string => {
       if (envBackendUrl) {
         return envBackendUrl;
       }
-      return 'https://nutriflow-38.preview.emergentagent.com';
+      return 'https://laf-app.onrender.com';
     }
     
     // If on preview domain, use relative path (proxy handles routing)
