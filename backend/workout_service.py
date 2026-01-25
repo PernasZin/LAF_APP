@@ -219,12 +219,12 @@ EXERCISES = {
     "posterior": [
         {
             "name": "Mesa Flexora",
-            "focus": "Posterior de Coxa",
+            "focus": "Posterior (Deitado)",
             "notes": "Deite de bruços com joelhos alinhados ao eixo da máquina. Flexione as pernas trazendo os calcanhares em direção aos glúteos. Desça controlado."
         },
         {
             "name": "Cadeira Flexora (Sentado)",
-            "focus": "Posterior de Coxa",
+            "focus": "Posterior (Sentado)",
             "notes": "Sente com coxas apoiadas. Flexione as pernas para baixo e para trás. Contraia no final do movimento. Retorne controlado."
         },
         {
@@ -242,11 +242,6 @@ EXERCISES = {
     # ============ PANTURRILHA ============
     "panturrilha": [
         {
-            "name": "Panturrilha no Leg Press",
-            "focus": "Gastrocnêmio",
-            "notes": "Apoie apenas a ponta dos pés na plataforma. Empurre estendendo os tornozelos o máximo possível. Desça alongando bem a panturrilha."
-        },
-        {
             "name": "Panturrilha Sentado na Máquina",
             "focus": "Sóleo",
             "notes": "Joelhos a 90° sob as almofadas. Eleve os calcanhares o máximo possível. Desça controlado até sentir alongamento completo."
@@ -261,23 +256,13 @@ EXERCISES = {
     # ============ ABDÔMEN ============
     "abdomen": [
         {
-            "name": "Abdominal na Máquina",
-            "focus": "Reto Abdominal",
-            "notes": "Sente e segure as manoplas. Flexione o tronco para frente contraindo o abdômen. Retorne controlado sem soltar a tensão."
-        },
-        {
             "name": "Abdominal na Polia Alta (Corda)",
             "focus": "Reto Abdominal",
             "notes": "Ajoelhe de costas para a polia. Segure a corda atrás da cabeça. Flexione o tronco em direção ao chão. Retorne controlado."
         },
         {
-            "name": "Prancha Isométrica",
-            "focus": "Core (Estabilização)",
-            "notes": "Apoie antebraços e pontas dos pés no chão. Corpo reto da cabeça aos calcanhares. Mantenha o abdômen contraído. Não deixe o quadril subir ou descer."
-        },
-        {
             "name": "Elevação de Pernas no Apoio",
-            "focus": "Reto Abdominal Inferior",
+            "focus": "Abdômen Inferior",
             "notes": "Costas apoiadas no suporte, braços nos apoios. Eleve as pernas estendidas até 90°. Desça controlado sem balançar o corpo."
         },
     ],
