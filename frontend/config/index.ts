@@ -44,8 +44,8 @@ const getBackendUrl = (): string => {
     return envBackendUrl;
   }
   
-  // Default fallback
-  return 'https://nutriflow-38.preview.emergentagent.com';
+  // Default fallback - Render backend (24/7)
+  return 'https://laf-backend-ll0i.onrender.com';
 };
 
 export const config = {
