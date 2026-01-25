@@ -604,8 +604,23 @@ class WorkoutAIService:
                 if exercises_added >= max_exercises:
                     break
                 
+                # ==================== LÓGICA DE ESTÍMULO COMPLEMENTAR ====================
+                # Treinos de perna com foco específico devem ter apenas 1 exercício do músculo secundário
+                # C - Pernas Quad: foco quadríceps, posterior é estímulo (1 exercício)
+                # E - Pernas Post: foco posteriores, quadríceps é estímulo (1 exercício)
+                
+                template_name = template.get("name", "").lower()
+                is_quad_day = "quad" in template_name
+                is_post_day = "post" in template_name
+                
+                # Se é dia de Quad e o músculo atual é posterior = apenas 1 exercício (estímulo)
+                # Se é dia de Post e o músculo atual é quadriceps = apenas 1 exercício (estímulo)
+                is_stimulus_muscle = (is_quad_day and muscle == "posterior") or (is_post_day and muscle == "quadriceps")
+                
                 # Limite de 2 exercícios para músculos pequenos (incluindo ombros)
-                if muscle in SMALL_MUSCLES:
+                if is_stimulus_muscle:
+                    max_for_muscle = 1  # Apenas 1 exercício de estímulo
+                elif muscle in SMALL_MUSCLES:
                     max_for_muscle = 2
                 else:
                     max_for_muscle = config["ex_per_muscle"]
