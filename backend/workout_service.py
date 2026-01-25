@@ -544,6 +544,74 @@ class WorkoutAIService:
             exercises_added = 0
             muscles_warmed_up = set()  # Rastreia músculos já aquecidos (para avançado)
             
+            # ==================== TRATAMENTO ESPECIAL: FULL BODY (1x/semana) ====================
+            # Garante 1 exercício por grupo muscular principal
+            if template["name"] == "Full Body" and frequency == 1:
+                full_body_exercises = [
+                    {"name": "Supino Reto na Máquina", "muscle_group": "Peito", "focus": "Peitoral Médio",
+                     "notes": "Sente com costas apoiadas. Empurre as manoplas para frente até extensão quase completa."},
+                    {"name": "Puxada Frontal Pegada Aberta", "muscle_group": "Costas", "focus": "Dorsal (Largura)",
+                     "notes": "Pegada pronada mais larga que os ombros. Puxe a barra até o queixo."},
+                    {"name": "Desenvolvimento Máquina", "muscle_group": "Ombros", "focus": "Deltóide Anterior/Médio",
+                     "notes": "Costas totalmente apoiadas. Empurre até quase estender os cotovelos."},
+                    {"name": "Leg Press 45°", "muscle_group": "Quadríceps", "focus": "Quadríceps Completo",
+                     "notes": "Pés no centro da plataforma na largura dos ombros. Desça até 90° nos joelhos."},
+                    {"name": "Mesa Flexora", "muscle_group": "Posterior", "focus": "Posterior de Coxa",
+                     "notes": "Deite de bruços com joelhos alinhados ao eixo da máquina. Flexione trazendo calcanhares aos glúteos."},
+                    {"name": "Rosca Scott Máquina", "muscle_group": "Bíceps", "focus": "Bíceps (Pico)",
+                     "notes": "Braços apoiados no suporte. Isola o bíceps eliminando impulso."},
+                    {"name": "Tríceps Corda (Polia Alta)", "muscle_group": "Tríceps", "focus": "Cabeça Lateral",
+                     "notes": "Cotovelos fixos ao lado do corpo. Estenda completamente, abrindo a corda no final."},
+                ]
+                
+                # Adiciona exercícios extras se tiver tempo
+                if duration >= 60:
+                    full_body_exercises.append(
+                        {"name": "Cadeira Extensora", "muscle_group": "Quadríceps", "focus": "Vasto Lateral/Medial",
+                         "notes": "Ajuste o encosto para joelhos alinhados com o eixo. Estenda as pernas completamente."}
+                    )
+                if duration >= 75:
+                    full_body_exercises.append(
+                        {"name": "Panturrilha no Leg Press", "muscle_group": "Panturrilha", "focus": "Gastrocnêmio",
+                         "notes": "Apoie apenas a ponta dos pés na plataforma. Empurre estendendo os tornozelos."}
+                    )
+                if duration >= 90:
+                    full_body_exercises.append(
+                        {"name": "Crucifixo na Máquina (Peck Deck)", "muscle_group": "Peito", "focus": "Peitoral - Adução",
+                         "notes": "Cotovelos na altura dos ombros. Junte os braços à frente contraindo o peitoral."}
+                    )
+                
+                for ex_data in full_body_exercises[:max_exercises]:
+                    execution_notes = ex_data.get("notes", "")
+                    sets_count = config["sets"]
+                    
+                    if level == 'avancado':
+                        notes = f"🔥 ATÉ A FALHA!\n\n🎯 {execution_notes}"
+                    elif level == 'intermediario':
+                        notes = f"💪 Perto da falha!\n\n🎯 {execution_notes}"
+                    else:
+                        notes = f"🎯 {execution_notes}"
+                    
+                    exercises.append(Exercise(
+                        name=ex_data["name"],
+                        muscle_group=ex_data["muscle_group"],
+                        focus=ex_data.get("focus"),
+                        sets=sets_count,
+                        reps=config["reps"],
+                        rest=config["rest"],
+                        rest_seconds=parse_rest_seconds(config["rest"]),
+                        notes=notes,
+                        completed=False
+                    ))
+                
+                workout_days.append(WorkoutDay(
+                    day=DAYS[i],
+                    name=template["name"],
+                    exercises=exercises,
+                    duration=len(exercises) * 6
+                ))
+                continue
+            
             # TRATAMENTO ESPECIAL: Upper Body (2x/semana)
             # Usa lista fixa de exercícios para distribuição balanceada
             if template.get("is_upper_lower") and template["name"] == "Upper":
