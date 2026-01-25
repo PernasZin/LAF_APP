@@ -557,8 +557,8 @@ class WorkoutAIService:
                     )
                 if duration >= 75:
                     full_body_exercises.append(
-                        {"name": "Panturrilha no Leg Press", "muscle_group": "Panturrilha", "focus": "Gastrocnêmio",
-                         "notes": "Apoie apenas a ponta dos pés na plataforma. Empurre estendendo os tornozelos."}
+                        {"name": "Panturrilha em Pé na Máquina", "muscle_group": "Panturrilha", "focus": "Gastrocnêmio",
+                         "notes": "Ombros sob as almofadas. Eleve nos dedos o máximo possível, contraindo no topo."}
                     )
                 if duration >= 90:
                     full_body_exercises.append(
