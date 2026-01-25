@@ -1593,4 +1593,17 @@ const styles = StyleSheet.create({
   historyItemStatText: {
     fontSize: 12,
   },
+  
+  // Personal Trainer Tip
+  personalTrainerTip: {
+    padding: spacing.base,
+    borderRadius: radius.lg,
+    marginTop: spacing.sm,
+  },
+  personalTrainerTipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });
