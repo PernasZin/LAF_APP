@@ -1083,6 +1083,13 @@ export default function WorkoutScreen() {
                   hasTrainedToday={hasTrainedToday}
                 />
               ))}
+              
+              {/* Personal Trainer Tip */}
+              <View style={[styles.personalTrainerTip, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(59, 130, 246, 0.08)' }]}>
+                <Text style={[styles.personalTrainerTipText, { color: isDark ? '#93C5FD' : '#3B82F6' }]}>
+                  💡 Caso queira substituição de exercício, consulte o personal trainer da sua academia.
+                </Text>
+              </View>
             </>
           ) : (
             /* Empty State */
