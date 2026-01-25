@@ -556,8 +556,9 @@ class WorkoutAIService:
                         UPPER_BODY_EXERCISES[0],  # Supino
                         UPPER_BODY_EXERCISES[2],  # Puxada
                         UPPER_BODY_EXERCISES[4],  # Desenvolvimento
+                        UPPER_BODY_EXERCISES[6],  # Rosca
                     ]
-                elif duration <= 60:
+                elif duration <= 45:
                     upper_exercises = [
                         UPPER_BODY_EXERCISES[0],  # Supino
                         UPPER_BODY_EXERCISES[2],  # Puxada
@@ -565,7 +566,18 @@ class WorkoutAIService:
                         UPPER_BODY_EXERCISES[6],  # Rosca
                         UPPER_BODY_EXERCISES[7],  # Triceps
                     ]
+                elif duration <= 60:
+                    upper_exercises = [
+                        UPPER_BODY_EXERCISES[0],  # Supino
+                        UPPER_BODY_EXERCISES[1],  # Crucifixo
+                        UPPER_BODY_EXERCISES[2],  # Puxada
+                        UPPER_BODY_EXERCISES[3],  # Remada
+                        UPPER_BODY_EXERCISES[4],  # Desenvolvimento
+                        UPPER_BODY_EXERCISES[6],  # Rosca
+                        UPPER_BODY_EXERCISES[7],  # Triceps
+                    ]
                 else:
+                    # 60+ min: treino completo
                     upper_exercises = UPPER_BODY_EXERCISES[:upper_limit]
                 
                 for ex_data in upper_exercises:
