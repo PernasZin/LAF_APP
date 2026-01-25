@@ -278,9 +278,12 @@ SPLITS = {
         {"name": "D - Ombros/Abdômen", "muscles": ["ombros", "abdomen"]},
     ],
     5: [
+        # ABCDE: Nunca treino só de ombros - D é Full Upper
+        # C - Pernas Quad: foco quadríceps + 1 posterior para estímulo
+        # E - Pernas Post: foco posteriores + 1 quadríceps para estímulo
         {"name": "A - Peito", "muscles": ["peito", "triceps"]},
         {"name": "B - Costas", "muscles": ["costas", "biceps"]},
-        {"name": "C - Pernas Quad", "muscles": ["quadriceps", "panturrilha"]},
+        {"name": "C - Pernas Quad", "muscles": ["quadriceps", "posterior", "panturrilha"]},
         {"name": "D - Full Upper", "muscles": ["ombros", "peito", "costas"]},
         {"name": "E - Pernas Post", "muscles": ["posterior", "quadriceps", "abdomen"]},
     ],
