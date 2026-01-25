@@ -582,9 +582,11 @@ class WorkoutAIService:
                     )
                 
                 # Usa todos os exercícios base (7) + extras baseado no tempo
+                # Para Full Body, garantimos mínimo de 7 exercícios (1 por grupo muscular)
+                full_body_max = max(7, max_exercises)  # Mínimo 7 para Full Body
                 exercises_to_use = full_body_exercises
                 
-                for ex_data in exercises_to_use[:max_exercises]:
+                for ex_data in exercises_to_use[:full_body_max]:
                     execution_notes = ex_data.get("notes", "")
                     sets_count = config["sets"]
                     
