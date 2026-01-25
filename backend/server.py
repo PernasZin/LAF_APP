@@ -15,9 +15,12 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL') or os.environ.get('DATABASE_URL')
+if not mongo_url:
+    raise ValueError("MONGO_URL or DATABASE_URL environment variable is required")
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db_name = os.environ.get('DB_NAME', 'laf_database')
+db = client[db_name]
 
 # Import auth service
 from auth_service import AuthService, SignUpRequest, LoginRequest, decode_token
