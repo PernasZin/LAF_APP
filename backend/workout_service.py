@@ -581,7 +581,10 @@ class WorkoutAIService:
                          "notes": "Cotovelos na altura dos ombros. Junte os braços à frente contraindo o peitoral."}
                     )
                 
-                for ex_data in full_body_exercises[:max_exercises]:
+                # Usa todos os exercícios base (7) + extras baseado no tempo
+                exercises_to_use = full_body_exercises
+                
+                for ex_data in exercises_to_use[:max_exercises]:
                     execution_notes = ex_data.get("notes", "")
                     sets_count = config["sets"]
                     
