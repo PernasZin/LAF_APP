@@ -289,10 +289,10 @@ DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
 def get_split_for_frequency(freq: int) -> List[Dict]:
     splits = {
-        1: [{"name": "Full Body", "muscles": ["peito", "costas", "quadriceps", "ombros", "biceps", "triceps"]}],
+        1: [{"name": "Full Body", "muscles": ["peito", "costas", "ombros", "quadriceps", "posterior", "biceps", "triceps"]}],
         2: [
             # Upper/Lower com distribuição específica
-            # Upper: 2 peito, 2 costas, 2 ombro, 1 biceps, 1 triceps, 1 abdomen = 10 exercícios
+            # Upper: 2 peito, 2 costas, 2 ombro, 1 biceps, 1 triceps, 1 abdomen = 9 exercícios
             {"name": "Upper", "muscles": ["peito", "costas", "ombros", "biceps", "triceps", "abdomen"], "is_upper_lower": True},
             {"name": "Lower", "muscles": ["quadriceps", "posterior", "panturrilha"]},
         ],
