@@ -1180,6 +1180,23 @@ async def delete_user_diet(user_id: str):
     return {"message": "Dieta deletada com sucesso", "deleted_count": result.deleted_count}
 
 
+
+@api_router.delete("/user/profile/{user_id}")
+async def delete_user_profile(user_id: str):
+    """
+    Deleta apenas o perfil do usuário (mantém auth).
+    Usado para forçar recriação do perfil.
+    """
+    result = await db.user_profiles.delete_many({"user_id": user_id})
+    result2 = await db.user_profiles.delete_many({"id": user_id})
+    result3 = await db.user_profiles.delete_many({"_id": user_id})
+    
+    total = result.deleted_count + result2.deleted_count + result3.deleted_count
+    logger.info(f"Deleted {total} profile(s) for user {user_id}")
+    
+    return {"message": "Perfil deletado com sucesso", "deleted_count": total}
+
+
 class FoodSubstitutionRequest(BaseModel):
     """Request para substituir alimento na dieta"""
     meal_index: int  # Índice da refeição (0-4)
