@@ -126,8 +126,18 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // ============ NOVO FLUXO: PREMIUM OBRIGATÓRIO ============
-    // Authenticated but NOT premium → MUST go to paywall (cannot skip)
+    // ============ FLUXO: Login → Perfil → Paywall → App ============
+    
+    // 1. Authenticated but NO profile → go to onboarding FIRST
+    if (!profileCompleted) {
+      if (!inOnboarding) {
+        console.log('🛡️ → /onboarding (criar perfil primeiro)');
+        router.replace('/onboarding');
+      }
+      return;
+    }
+
+    // 2. Has profile but NOT premium → MUST go to paywall (cannot skip)
     if (!isPremium()) {
       if (!inPaywall) {
         console.log('🛡️ → /paywall (premium obrigatório)');
@@ -136,22 +146,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Premium but NO profile → go to onboarding
-    if (!profileCompleted) {
-      if (!inOnboarding) {
-        console.log('🛡️ → /onboarding (premium, criar perfil)');
-        router.replace('/onboarding');
-      }
-      return;
-    }
-
-    // ALLOW settings and subscription pages for premium users with profile
+    // 3. Premium user - ALLOW settings and subscription pages
     if (inSettings || inSubscription) {
       console.log('🛡️ → Allowing settings/subscription page');
       return;
     }
 
-    // Premium WITH profile → go to tabs
+    // 4. Premium WITH profile → go to tabs (skip paywall forever until expires)
     if (inAuth || inOnboarding || inPaywall) {
       console.log('🛡️ → /(tabs) - premium com perfil');
       router.replace('/(tabs)');
