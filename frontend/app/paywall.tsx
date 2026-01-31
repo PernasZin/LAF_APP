@@ -379,10 +379,8 @@ export default function PaywallScreen() {
     }
   };
 
-  const handleSkip = () => {
-    setHasSeenPaywall(true);
-    router.replace('/(tabs)');
-  };
+  // Premium é obrigatório - não há opção de pular
+  // handleSkip removido intencionalmente
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
