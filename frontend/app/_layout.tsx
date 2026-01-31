@@ -126,53 +126,34 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // Authenticated but NO profile → go to onboarding
+    // ============ NOVO FLUXO: PREMIUM OBRIGATÓRIO ============
+    // Authenticated but NOT premium → MUST go to paywall (cannot skip)
+    if (!isPremium()) {
+      if (!inPaywall) {
+        console.log('🛡️ → /paywall (premium obrigatório)');
+        router.replace('/paywall');
+      }
+      return;
+    }
+
+    // Premium but NO profile → go to onboarding
     if (!profileCompleted) {
       if (!inOnboarding) {
-        console.log('🛡️ → /onboarding');
+        console.log('🛡️ → /onboarding (premium, criar perfil)');
         router.replace('/onboarding');
       }
       return;
     }
 
-    // SUBSCRIPTION EXPIRED (após período de graça de 3 dias) → forçar paywall
-    if (subscriptionExpired) {
-      // Reset hasSeenPaywall para forçar ver o paywall novamente
-      setHasSeenPaywall(false);
-      if (!inPaywall) {
-        console.log('🛡️ → /paywall (subscription expired)');
-        router.replace('/paywall');
-      }
-      return;
-    }
-
-    // ALLOW settings and subscription pages for authenticated users with profile
+    // ALLOW settings and subscription pages for premium users with profile
     if (inSettings || inSubscription) {
       console.log('🛡️ → Allowing settings/subscription page');
       return;
     }
 
-    // Se usuário é premium, vai direto para o app (pula paywall)
-    if (isPremium()) {
-      if (!inTabs && !inSettings && !inSubscription) {
-        console.log('🛡️ → /(tabs) - usuário premium');
-        router.replace('/(tabs)');
-      }
-      return;
-    }
-
-    // Authenticated with profile but hasn't seen paywall and not premium → show paywall
-    if (!hasSeenPaywall && !isPremium()) {
-      if (!inPaywall) {
-        console.log('🛡️ → /paywall');
-        router.replace('/paywall');
-      }
-      return;
-    }
-
-    // Authenticated WITH profile → go to tabs (if not already there)
+    // Premium WITH profile → go to tabs
     if (inAuth || inOnboarding || inPaywall) {
-      console.log('🛡️ → /(tabs)');
+      console.log('🛡️ → /(tabs) - premium com perfil');
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, profileCompleted, isInitialized, hasSeenPaywall, segments, navigationState?.key]);
