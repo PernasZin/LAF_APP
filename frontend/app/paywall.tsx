@@ -574,6 +574,13 @@ export default function PaywallScreen() {
               >
                 Termos de Uso (EULA)
               </Text>
+              {' '}e{' '}
+              <Text 
+                style={[styles.termsLink, { color: premiumColors.primary }]}
+                onPress={() => router.push('/settings/privacy')}
+              >
+                Política de Privacidade
+              </Text>
             </Text>
             <Text style={[styles.termsText, { color: theme.textTertiary, marginTop: 8 }]}>
               A assinatura é renovada automaticamente e pode ser gerenciada ou cancelada a qualquer momento nas configurações da sua conta Apple.
