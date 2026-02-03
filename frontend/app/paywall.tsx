@@ -787,4 +787,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
   },
+  termsLink: {
+    textDecorationLine: 'underline',
+    fontWeight: '600',
+  },
 });
