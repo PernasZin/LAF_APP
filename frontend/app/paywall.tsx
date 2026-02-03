@@ -567,7 +567,16 @@ export default function PaywallScreen() {
           {/* Terms Notice */}
           <Animated.View entering={FadeInUp.delay(900).springify()} style={styles.termsContainer}>
             <Text style={[styles.termsText, { color: theme.textTertiary }]}>
-              {t.termsNotice}
+              Ao assinar, você concorda com os{' '}
+              <Text 
+                style={[styles.termsLink, { color: premiumColors.primary }]}
+                onPress={() => Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}
+              >
+                Termos de Uso (EULA)
+              </Text>
+            </Text>
+            <Text style={[styles.termsText, { color: theme.textTertiary, marginTop: 8 }]}>
+              A assinatura é renovada automaticamente e pode ser gerenciada ou cancelada a qualquer momento nas configurações da sua conta Apple.
             </Text>
           </Animated.View>
         </ScrollView>
