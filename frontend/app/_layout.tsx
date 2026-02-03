@@ -81,6 +81,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!navigationState?.key || !isInitialized) return;
 
     const currentSegment = segments[0];
+    const secondSegment = segments[1];
     const inAuth = currentSegment === 'auth';
     const inOnboarding = currentSegment === 'onboarding';
     const inPaywall = currentSegment === 'paywall';
@@ -88,6 +89,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     const inLegal = currentSegment === 'legal';
     const inSettings = currentSegment === 'settings';
     const inSubscription = currentSegment === 'subscription';
+    const inPrivacyFromPaywall = currentSegment === 'settings' && secondSegment === 'privacy';
     const isRootIndex = segments.length === 0 || currentSegment === 'index';
 
     // Verificar status da assinatura
