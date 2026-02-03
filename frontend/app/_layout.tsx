@@ -119,6 +119,12 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // ALLOW privacy page from paywall (for EULA/terms compliance)
+    if (inPrivacyFromPaywall) {
+      console.log('🛡️ → Allowing privacy page from paywall');
+      return;
+    }
+
     // NOT authenticated → go to login
     if (!isAuthenticated) {
       if (!inAuth) {
