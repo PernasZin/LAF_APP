@@ -937,4 +937,46 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   regenerateButtonText: { fontSize: 14, fontWeight: '600' },
+  
+  // Disclaimer & Sources - Guideline 1.4.1
+  disclaimerContainer: {
+    marginTop: spacing.lg,
+  },
+  disclaimerCard: {
+    padding: spacing.lg,
+  },
+  disclaimerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  disclaimerTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  disclaimerText: {
+    fontSize: 13,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
+  sourcesContainer: {
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(128, 128, 128, 0.2)',
+  },
+  sourcesLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: spacing.sm,
+    letterSpacing: 0.5,
+  },
+  sourceLink: {
+    paddingVertical: spacing.xs,
+  },
+  sourceLinkText: {
+    fontSize: 13,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
 });
