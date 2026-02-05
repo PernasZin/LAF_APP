@@ -448,6 +448,42 @@ export default function DietScreen() {
             </Animated.View>
           )}
 
+          {/* Aviso e Fontes - Apple Guideline 1.4.1 Compliance */}
+          <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.disclaimerContainer}>
+            <GlassCard isDark={isDark} style={styles.disclaimerCard}>
+              <View style={styles.disclaimerHeader}>
+                <AlertCircle size={20} color="#F59E0B" />
+                <Text style={[styles.disclaimerTitle, { color: theme.text }]}>Aviso e Fontes</Text>
+              </View>
+              
+              <Text style={[styles.disclaimerText, { color: theme.textSecondary }]}>
+                Este app oferece informações gerais de nutrição e não substitui orientação de um nutricionista ou médico.
+              </Text>
+              
+              <View style={styles.sourcesContainer}>
+                <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>FONTES:</Text>
+                
+                <TouchableOpacity 
+                  style={styles.sourceLink}
+                  onPress={() => Linking.openURL('https://www.who.int/news-room/fact-sheets/detail/healthy-diet')}
+                >
+                  <Text style={[styles.sourceLinkText, { color: premiumColors.primary }]}>
+                    • WHO – Healthy diet
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.sourceLink}
+                  onPress={() => Linking.openURL('https://fdc.nal.usda.gov/')}
+                >
+                  <Text style={[styles.sourceLinkText, { color: premiumColors.primary }]}>
+                    • USDA FoodData Central (dados nutricionais)
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </GlassCard>
+          </Animated.View>
+
           <View style={{ height: 100 }} />
         </ScrollView>
       </SafeAreaView>
