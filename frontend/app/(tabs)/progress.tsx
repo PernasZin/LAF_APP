@@ -143,9 +143,10 @@ export default function ProgressScreen() {
         setNewWeight('');
         setStep(1);
         setQuestionnaire({
-          diet: 7, training: 7, cardio: 7, sleep: 7, hydration: 7, energy: 7, hunger: 5,
-          followedDiet: 'yes', followedTraining: 'yes', followedCardio: 'yes',
-          boredFoods: '', observations: '',
+          followedDiet: 'yes',
+          followedTraining: 'yes',
+          feeling: 7,
+          observations: '',
         });
         await loadProgress();
         
