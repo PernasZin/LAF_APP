@@ -135,7 +135,6 @@ export const en = {
     vegan: 'Vegan',
     lactoseFree: 'Lactose Free',
     glutenFree: 'Gluten Free',
-    diabetic: 'Diabetic',
     lowCarb: 'Low Carb',
     
     // Food Preferences

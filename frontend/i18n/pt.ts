@@ -135,7 +135,6 @@ export const pt = {
     vegan: 'Vegano',
     lactoseFree: 'Sem Lactose',
     glutenFree: 'Sem Glúten',
-    diabetic: 'Diabético',
     lowCarb: 'Low Carb',
     
     // Food Preferences
