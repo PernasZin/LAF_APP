@@ -1193,7 +1193,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       limitations: '3. Limitations',
       limitationsDesc: 'LAF is not responsible for individual results. Each person responds differently to diets and exercises.',
       health: '4. Health',
-      healthDesc: 'Before starting any diet or exercise program, consult a health professional. Your well-being is our priority.',
+      healthDesc: 'Before starting any nutrition or exercise routine, consult a health professional. Your well-being is our priority.',
       lastUpdate: 'Last update: January 2025',
     },
     settingsScreen: {
