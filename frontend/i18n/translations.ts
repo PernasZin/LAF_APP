@@ -564,7 +564,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       title: 'Seu Plano de Treino',
       noData: 'Nenhum treino gerado',
       generateWorkout: 'Gerar Meu Treino',
-      generating: 'Gerando seu plano de treino...',
+      generating: 'Preparando sugestões de exercícios...',
       markComplete: 'Marcar como Concluído',
       completed: 'Concluído!',
       viewHistory: 'Ver Histórico',
