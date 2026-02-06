@@ -325,99 +325,111 @@ export default function ProgressScreen() {
       return (
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
-            {p.checkInTitle} - 2/3
+            Check-in - 2/2
           </Text>
           <Text style={[styles.questionnaireTitle, { color: theme.text }]}>
-            {p.howWasWeek}
+            Como foram as últimas semanas?
           </Text>
 
+          {/* Seguiu alimentação */}
+          <View style={styles.followedSection}>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>
+              Seguiu a alimentação sugerida?
+            </Text>
+            <View style={styles.followedOptions}>
+              <FollowedOption 
+                label="Sim" 
+                value="yes" 
+                selected={questionnaire.followedDiet === 'yes'} 
+                onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v as 'yes' | 'mostly' | 'no'})} 
+              />
+              <FollowedOption 
+                label="Parcialmente" 
+                value="mostly" 
+                selected={questionnaire.followedDiet === 'mostly'} 
+                onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v as 'yes' | 'mostly' | 'no'})} 
+              />
+              <FollowedOption 
+                label="Não" 
+                value="no" 
+                selected={questionnaire.followedDiet === 'no'} 
+                onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v as 'yes' | 'mostly' | 'no'})} 
+              />
+            </View>
+          </View>
+
+          {/* Seguiu treinos */}
+          <View style={styles.followedSection}>
+            <Text style={[styles.followedLabel, { color: theme.text }]}>
+              Seguiu os treinos sugeridos?
+            </Text>
+            <View style={styles.followedOptions}>
+              <FollowedOption 
+                label="Sim" 
+                value="yes" 
+                selected={questionnaire.followedTraining === 'yes'} 
+                onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v as 'yes' | 'mostly' | 'no'})} 
+              />
+              <FollowedOption 
+                label="Parcialmente" 
+                value="mostly" 
+                selected={questionnaire.followedTraining === 'mostly'} 
+                onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v as 'yes' | 'mostly' | 'no'})} 
+              />
+              <FollowedOption 
+                label="Não" 
+                value="no" 
+                selected={questionnaire.followedTraining === 'no'} 
+                onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v as 'yes' | 'mostly' | 'no'})} 
+              />
+            </View>
+          </View>
+
+          {/* Como está se sentindo */}
           <QuestionnaireSlider
-            label={p.diet}
-            icon={Utensils}
-            value={questionnaire.diet}
-            onChange={(v: number) => setQuestionnaire({...questionnaire, diet: v})}
+            label="Como está se sentindo?"
+            icon={Smile}
+            value={questionnaire.feeling}
+            onChange={(v: number) => setQuestionnaire({...questionnaire, feeling: v})}
             color="#10B981"
           />
-          <QuestionnaireSlider
-            label={p.training}
-            icon={Dumbbell}
-            value={questionnaire.training}
-            onChange={(v: number) => setQuestionnaire({...questionnaire, training: v})}
-            color="#3B82F6"
-          />
-          <QuestionnaireSlider
-            label={p.cardio}
-            icon={TrendingUp}
-            value={questionnaire.cardio}
-            onChange={(v: number) => setQuestionnaire({...questionnaire, cardio: v})}
-            color="#F59E0B"
-          />
-          <QuestionnaireSlider
-            label={p.sleep}
-            icon={Moon}
-            value={questionnaire.sleep}
-            onChange={(v: number) => setQuestionnaire({...questionnaire, sleep: v})}
-            color="#8B5CF6"
-          />
-          <QuestionnaireSlider
-            label={p.hydration}
-            icon={Droplets}
-            value={questionnaire.hydration}
-            onChange={(v: number) => setQuestionnaire({...questionnaire, hydration: v})}
-            color="#06B6D4"
-          />
-          <QuestionnaireSlider
-            label={p.energy}
-            icon={Smile}
-            value={questionnaire.energy}
-            onChange={(v: number) => setQuestionnaire({...questionnaire, energy: v})}
-            color="#EC4899"
-          />
-          <QuestionnaireSlider
-            label={p.hunger}
-            icon={Frown}
-            value={questionnaire.hunger}
-            onChange={(v: number) => setQuestionnaire({...questionnaire, hunger: v})}
-            color="#EF4444"
-          />
 
-          {/* Followed questions */}
-          <View style={styles.followedSection}>
-            <Text style={[styles.followedLabel, { color: theme.text }]}>{p.followedDiet}</Text>
-            <View style={styles.followedOptions}>
-              <FollowedOption label={p.yes} value="yes" selected={questionnaire.followedDiet === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
-              <FollowedOption label={p.mostly} value="mostly" selected={questionnaire.followedDiet === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
-              <FollowedOption label={p.no} value="no" selected={questionnaire.followedDiet === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedDiet: v})} />
-            </View>
+          {/* Observações (opcional) */}
+          <View style={[styles.inputSection, { marginTop: spacing.lg }]}>
+            <Text style={[styles.inputSectionLabel, { color: theme.text }]}>
+              Observações (opcional)
+            </Text>
+            <TextInput
+              style={[styles.textArea, { 
+                color: theme.text, 
+                borderColor: theme.border, 
+                backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(241, 245, 249, 0.8)' 
+              }]}
+              value={questionnaire.observations}
+              onChangeText={(v) => setQuestionnaire({...questionnaire, observations: v})}
+              placeholder="Algo que queira registrar..."
+              placeholderTextColor={theme.textTertiary}
+              multiline
+              numberOfLines={2}
+            />
           </View>
 
-          <View style={styles.followedSection}>
-            <Text style={[styles.followedLabel, { color: theme.text }]}>{p.followedTraining}</Text>
-            <View style={styles.followedOptions}>
-              <FollowedOption label={p.yes} value="yes" selected={questionnaire.followedTraining === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
-              <FollowedOption label={p.mostly} value="mostly" selected={questionnaire.followedTraining === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
-              <FollowedOption label={p.no} value="no" selected={questionnaire.followedTraining === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedTraining: v})} />
-            </View>
-          </View>
-
-          <View style={styles.followedSection}>
-            <Text style={[styles.followedLabel, { color: theme.text }]}>{p.followedCardio}</Text>
-            <View style={styles.followedOptions}>
-              <FollowedOption label={p.yes} value="yes" selected={questionnaire.followedCardio === 'yes'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
-              <FollowedOption label={p.mostly} value="mostly" selected={questionnaire.followedCardio === 'mostly'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
-              <FollowedOption label={p.no} value="no" selected={questionnaire.followedCardio === 'no'} onSelect={(v: string) => setQuestionnaire({...questionnaire, followedCardio: v})} />
-            </View>
-          </View>
-
-          <TouchableOpacity onPress={() => setStep(3)} style={{ marginTop: spacing.lg }}>
+          {/* Botão Salvar */}
+          <TouchableOpacity onPress={handleSaveWeight} disabled={saving} style={{ marginTop: spacing.xl }}>
             <LinearGradient
               colors={[premiumColors.gradient.start, premiumColors.gradient.end]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={styles.nextButton}
             >
-              <Text style={styles.nextButtonText}>{t.common.next || 'Próximo'}</Text>
-              <ChevronRight size={20} color="#FFF" />
+              {saving ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <>
+                  <Check size={20} color="#FFF" />
+                  <Text style={styles.nextButtonText}>Salvar Check-in</Text>
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
         </ScrollView>
