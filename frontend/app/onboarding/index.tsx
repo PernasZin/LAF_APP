@@ -66,6 +66,9 @@ export default function OnboardingScreen() {
     dietary_restrictions: [] as string[],
     food_preferences: [] as string[],
     injury_history: [] as string[],
+    // Cardio (NOVO)
+    cardio_minutos_semana: '0',
+    intensidade_cardio: 'moderado',
   });
 
   const steps = [
