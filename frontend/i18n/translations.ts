@@ -996,7 +996,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       noSubstitutes: 'No substitutes available for this food.',
       substituted: 'Food substituted successfully!',
       existingDiet: 'Existing Diet',
-      existingDietMessage: 'You already have a generated diet. To change, use food substitution.',
+      existingDietMessage: 'You already have generated suggestions. To change, use food substitution.',
       categories: {
         protein: 'Protein',
         carb: 'Carbohydrate',
