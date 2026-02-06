@@ -224,7 +224,7 @@ export const pt = {
   // ==================== WORKOUT ====================
   workout: {
     title: 'Exercícios',
-    subtitle: 'Sugestões de treino baseadas no seu nível',
+    subtitle: 'Sugestões de exercícios baseadas no seu nível',
     generateWorkout: 'Gerar Sugestões',
     regenerateWorkout: 'Novas Sugestões',
     generating: 'Preparando sugestões...',
