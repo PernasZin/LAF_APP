@@ -326,9 +326,6 @@ RESTRICTION_EXCLUSIONS = {
     "low_carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", 
                  "macarrao", "pao", "pao_integral", "banana", "manga", "uva",
                  "aveia", "tapioca", "cuscuz", "feijao", "lentilha", "grao_de_bico"},
-    "diabetico": {"mel", "leite_condensado", "granola", "banana", "manga", "uva", 
-                  "melancia", "abacaxi", "mamao", "tapioca", "pao", "pao_integral", 
-                  "pao_forma", "farofa", "arroz_branco"},
 }
 
 
