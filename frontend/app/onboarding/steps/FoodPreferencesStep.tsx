@@ -137,7 +137,6 @@ const RESTRICTIONS = [
   { value: 'vegano', icon: Leaf, color: '#10B981' },
   { value: 'sem_lactose', icon: Milk, color: '#3B82F6' },
   { value: 'sem_gluten', icon: Wheat, color: '#F59E0B' },
-  { value: 'diabetico', icon: Activity, color: '#8B5CF6' },
 ];
 
 export default function FoodPreferencesStep({ formData, updateFormData, theme, isDark }: Props) {
