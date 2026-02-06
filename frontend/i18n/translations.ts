@@ -560,7 +560,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       success: 'Sucesso',
     },
     workout: {
-      title: 'Seu Plano de Treino',
+      title: 'Exercícios',
       noData: 'Nenhum treino gerado',
       generateWorkout: 'Gerar Meu Treino',
       generating: 'Preparando sugestões de exercícios...',
