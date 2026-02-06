@@ -1187,11 +1187,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
     terms: {
       title: 'Terms of Use',
       acceptance: '1. Acceptance',
-      acceptanceDesc: 'By using LAF, you agree to these terms of use. The app was developed to assist with nutritional and workout tracking.',
+      acceptanceDesc: 'By using LAF, you agree to these terms of use. The app offers suggestions to help with your health and fitness goals.',
       responsibleUse: '2. Responsible Use',
       responsibleUseDesc: 'The information provided by the app is only suggestions and does not replace professional guidance from nutritionists or doctors.',
       limitations: '3. Limitations',
-      limitationsDesc: 'LAF is not responsible for individual results. Each person responds differently to diets and exercises.',
+      limitationsDesc: 'LAF is not responsible for individual results. Each person responds differently to nutrition and exercises.',
       health: '4. Health',
       healthDesc: 'Before starting any nutrition or exercise routine, consult a health professional. Your well-being is our priority.',
       lastUpdate: 'Last update: January 2025',
