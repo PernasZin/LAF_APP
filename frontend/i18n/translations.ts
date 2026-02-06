@@ -536,7 +536,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       daySummary: 'Resumo do Dia',
       noData: 'Nenhuma dieta gerada',
       generateDiet: 'Gerar Minha Dieta',
-      generating: 'Gerando seu plano de dieta...',
+      generating: 'Preparando sugestões alimentares...',
       tapToSubstitute: 'Toque em um alimento para substituir',
       mealsOfDay: 'Refeições do Dia',
       supplements: 'Suplementação',
