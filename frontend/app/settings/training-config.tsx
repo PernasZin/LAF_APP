@@ -317,6 +317,79 @@ export default function TrainingConfigScreen() {
             </GlassCard>
           </Animated.View>
 
+          {/* Cardio Semanal */}
+          <Animated.View entering={FadeInDown.delay(400).springify()}>
+            <View style={styles.sectionHeader}>
+              <Heart size={18} color="#EF4444" />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Cardio por Semana</Text>
+            </View>
+            <Text style={[styles.sectionSubtitle, { color: theme.textTertiary }]}>
+              Quanto cardio você faz além da musculação?
+            </Text>
+            <GlassCard isDark={isDark} style={styles.card}>
+              {CARDIO_OPTIONS.map((item, index) => (
+                <TouchableOpacity
+                  key={item.value}
+                  style={[
+                    styles.optionItem,
+                    { borderBottomColor: theme.border },
+                    index === CARDIO_OPTIONS.length - 1 && { borderBottomWidth: 0 }
+                  ]}
+                  onPress={() => setCardioMinutos(item.value)}
+                >
+                  <View style={styles.optionContent}>
+                    <Text style={[styles.optionLabel, { color: theme.text }]}>{item.label}</Text>
+                    <Text style={[styles.optionDesc, { color: theme.textTertiary }]}>{item.desc}</Text>
+                  </View>
+                  <View style={[
+                    styles.radioOuter,
+                    { borderColor: cardioMinutos === item.value ? '#EF4444' : theme.border }
+                  ]}>
+                    {cardioMinutos === item.value && (
+                      <View style={[styles.radioInner, { backgroundColor: '#EF4444' }]} />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </GlassCard>
+          </Animated.View>
+
+          {/* Intensidade do Cardio - só mostra se fizer cardio */}
+          {cardioMinutos > 0 && (
+            <Animated.View entering={FadeInDown.delay(450).springify()}>
+              <View style={styles.sectionHeader}>
+                <Heart size={18} color="#EF4444" />
+                <Text style={[styles.sectionTitle, { color: theme.text }]}>Intensidade do Cardio</Text>
+              </View>
+              <GlassCard isDark={isDark} style={styles.card}>
+                {CARDIO_INTENSITY.map((item, index) => (
+                  <TouchableOpacity
+                    key={item.value}
+                    style={[
+                      styles.optionItem,
+                      { borderBottomColor: theme.border },
+                      index === CARDIO_INTENSITY.length - 1 && { borderBottomWidth: 0 }
+                    ]}
+                    onPress={() => setCardioIntensidade(item.value)}
+                  >
+                    <View style={styles.optionContent}>
+                      <Text style={[styles.optionLabel, { color: theme.text }]}>{item.label}</Text>
+                      <Text style={[styles.optionDesc, { color: theme.textTertiary }]}>{item.desc}</Text>
+                    </View>
+                    <View style={[
+                      styles.radioOuter,
+                      { borderColor: cardioIntensidade === item.value ? '#EF4444' : theme.border }
+                    ]}>
+                      {cardioIntensidade === item.value && (
+                        <View style={[styles.radioInner, { backgroundColor: '#EF4444' }]} />
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </GlassCard>
+            </Animated.View>
+          )}
+
           {/* Save Button */}
           <Animated.View entering={FadeInDown.delay(400).springify()} style={styles.saveContainer}>
             <TouchableOpacity onPress={handleSave} disabled={saving} activeOpacity={0.9}>
