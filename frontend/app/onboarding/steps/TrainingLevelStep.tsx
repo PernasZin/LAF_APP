@@ -125,7 +125,7 @@ export default function TrainingLevelStep({ formData, updateFormData, theme, isD
         <View style={styles.sectionHeader}>
           <Clock size={18} color={premiumColors.primary} />
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
-            {t.timePerSession || 'Duração do treino'}
+            {t.timePerSession || 'Tempo disponível'}
           </Text>
         </View>
         <View style={styles.optionsRow}>
