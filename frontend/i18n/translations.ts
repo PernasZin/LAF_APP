@@ -742,7 +742,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       limitations: '3. Limitações',
       limitationsDesc: 'O LAF não se responsabiliza por resultados individuais. Cada pessoa responde de forma diferente a dietas e exercícios.',
       health: '4. Saúde',
-      healthDesc: 'Antes de iniciar qualquer dieta ou programa de exercícios, consulte um profissional de saúde. Seu bem-estar é nossa prioridade.',
+      healthDesc: 'Antes de iniciar qualquer rotina de alimentação ou exercícios, consulte um profissional de saúde. Seu bem-estar é nossa prioridade.',
       lastUpdate: 'Última atualização: Janeiro 2025',
     },
     settingsScreen: {
