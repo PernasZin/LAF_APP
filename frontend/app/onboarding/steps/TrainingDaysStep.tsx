@@ -159,7 +159,7 @@ export default function TrainingDaysStep({ formData, updateFormData, theme, isDa
       {selectedDays.length > 0 && (
         <View style={styles.previewSection}>
           <Text style={[styles.previewLabel, { color: theme.textTertiary }]}>
-            {isEnglish ? 'Your training days:' : 'Seus dias de treino:'}
+            {isEnglish ? 'Your exercise days:' : 'Seus dias de exercício:'}
           </Text>
           <View style={styles.previewDays}>
             {selectedDays.map((dayValue) => {
