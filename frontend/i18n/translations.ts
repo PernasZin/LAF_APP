@@ -63,7 +63,7 @@ export interface Translations {
     welcome: string;
     completeProfile: string;
     perWeek: string;
-    workouts: string;
+    exercises: string;
   };
   // Diet screen
   diet: {
@@ -115,7 +115,7 @@ export interface Translations {
     restTimer: string;
     start: string;
     restart: string;
-    workouts: string;
+    exercises: string;
     thisWeek: string;
     completeHint: string;
     weekProgress: string;
@@ -527,7 +527,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       welcome: 'Bem-vindo ao LAF!',
       completeProfile: 'Complete seu perfil para começar',
       perWeek: 'POR SEMANA',
-      workouts: 'exercícios',
+      exercises: 'exercícios',
     },
     diet: {
       title: 'Alimentação',
@@ -577,7 +577,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       restTimer: 'Timer de Descanso',
       start: 'Iniciar',
       restart: 'Reiniciar',
-      workouts: 'Exercícios',
+      exercises: 'Exercícios',
       thisWeek: 'Esta Semana',
       completeHint: 'Complete exercícios para ver seu histórico aqui',
       weekProgress: 'Progresso da Semana',
@@ -944,8 +944,8 @@ export const translations: Record<SupportedLanguage, Translations> = {
     },
     tabs: {
       home: 'Home',
-      diet: 'Diet',
-      workout: 'Workout',
+      diet: 'Nutrition',
+      workout: 'Exercises',
       cardio: 'Cardio',
       progress: 'Progress',
       settings: 'Settings',
@@ -970,7 +970,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       comingSoonText: 'Smart nutrition and AI-powered exercise suggestions',
       waterTracker: 'Hydration',
       waterGoalReached: 'Hydration goal reached! 🎉',
-      viewDiet: 'View diet',
+      viewDiet: 'View suggestions',
       macrosOfDay: 'Daily Macros',
       cups: 'cups',
       ofCups: 'of',
@@ -978,13 +978,13 @@ export const translations: Record<SupportedLanguage, Translations> = {
       welcome: 'Welcome to LAF!',
       completeProfile: 'Complete your profile to get started',
       perWeek: 'PER WEEK',
-      workouts: 'workouts',
+      exercises: 'exercises',
     },
     diet: {
       title: 'Nutrition',
       mealsPlanned: 'meals planned',
       daySummary: 'Day Summary',
-      noData: 'No diet generated',
+      noData: 'No suggestions generated',
       generateDiet: 'Generate My Diet',
       generating: 'Preparing nutrition suggestions...',
       tapToSubstitute: 'Tap on a food to substitute',
@@ -1004,7 +1004,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
         fruit: 'Fruit',
         vegetable: 'Vegetable',
       },
-      noDietGenerated: 'No diet has been generated yet',
+      noDietGenerated: 'No suggestions have been generated yet',
       generateYourDiet: 'Generate suggestions',
       generateMyDiet: 'Generate My Diet',
       substitute: 'Substitute',
@@ -1012,14 +1012,14 @@ export const translations: Record<SupportedLanguage, Translations> = {
     },
     workout: {
       title: 'Exercises',
-      noData: 'No workout generated',
+      noData: 'No suggestions generated',
       generateWorkout: 'Generate My Workout',
       generating: 'Preparing exercise suggestions...',
       markComplete: 'Mark as Complete',
       completed: 'Completed!',
       viewHistory: 'View History',
       history: 'Workout History',
-      noHistory: 'No workouts recorded yet.',
+      noHistory: 'No exercises recorded yet.',
       sets: 'Sets',
       reps: 'Reps',
       rest: 'Rest',
@@ -1028,11 +1028,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
       restTimer: 'Rest Timer',
       start: 'Start',
       restart: 'Restart',
-      workouts: 'Workouts',
+      exercises: 'Exercises',
       thisWeek: 'This Week',
       completeHint: 'Complete exercises to see your history here',
       weekProgress: 'Weekly Progress',
-      customWorkout: 'Custom workout',
+      customWorkout: 'Custom exercises',
       training: 'Workout',
     },
     cardio: {
@@ -1076,7 +1076,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       subtitle: 'Customize your experience',
       account: 'Account',
       editProfile: 'Edit Profile',
-      diet: 'Diet',
+      diet: 'Nutrition',
       mealsPerDay: 'Meals per day',
       meals: 'Meals',
       training: 'Training',
@@ -1106,9 +1106,9 @@ export const translations: Record<SupportedLanguage, Translations> = {
       mealRemindersTitle: 'Meal Reminders',
       mealRemindersDesc: 'Receive reminders at your meal times',
       mealTimes: 'Meal Times',
-      workoutReminder: 'Workout Reminder',
-      workoutReminderTitle: 'Workout Reminder',
-      workoutReminderDesc: 'Daily reminder to workout',
+      workoutReminder: 'Exercise Reminder',
+      workoutReminderTitle: 'Exercise Reminder',
+      workoutReminderDesc: 'Daily reminder',
       weightReminder: 'Weight Reminder',
       weightReminderTitle: 'Weekly Reminder',
       weightReminderDesc: 'Remember to record your weight',
@@ -1124,7 +1124,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       saveSettings: 'Save Settings',
       savingSettings: 'Saving...',
       successTitle: 'Success!',
-      successMessage: 'Settings saved and workout updated!',
+      successMessage: 'Settings saved and exercises updated!',
       errorTitle: 'Error',
       errorSave: 'Could not save',
       errorConnect: 'Could not connect to server',
@@ -1138,7 +1138,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       advancedDesc: '3+ years in gym',
       lowVolume: '🎯 Low Volume',
       lowVolumeDesc: 'Intense training with few sets',
-      noviceHint: '💡 Novices start with adaptation training for 4-8 weeks. After 30 completed workouts, you\'ll receive hypertrophy workouts!',
+      noviceHint: '💡 Novices start with adaptation training for 4-8 weeks. After 30 completed exercises, you\'ll receive hypertrophy exercises!',
       freq2x: '2x per week',
       freq2xDesc: 'Full Body',
       freq3x: '3x per week',
@@ -1150,11 +1150,11 @@ export const translations: Record<SupportedLanguage, Translations> = {
       freq6x: '6x per week',
       freq6xDesc: 'PPL 2x',
       dur30: '30 minutes',
-      dur30Desc: 'Quick workout',
+      dur30Desc: 'Quick session',
       dur60: '1 hour',
-      dur60Desc: 'Standard workout',
+      dur60Desc: 'Standard session',
       dur90: '1h 30min',
-      dur90Desc: 'Full workout',
+      dur90Desc: 'Full session',
       dur120: '2 hours',
       dur120Desc: 'Extended workout',
     },
@@ -1429,7 +1429,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       welcome: '¡Bienvenido a LAF!',
       completeProfile: 'Completa tu perfil para empezar',
       perWeek: 'POR SEMANA',
-      workouts: 'entrenos',
+      exercises: 'entrenos',
     },
     diet: {
       title: 'Alimentación',
@@ -1479,7 +1479,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       restTimer: 'Timer de Descanso',
       start: 'Iniciar',
       restart: 'Reiniciar',
-      workouts: 'Entrenos',
+      exercises: 'Entrenos',
       thisWeek: 'Esta Semana',
       completeHint: 'Completa ejercicios para ver tu historial aquí',
       weekProgress: 'Progreso Semanal',
