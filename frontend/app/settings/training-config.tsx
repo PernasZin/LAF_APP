@@ -139,6 +139,9 @@ export default function TrainingConfigScreen() {
           weekly_training_frequency: frequency,
           training_duration: duration,
           training_level: level,
+          // Cardio (NOVO)
+          cardio_minutos_semana: cardioMinutos,
+          intensidade_cardio: cardioIntensidade,
         }),
       });
 
