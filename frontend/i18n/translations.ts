@@ -622,7 +622,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     },
     settings: {
       title: 'Configurações',
-      subtitle: 'Personalize sua experiência',
+      subtitle: 'Configure suas preferências',
       account: 'Conta',
       editProfile: 'Editar Perfil',
       diet: 'Dieta',
