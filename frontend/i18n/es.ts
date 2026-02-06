@@ -120,10 +120,10 @@ export const es = {
     advancedDesc: 'Más de 2 años',
     
     // Training Config
-    trainingConfig: 'Configuración de Entrenamiento',
-    trainingConfigSubtitle: '¿Cómo prefieres entrenar?',
+    trainingConfig: 'Configuración de Ejercicios',
+    trainingConfigSubtitle: '¿¿Cómo prefieres ejercitarte?',
     daysPerWeek: 'Días por semana',
-    daysPerWeekDesc: '¿Cuántos días entrenas?',
+    daysPerWeekDesc: '¿¿Cuántos días te ejercitas?',
     duration: 'Duración del entrenamiento',
     durationDesc: '¿Cuánto dura cada sesión?',
     minutes: 'minutos',
@@ -400,7 +400,7 @@ export const es = {
     deleteAccountConfirm: '¿Estás seguro? Esta acción no se puede deshacer.',
     mealConfig: 'Configuración de Comidas',
     trainingConfig: 'Configuración de Entreno',
-    dietPreferences: 'Preferencias de Dieta',
+    dietPreferences: 'Preferencias Alimentarias',
     saveChanges: 'Guardar Cambios',
     changesSaved: '¡Cambios guardados!',
   },
