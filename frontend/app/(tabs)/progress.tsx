@@ -436,65 +436,7 @@ export default function ProgressScreen() {
       );
     }
 
-    if (step === 3) {
-      return (
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
-            {p.checkInTitle} - 3/3
-          </Text>
-
-          {/* Bored Foods */}
-          <View style={styles.inputSection}>
-            <View style={styles.inputLabelRow}>
-              <AlertCircle size={18} color="#F59E0B" />
-              <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{p.boredFoods}</Text>
-            </View>
-            <Text style={[styles.inputHint, { color: theme.textTertiary }]}>{p.boredFoodsHint}</Text>
-            <TextInput
-              style={[styles.textArea, { color: theme.text, borderColor: theme.border, backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(241, 245, 249, 0.8)' }]}
-              value={questionnaire.boredFoods}
-              onChangeText={(v) => setQuestionnaire({...questionnaire, boredFoods: v})}
-              placeholder={p.boredFoodsPlaceholder}
-              placeholderTextColor={theme.textTertiary}
-              multiline
-              numberOfLines={2}
-            />
-          </View>
-
-          {/* Observations */}
-          <View style={styles.inputSection}>
-            <Text style={[styles.inputSectionLabel, { color: theme.text }]}>{p.observations}</Text>
-            <TextInput
-              style={[styles.textArea, { color: theme.text, borderColor: theme.border, backgroundColor: isDark ? 'rgba(30, 41, 59, 0.5)' : 'rgba(241, 245, 249, 0.8)' }]}
-              value={questionnaire.observations}
-              onChangeText={(v) => setQuestionnaire({...questionnaire, observations: v})}
-              placeholder={p.observationsPlaceholder}
-              placeholderTextColor={theme.textTertiary}
-              multiline
-              numberOfLines={3}
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={handleSaveWeight}
-            disabled={saving}
-            style={{ marginTop: spacing.lg }}
-          >
-            <LinearGradient
-              colors={saving ? ['#9CA3AF', '#6B7280'] : [premiumColors.gradient.start, premiumColors.gradient.end]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.saveButton}
-            >
-              <Check size={20} color="#FFF" />
-              <Text style={styles.saveButtonText}>
-                {saving ? t.common.saving : p.saveAndAdjust}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </ScrollView>
-      );
-    }
+    // Step 3 removed - simplified to 2 steps only
   };
 
   return (
