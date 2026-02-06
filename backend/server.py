@@ -83,6 +83,10 @@ class UserProfile(BaseModel):
     # Objetivo (3 opções apenas)
     goal: str  # "cutting", "bulking", "manutencao"
     
+    # Cardio (NOVO - usado para cálculo de TDEE)
+    cardio_minutos_semana: int = 0  # Minutos de cardio por semana (0 se não fizer)
+    intensidade_cardio: str = "moderado"  # "leve", "moderado", "intenso"
+    
     # Restrições e Preferências
     dietary_restrictions: List[str] = Field(default_factory=list)  # ["vegetariano", "lactose", etc]
     food_preferences: List[str] = Field(default_factory=list)
