@@ -654,14 +654,16 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
         new_level = update_dict.get("training_level", current_profile.training_level)
         new_frequency = update_dict.get("weekly_training_frequency", current_profile.weekly_training_frequency)
         new_weight = update_dict.get("weight", current_profile.weight)
+        new_cardio_min = update_dict.get("cardio_minutos_semana", current_profile.cardio_minutos_semana)
+        new_cardio_int = update_dict.get("intensidade_cardio", current_profile.intensidade_cardio)
         
         # Detectar se o objetivo mudou
         if "goal" in update_dict and old_goal != new_goal:
             goal_changed = True
             logger.info(f"Goal changed for user {user_id}: {old_goal} -> {new_goal}")
         
-        # Se peso, goal, level ou frequência mudou, recalcula macros
-        if any(key in update_dict for key in ["weight", "goal", "training_level", "weekly_training_frequency"]):
+        # Se peso, goal, level, frequência ou cardio mudou, recalcula macros
+        if any(key in update_dict for key in ["weight", "goal", "training_level", "weekly_training_frequency", "cardio_minutos_semana", "intensidade_cardio"]):
             # Recalcula
             bmr = calculate_bmr(
                 weight=new_weight,
@@ -669,7 +671,13 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                 age=current_profile.age,
                 sex=current_profile.sex
             )
-            tdee = calculate_tdee(bmr, new_frequency, new_level, new_goal)  # INCLUI CARDIO!
+            tdee = calculate_tdee(
+                bmr=bmr, 
+                training_frequency=new_frequency, 
+                training_level=new_level, 
+                cardio_minutos_semana=new_cardio_min,
+                intensidade_cardio=new_cardio_int
+            )
             target_calories = calculate_target_calories(tdee, new_goal, new_weight)
             macros = calculate_macros(target_calories, new_weight, new_goal)
             
