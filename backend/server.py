@@ -3590,7 +3590,7 @@ async def get_water_sodium_history(user_id: str, days: int = 7):
 @api_router.post("/workout/generate")
 async def generate_workout(user_id: str, force: bool = False):
     """
-    Gera um plano de treino personalizado.
+    Gera um sugestões de exercícios.
     Se force=true, substitui o treino existente.
     """
     try:
@@ -3636,7 +3636,7 @@ async def generate_workout(user_id: str, force: bool = False):
 @api_router.get("/workout/{user_id}")
 async def get_user_workout(user_id: str):
     """
-    Busca o plano de treino mais recente do usuário
+    Busca as sugestões de exercícios mais recente do usuário
     """
     workout_plan = await db.workout_plans.find_one(
         {"user_id": user_id},
