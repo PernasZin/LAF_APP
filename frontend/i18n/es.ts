@@ -193,11 +193,11 @@ export const es = {
 
   // ==================== DIET ====================
   diet: {
-    title: 'Tu Dieta',
-    subtitle: 'Plan alimentario personalizado',
-    generateDiet: 'Generar Dieta',
-    regenerateDiet: 'Regenerar Dieta',
-    generating: 'Generando tu dieta...',
+    title: 'Alimentación',
+    subtitle: 'Sugerencias alimentarias basadas en tu perfil',
+    generateDiet: 'Generar Sugerencias',
+    regenerateDiet: 'Nuevas Sugerencias',
+    generating: 'Preparando sugerencias...',
     dailyTotals: 'Totales Diarios',
     meals: 'Comidas',
     meal: 'Comida',
@@ -215,7 +215,7 @@ export const es = {
     markComplete: 'Marcar como hecha',
     completed: 'Completada',
     supplements: 'Suplementos',
-    noSupplements: 'Sin suplementos recomendados',
+    noSupplements: 'Sin suplementos sugeridos',
     tips: 'Consejos',
     macros: 'Macros',
     foodDetails: 'Detalles del Alimento',
@@ -224,11 +224,11 @@ export const es = {
 
   // ==================== WORKOUT ====================
   workout: {
-    title: 'Tu Entreno',
-    subtitle: 'Plan de ejercicios personalizado',
-    generateWorkout: 'Generar Entreno',
-    regenerateWorkout: 'Regenerar Entreno',
-    generating: 'Generando tu entreno...',
+    title: 'Ejercicios',
+    subtitle: 'Sugerencias de ejercicios basadas en tu nivel',
+    generateWorkout: 'Generar Sugerencias',
+    regenerateWorkout: 'Nuevas Sugerencias',
+    generating: 'Preparando sugerencias...',
     todaysWorkout: 'Entrenamiento de Hoy',
     restDay: 'Día de Descanso',
     restDayMessage: '¡Hoy es día de descanso. Disfruta tu recuperación!',
