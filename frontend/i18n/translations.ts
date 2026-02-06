@@ -840,7 +840,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       timePerSession: 'Tempo disponível por treino (minutos)',
       timePlaceholder: 'Ex: 60',
       goalTitle: 'Qual seu objetivo?',
-      goalDesc: 'Vamos ajustar seu plano de dieta e treino para seu objetivo específico.',
+      goalDesc: 'Vamos ajustar as sugestões de alimentação e exercícios para seu objetivo.',
       cutting: 'Emagrecimento (Cutting)',
       cuttingDesc: 'Perder gordura e definir',
       bulking: 'Ganho de Massa (Bulking)',
