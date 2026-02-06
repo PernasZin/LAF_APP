@@ -1276,7 +1276,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       bodyFatPlaceholder: 'E.g.: 15',
       bodyFatHint: "If you don't know, you can leave it blank.",
       trainingLevelTitle: 'Training Level',
-      trainingLevelDesc: 'This helps us calibrate the intensity and volume of your workouts.',
+      trainingLevelDesc: 'This helps us calibrate the intensity and volume of exercise suggestions.',
       currentLevel: 'What is your current level?',
       novice: '🆕 Novice',
       noviceDesc: 'Never trained',
