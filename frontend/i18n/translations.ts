@@ -1291,7 +1291,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       timePerSession: 'Time available per session (minutes)',
       timePlaceholder: 'E.g.: 60',
       goalTitle: 'What is your goal?',
-      goalDesc: "We'll adjust your diet and workout plan to your specific goal.",
+      goalDesc: "We'll adjust nutrition and exercise suggestions for your goal.",
       cutting: 'Weight Loss (Cutting)',
       cuttingDesc: 'Lose fat and get lean',
       bulking: 'Muscle Gain (Bulking)',
