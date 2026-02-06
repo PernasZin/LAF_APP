@@ -27,8 +27,8 @@ interface TabItem {
 
 const TABS: TabItem[] = [
   { name: 'index', label: 'Início', icon: Home },
-  { name: 'diet', label: 'Dieta', icon: Utensils },
-  { name: 'workout', label: 'Treino', icon: Dumbbell },
+  { name: 'diet', label: 'Alimentação', icon: Utensils },
+  { name: 'workout', label: 'Exercícios', icon: Dumbbell },
   { name: 'cardio', label: 'Cardio', icon: Activity },
   { name: 'progress', label: 'Progresso', icon: TrendingUp },
   { name: 'settings', label: 'Config', icon: Settings },
