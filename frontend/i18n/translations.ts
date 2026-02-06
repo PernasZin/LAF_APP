@@ -545,7 +545,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       noSubstitutes: 'Nenhum substituto disponível para este alimento.',
       substituted: 'Alimento substituído com sucesso!',
       existingDiet: 'Dieta Existente',
-      existingDietMessage: 'Você já possui uma dieta gerada. Para alterar, use a substituição de alimentos.',
+      existingDietMessage: 'Você já possui sugestões geradas. Para alterar, use a substituição de alimentos.',
       categories: {
         protein: 'Proteína',
         carb: 'Carboidrato',
@@ -1447,7 +1447,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       noSubstitutes: 'No hay sustitutos disponibles para este alimento.',
       substituted: '¡Alimento sustituido con éxito!',
       existingDiet: 'Dieta Existente',
-      existingDietMessage: 'Ya tienes una dieta generada. Para cambiar, usa la sustitución de alimentos.',
+      existingDietMessage: 'Ya tienes sugerencias generadas. Para cambiar, usa la sustitución de alimentos.',
       categories: {
         protein: 'Proteína',
         carb: 'Carbohidrato',
