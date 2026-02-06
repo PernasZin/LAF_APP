@@ -61,7 +61,7 @@ export default function PublicTermsScreen() {
 
               <Text style={[styles.sectionTitle, { color: theme.text }]}>2. {t.legal?.serviceTitle || 'Uso do Serviço'}</Text>
               <Text style={[styles.paragraph, { color: theme.textSecondary }]}>
-                {t.legal?.serviceText || 'O LAF é um aplicativo de orientação nutricional e fitness. As informações fornecidas não substituem aconselhamento médico ou nutricional profissional.'}
+                {t.legal?.serviceText || 'O LAF é um aplicativo que oferece sugestões de alimentação e exercícios. As informações fornecidas são de caráter informativo e não substituem orientação profissional.'}
               </Text>
 
               <Text style={[styles.sectionTitle, { color: theme.text }]}>3. {t.legal?.accountTitle || 'Conta do Usuário'}</Text>
