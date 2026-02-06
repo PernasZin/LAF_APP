@@ -530,7 +530,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       workouts: 'treinos',
     },
     diet: {
-      title: 'Seu Plano de Dieta',
+      title: 'Alimentação',
       mealsPlanned: 'refeições planejadas',
       daySummary: 'Resumo do Dia',
       noData: 'Nenhuma dieta gerada',
