@@ -4584,7 +4584,13 @@ async def create_apple_reviewer_account():
     
     # Calcular TDEE e macros
     bmr = calculate_bmr(profile["weight"], profile["height"], profile["age"], profile["sex"])
-    tdee = calculate_tdee(bmr, profile["weekly_training_frequency"], profile["training_level"], profile["goal"])
+    tdee = calculate_tdee(
+        bmr=bmr, 
+        training_frequency=profile["weekly_training_frequency"], 
+        training_level=profile["training_level"],
+        cardio_minutos_semana=profile.get("cardio_minutos_semana", 0),
+        intensidade_cardio=profile.get("intensidade_cardio", "moderado")
+    )
     target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"])
     macros = calculate_macros(target_calories, profile["weight"], profile["goal"])
     
@@ -4698,7 +4704,13 @@ async def create_premium_test_account(request: TestAccountRequest):
     
     # Calcular TDEE e macros
     bmr = calculate_bmr(profile["weight"], profile["height"], profile["age"], profile["sex"])
-    tdee = calculate_tdee(bmr, profile["weekly_training_frequency"], profile["training_level"], profile["goal"])
+    tdee = calculate_tdee(
+        bmr=bmr, 
+        training_frequency=profile["weekly_training_frequency"], 
+        training_level=profile["training_level"],
+        cardio_minutos_semana=profile.get("cardio_minutos_semana", 0),
+        intensidade_cardio=profile.get("intensidade_cardio", "moderado")
+    )
     target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"])
     macros = calculate_macros(target_calories, profile["weight"], profile["goal"])
     
