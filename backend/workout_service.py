@@ -825,9 +825,9 @@ class WorkoutAIService:
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
                     
-                    # INTERMEDIÁRIO: 4 séries (1 aquecimento + 3 válidas)
+                    # INTERMEDIÁRIO: 3-4 séries (1 aquecimento + 2-3 válidas)
                     elif level == 'intermediario':
-                        base_sets = 4  # LIMITE FIXO
+                        base_sets = 4  # Usa 4 séries como padrão para intermediário
                         if needs_warmup:
                             series_instruction = f"""📋 ESTRUTURA (4 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
@@ -835,23 +835,23 @@ class WorkoutAIService:
                             sets_count = 4  # Inclui aquecimento
                             muscles_warmed_up.add(muscle)
                         else:
-                            series_instruction = f"💪 4 séries - Chegue PERTO DA FALHA em pelo menos 1!"
-                            sets_count = 4
+                            series_instruction = f"💪 3 séries - Chegue PERTO DA FALHA em pelo menos 1!"
+                            sets_count = 3  # Sem aquecimento = 3 séries válidas
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
                     
-                    # INICIANTE: 4 séries (1 aquecimento + 3 válidas)
+                    # INICIANTE: 3 séries (1 aquecimento + 2 válidas)
                     elif level == 'iniciante':
-                        base_sets = 4  # LIMITE FIXO
+                        base_sets = 3  # Iniciante: 3 séries
                         if needs_warmup:
-                            series_instruction = f"""📋 ESTRUTURA (4 SÉRIES):
+                            series_instruction = f"""📋 ESTRUTURA (3 SÉRIES):
 • 1ª Série: AQUECIMENTO (50% da carga, 12-15 reps)
-• Séries 2-4: VÁLIDAS (foco na execução correta)"""
-                            sets_count = 4  # Inclui aquecimento
+• Séries 2-3: VÁLIDAS (foco na execução correta)"""
+                            sets_count = 3  # Inclui aquecimento
                             muscles_warmed_up.add(muscle)
                         else:
-                            series_instruction = f"✅ 4 séries - Foco na execução correta!"
-                            sets_count = 4
+                            series_instruction = f"✅ 3 séries - Foco na execução correta!"
+                            sets_count = 3
                         
                         notes = f"{series_instruction}\n\n🎯 {execution_notes}" if execution_notes else series_instruction
                     
