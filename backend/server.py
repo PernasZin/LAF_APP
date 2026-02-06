@@ -1836,8 +1836,13 @@ async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
     
     q = checkin.questionnaire
     
-    # Calcula média do questionário (só as avaliações numéricas principais)
-    questionnaire_avg = round((q.diet + q.training + q.cardio + q.sleep + q.hydration + q.energy) / 6, 1)
+    # Calcula score baseado nas respostas simplificadas
+    # followedDiet/followedTraining: yes=10, mostly=6, no=2
+    # feeling: 1-10
+    score_map = {"yes": 10, "mostly": 6, "no": 2}
+    diet_score = score_map.get(q.followedDiet, 6)
+    training_score = score_map.get(q.followedTraining, 6)
+    questionnaire_avg = round((diet_score + training_score + q.feeling) / 3, 1)
     
     # Salva registro de peso
     weight_record = {
