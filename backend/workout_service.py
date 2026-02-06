@@ -356,7 +356,21 @@ UPPER_BODY_EXERCISES = [
 
 
 def parse_rest_seconds(rest_str: str) -> int:
+    """Converte string de descanso para segundos. Aceita ranges como '90-120s'."""
     rest_str = rest_str.lower().replace(" ", "")
+    
+    # Se tem range (ex: 90-120s), usa o valor médio
+    if "-" in rest_str:
+        rest_str = rest_str.replace("s", "")
+        parts = rest_str.split("-")
+        if len(parts) == 2:
+            try:
+                min_rest = int(parts[0])
+                max_rest = int(parts[1])
+                return (min_rest + max_rest) // 2  # Retorna a média
+            except:
+                return 90  # Default
+    
     if "s" in rest_str:
         return int(rest_str.replace("s", ""))
     elif "min" in rest_str:
