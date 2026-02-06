@@ -118,10 +118,10 @@ const getTranslations = (lang: SupportedLanguage) => {
       thenPrice: `Luego €${(SUBSCRIPTION_CONFIG.MONTHLY_PRICE / 6).toFixed(2)}/mes`,
       cancelAnytime: 'Cancela cuando quieras. Sin compromiso.',
       features: {
-        personalizedDiet: 'Dieta 100% personalizada',
-        customWorkouts: 'Entrenamientos adaptados a tu nivel',
+        personalizedDiet: 'Sugerencias alimentarias inteligentes',
+        customWorkouts: 'Ejercicios adaptados a tu nivel',
         progressTracking: 'Seguimiento de progreso',
-        autoAdjustments: 'Ajustes automáticos de dieta',
+        autoAdjustments: 'Ajustes automáticos basados en resultados',
         unlimitedAccess: 'Acceso ilimitado a todo',
         prioritySupport: 'Soporte prioritario',
       },
