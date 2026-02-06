@@ -196,7 +196,7 @@ export const en = {
     subtitle: 'Personalized meal plan',
     generateDiet: 'Generate Diet',
     regenerateDiet: 'Regenerate Diet',
-    generating: 'Generating your diet...',
+    generating: 'Preparing suggestions...',
     dailyTotals: 'Daily Totals',
     meals: 'Meals',
     meal: 'Meal',
