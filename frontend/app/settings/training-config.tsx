@@ -1,7 +1,7 @@
 /**
  * LAF Premium Training Config Screen
  * ===================================
- * Configurações de frequência e tempo de treino
+ * Configurações de frequência, tempo de treino e cardio
  */
 
 import React, { useState, useEffect } from 'react';
@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { ArrowLeft, Check, Calendar, Clock, Dumbbell } from 'lucide-react-native';
+import { ArrowLeft, Check, Calendar, Clock, Dumbbell, Heart } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing } from '../../theme/premium';
