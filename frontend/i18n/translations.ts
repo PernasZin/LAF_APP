@@ -969,7 +969,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       athlete: 'Athlete/Competition',
       tdee: 'TDEE',
       comingSoon: 'Coming Soon',
-      comingSoonText: 'Personalized diet and AI-powered workout plans',
+      comingSoonText: 'Smart nutrition and AI-powered exercise suggestions',
       waterTracker: 'Hydration',
       waterGoalReached: 'Hydration goal reached! 🎉',
       viewDiet: 'View diet',
