@@ -139,7 +139,7 @@ class UserProfileUpdate(BaseModel):
 class QuestionnaireResponse(BaseModel):
     """Respostas do questionário de acompanhamento (0-10)"""
     diet: int = Field(ge=0, le=10, description="Como foi sua alimentação? (0-10)")
-    training: int = Field(ge=0, le=10, description="Como foram seus treinos? (0-10)")
+    training: int = Field(ge=0, le=10, description="Como foram seus exercícios? (0-10)")
     cardio: int = Field(ge=0, le=10, description="Como foi seu cardio? (0-10)")
     sleep: int = Field(ge=0, le=10, description="Como foi seu sono? (0-10)")
     hydration: int = Field(ge=0, le=10, description="Como foi sua hidratação? (0-10)")
@@ -735,7 +735,7 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
 
 @api_router.get("/")
 async def root():
-    return {"message": "LAF API - Sistema de Dieta e Treino Personalizado"}
+    return {"message": "LAF API - Sistema de Sugestões de Alimentação e Exercícios"}
 
 @api_router.get("/health")
 async def health_check():
@@ -983,13 +983,13 @@ async def generate_diet(user_id: str, request_meal_count: Optional[int] = None):
         # Se não tem meals, ERRO (mas isso nunca deve acontecer com sistema V14)
         if not diet_plan.meals or len(diet_plan.meals) == 0:
             logger.error("ERRO CRÍTICO: Dieta sem refeições!")
-            raise HTTPException(status_code=500, detail="Erro ao gerar dieta: nenhuma refeição criada")
+            raise HTTPException(status_code=500, detail="Erro ao gerar sugestões: nenhuma refeição criada")
         
         # Verifica se todas as refeições têm alimentos
         for i, meal in enumerate(diet_plan.meals):
             if not meal.foods or len(meal.foods) == 0:
                 logger.error(f"ERRO CRÍTICO: Refeição {i} vazia!")
-                raise HTTPException(status_code=500, detail=f"Erro ao gerar dieta: refeição {meal.name} vazia")
+                raise HTTPException(status_code=500, detail=f"Erro ao gerar sugestões: refeição {meal.name} vazia")
         
         # Salva no banco (IDEMPOTENT - sobrescreve dieta existente)
         diet_dict = diet_plan.dict()
@@ -1028,7 +1028,7 @@ async def generate_diet(user_id: str, request_meal_count: Optional[int] = None):
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         logger.error(f"Erro inesperado ao gerar dieta: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro ao gerar dieta: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar sugestões: {str(e)}")
 
 @api_router.get("/diet/{user_id}")
 async def get_user_diet(user_id: str):
@@ -1047,7 +1047,7 @@ async def get_user_diet(user_id: str):
     )
     
     if not diet_plan:
-        raise HTTPException(status_code=404, detail="Plano de dieta não encontrado")
+        raise HTTPException(status_code=404, detail="Sugestões não encontradas")
     
     diet_plan["id"] = diet_plan["_id"]
     
@@ -1177,7 +1177,7 @@ async def delete_user_diet(user_id: str):
     
     logger.info(f"Deleted {result.deleted_count} diet plans for user {user_id}")
     
-    return {"message": "Dieta deletada com sucesso", "deleted_count": result.deleted_count}
+    return {"message": "Sugestões removidas com sucesso", "deleted_count": result.deleted_count}
 
 
 
@@ -1198,7 +1198,7 @@ async def delete_user_profile(user_id: str):
 
 
 class FoodSubstitutionRequest(BaseModel):
-    """Request para substituir alimento na dieta"""
+    """Request para substituir alimento"""
     meal_index: int  # Índice da refeição (0-4)
     food_index: int  # Índice do alimento na refeição
     new_food_key: str  # Chave do novo alimento
