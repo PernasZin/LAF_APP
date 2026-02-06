@@ -61,7 +61,7 @@ export default function PublicPrivacyScreen() {
 
               <Text style={[styles.sectionTitle, { color: theme.text }]}>2. {t.legal?.dataUseTitle || 'Uso dos Dados'}</Text>
               <Text style={[styles.paragraph, { color: theme.textSecondary }]}>
-                {t.legal?.dataUseText || 'Seus dados são usados para personalizar planos de dieta e treino, melhorar nossos serviços e fornecer suporte.'}
+                {t.legal?.dataUseText || 'Seus dados são usados para gerar sugestões de alimentação e exercícios, melhorar nossos serviços e fornecer suporte.'}
               </Text>
 
               <Text style={[styles.sectionTitle, { color: theme.text }]}>3. {t.legal?.dataSharingTitle || 'Compartilhamento'}</Text>
