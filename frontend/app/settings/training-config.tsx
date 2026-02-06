@@ -81,6 +81,22 @@ export default function TrainingConfigScreen() {
     { value: 120, label: t.trainingConfig.dur120, desc: t.trainingConfig.dur120Desc },
   ];
 
+  // Cardio - minutos por semana
+  const CARDIO_OPTIONS = [
+    { value: 0, label: 'Não faço', desc: 'Apenas musculação' },
+    { value: 60, label: '60 min/semana', desc: '~15 min/dia' },
+    { value: 90, label: '90 min/semana', desc: '~20 min/dia' },
+    { value: 120, label: '120 min/semana', desc: '~30 min/dia' },
+    { value: 180, label: '180 min/semana', desc: '~45 min/dia' },
+  ];
+
+  // Intensidade do cardio
+  const CARDIO_INTENSITY = [
+    { value: 'leve', label: '🚶 Leve', desc: 'Caminhada, bike leve' },
+    { value: 'moderado', label: '🏃 Moderado', desc: 'Caminhada rápida, bike' },
+    { value: 'intenso', label: '⚡ Intenso', desc: 'Corrida, HIIT' },
+  ];
+
   useEffect(() => {
     loadConfig();
   }, []);
