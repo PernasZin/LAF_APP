@@ -1940,13 +1940,23 @@ async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
         current_weight = checkin.weight
         goal = user.get("goal", "manutencao")
         
-        # Calcula TDEE do usuário
+        # Calcula TDEE do usuário usando BMR primeiro
+        weight = user.get("weight", current_weight)
+        height = user.get("height", 170)
+        age = user.get("age", 25)
+        sex = user.get("sex", "masculino")
+        training_freq = user.get("weekly_training_frequency", 4)
+        training_level = user.get("training_level", "intermediario")
+        cardio_minutos = user.get("cardio_minutos_semana", 0)
+        cardio_intensidade = user.get("intensidade_cardio", "moderado")
+        
+        bmr = calculate_bmr(weight, height, age, sex)
         user_tdee = calculate_tdee(
-            weight=user.get("weight", current_weight),
-            height=user.get("height", 170),
-            age=user.get("age", 25),
-            sex=user.get("sex", "male"),
-            activity_level=user.get("activity_level", "moderado")
+            bmr=bmr,
+            training_frequency=training_freq,
+            training_level=training_level,
+            cardio_minutos_semana=cardio_minutos,
+            intensidade_cardio=cardio_intensidade
         )
         
         # Avalia progresso com TDEE
