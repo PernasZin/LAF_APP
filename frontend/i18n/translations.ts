@@ -736,7 +736,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     terms: {
       title: 'Termos de Uso',
       acceptance: '1. Aceitação',
-      acceptanceDesc: 'Ao utilizar o LAF, você concorda com estes termos de uso. O aplicativo foi desenvolvido para auxiliar no acompanhamento nutricional e de treinos.',
+      acceptanceDesc: 'Ao utilizar o LAF, você concorda com estes termos de uso. O aplicativo oferece sugestões para auxiliar em seus objetivos de saúde e fitness.',
       responsibleUse: '2. Uso Responsável',
       responsibleUseDesc: 'As informações fornecidas pelo app são apenas sugestões e não substituem o acompanhamento profissional de nutricionistas ou médicos.',
       limitations: '3. Limitações',
