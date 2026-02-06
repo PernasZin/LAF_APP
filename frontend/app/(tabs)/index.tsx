@@ -735,7 +735,7 @@ export default function HomeScreen() {
                     }}>
                       <Dumbbell size={32} color={theme.textTertiary} style={{ marginBottom: 8 }} />
                       <Text style={{ fontSize: 14, color: theme.textSecondary, textAlign: 'center' }}>
-                        Gere seu treino na aba Treino
+                        Gere suas sugestões na aba Exercícios
                       </Text>
                     </View>
                   )}
