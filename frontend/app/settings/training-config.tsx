@@ -440,6 +440,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   sectionTitle: { fontSize: 16, fontWeight: '700' },
+  sectionSubtitle: { fontSize: 13, marginBottom: spacing.sm },
 
   card: { padding: spacing.base, marginBottom: spacing.sm },
 
