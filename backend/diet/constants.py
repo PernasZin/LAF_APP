@@ -60,9 +60,6 @@ RESTRICTION_EXCLUSIONS = {
     "sem_gluten": {"aveia", "macarrao", "macarrao_integral", "pao", "pao_integral", "pao_forma", "seitan"},
     "low_carb": {"arroz_branco", "arroz_integral", "batata_doce", "batata", 
                  "macarrao", "pao", "pao_integral", "banana", "manga", "uva"},
-    "diabetico": {"mel", "leite_condensado", "granola", "banana", "manga", "uva", 
-                  "melancia", "abacaxi", "mamao", "tapioca", "pao", "pao_integral", 
-                  "pao_forma", "farofa", "arroz_branco"},
 }
 
 # ==================== SUBCATEGORIAS DE ALIMENTOS ====================
