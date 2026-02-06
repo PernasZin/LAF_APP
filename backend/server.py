@@ -1700,7 +1700,7 @@ async def switch_goal(user_id: str, new_goal: str):
     Muda o objetivo do usuário e regenera a dieta.
     new_goal pode ser: 'cutting', 'bulking', 'manutencao', 'manter'
     """
-    from diet_service import generate_diet, calculate_tdee
+    from diet_service import generate_diet, calculate_tdee as diet_calculate_tdee
     
     # Normaliza o objetivo
     valid_goals = ["cutting", "bulking", "manutencao", "manter"]
@@ -1741,8 +1741,13 @@ async def switch_goal(user_id: str, new_goal: str):
         sex = user.get("sex", "masculino")
         activity_level = user.get("activity_level", "moderado")
         training_level = user.get("training_level", "intermediario")
+        cardio_minutos = user.get("cardio_minutos_semana", 0)
+        cardio_intensidade = user.get("intensidade_cardio", "moderado")
         
-        tdee = calculate_tdee(weight, height, age, sex, activity_level, training_level, new_goal)
+        tdee = diet_calculate_tdee(
+            weight, height, age, sex, activity_level, training_level,
+            cardio_minutos, cardio_intensidade
+        )
         
         # Ajusta calorias baseado no objetivo
         if new_goal == "cutting":
