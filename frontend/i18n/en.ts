@@ -433,8 +433,8 @@ export const en = {
     notFound: 'Not found.',
     unauthorized: 'Session expired. Please log in again.',
     validation: 'Please fill in all fields correctly.',
-    dietGeneration: 'Error generating diet. Please try again.',
-    workoutGeneration: 'Error generating workout. Please try again.',
+    dietGeneration: 'Error generating suggestions. Please try again.',
+    workoutGeneration: 'Error generating suggestions. Please try again.',
   },
 
   // ==================== DAYS OF WEEK ====================
