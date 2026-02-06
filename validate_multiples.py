@@ -7,7 +7,7 @@ Check existing diets for violations of the critical multiple of 10 rule
 import requests
 import json
 
-BASE_URL = "https://nutriflow-38.preview.emergentagent.com/api"
+BASE_URL = "https://compliance-sweep.preview.emergentagent.com/api"
 
 # User IDs from previous test
 user_ids = [
