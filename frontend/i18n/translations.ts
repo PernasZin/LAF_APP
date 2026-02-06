@@ -1016,7 +1016,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       title: 'Your Workout Plan',
       noData: 'No workout generated',
       generateWorkout: 'Generate My Workout',
-      generating: 'Generating your workout plan...',
+      generating: 'Preparing exercise suggestions...',
       markComplete: 'Mark as Complete',
       completed: 'Completed!',
       viewHistory: 'View History',
