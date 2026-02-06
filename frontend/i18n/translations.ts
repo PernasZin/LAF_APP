@@ -981,7 +981,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       workouts: 'workouts',
     },
     diet: {
-      title: 'Your Diet Plan',
+      title: 'Diet Plan',
       mealsPlanned: 'meals planned',
       daySummary: 'Day Summary',
       noData: 'No diet generated',
