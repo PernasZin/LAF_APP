@@ -431,7 +431,6 @@ export interface Translations {
     skipHint: string;
     // Extended restrictions (RestrictionsStep)
     vegan: string;
-    diabetic: string;
     eggFree: string;
     peanutFree: string;
     restrictions: string;
@@ -887,7 +886,6 @@ export const translations: Record<SupportedLanguage, Translations> = {
       skipHint: 'Você pode pular esta etapa e ajustar depois nas configurações.',
       // Extended restrictions (RestrictionsStep)
       vegan: 'Vegano',
-      diabetic: 'Diabético',
       eggFree: 'Sem Ovo',
       peanutFree: 'Sem Amendoim',
       restrictions: 'Restrições Alimentares',
@@ -1339,7 +1337,6 @@ export const translations: Record<SupportedLanguage, Translations> = {
       skipHint: 'You can skip this step and adjust later in settings.',
       // Extended restrictions (RestrictionsStep)
       vegan: 'Vegan',
-      diabetic: 'Diabetic',
       eggFree: 'Egg Free',
       peanutFree: 'Peanut Free',
       restrictions: 'Dietary Restrictions',
@@ -1791,7 +1788,6 @@ export const translations: Record<SupportedLanguage, Translations> = {
       skipHint: 'Puedes saltar este paso y ajustar después en configuración.',
       // Extended restrictions (RestrictionsStep)
       vegan: 'Vegano',
-      diabetic: 'Diabético',
       eggFree: 'Sin Huevo',
       peanutFree: 'Sin Maní',
       restrictions: 'Restricciones Alimentarias',
