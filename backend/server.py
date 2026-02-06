@@ -3276,12 +3276,12 @@ def generate_performance_suggestions(weight_change: float, weekly_rate: float,
             "diet": {
                 "icon": "🍽️",
                 "title": "Melhore a adesão à dieta",
-                "message": "Sua pontuação de dieta está baixa. Tente preparar as refeições com antecedência."
+                "message": "Sua pontuação de alimentação está baixa. Tente preparar as refeições com antecedência."
             },
             "training": {
                 "icon": "🏋️",
                 "title": "Consistência no treino",
-                "message": "Seus treinos podem melhorar. Defina horários fixos para treinar."
+                "message": "Seus exercícios podem melhorar. Defina horários fixos para se exercitar."
             },
             "cardio": {
                 "icon": "🏃",

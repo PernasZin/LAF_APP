@@ -4490,7 +4490,7 @@ def evaluate_progress(goal: str, previous_weight: float, current_weight: float,
             if deficit >= 1000:
                 result["suggest_goal_change"] = True
                 result["suggested_goal"] = "manutencao"
-                result["suggest_reason"] = f"Sua dieta está {int(deficit)}kcal abaixo do seu TDEE ({int(user_tdee)}kcal). Considere fazer manutenção ou bulking para ganhar massa muscular."
+                result["suggest_reason"] = f"Suas calorias estão {int(deficit)}kcal abaixo do seu TDEE ({int(user_tdee)}kcal). Considere fazer manutenção ou bulking para ganhar massa muscular."
     
     elif goal == "bulking":
         # BULKING: Sempre aumenta enquanto está ganhando peso
@@ -4519,7 +4519,7 @@ def evaluate_progress(goal: str, previous_weight: float, current_weight: float,
             if surplus >= 700:
                 result["suggest_goal_change"] = True
                 result["suggested_goal"] = "cutting"
-                result["suggest_reason"] = f"Sua dieta está {int(surplus)}kcal acima do seu TDEE ({int(user_tdee)}kcal). Tá na hora de fazer um cutting para definição muscular!"
+                result["suggest_reason"] = f"Suas calorias estão {int(surplus)}kcal acima do seu TDEE ({int(user_tdee)}kcal). Tá na hora de fazer um cutting para definição muscular!"
     
     elif goal in ["manutencao", "manter"]:
         if abs(weight_diff) > 1.0:
