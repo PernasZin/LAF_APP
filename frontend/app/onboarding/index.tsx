@@ -162,6 +162,9 @@ export default function OnboardingScreen() {
         training_days: formData.training_days || [],
         weekly_training_frequency: parseInt(formData.weekly_training_frequency) || 3,
         available_time_per_session: parseInt(formData.available_time_per_session) || 60,
+        // Cardio (NOVO)
+        cardio_minutos_semana: parseInt(formData.cardio_minutos_semana) || 0,
+        intensidade_cardio: formData.intensidade_cardio || 'moderado',
         dietary_restrictions: formData.dietary_restrictions,
         food_preferences: formData.food_preferences,
         injury_history: formData.injury_history,
