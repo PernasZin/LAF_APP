@@ -120,11 +120,11 @@ export const pt = {
     advancedDesc: 'Mais de 2 anos',
     
     // Training Config
-    trainingConfig: 'Configuração de Treino',
-    trainingConfigSubtitle: 'Como você prefere treinar?',
+    trainingConfig: 'Configuração de Exercícios',
+    trainingConfigSubtitle: 'Como você prefere se exercitar?',
     daysPerWeek: 'Dias por semana',
-    daysPerWeekDesc: 'Quantos dias você treina?',
-    duration: 'Duração do treino',
+    daysPerWeekDesc: 'Quantos dias você se exercita?',
+    duration: 'Tempo disponível',
     durationDesc: 'Quanto tempo cada sessão?',
     minutes: 'minutos',
     
@@ -399,8 +399,8 @@ export const pt = {
     deleteAccount: 'Excluir Conta',
     deleteAccountConfirm: 'Tem certeza? Esta ação não pode ser desfeita.',
     mealConfig: 'Configuração de Refeições',
-    trainingConfig: 'Configuração de Treino',
-    dietPreferences: 'Preferências de Dieta',
+    trainingConfig: 'Configuração de Exercícios',
+    dietPreferences: 'Preferências Alimentares',
     saveChanges: 'Salvar Alterações',
     changesSaved: 'Alterações salvas!',
   },
