@@ -1638,13 +1638,13 @@ export const translations: Record<SupportedLanguage, Translations> = {
     terms: {
       title: 'Términos de Uso',
       acceptance: '1. Aceptación',
-      acceptanceDesc: 'Al usar LAF, aceptas estos términos de uso. La app fue desarrollada para ayudar con el seguimiento nutricional y de entrenos.',
+      acceptanceDesc: 'Al usar LAF, aceptas estos términos de uso. La app ofrece sugerencias para ayudar con tus objetivos de salud y fitness.',
       responsibleUse: '2. Uso Responsable',
       responsibleUseDesc: 'La información proporcionada por la app son solo sugerencias y no reemplazan el acompañamiento profesional de nutricionistas o médicos.',
       limitations: '3. Limitaciones',
-      limitationsDesc: 'LAF no se responsabiliza por resultados individuales. Cada persona responde de forma diferente a dietas y ejercicios.',
+      limitationsDesc: 'LAF no se responsabiliza por resultados individuales. Cada persona responde de forma diferente a la alimentación y ejercicios.',
       health: '4. Salud',
-      healthDesc: 'Antes de comenzar cualquier dieta o programa de ejercicios, consulta a un profesional de salud. Tu bienestar es nuestra prioridad.',
+      healthDesc: 'Antes de comenzar cualquier rutina de alimentación o ejercicios, consulta a un profesional de salud. Tu bienestar es nuestra prioridad.',
       lastUpdate: 'Última actualización: Enero 2025',
     },
     settingsScreen: {
