@@ -1124,7 +1124,7 @@ def validate_user_foods(preferred: Set[str], restrictions: List[str]) -> Tuple[S
     
     # Mensagem informativa se auto-completou
     if auto_added:
-        message = f"Para garantir uma dieta completa, adicionamos automaticamente: {', '.join(auto_added)}. Você pode alterar nas configurações."
+        message = f"Para garantir sugestões completas, adicionamos automaticamente: {', '.join(auto_added)}. Você pode alterar nas configurações."
         return final_foods, True, message
     
     return final_foods, False, None
