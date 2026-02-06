@@ -193,7 +193,7 @@ export const en = {
   // ==================== DIET ====================
   diet: {
     title: 'Your Diet',
-    subtitle: 'Personalized meal plan',
+    subtitle: 'Nutrition suggestions',
     generateDiet: 'Generate Diet',
     regenerateDiet: 'Regenerate Diet',
     generating: 'Preparing suggestions...',
