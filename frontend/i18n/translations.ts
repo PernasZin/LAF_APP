@@ -988,7 +988,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       daySummary: 'Day Summary',
       noData: 'No diet generated',
       generateDiet: 'Generate My Diet',
-      generating: 'Generating your diet plan...',
+      generating: 'Preparing nutrition suggestions...',
       tapToSubstitute: 'Tap on a food to substitute',
       mealsOfDay: 'Meals of the Day',
       supplements: 'Supplements',
