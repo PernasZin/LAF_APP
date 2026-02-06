@@ -1776,7 +1776,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         base_carb_grams = round_to_10(clamp(main_meal_c * 0.8 / carb_per_100g, 150, 600))
         
         # Compensação para restrições com poucos carbs
-        if "diabetico" in restrictions or "diabético" in restrictions:
+        if False:  # Restrição removida
             # Aumenta em 30% a porção de carbs permitidos
             base_carb_grams = round_to_10(min(base_carb_grams * 1.3, 700))
         
@@ -3958,7 +3958,7 @@ class DietAIService:
                     
                     # Distribui a compensação entre almoço e jantar
                     # Para restrições especiais, permite mais batata (até 300g cada)
-                    max_extra = 300 if "diabetico" in dietary_restrictions else 200
+                    max_extra = 200
                     extra_grams_each = round_to_10(min((cal_diff_remaining / 2) / (total_per_100g / 100), max_extra))
                     
                     for idx in main_meal_indices:
