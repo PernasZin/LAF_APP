@@ -628,11 +628,6 @@ RESTRICTION_TRANSLATIONS = {
         "en": "Gluten Free",
         "es": "Sin Gluten"
     },
-    "diabetico": {
-        "pt": "Diabético",
-        "en": "Diabetic",
-        "es": "Diabético"
-    },
     "low_carb": {
         "pt": "Low Carb",
         "en": "Low Carb",
