@@ -517,7 +517,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       athlete: 'Atleta/Competição',
       tdee: 'TDEE',
       comingSoon: 'Em Breve',
-      comingSoonText: 'Sistema de dieta personalizada e treinos sob medida com IA',
+      comingSoonText: 'Sugestões inteligentes de alimentação e exercícios com IA',
       waterTracker: 'Hidratação',
       waterGoalReached: 'Meta de hidratação atingida! 🎉',
       viewDiet: 'Ver dieta',
