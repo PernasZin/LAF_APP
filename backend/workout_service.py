@@ -450,30 +450,30 @@ class WorkoutAIService:
             # Treino de adaptação para novatos (4-8 semanas)
             config = {
                 "sets": 2,  # Adaptação: 2 séries
-                "reps": "15-20",
-                "rest": "60s",
+                "reps": "12-15",
+                "rest": "90-120s",
                 "ex_per_muscle": 1,
                 "machine_only": True,
                 "notes_prefix": "⚠️ ADAPTAÇÃO - CARGA LEVE! ",
-                "general_note": "FASE DE ADAPTAÇÃO: Técnica acima de carga."
+                "general_note": "FASE DE ADAPTAÇÃO: Foco 100% na execução correta. Técnica acima de carga."
             }
         elif level == 'novato':
-            # NOVATO = nunca treinou (treinos simples, exercícios seguros, menor volume)
+            # NOVATO = nunca treinou (foco em execução e adaptação, menos séries, reps altas, descanso maior)
             config = {
-                "sets": 3,  # Novato: 3 séries
+                "sets": 2,  # Novato: 2 séries
                 "reps": "12-15",
-                "rest": "90s",
+                "rest": "90-120s",
                 "ex_per_muscle": 1,  # Menos exercícios por músculo
                 "machine_only": True,
                 "notes_prefix": "",
                 "general_note": "Foco 100% na execução correta. Evite cargas pesadas."
             }
         elif level == 'iniciante':
-            # INICIANTE = 6 meses - 2 anos (volume moderado, compostos + acessórios leves)
+            # INICIANTE = 0-1 ano (volume moderado, compostos + acessórios leves)
             config = {
-                "sets": 4,  # LIMITE FIXO: 4 séries
+                "sets": 3,  # Iniciante: 3 séries
                 "reps": "10-12",
-                "rest": "75s",
+                "rest": "75-90s",
                 "ex_per_muscle": 2,
                 "machine_only": False,
                 "allow_free_weights": ["elevacao_lateral", "rosca_alternada", "triceps_frances"],
@@ -482,11 +482,11 @@ class WorkoutAIService:
                 "general_note": "Progressão simples. Aumente cargas gradualmente."
             }
         elif level == 'intermediario':
-            # INTERMEDIÁRIO = 2-3 anos (maior volume, pode usar bi-set, pirâmide, pré-exaustão)
+            # INTERMEDIÁRIO = 1-3 anos (maior volume, pode usar bi-set, pirâmide, pré-exaustão)
             config = {
-                "sets": 4,  # LIMITE FIXO: 4 séries
+                "sets": 4,  # Intermediário: 3-4 séries (usa 4)
                 "reps": "8-12",
-                "rest": "75s",
+                "rest": "75-90s",
                 "ex_per_muscle": 2,
                 "machine_only": False,
                 "allow_free_weights": True,
@@ -495,12 +495,11 @@ class WorkoutAIService:
                 "general_note": "Controle de descanso. Pode usar técnicas como bi-set e pirâmide."
             }
         else:  # avancado
-            # AVANÇADO = 3+ anos (volume alto, drop set, rest pause, maior intensidade)
-            # DIFERENCIADO: Mais exercícios, técnicas avançadas, 10-12 reps
+            # AVANÇADO = 3+ anos (mais intensidade, reps menores, descanso maior)
             config = {
-                "sets": 4,  # LIMITE FIXO: 4 séries
-                "reps": "10-12",  # AVANÇADO: 10-12 reps (DIFERENTE de intermediário)
-                "rest": "90s",
+                "sets": 4,  # Avançado: 4 séries
+                "reps": "6-10",  # AVANÇADO: 6-10 reps (baixo volume, alta intensidade)
+                "rest": "90-120s",
                 "ex_per_muscle": 3,  # MAIS exercícios que intermediário
                 "machine_only": False,
                 "allow_free_weights": True,
