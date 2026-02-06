@@ -1867,7 +1867,6 @@ async def biweekly_checkin(user_id: str, checkin: CheckInRequest):
     # ==================== AJUSTE DE DIETA ====================
     diet_kept = True
     calories_change = 0
-    foods_replaced = 0
     suggest_goal_change = False
     suggested_goal = None
     suggest_reason = None
