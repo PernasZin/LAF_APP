@@ -227,7 +227,7 @@ export const en = {
     subtitle: 'Personalized exercise plan',
     generateWorkout: 'Generate Workout',
     regenerateWorkout: 'Regenerate Workout',
-    generating: 'Generating your workout...',
+    generating: 'Preparing exercise suggestions...',
     todaysWorkout: "Today's Workout",
     restDay: 'Rest Day',
     restDayMessage: "Today is rest day. Enjoy your recovery!",
