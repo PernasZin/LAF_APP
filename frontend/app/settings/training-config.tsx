@@ -51,6 +51,9 @@ export default function TrainingConfigScreen() {
   const [frequency, setFrequency] = useState(3);
   const [duration, setDuration] = useState(60);
   const [level, setLevel] = useState('intermediario');
+  // Cardio (NOVO)
+  const [cardioMinutos, setCardioMinutos] = useState(0);
+  const [cardioIntensidade, setCardioIntensidade] = useState('moderado');
 
   // Níveis de treino - usando traduções (inclui Low Volume apenas aqui)
   const LEVELS = [
