@@ -146,8 +146,8 @@ export default function NotificationsScreen() {
               />
               <NotificationRow
                 icon={Clock}
-                label="Treino"
-                desc="Lembrar dos treinos"
+                label="Exercícios"
+                desc="Lembrar dos exercícios"
                 value={workoutReminders}
                 onToggle={(v: boolean) => { setWorkoutReminders(v); saveSettings('workoutReminders', v); }}
                 isDark={isDark}
