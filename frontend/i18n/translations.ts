@@ -805,7 +805,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       saving: 'Salvando...',
       finish: 'Finalizar',
       letsStart: 'Vamos começar!',
-      tellUsAboutYou: 'Conte-nos um pouco sobre você para personalizarmos seu plano.',
+      tellUsAboutYou: 'Conte-nos sobre você para ajustarmos as sugestões.',
       name: 'Nome',
       yourName: 'Seu nome',
       age: 'Idade',
