@@ -335,69 +335,97 @@ def normalize_goal(goal: str) -> str:
     return "manutencao"  # Default
 
 
-def get_cardio_weekly_calories(goal: str) -> int:
+def calculate_cardio_burn(cardio_minutos_semana: int, intensidade_cardio: str) -> int:
     """
-    Retorna as calorias semanais queimadas pelo cardio planejado.
-    Baseado na função generate_cardio_for_goal.
+    Calcula gasto calórico semanal do cardio baseado em minutos e intensidade.
     
-    REGRAS:
-    - Cutting: Mais cardio (4-6x/semana) ~1270 kcal/semana
-    - Bulking: Cardio mínimo (2-3x/semana) ~420 kcal/semana
-    - Manutenção: Cardio moderado (3-4x/semana) ~656 kcal/semana
+    Intensidades (kcal/min):
+    - Leve: 5 kcal/min (caminhada leve, bike leve)
+    - Moderado: 8 kcal/min (caminhada rápida, bike moderada)
+    - Intenso: 11 kcal/min (corrida, HIIT, escada)
+    
+    Retorna: calorias semanais gastas no cardio
     """
-    goal = normalize_goal(goal)
+    if not cardio_minutos_semana or cardio_minutos_semana <= 0:
+        return 0
     
-    if goal == "cutting":
-        # 3x caminhada_inclinada + 2x bike_moderada + 1x escada
-        return 1270
-    elif goal == "bulking":
-        # 2x caminhada_leve + 1x bike_leve
-        return 420
-    else:  # manutencao
-        # 2x caminhada_moderada + 1x bike_moderada + 1x escada_leve
-        return 656
+    kcal_por_min = {
+        'leve': 5,
+        'light': 5,
+        'moderado': 8,
+        'moderate': 8,
+        'intenso': 11,
+        'intense': 11,
+        'high': 11
+    }
+    
+    intensidade = intensidade_cardio.lower() if intensidade_cardio else 'moderado'
+    kcal_min = kcal_por_min.get(intensidade, 8)  # Default: moderado
+    
+    cardio_semanal = cardio_minutos_semana * kcal_min
+    print(f"[CARDIO] {cardio_minutos_semana}min/semana × {kcal_min}kcal/min = {cardio_semanal}kcal/semana")
+    
+    return cardio_semanal
 
 
-def calculate_tdee(bmr: float, training_frequency: int, training_level: str, goal: str = 'manutencao') -> float:
+def calculate_tdee(bmr: float, training_frequency: int, training_level: str, 
+                   cardio_minutos_semana: int = 0, intensidade_cardio: str = 'moderado') -> float:
     """
-    Calcula TDEE (Total Daily Energy Expenditure) baseado em atividade
+    Calcula TDEE (Total Daily Energy Expenditure)
     
-    INCLUI GASTO DO CARDIO PLANEJADO PELO APP!
+    FÓRMULA COMPLETA (conforme especificação):
+    1. BMR = Mifflin-St Jeor (calculado antes)
+    2. TDEE_base = BMR × Fator de Atividade + Bônus de Treino
+    3. Cardio_semanal = minutos × kcal/min (SE informado pelo usuário)
+    4. TDEE_real = TDEE_base + (Cardio_semanal / 7)
     
-    Fatores de atividade:
-    - 1.3 sedentário (0-1x/semana)
-    - 1.45 leve (2-3x/semana)
-    - 1.6 moderado (4-5x/semana)
-    - 1.75 pesado (6-7x/semana)
+    Se cardio_minutos_semana for 0 ou vazio: TDEE_real = TDEE_base
     
-    Fórmula:
-    TDEE_base = BMR × Fator de Atividade
-    Cardio_daily = Cardio_weekly / 7
-    TDEE_real = TDEE_base + Cardio_daily
+    Fatores de atividade (baseado na frequência de treino):
+    - 1.2 sedentário (0-1x/semana)
+    - 1.375 leve (2-3x/semana)
+    - 1.55 moderado (4-5x/semana)
+    - 1.725 intenso (6-7x/semana)
+    
+    Bônus de treino:
+    - Novato/Iniciante: +0 kcal
+    - Intermediário: +50 kcal
+    - Avançado: +100 kcal
     """
-    # Mapeia frequência para fator de atividade
+    # PASSO 1: Mapeia frequência para fator de atividade
     if training_frequency <= 1:
-        factor = 1.3   # sedentário
+        factor = 1.2   # sedentário
     elif training_frequency <= 3:
-        factor = 1.45  # leve
+        factor = 1.375  # leve
     elif training_frequency <= 5:
-        factor = 1.6   # moderado
+        factor = 1.55   # moderado
     else:
-        factor = 1.75  # pesado
+        factor = 1.725  # intenso
     
-    tdee_base = bmr * factor
+    # PASSO 2: Bônus de treino
+    training_bonus = {
+        'beginner': 0, 'iniciante': 0, 'novato': 0,
+        'intermediate': 50, 'intermediario': 50,
+        'advanced': 100, 'avancado': 100
+    }
+    bonus = training_bonus.get(training_level.lower(), 0)
     
-    # NOVO: Adiciona gasto do cardio planejado
-    cardio_weekly = get_cardio_weekly_calories(goal)
-    cardio_daily = cardio_weekly / 7
+    # PASSO 3: TDEE Base
+    tdee_base = bmr * factor + bonus
     
-    tdee_real = tdee_base + cardio_daily
+    # PASSO 4: Adicionar cardio (SE informado pelo usuário)
+    cardio_semanal = calculate_cardio_burn(cardio_minutos_semana, intensidade_cardio)
     
-    print(f"[TDEE] BMR={bmr:.0f} × {factor} = TDEE_base={tdee_base:.0f}")
-    print(f"[TDEE] Cardio semanal ({goal})={cardio_weekly}kcal -> diário={cardio_daily:.0f}kcal")
-    print(f"[TDEE] TDEE_real = {tdee_base:.0f} + {cardio_daily:.0f} = {tdee_real:.0f}kcal")
-    
-    return tdee_real
+    if cardio_semanal > 0:
+        cardio_diario = cardio_semanal / 7
+        tdee_real = tdee_base + cardio_diario
+        print(f"[TDEE] BMR={bmr:.0f} × {factor} + bonus={bonus} = TDEE_base={tdee_base:.0f}")
+        print(f"[TDEE] Cardio diário = {cardio_semanal}/7 = {cardio_diario:.0f}kcal")
+        print(f"[TDEE] TDEE_real = {tdee_base:.0f} + {cardio_diario:.0f} = {tdee_real:.0f}kcal")
+        return tdee_real
+    else:
+        print(f"[TDEE] BMR={bmr:.0f} × {factor} + bonus={bonus} = TDEE={tdee_base:.0f}kcal (sem cardio)")
+        return tdee_base
 
 def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
     """
