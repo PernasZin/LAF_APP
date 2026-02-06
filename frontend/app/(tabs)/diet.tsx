@@ -420,7 +420,7 @@ export default function DietScreen() {
                     Nenhuma dieta gerada
                   </Text>
                   <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
-                    Gere sua dieta personalizada baseada no seu perfil e objetivos
+                    Gere suas sugestões alimentares baseadas no seu perfil e objetivos
                   </Text>
                   <TouchableOpacity
                     style={[styles.generateButton, { opacity: generating ? 0.7 : 1 }]}
