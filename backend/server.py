@@ -116,6 +116,9 @@ class UserProfileCreate(BaseModel):
     weekly_training_frequency: int
     available_time_per_session: int
     goal: str  # "cutting", "bulking", "manutencao"
+    # Cardio (NOVO - usado para cálculo de TDEE)
+    cardio_minutos_semana: int = 0  # Minutos de cardio por semana (0 se não fizer)
+    intensidade_cardio: str = "moderado"  # "leve", "moderado", "intenso"
     dietary_restrictions: List[str] = Field(default_factory=list)
     food_preferences: List[str] = Field(default_factory=list)
     preferred_foods: List[str] = Field(default_factory=list)  # Alias para food_preferences
