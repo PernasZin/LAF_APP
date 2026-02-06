@@ -1787,17 +1787,10 @@ async def switch_goal(user_id: str, new_goal: str):
 
 # Modelo para o check-in completo
 class CheckInQuestionnaire(BaseModel):
-    diet: int = Field(ge=0, le=10)
-    training: int = Field(ge=0, le=10)
-    cardio: int = Field(ge=0, le=10)
-    sleep: int = Field(ge=0, le=10)
-    hydration: int = Field(ge=0, le=10)
-    energy: int = Field(ge=0, le=10, default=7)
-    hunger: int = Field(ge=0, le=10, default=5)
+    """Questionário simplificado de check-in"""
     followedDiet: str = "yes"  # yes, mostly, no
-    followedTraining: str = "yes"
-    followedCardio: str = "yes"
-    boredFoods: str = ""  # Alimentos que enjoou
+    followedTraining: str = "yes"  # yes, mostly, no
+    feeling: int = Field(ge=1, le=10, default=7)
     observations: str = ""
 
 class CheckInRequest(BaseModel):
