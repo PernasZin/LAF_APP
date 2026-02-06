@@ -582,7 +582,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       thisWeek: 'Esta Semana',
       completeHint: 'Complete exercícios para ver seu histórico aqui',
       weekProgress: 'Progresso da Semana',
-      customWorkout: 'Treino personalizado',
+      customWorkout: 'Exercícios adaptados',
       training: 'Treino',
     },
     cardio: {
