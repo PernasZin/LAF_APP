@@ -1631,13 +1631,23 @@ async def record_weight(user_id: str, record: WeightRecordCreate):
         current_diet = await db.diet_plans.find_one({"user_id": user_id})
         current_diet_calories = current_diet.get("computed_calories", 0) if current_diet else 0
         
-        # Calcula o TDEE do usuário
+        # Calcula o TDEE do usuário usando BMR primeiro
+        weight = user.get("weight", current_weight)
+        height = user.get("height", 170)
+        age = user.get("age", 25)
+        sex = user.get("sex", "masculino")
+        training_freq = user.get("weekly_training_frequency", 4)
+        training_level = user.get("training_level", "intermediario")
+        cardio_minutos = user.get("cardio_minutos_semana", 0)
+        cardio_intensidade = user.get("intensidade_cardio", "moderado")
+        
+        bmr = calculate_bmr(weight, height, age, sex)
         user_tdee = calculate_tdee(
-            weight=user.get("weight", current_weight),
-            height=user.get("height", 170),
-            age=user.get("age", 25),
-            sex=user.get("sex", "male"),
-            activity_level=user.get("activity_level", "moderado")
+            bmr=bmr,
+            training_frequency=training_freq,
+            training_level=training_level,
+            cardio_minutos_semana=cardio_minutos,
+            intensidade_cardio=cardio_intensidade
         )
         
         # Avalia progresso com TDEE
