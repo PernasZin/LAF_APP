@@ -165,7 +165,7 @@ def get_restriction_safe_protein() -> str:
 def get_restriction_safe_fruit() -> str:
     """
     Retorna uma fruta segura que respeita as restrições alimentares atuais.
-    Para diabéticos: exclui frutas com alto índice glicêmico (banana, manga, uva, etc.)
+    Frutas com diferentes índices glicêmicos
     """
     global _current_diet_restrictions
     
@@ -175,7 +175,7 @@ def get_restriction_safe_fruit() -> str:
         if r in RESTRICTION_EXCLUSIONS:
             excluded.update(RESTRICTION_EXCLUSIONS[r])
     
-    # Lista de frutas em ordem de prioridade (diabético-friendly primeiro)
+    # Lista de frutas em ordem de prioridade (baixo índice glicêmico primeiro)
     # Frutas com baixo IG: maçã, pera, morango, laranja, kiwi
     fruits = ["maca", "pera", "morango", "laranja", "kiwi", "banana", "mamao", "melancia"]
     
@@ -192,7 +192,7 @@ def get_restriction_safe_breakfast_carb() -> str:
     
     Ordem de prioridade:
     1. aveia (se não for sem glúten)
-    2. tapioca (se não for diabético)
+    2. tapioca 
     3. batata_doce (sempre seguro, mas menos comum no café)
     4. fruta (último fallback)
     """
@@ -254,7 +254,7 @@ def get_lanche_safe_food(food_type: str = "protein") -> str:
     - Frutas (maçã, banana, laranja, morango, etc.)
     - Pão/carboidratos leves (pão integral, aveia)
     - Iogurte (se não for sem lactose)
-    - Mel (se não for diabético)
+    - Mel 
     - Oleaginosas (castanhas, amêndoas)
     
     PROIBIDO em lanches: carnes, ovos, cottage, tofu
@@ -1510,7 +1510,7 @@ def get_safe_fallback(category: str, restrictions: List[str], fallback_list: Lis
         "carb_cafe": ["tapioca", "batata_doce", "cuscuz"],  # SEM pão/aveia - seguro para sem_gluten
         "carb_principal": ["arroz_branco", "arroz_integral", "batata_doce", "tapioca"],
         "fat": ["azeite", "castanhas", "abacate"],
-        "fruit": ["maca", "morango", "kiwi", "pera"]  # Frutas de baixo IG primeiro (para diabéticos)
+        "fruit": ["maca", "morango", "kiwi", "pera"]  # Frutas de baixo IG primeiro
     }
     
     options = fallback_list if fallback_list else DEFAULT_FALLBACKS.get(category, [])
@@ -1775,7 +1775,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
         carb_per_100g = FOODS[main_carb]["c"] / 100
         base_carb_grams = round_to_10(clamp(main_meal_c * 0.8 / carb_per_100g, 150, 600))
         
-        # Compensação para diabéticos e outras restrições com poucos carbs
+        # Compensação para restrições com poucos carbs
         if "diabetico" in restrictions or "diabético" in restrictions:
             # Aumenta em 30% a porção de carbs permitidos
             base_carb_grams = round_to_10(min(base_carb_grams * 1.3, 700))
@@ -2013,7 +2013,7 @@ def generate_diet(target_p: int, target_c: int, target_f: int,
             if lanche_fruit and lanche_fruit in FOODS:
                 foods.append(calc_food(lanche_fruit, 120))  # Aumentado para compensar
             else:
-                # 🧠 FALLBACK: fruta segura (respeita diabético)
+                # 🧠 FALLBACK: fruta segura
                 foods.append(calc_food(get_restriction_safe_fruit(), 120))
             
             # Gordura só se o usuário escolheu (não adiciona fallback)
@@ -3957,7 +3957,7 @@ class DietAIService:
                     total_per_100g = carb_per_100g + fat_per_100g
                     
                     # Distribui a compensação entre almoço e jantar
-                    # Para diabéticos (que não tem arroz/pão), permite mais batata (até 300g cada)
+                    # Para restrições especiais, permite mais batata (até 300g cada)
                     max_extra = 300 if "diabetico" in dietary_restrictions else 200
                     extra_grams_each = round_to_10(min((cal_diff_remaining / 2) / (total_per_100g / 100), max_extra))
                     
