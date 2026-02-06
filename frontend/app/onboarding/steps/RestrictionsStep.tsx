@@ -25,7 +25,6 @@ export default function RestrictionsStep({ formData, updateFormData, theme, isDa
     { value: 'vegano', label: t.vegan, icon: Leaf, color: '#10B981' },
     { value: 'sem_lactose', label: t.lactoseFree, icon: Milk, color: '#3B82F6' },
     { value: 'sem_gluten', label: t.glutenFree, icon: Wheat, color: '#F59E0B' },
-    { value: 'diabetico', label: t.diabetic, icon: Activity, color: '#8B5CF6' },
     { value: 'sem_ovo', label: t.eggFree, icon: Egg, color: '#EAB308' },
     { value: 'sem_amendoim', label: t.peanutFree, icon: AlertTriangle, color: '#EF4444' },
   ];
