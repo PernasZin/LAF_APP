@@ -137,6 +137,9 @@ class UserProfileUpdate(BaseModel):
     training_level: Optional[str] = None  # "novato", "iniciante", "intermediario", "avancado"
     training_duration: Optional[int] = None  # Tempo disponível em minutos
     goal: Optional[str] = None  # "cutting", "bulking", "manutencao"
+    # Cardio (NOVO - usado para cálculo de TDEE)
+    cardio_minutos_semana: Optional[int] = None  # Minutos de cardio por semana (0 se não fizer)
+    intensidade_cardio: Optional[str] = None  # "leve", "moderado", "intenso"
     dietary_restrictions: Optional[List[str]] = None
     food_preferences: Optional[List[str]] = None
     meal_count: Optional[int] = None  # 4, 5, ou 6 refeições
