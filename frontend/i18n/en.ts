@@ -192,7 +192,7 @@ export const en = {
 
   // ==================== DIET ====================
   diet: {
-    title: 'Your Diet',
+    title: 'Nutrition',
     subtitle: 'Nutrition suggestions',
     generateDiet: 'Generate Diet',
     regenerateDiet: 'Regenerate Diet',
@@ -224,7 +224,7 @@ export const en = {
   // ==================== WORKOUT ====================
   workout: {
     title: 'Your Workout',
-    subtitle: 'Personalized exercise plan',
+    subtitle: 'Exercise suggestions based on your level',
     generateWorkout: 'Generate Workout',
     regenerateWorkout: 'Regenerate Workout',
     generating: 'Preparing exercise suggestions...',

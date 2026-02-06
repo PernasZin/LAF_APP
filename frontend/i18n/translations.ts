@@ -1011,7 +1011,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       success: 'Success',
     },
     workout: {
-      title: 'Your Workout Plan',
+      title: 'Exercises',
       noData: 'No workout generated',
       generateWorkout: 'Generate My Workout',
       generating: 'Preparing exercise suggestions...',
@@ -1432,7 +1432,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       workouts: 'entrenos',
     },
     diet: {
-      title: 'Tu Plan de Dieta',
+      title: 'Alimentación',
       mealsPlanned: 'comidas planificadas',
       daySummary: 'Resumen del Día',
       noData: 'Ninguna dieta generada',
@@ -1462,7 +1462,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       success: 'Éxito',
     },
     workout: {
-      title: 'Tu Plan de Entreno',
+      title: 'Ejercicios',
       noData: 'Ningún entreno generado',
       generateWorkout: 'Generar Mi Entreno',
       generating: 'Generando tu plan de entreno...',
@@ -1524,7 +1524,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
     },
     settings: {
       title: 'Configuración',
-      subtitle: 'Personaliza tu experiencia',
+      subtitle: 'Configura tus preferencias',
       account: 'Cuenta',
       editProfile: 'Editar Perfil',
       diet: 'Dieta',
