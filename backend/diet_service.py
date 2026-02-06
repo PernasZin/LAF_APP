@@ -1193,53 +1193,54 @@ def select_food(preferred: Set[str], category: str, restrictions: List[str], pri
 
 # ==================== CÁLCULO DE TDEE/MACROS ====================
 
-def get_cardio_weekly_burn(goal: str) -> int:
+def calculate_cardio_burn(cardio_minutos_semana: int, intensidade_cardio: str) -> int:
     """
-    Retorna as calorias semanais queimadas pelo cardio planejado.
-    Baseado na função generate_cardio_for_goal do server.py
+    Calcula gasto calórico semanal do cardio baseado em minutos e intensidade.
     
-    REGRAS:
-    - Cutting: Mais cardio (4-6x/semana) ~1500-2000 kcal/semana
-    - Bulking: Cardio mínimo (2-3x/semana) ~400-600 kcal/semana
-    - Manutenção: Cardio moderado (3-4x/semana) ~800-1200 kcal/semana
+    Intensidades (kcal/min):
+    - Leve: 5 kcal/min (caminhada, bike leve)
+    - Moderado: 8 kcal/min (caminhada rápida, bike moderada)
+    - Intenso: 11 kcal/min (corrida, HIIT, escada)
+    
+    Retorna: calorias semanais gastas no cardio
     """
-    # Valores baseados nos exercícios definidos em CARDIO_EXERCISES
-    # caminhada_inclinada: 8 cal/min × 30min = 240 cal
-    # bicicleta_moderada: 8 cal/min × 25min = 200 cal
-    # escada_moderada: 10 cal/min × 15min = 150 cal
-    # caminhada_leve: 5 cal/min × 30min = 150 cal
-    # bicicleta_leve: 6 cal/min × 20min = 120 cal
-    # caminhada_moderada: 6 cal/min × 30min = 180 cal
-    # escada_leve: 8 cal/min × 12min = 96 cal
+    if not cardio_minutos_semana or cardio_minutos_semana <= 0:
+        return 0
     
-    goal = goal.lower()
+    kcal_por_min = {
+        'leve': 5,
+        'light': 5,
+        'moderado': 8,
+        'moderate': 8,
+        'intenso': 11,
+        'intense': 11,
+        'high': 11
+    }
     
-    if goal == "cutting":
-        # 3x caminhada_inclinada (240×3=720) + 2x bike_moderada (200×2=400) + 1x escada (150)
-        return 1270
-    elif goal == "bulking":
-        # 2x caminhada_leve (150×2=300) + 1x bike_leve (120)
-        return 420
-    else:  # manutencao
-        # 2x caminhada_moderada (180×2=360) + 1x bike_moderada (200) + 1x escada_leve (96)
-        return 656
+    intensidade = intensidade_cardio.lower() if intensidade_cardio else 'moderado'
+    kcal_min = kcal_por_min.get(intensidade, 8)  # Default: moderado
+    
+    cardio_semanal = cardio_minutos_semana * kcal_min
+    print(f"[CARDIO] {cardio_minutos_semana}min/semana × {kcal_min}kcal/min = {cardio_semanal}kcal/semana")
+    
+    return cardio_semanal
 
 
 def calculate_tdee(weight: float, height: float, age: int, gender: str, 
                    activity_level: str, training_level: str, 
-                   goal: str = 'manutencao', include_cardio: bool = True) -> float:
+                   cardio_minutos_semana: int = 0, intensidade_cardio: str = 'moderado') -> float:
     """
     Calcula TDEE (Total Daily Energy Expenditure) usando Mifflin-St Jeor
     
-    NOVO: Inclui gasto do cardio planejado pelo app
-    
-    Fórmula:
-    1. BMR (Metabolismo Basal) = Mifflin-St Jeor
+    FÓRMULA COMPLETA:
+    1. BMR = Mifflin-St Jeor
     2. TDEE_base = BMR × Fator de Atividade + Bônus de Treino
-    3. Cardio_daily = Cardio_weekly / 7
-    4. TDEE_real = TDEE_base + Cardio_daily
+    3. Cardio_semanal = minutos × kcal/min (SE informado)
+    4. TDEE_real = TDEE_base + (Cardio_semanal / 7)
+    
+    Se cardio não informado: TDEE_real = TDEE_base
     """
-    # PASSO 1: Calcular BMR
+    # PASSO 1: Calcular BMR (Mifflin-St Jeor)
     if gender.lower() in ['masculino', 'male', 'm']:
         bmr = 10 * weight + 6.25 * height - 5 * age + 5
     else:
@@ -1268,54 +1269,58 @@ def calculate_tdee(weight: float, height: float, age: int, gender: str,
     # PASSO 4: TDEE Base
     tdee_base = bmr * multiplier + bonus
     
-    # PASSO 5: Adicionar gasto do cardio (NOVO!)
-    if include_cardio and goal:
-        cardio_weekly = get_cardio_weekly_burn(goal)
-        cardio_daily = cardio_weekly / 7
-        tdee_real = tdee_base + cardio_daily
-        print(f"[TDEE] BMR={bmr:.0f} × {multiplier} + bonus={bonus} = TDEE_base={tdee_base:.0f}")
-        print(f"[TDEE] Cardio semanal={cardio_weekly}kcal -> diário={cardio_daily:.0f}kcal")
-        print(f"[TDEE] TDEE_real = {tdee_base:.0f} + {cardio_daily:.0f} = {tdee_real:.0f}kcal")
-        return tdee_real
+    # PASSO 5: Adicionar cardio (SE informado)
+    cardio_semanal = calculate_cardio_burn(cardio_minutos_semana, intensidade_cardio)
     
-    return tdee_base
+    if cardio_semanal > 0:
+        cardio_diario = cardio_semanal / 7
+        tdee_real = tdee_base + cardio_diario
+        print(f"[TDEE] BMR={bmr:.0f} × {multiplier} + bonus={bonus} = TDEE_base={tdee_base:.0f}")
+        print(f"[TDEE] Cardio diário = {cardio_semanal}/7 = {cardio_diario:.0f}kcal")
+        print(f"[TDEE] TDEE_real = {tdee_base:.0f} + {cardio_diario:.0f} = {tdee_real:.0f}kcal")
+        return tdee_real
+    else:
+        print(f"[TDEE] BMR={bmr:.0f} × {multiplier} + bonus={bonus} = TDEE={tdee_base:.0f}kcal (sem cardio)")
+        return tdee_base
 
 
 def calculate_target_macros(weight: float, tdee: float, goal: str, gender: str = 'masculino') -> Dict:
     """
-    🎯 CALCULA MACROS EM 3 PASSOS
+    🎯 CALCULA MACROS COM LIMITES DE SEGURANÇA
     
-    1. Calcular TDEE (já vem calculado com cardio incluído)
-    2. Aplicar multiplicador baseado no objetivo
-    3. Distribuir macros a partir das calorias ajustadas
+    1. Aplicar multiplicador baseado no objetivo
+    2. Distribuir macros a partir das calorias ajustadas
+    3. Aplicar LIMITES obrigatórios
     
     CUTTING: TDEE × 0.80 (-20% déficit)
-       - Proteína: peso × 2.2
-       - Gordura: peso × 0.8
+       - Proteína: peso × 2.2g (máx 2.4g/kg)
+       - Gordura: peso × 0.8g (mín 0.6g/kg)
        - Carboidrato: calorias restantes
     
     MANUTENÇÃO: TDEE × 1.00
-       - Proteína: peso × 2.0
-       - Gordura: peso × 0.85
+       - Proteína: peso × 2.0g
+       - Gordura: peso × 0.85g
        - Carboidrato: calorias restantes
     
     BULKING: TDEE × 1.12 (+12% superávit)
-       - Proteína: peso × 2.0
-       - Gordura: peso × 0.9
+       - Proteína: peso × 2.0g
+       - Gordura: peso × 0.9g
        - Carboidrato: calorias restantes
     
-    NOTA: O TDEE já inclui o gasto do cardio planejado!
+    LIMITES OBRIGATÓRIOS:
+       - Gordura mínima: 0.6g/kg
+       - Proteína máxima: 2.4g/kg
     """
     
-    # PASSO 2: Ajusta TDEE baseado no objetivo
+    # PASSO 1: Ajusta TDEE baseado no objetivo
     if goal.lower() == 'cutting':
-        target_calories = tdee * 0.80  # -20% déficit (alterado de 15% para 20%)
+        target_calories = tdee * 0.80  # -20% déficit
     elif goal.lower() == 'bulking':
-        target_calories = tdee * 1.12  # +12% superávit (alterado de 15% para 12%)
+        target_calories = tdee * 1.12  # +12% superávit
     else:  # manutenção
         target_calories = tdee
     
-    # PASSO 3: Distribui macros
+    # PASSO 2: Distribui macros base
     if goal.lower() == 'cutting':
         protein = weight * 2.2
         fat = weight * 0.8
@@ -1326,7 +1331,14 @@ def calculate_target_macros(weight: float, tdee: float, goal: str, gender: str =
         protein = weight * 2.0
         fat = weight * 0.85
     
-    # Carboidratos = calorias restantes
+    # PASSO 3: Aplicar LIMITES obrigatórios
+    # Gordura mínima: 0.6g/kg
+    fat = max(fat, weight * 0.6)
+    
+    # Proteína máxima: 2.4g/kg
+    protein = min(protein, weight * 2.4)
+    
+    # PASSO 4: Carboidratos = calorias restantes
     protein_cal = protein * 4
     fat_cal = fat * 9
     carbs_cal = target_calories - protein_cal - fat_cal
@@ -1335,7 +1347,9 @@ def calculate_target_macros(weight: float, tdee: float, goal: str, gender: str =
     # Fibra mínima
     fiber_target = 30 if gender.lower() in ['masculino', 'male', 'm'] else 25
     
-    print(f"[MACROS] Peso={weight}kg, TDEE={tdee:.0f}, Goal={goal} -> Target={target_calories:.0f}kcal | P={protein:.0f}g C={carbs:.0f}g F={fat:.0f}g")
+    print(f"[MACROS] Peso={weight}kg, TDEE={tdee:.0f}, Goal={goal}")
+    print(f"[MACROS] Target={target_calories:.0f}kcal | P={protein:.0f}g C={carbs:.0f}g F={fat:.0f}g")
+    print(f"[MACROS] Limites aplicados: Gordura mín={weight*0.6:.0f}g, Proteína máx={weight*2.4:.0f}g")
     
     return {
         'calories': round(target_calories),
