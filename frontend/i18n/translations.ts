@@ -1456,7 +1456,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
         vegetable: 'Vegetal',
       },
       noDietGenerated: 'Aún no se ha generado ninguna dieta',
-      generateYourDiet: 'Genera tu dieta',
+      generateYourDiet: 'Genera sugerencias',
       generateMyDiet: 'Generar Mi Dieta',
       substitute: 'Sustituir',
       success: 'Éxito',
