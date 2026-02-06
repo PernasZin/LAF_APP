@@ -75,21 +75,13 @@ export default function ProgressScreen() {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [newWeight, setNewWeight] = useState('');
   const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState(1); // 1 = peso, 2 = avaliações, 3 = alimentos/obs
+  const [step, setStep] = useState(1); // 1 = peso, 2 = mini avaliação
 
-  // Questionário expandido
+  // Questionário simplificado
   const [questionnaire, setQuestionnaire] = useState({
-    diet: 7,
-    training: 7,
-    cardio: 7,
-    sleep: 7,
-    hydration: 7,
-    energy: 7,
-    hunger: 5,
-    followedDiet: 'yes', // yes, mostly, no
-    followedTraining: 'yes',
-    followedCardio: 'yes',
-    boredFoods: '',
+    followedDiet: 'yes' as 'yes' | 'mostly' | 'no',
+    followedTraining: 'yes' as 'yes' | 'mostly' | 'no',
+    feeling: 7, // 1-10 como está se sentindo
     observations: '',
   });
 
