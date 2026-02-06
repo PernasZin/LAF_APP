@@ -82,7 +82,6 @@ const RESTRICTION_TRANSLATIONS: Record<string, Record<string, string>> = {
   vegano: { pt: 'Vegano', en: 'Vegan', es: 'Vegano' },
   sem_lactose: { pt: 'Sem Lactose', en: 'Lactose Free', es: 'Sin Lactosa' },
   sem_gluten: { pt: 'Sem Glúten', en: 'Gluten Free', es: 'Sin Gluten' },
-  diabetico: { pt: 'Diabético', en: 'Diabetic', es: 'Diabético' },
 };
 
 // Traduções de categorias
