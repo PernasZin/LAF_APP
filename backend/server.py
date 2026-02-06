@@ -138,7 +138,7 @@ class UserProfileUpdate(BaseModel):
 
 class QuestionnaireResponse(BaseModel):
     """Respostas do questionário de acompanhamento (0-10)"""
-    diet: int = Field(ge=0, le=10, description="Como foi sua dieta? (0-10)")
+    diet: int = Field(ge=0, le=10, description="Como foi sua alimentação? (0-10)")
     training: int = Field(ge=0, le=10, description="Como foram seus treinos? (0-10)")
     cardio: int = Field(ge=0, le=10, description="Como foi seu cardio? (0-10)")
     sleep: int = Field(ge=0, le=10, description="Como foi seu sono? (0-10)")
