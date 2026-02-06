@@ -214,7 +214,7 @@ export const en = {
     markComplete: 'Mark as complete',
     completed: 'Completed',
     supplements: 'Supplements',
-    noSupplements: 'No supplements recommended',
+    noSupplements: 'No supplements suggested',
     tips: 'Tips',
     macros: 'Macros',
     foodDetails: 'Food Details',
