@@ -283,7 +283,7 @@ export default function ProgressScreen() {
       return (
         <>
           <Text style={[styles.stepTitle, { color: theme.textSecondary }]}>
-            {p.checkInTitle} - 1/3
+            {p.checkInTitle} - 1/2
           </Text>
           <View style={styles.weightInputContainer}>
             <TextInput
