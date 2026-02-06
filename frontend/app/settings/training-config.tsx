@@ -114,6 +114,9 @@ export default function TrainingConfigScreen() {
           // O backend usa available_time_per_session, mas também pode vir como training_duration
           setDuration(data.available_time_per_session || data.training_duration || 60);
           setLevel(data.training_level || 'intermediario');
+          // Cardio
+          setCardioMinutos(data.cardio_minutos_semana || 0);
+          setCardioIntensidade(data.intensidade_cardio || 'moderado');
         }
       }
     } catch (error) {
