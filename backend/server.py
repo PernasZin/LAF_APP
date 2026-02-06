@@ -550,12 +550,13 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
         sex=profile_data.sex
     )
     
-    # Calcula TDEE (INCLUI CARDIO PLANEJADO!)
+    # Calcula TDEE (USA CARDIO DO USUÁRIO SE INFORMADO)
     tdee = calculate_tdee(
         bmr=bmr,
         training_frequency=profile_data.weekly_training_frequency,
         training_level=profile_data.training_level,
-        goal=profile_data.goal  # NOVO: passa goal para calcular cardio
+        cardio_minutos_semana=profile_data.cardio_minutos_semana,
+        intensidade_cardio=profile_data.intensidade_cardio
     )
     
     # 🎯 PASSO 2: Ajusta TDEE baseado no objetivo (superávit/déficit)
