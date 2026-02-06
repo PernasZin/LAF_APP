@@ -109,6 +109,21 @@ export default function TermsScreen() {
             </GlassCard>
           </Animated.View>
 
+          {/* Supervisão Nutricional */}
+          <Animated.View entering={FadeInDown.delay(150).springify()}>
+            <GlassCard isDark={isDark} style={styles.card}>
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Scale size={20} color="#10B981" />
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>Supervisão Profissional</Text>
+                </View>
+                <Text style={[styles.sectionContent, { color: theme.textSecondary }]}>
+                  O conteúdo nutricional do aplicativo é supervisionado por nutricionista registrada no Conselho Regional de Nutrição (CRN): Beatriz Gabriel de Lucca – CRN-3 72882
+                </Text>
+              </View>
+            </GlassCard>
+          </Animated.View>
+
           {/* Version */}
           <Animated.View entering={FadeInDown.delay(200).springify()} style={styles.versionContainer}>
             <Text style={[styles.versionText, { color: theme.textTertiary }]}>
