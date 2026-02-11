@@ -254,7 +254,10 @@ export default function DietScreen() {
       if (response.ok) {
         const data = await response.json();
         setDietPlan(data);
-        Alert.alert('Sucesso!', 'Sua dieta foi gerada com sucesso!');
+        Alert.alert(
+          language === 'en-US' ? 'Done!' : language === 'es-ES' ? '¡Listo!' : 'Pronto!',
+          language === 'en-US' ? 'Your food suggestions are ready.' : language === 'es-ES' ? 'Tus sugerencias alimenticias están listas.' : 'Suas sugestões alimentares estão prontas.'
+        );
       } else {
         const errorData = await response.json().catch(() => ({}));
         Alert.alert('Erro', errorData.detail || 'Não foi possível gerar a dieta');
