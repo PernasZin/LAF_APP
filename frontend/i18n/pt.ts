@@ -52,7 +52,7 @@ export const pt = {
     signupButton: 'Criar Conta',
     orContinueWith: 'ou continue com',
     invalidEmail: 'E-mail inválido',
-    invalidPassword: 'Senha deve ter pelo menos 6 caracteres',
+    invalidPassword: 'A senha precisa ter pelo menos 6 caracteres',
     passwordMismatch: 'Senhas não conferem',
     loginError: 'Erro ao fazer login. Verifique suas credenciais.',
     signupError: 'Erro ao criar conta. Tente novamente.',
