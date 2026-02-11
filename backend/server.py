@@ -427,22 +427,67 @@ def calculate_tdee(bmr: float, training_frequency: int, training_level: str,
         print(f"[TDEE] BMR={bmr:.0f} × {factor} + bonus={bonus} = TDEE={tdee_base:.0f}kcal (sem cardio)")
         return tdee_base
 
-def calculate_target_calories(tdee: float, goal: str, weight: float) -> float:
+def calculate_target_calories(tdee: float, goal: str, weight: float, training_level: str = 'intermediario') -> float:
     """
-    🎯 Ajusta TDEE baseado no objetivo
+    🎯 Calcula calorias meta baseado no TDEE + Delta
     
-    CUTTING: TDEE × 0.80 (déficit de 20%)
-    MANUTENÇÃO: TDEE × 1.00
-    BULKING: TDEE × 1.12 (superávit de 12%)
+    REGRA PRINCIPAL: calorias_meta = TDEE + delta
+    
+    DELTAS POR OBJETIVO:
+    - Ganho de massa (bulking): +150 a +300 (padrão +200)
+    - Manutenção: -100 a +100 (padrão 0)
+    - Perda de gordura (cutting): -250 a -450 (padrão -300)
+    - Recomposição (iniciante/retorno): -150 a +150 (padrão 0)
+    
+    TRAVAS ANTI-EXAGERO:
+    - Máximo: +400 kcal acima do TDEE
+    - Mínimo: -600 kcal abaixo do TDEE
     """
     goal = normalize_goal(goal)
+    level = training_level.lower() if training_level else 'intermediario'
     
-    if goal == "cutting":
-        return tdee * 0.80  # -20% déficit
+    # Verifica se é recomposição (iniciante/novato)
+    is_recomp = level in ['novato', 'iniciante', 'beginner']
+    
+    # Define delta padrão baseado no objetivo
+    if is_recomp and goal in ['cutting', 'bulking']:
+        # Iniciantes podem fazer recomposição (ganhar músculo e perder gordura)
+        delta = 0
+        delta_reason = "recomposição (iniciante)"
+    elif goal == "cutting":
+        delta = -300  # Déficit moderado para preservar massa muscular
+        delta_reason = "perda de gordura"
     elif goal == "bulking":
-        return tdee * 1.12  # +12% superávit
+        delta = 200  # Superávit controlado para ganho limpo
+        delta_reason = "ganho de massa"
     else:  # manutenção
-        return tdee
+        delta = 0
+        delta_reason = "manutenção"
+    
+    # TRAVAS ANTI-EXAGERO (nunca violar!)
+    MAX_SURPLUS = 400   # Máximo +400 kcal
+    MAX_DEFICIT = -600  # Máximo -600 kcal
+    
+    # Aplica travas
+    if delta > MAX_SURPLUS:
+        delta = MAX_SURPLUS
+        print(f"[TRAVA] Delta reduzido para +{MAX_SURPLUS} (limite máximo de superávit)")
+    elif delta < MAX_DEFICIT:
+        delta = MAX_DEFICIT
+        print(f"[TRAVA] Delta aumentado para {MAX_DEFICIT} (limite máximo de déficit)")
+    
+    # Calcula meta
+    target = tdee + delta
+    
+    # Log detalhado (saída obrigatória)
+    print(f"[META] ════════════════════════════════════")
+    print(f"[META] TDEE: {tdee:.0f} kcal")
+    print(f"[META] Meta inicial: {target:.0f} kcal")
+    print(f"[META] Delta aplicado: {delta:+.0f} kcal ({delta_reason})")
+    print(f"[META] Nota: estimativa inicial; ajustes a cada 2 semanas pelo sistema do app")
+    print(f"[META] ════════════════════════════════════")
+    
+    return target
 
 def calculate_macros(target_calories: float, weight: float, goal: str) -> Dict[str, float]:
     """
