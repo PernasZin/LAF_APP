@@ -14,10 +14,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useIsFocused } from '@react-navigation/native';
+import { router } from 'expo-router';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { 
   Utensils, Sun, Coffee, Moon, Apple, ChefHat, RefreshCw,
-  ChevronRight, Check, X, Flame, Beef, Wheat, Droplets, AlertCircle
+  ChevronRight, Check, X, Flame, Beef, Wheat, Droplets, AlertCircle, BookOpen
 } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
