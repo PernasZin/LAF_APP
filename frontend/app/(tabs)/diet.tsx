@@ -194,25 +194,38 @@ export default function DietScreen() {
     try {
       setInitialLoading(true);
       const id = await AsyncStorage.getItem('userId');
+      console.log('🍽️ Diet Screen - Loading data for userId:', id);
+      console.log('🍽️ Diet Screen - BACKEND_URL:', BACKEND_URL);
       setUserId(id);
 
       if (id && BACKEND_URL) {
+        const profileUrl = `${BACKEND_URL}/api/user/profile/${id}`;
+        const dietUrl = `${BACKEND_URL}/api/diet/${id}`;
+        console.log('🍽️ Fetching profile from:', profileUrl);
+        console.log('🍽️ Fetching diet from:', dietUrl);
+        
         const [profileRes, dietRes] = await Promise.all([
-          safeFetch(`${BACKEND_URL}/api/user/profile/${id}`),
-          safeFetch(`${BACKEND_URL}/api/diet/${id}`),
+          safeFetch(profileUrl),
+          safeFetch(dietUrl),
         ]);
 
         if (profileRes.ok) {
           const data = await profileRes.json();
+          console.log('🍽️ Profile loaded - goal:', data.goal, 'tdee:', data.tdee, 'target_calories:', data.target_calories);
           setUserProfile(data);
+        } else {
+          console.log('🍽️ Profile fetch failed:', profileRes.status);
         }
         if (dietRes.ok) {
           const data = await dietRes.json();
+          console.log('🍽️ Diet loaded - computed_calories:', data.computed_calories);
           setDietPlan(data);
+        } else {
+          console.log('🍽️ Diet fetch failed:', dietRes.status);
         }
       }
     } catch (error) {
-      console.error('Error loading diet:', error);
+      console.error('🍽️ Error loading diet:', error);
     } finally {
       setInitialLoading(false);
     }
