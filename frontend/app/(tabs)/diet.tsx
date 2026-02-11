@@ -241,15 +241,16 @@ export default function DietScreen() {
 
   // Função para GERAR nova dieta
   const handleGenerateDiet = async () => {
-    if (!userId || !BACKEND_URL) {
+    if (!userId) {
       Alert.alert('Erro', 'Usuário não identificado');
       return;
     }
 
     setGenerating(true);
     try {
+      const baseUrl = BACKEND_URL || '';
       const response = await safeFetch(
-        `${BACKEND_URL}/api/diet/generate?user_id=${userId}`,
+        `${baseUrl}/api/diet/generate?user_id=${userId}`,
         { method: 'POST' }
       );
 
