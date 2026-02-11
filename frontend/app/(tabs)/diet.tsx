@@ -430,10 +430,14 @@ export default function DietScreen() {
                     <Utensils size={40} color={premiumColors.primary} strokeWidth={1.5} />
                   </View>
                   <Text style={[styles.emptyTitle, { color: theme.text }]}>
-                    Nenhuma dieta gerada
+                    {language === 'en-US' ? 'No meal plan yet' : language === 'es-ES' ? 'Sin plan alimenticio' : 'Nenhum plano alimentar'}
                   </Text>
                   <Text style={[styles.emptyDescription, { color: theme.textSecondary }]}>
-                    Gere suas sugestões alimentares baseadas no seu perfil e objetivos
+                    {language === 'en-US' 
+                      ? 'View food suggestions based on your profile (informational only)'
+                      : language === 'es-ES'
+                      ? 'Ver sugerencias alimenticias basadas en tu perfil (solo informativo)'
+                      : 'Veja sugestões alimentares baseadas no seu perfil (apenas informativo)'}
                   </Text>
                   <TouchableOpacity
                     style={[styles.generateButton, { opacity: generating ? 0.7 : 1 }]}
