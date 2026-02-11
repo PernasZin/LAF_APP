@@ -4637,7 +4637,7 @@ async def create_apple_reviewer_account():
         cardio_minutos_semana=profile.get("cardio_minutos_semana", 0),
         intensidade_cardio=profile.get("intensidade_cardio", "moderado")
     )
-    target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"])
+    target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"], profile["training_level"])
     macros = calculate_macros(target_calories, profile["weight"], profile["goal"])
     
     profile["tdee"] = round(tdee, 0)
@@ -4757,7 +4757,7 @@ async def create_premium_test_account(request: TestAccountRequest):
         cardio_minutos_semana=profile.get("cardio_minutos_semana", 0),
         intensidade_cardio=profile.get("intensidade_cardio", "moderado")
     )
-    target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"])
+    target_calories = calculate_target_calories(tdee, profile["goal"], profile["weight"], profile["training_level"])
     macros = calculate_macros(target_calories, profile["weight"], profile["goal"])
     
     profile["tdee"] = round(tdee, 0)
