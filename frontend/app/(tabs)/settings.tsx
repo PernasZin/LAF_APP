@@ -287,6 +287,13 @@ export default function SettingsScreen() {
             <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{t.settings.support.toUpperCase()}</Text>
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsRow
+                icon={<BookOpen />}
+                label={language === 'en-US' ? 'Methodology & Sources' : language === 'es-ES' ? 'Metodología y Fuentes' : 'Metodologia e Fontes'}
+                onPress={() => router.push('/settings/methodology')}
+                isDark={isDark}
+              />
+              <View style={[styles.divider, { backgroundColor: theme.border }]} />
+              <SettingsRow
                 icon={<Shield />}
                 label={t.settings.privacy}
                 onPress={() => router.push('/settings/privacy')}
