@@ -454,15 +454,24 @@ export default function DietScreen() {
             <GlassCard isDark={isDark} style={styles.disclaimerCard}>
               <View style={styles.disclaimerHeader}>
                 <AlertCircle size={20} color="#F59E0B" />
-                <Text style={[styles.disclaimerTitle, { color: theme.text }]}>Aviso e Fontes</Text>
+                <Text style={[styles.disclaimerTitle, { color: theme.text }]}>
+                  {language === 'en-US' ? 'Notice' : language === 'es-ES' ? 'Aviso' : 'Aviso'}
+                </Text>
               </View>
               
               <Text style={[styles.disclaimerText, { color: theme.textSecondary }]}>
-                Este app oferece informações gerais de nutrição e não substitui orientação de um nutricionista ou médico.
+                {language === 'en-US' 
+                  ? 'This app provides estimates based on formulas and public references. Informational and educational content. Does not replace professional guidance. Consult a healthcare professional before starting dietary or exercise changes.'
+                  : language === 'es-ES'
+                  ? 'Esta app ofrece estimaciones basadas en fórmulas y referencias públicas. Contenido informativo y educacional. No sustituye el acompañamiento profesional. Consulte un profesional de la salud antes de iniciar cambios alimentarios o de ejercicios.'
+                  : 'Este app fornece estimativas baseadas em fórmulas e referências públicas. Conteúdo informativo e educacional. Não substitui acompanhamento profissional. Consulte um profissional de saúde antes de iniciar mudanças alimentares ou de exercícios.'
+                }
               </Text>
               
               <View style={styles.sourcesContainer}>
-                <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>FONTES:</Text>
+                <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>
+                  {language === 'en-US' ? 'SOURCES:' : language === 'es-ES' ? 'FUENTES:' : 'FONTES:'}
+                </Text>
                 
                 <TouchableOpacity 
                   style={styles.sourceLink}
@@ -475,13 +484,39 @@ export default function DietScreen() {
                 
                 <TouchableOpacity 
                   style={styles.sourceLink}
+                  onPress={() => Linking.openURL('https://pubmed.ncbi.nlm.nih.gov/2305711/')}
+                >
+                  <Text style={[styles.sourceLinkText, { color: premiumColors.primary }]}>
+                    • Mifflin-St Jeor (PubMed)
+                  </Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.sourceLink}
                   onPress={() => Linking.openURL('https://fdc.nal.usda.gov/')}
                 >
                   <Text style={[styles.sourceLinkText, { color: premiumColors.primary }]}>
-                    • USDA FoodData Central (dados nutricionais)
+                    • USDA FoodData Central
                   </Text>
                 </TouchableOpacity>
               </View>
+              
+              {/* Botão para ver metodologia completa */}
+              <TouchableOpacity 
+                style={[styles.methodologyButton, { backgroundColor: premiumColors.primary + '15' }]}
+                onPress={() => router.push('/settings/methodology')}
+              >
+                <BookOpen size={18} color={premiumColors.primary} />
+                <Text style={[styles.methodologyButtonText, { color: premiumColors.primary }]}>
+                  {language === 'en-US' 
+                    ? 'View methodology and sources' 
+                    : language === 'es-ES' 
+                    ? 'Ver metodología y fuentes' 
+                    : 'Ver metodologia e fontes'
+                  }
+                </Text>
+                <ChevronRight size={18} color={premiumColors.primary} />
+              </TouchableOpacity>
             </GlassCard>
           </Animated.View>
 
