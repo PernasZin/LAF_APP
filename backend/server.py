@@ -608,7 +608,8 @@ async def create_or_update_user_profile(profile_data: UserProfileCreate):
     target_calories = calculate_target_calories(
         tdee=tdee,
         goal=profile_data.goal,
-        weight=profile_data.weight
+        weight=profile_data.weight,
+        training_level=profile_data.training_level
     )
     
     # 🎯 PASSO 3: Distribui macros a partir das calorias ajustadas
