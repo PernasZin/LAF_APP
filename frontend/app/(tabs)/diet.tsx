@@ -198,9 +198,11 @@ export default function DietScreen() {
       console.log('🍽️ Diet Screen - BACKEND_URL:', BACKEND_URL);
       setUserId(id);
 
-      if (id && BACKEND_URL) {
-        const profileUrl = `${BACKEND_URL}/api/user/profile/${id}`;
-        const dietUrl = `${BACKEND_URL}/api/diet/${id}`;
+      // Na web preview, BACKEND_URL é vazio (usa proxy), então verificamos apenas se id existe
+      if (id) {
+        const baseUrl = BACKEND_URL || '';
+        const profileUrl = `${baseUrl}/api/user/profile/${id}`;
+        const dietUrl = `${baseUrl}/api/diet/${id}`;
         console.log('🍽️ Fetching profile from:', profileUrl);
         console.log('🍽️ Fetching diet from:', dietUrl);
         
