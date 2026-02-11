@@ -49,7 +49,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "BACKEND_URL": "https://macro-safety-caps.preview.emergentagent.com"
+      "BACKEND_URL": "https://laf-app.onrender.com"
     }
   }
 }
