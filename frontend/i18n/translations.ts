@@ -1089,6 +1089,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       support: 'Support',
       privacy: 'Privacy Policy',
       termsOfUse: 'Terms of Use',
+      methodology: 'Methodology & Sources',
       help: 'Help',
       logout: 'Log Out',
       logoutTitle: 'Log Out',
