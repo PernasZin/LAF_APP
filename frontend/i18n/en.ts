@@ -52,7 +52,7 @@ export const en = {
     signupButton: 'Sign Up',
     orContinueWith: 'or continue with',
     invalidEmail: 'Invalid email',
-    invalidPassword: 'Password must be at least 6 characters',
+    invalidPassword: 'Password requires at least 6 characters',
     passwordMismatch: 'Passwords do not match',
     loginError: 'Login error. Check your credentials.',
     signupError: 'Sign up error. Please try again.',
