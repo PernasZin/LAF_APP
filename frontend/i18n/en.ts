@@ -79,7 +79,7 @@ export const en = {
     
     // Physical Data
     physicalData: 'Physical Data',
-    physicalDataSubtitle: 'We need this information to calculate your needs',
+    physicalDataSubtitle: 'This information helps calculate your estimates',
     weight: 'Weight (kg)',
     weightPlaceholder: 'Ex: 70',
     height: 'Height (cm)',
