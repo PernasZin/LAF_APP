@@ -15,7 +15,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { 
   User, Utensils, Bell, Shield, FileText, LogOut, 
   ChevronRight, Moon, Sun, Palette, Target, Scale,
-  Mail, HelpCircle, Star, ExternalLink, Dumbbell
+  Mail, HelpCircle, Star, ExternalLink, Dumbbell, BookOpen
 } from 'lucide-react-native';
 
 import { useSettingsStore } from '../../stores/settingsStore';
