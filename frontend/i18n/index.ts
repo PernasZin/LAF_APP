@@ -4,14 +4,14 @@
  */
 
 // Export everything from the main translations file
+// Helper functions for translating specific content
+
+import { translations, SupportedLanguage } from './translations';
+
 export * from './translations';
 
 // Export the useTranslation hook
 export * from './useTranslation';
-
-// Helper functions for translating specific content
-
-import { translations, SupportedLanguage } from './translations';
 
 /**
  * Translate food name based on language

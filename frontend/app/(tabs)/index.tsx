@@ -30,9 +30,9 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { lightTheme, darkTheme, premiumColors, radius, spacing, animations } from '../../theme/premium';
 import { useTranslation } from '../../i18n';
 import { HomeSkeleton } from '../../components';
+import { config } from '../../config';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-import { config } from '../../config';
 const BACKEND_URL = config.BACKEND_URL;
 
 // Safe fetch with timeout

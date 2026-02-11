@@ -7,7 +7,7 @@ import requests
 import json
 from datetime import datetime
 
-BASE_URL = "https://compliance-sweep.preview.emergentagent.com/api"
+BASE_URL = "https://macro-safety-caps.preview.emergentagent.com/api"
 HEADERS = {"Content-Type": "application/json"}
 
 def test_tofu_issue():

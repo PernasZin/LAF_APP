@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional
 
 # BASE URL from frontend .env
-BASE_URL = "https://compliance-sweep.preview.emergentagent.com/api"
+BASE_URL = "https://macro-safety-caps.preview.emergentagent.com/api"
 
 # Test credentials from review request
 TEST_EMAIL = "apple-reviewer@laf.com"
