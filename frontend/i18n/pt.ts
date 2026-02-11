@@ -281,7 +281,7 @@ export const pt = {
     title: 'Cardio',
     subtitle: 'Exercícios cardiovasculares',
     noCardio: 'Sem cardio para hoje',
-    recommended: 'Recomendado',
+    recommended: 'Sugerido',
     optional: 'Opcional',
     type: 'Tipo',
     duration: 'Duração',
