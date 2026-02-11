@@ -281,7 +281,7 @@ export const en = {
     title: 'Cardio',
     subtitle: 'Cardiovascular exercises',
     noCardio: 'No cardio for today',
-    recommended: 'Recommended',
+    recommended: 'Suggested',
     optional: 'Optional',
     type: 'Type',
     duration: 'Duration',
