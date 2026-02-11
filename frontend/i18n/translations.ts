@@ -1541,6 +1541,7 @@ export const translations: Record<SupportedLanguage, Translations> = {
       support: 'Soporte',
       privacy: 'Política de Privacidad',
       termsOfUse: 'Términos de Uso',
+      methodology: 'Metodología y Fuentes',
       help: 'Ayuda',
       logout: 'Cerrar Sesión',
       logoutTitle: 'Cerrar Sesión',
