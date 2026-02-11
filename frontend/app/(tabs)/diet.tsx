@@ -455,7 +455,9 @@ export default function DietScreen() {
                       ) : (
                         <>
                           <ChefHat size={20} color="#FFF" strokeWidth={2} />
-                          <Text style={styles.generateButtonText}>Gerar Minha Dieta</Text>
+                          <Text style={styles.generateButtonText}>
+                            {language === 'en-US' ? 'View Suggestions' : language === 'es-ES' ? 'Ver Sugerencias' : 'Ver Sugestões'}
+                          </Text>
                         </>
                       )}
                     </LinearGradient>
