@@ -288,7 +288,7 @@ export default function SettingsScreen() {
             <GlassCard isDark={isDark} style={styles.settingsCard}>
               <SettingsRow
                 icon={<BookOpen />}
-                label={language === 'en-US' ? 'Methodology & Sources' : language === 'es-ES' ? 'Metodología y Fuentes' : 'Metodologia e Fontes'}
+                label={t.settings.methodology || 'Metodologia e Fontes'}
                 onPress={() => router.push('/settings/methodology')}
                 isDark={isDark}
               />
