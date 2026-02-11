@@ -449,8 +449,14 @@ export default function HomeScreen() {
 
   const loadProfile = async () => {
     try {
+      // Primeiro carrega do AsyncStorage para UI imediata
+      // Mas NÃO usa se o backend retornar dados atualizados
+      let localProfile = null;
       const profileData = await AsyncStorage.getItem('userProfile');
-      if (profileData) setProfile(JSON.parse(profileData));
+      if (profileData) {
+        localProfile = JSON.parse(profileData);
+        setProfile(localProfile); // Renderiza UI inicial enquanto carrega backend
+      }
       
       const storedUserId = await AsyncStorage.getItem('userId');
       if (storedUserId) setUserId(storedUserId);
