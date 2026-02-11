@@ -724,7 +724,7 @@ async def update_user_profile(user_id: str, update_data: UserProfileUpdate):
                 cardio_minutos_semana=new_cardio_min,
                 intensidade_cardio=new_cardio_int
             )
-            target_calories = calculate_target_calories(tdee, new_goal, new_weight)
+            target_calories = calculate_target_calories(tdee, new_goal, new_weight, new_level)
             macros = calculate_macros(target_calories, new_weight, new_goal)
             
             update_dict["tdee"] = round(tdee, 0)
