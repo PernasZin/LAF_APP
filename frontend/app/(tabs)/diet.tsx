@@ -1015,4 +1015,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textDecorationLine: 'underline',
   },
+  methodologyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.lg,
+    marginTop: spacing.lg,
+  },
+  methodologyButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
 });
