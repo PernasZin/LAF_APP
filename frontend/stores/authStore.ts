@@ -54,6 +54,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   
   login: async (userId: string, token: string, profileCompleted: boolean) => {
+    // IMPORTANTE: Limpar cache de perfil antigo antes de salvar novo login
+    // Isso evita que dados de outro usuário ou dados desatualizados apareçam
+    await AsyncStorage.removeItem('userProfile');
+    
     await AsyncStorage.setItem('token', token);
     await AsyncStorage.setItem('userId', userId);
     await AsyncStorage.setItem('profileCompleted', profileCompleted ? 'true' : 'false');
